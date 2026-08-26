@@ -1,0 +1,86 @@
+<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.Master.cs" Inherits="StageUp.UI.SiteMaster" %>
+
+<!DOCTYPE html>
+<html lang="es">
+<head id="Head1" runat="server">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><asp:ContentPlaceHolder ID="TitleContent" runat="server">StageUp</asp:ContentPlaceHolder></title>
+    <link rel="icon" type="image/png" href="<%= ResolveUrl("~/Content/Images/favicon.png") %>" />
+    <link id="SiteStyles" runat="server" href="~/Content/Css/site.css" rel="stylesheet" />
+    <asp:ContentPlaceHolder ID="HeadContent" runat="server" />
+</head>
+<body>
+    <form id="form1" runat="server">
+        <a class="skip-link" href="#main-content">Saltar al contenido principal</a>
+
+        <header class="site-header">
+            <div class="navbar container-wide">
+                <a id="BrandLink" runat="server" class="brand" href="~/Default.aspx" aria-label="StageUp - Inicio">
+                    <asp:Image ID="NavbarLogo" runat="server" CssClass="brand-logo" ImageUrl="~/Content/Images/stageup-isotipo.png" AlternateText="" />
+                    <span class="brand-name">StageUp</span>
+                </a>
+
+                <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="public-navigation" data-nav-toggle>
+                    <span class="sr-only">Abrir navegación</span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <div id="public-navigation" class="navbar-panel" data-nav-panel>
+                    <nav class="primary-navigation" aria-label="Navegación principal">
+                        <a id="HomeLink" runat="server" class="nav-link" href="~/Default.aspx">Inicio</a>
+                        <span class="nav-link nav-link-disabled" aria-disabled="true" title="Disponible próximamente">Explorar espacios</span>
+                        <span class="nav-link nav-link-disabled" aria-disabled="true" title="Disponible próximamente">Ayuda</span>
+                    </nav>
+
+                    <div class="public-actions">
+                        <a id="LoginLink" runat="server" class="button button-ghost button-small" href="~/IniciarSesion.aspx">Iniciar sesión</a>
+                        <a id="RegisterLink" runat="server" class="button button-primary button-small" href="~/Registrarse.aspx">Registrarse</a>
+                    </div>
+
+                    <div class="authenticated-tools" data-authenticated-tools hidden>
+                        <span class="auth-tool" aria-disabled="true">Notificaciones</span>
+                        <span class="auth-tool" aria-disabled="true">Mi perfil</span>
+                        <span class="user-summary" aria-label="Datos del usuario">Usuario</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="app-shell">
+            <aside class="app-sidebar" data-authenticated-sidebar hidden aria-label="Navegación de usuario autenticado">
+                <div class="sidebar-heading">Mi StageUp</div>
+                <nav class="sidebar-navigation">
+                    <span class="sidebar-link" aria-disabled="true">Mis reservas</span>
+                    <span class="sidebar-link" aria-disabled="true">Mi perfil</span>
+                    <span class="sidebar-link" aria-disabled="true">Mis espacios</span>
+                    <span class="sidebar-link" aria-disabled="true">Mis actividades</span>
+                    <span class="sidebar-link" aria-disabled="true">Panel interno</span>
+                </nav>
+            </aside>
+
+            <main id="main-content" class="page-content">
+                <asp:ContentPlaceHolder ID="MainContent" runat="server" />
+            </main>
+        </div>
+
+        <footer class="site-footer">
+            <div class="footer-content container-wide">
+                <div class="footer-brand">
+                    <span class="footer-brand-name">StageUp</span>
+                    <span class="footer-tagline">Encontrá tu espacio, potenciá tu arte.</span>
+                </div>
+                <nav class="footer-navigation" aria-label="Información legal">
+                    <span class="footer-link" aria-disabled="true" title="Página pendiente">Términos y condiciones</span>
+                    <span class="footer-link" aria-disabled="true" title="Página pendiente">Política de privacidad</span>
+                </nav>
+            </div>
+        </footer>
+
+        <asp:ContentPlaceHolder ID="PageScripts" runat="server" />
+        <script src="<%= ResolveUrl("~/Scripts/site.js") %>"></script>
+    </form>
+</body>
+</html>

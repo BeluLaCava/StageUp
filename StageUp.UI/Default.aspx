@@ -13,8 +13,21 @@
                     StageUp conecta a quienes necesitan un espacio para crear, ensayar, enseñar o presentar
                     con gestores que quieren dar mayor visibilidad a sus espacios artísticos.
                 </p>
+
+                <div class="hero-search" role="search" aria-label="Buscar espacios artísticos" data-search-box>
+                    <label class="sr-only" for="home-search">¿Qué espacio estás buscando?</label>
+                    <div class="search-input-wrap">
+                        <span class="search-icon" aria-hidden="true"></span>
+                        <input id="home-search" type="search" placeholder="Teatro, salón de danza, estudio, escenario..." autocomplete="off" />
+                    </div>
+                    <button class="button button-primary search-submit" type="button" data-search-redirect data-search-target="Explorar/ResultadosBusqueda.aspx">
+                        <span>Buscar</span>
+                    </button>
+                    <a class="button button-secondary search-filters-link" href="Explorar/ResultadosBusqueda.aspx#filtros">Filtros</a>
+                </div>
+
                 <div class="hero-actions">
-                    <span class="button button-primary" aria-disabled="true" title="Disponible próximamente">Explorar espacios</span>
+                    <a class="button button-primary" href="Explorar/ResultadosBusqueda.aspx">Explorar espacios</a>
                     <a class="button button-secondary" href="Registrarse.aspx">Registrarse</a>
                 </div>
             </div>

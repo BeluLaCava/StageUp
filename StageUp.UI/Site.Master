@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><asp:ContentPlaceHolder ID="TitleContent" runat="server">StageUp</asp:ContentPlaceHolder></title>
     <link rel="icon" type="image/png" href="<%= ResolveUrl("~/Content/Images/favicon.png") %>" />
-    <link id="SiteStyles" runat="server" href="~/Content/Css/site.css" rel="stylesheet" />
+    <link id="SiteStyles" href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20260826-3" rel="stylesheet" />
     <asp:ContentPlaceHolder ID="HeadContent" runat="server" />
 </head>
 <body>
@@ -80,7 +80,7 @@
         </footer>
 
         <asp:ContentPlaceHolder ID="PageScripts" runat="server" />
-        <script src="<%= ResolveUrl("~/Scripts/site.js") %>"></script>
+        <script src="<%= ResolveUrl("~/Scripts/site.js") %>?v=20260826-1"></script>
     </form>
 </body>
 </html>

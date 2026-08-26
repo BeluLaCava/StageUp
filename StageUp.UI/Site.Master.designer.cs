@@ -18,6 +18,10 @@ namespace StageUp.UI
 
         protected global::System.Web.UI.HtmlControls.HtmlAnchor HomeLink;
 
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor ExploreLink;
+
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor HelpLink;
+
         protected global::System.Web.UI.HtmlControls.HtmlAnchor LoginLink;
 
         protected global::System.Web.UI.HtmlControls.HtmlAnchor RegisterLink;

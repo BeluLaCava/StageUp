@@ -44,12 +44,33 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ayuda\CentroAyuda.aspx.cs">
+      <DependentUpon>CentroAyuda.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Ayuda\CentroAyuda.aspx.designer.cs">
+      <DependentUpon>CentroAyuda.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Default.aspx.cs">
       <DependentUpon>Default.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Default.aspx.designer.cs">
       <DependentUpon>Default.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Explorar\ResultadosBusqueda.aspx.cs">
+      <DependentUpon>ResultadosBusqueda.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Explorar\ResultadosBusqueda.aspx.designer.cs">
+      <DependentUpon>ResultadosBusqueda.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Explorar\DetalleEspacio.aspx.cs">
+      <DependentUpon>DetalleEspacio.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Explorar\DetalleEspacio.aspx.designer.cs">
+      <DependentUpon>DetalleEspacio.aspx</DependentUpon>
     </Compile>
     <Compile Include="IniciarSesion.aspx.cs">
       <DependentUpon>IniciarSesion.aspx</DependentUpon>
@@ -73,11 +94,14 @@
     <Compile Include="Site.Master.designer.cs">
       <DependentUpon>Site.Master</DependentUpon>
     </Compile>
+    <Content Include="Ayuda\CentroAyuda.aspx" />
     <Content Include="Content\Css\site.css" />
     <Content Include="Content\Images\favicon.png" />
     <Content Include="Content\Images\stageup-isotipo.png" />
     <Content Include="Content\Images\stageup-logo.png" />
     <Content Include="Default.aspx" />
+    <Content Include="Explorar\DetalleEspacio.aspx" />
+    <Content Include="Explorar\ResultadosBusqueda.aspx" />
     <Content Include="IniciarSesion.aspx" />
     <Content Include="Registrarse.aspx" />
     <Content Include="Scripts\site.js" />

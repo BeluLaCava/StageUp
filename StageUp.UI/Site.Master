@@ -73,8 +73,10 @@
                     <span class="footer-tagline">Encontrá tu espacio, potenciá tu arte.</span>
                 </div>
                 <nav class="footer-navigation" aria-label="Información legal">
-                    <span class="footer-link" aria-disabled="true" title="Página pendiente">Términos y condiciones</span>
-                    <span class="footer-link" aria-disabled="true" title="Página pendiente">Política de privacidad</span>
+                    <a id="AboutLink" runat="server" class="footer-link" href="~/QuienesSomos.aspx">Quiénes somos</a>
+                    <a id="ContactLink" runat="server" class="footer-link" href="~/Contactenos.aspx">Contáctenos</a>
+                    <a id="TermsLink" runat="server" class="footer-link" href="~/TerminosCondiciones.aspx">Términos y condiciones</a>
+                    <a id="PrivacyLink" runat="server" class="footer-link" href="~/PoliticaPrivacidad.aspx">Política de privacidad</a>
                 </nav>
             </div>
         </footer>

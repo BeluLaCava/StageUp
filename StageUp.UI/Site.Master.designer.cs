@@ -28,6 +28,14 @@ namespace StageUp.UI
 
         protected global::System.Web.UI.WebControls.ContentPlaceHolder MainContent;
 
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor AboutLink;
+
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor ContactLink;
+
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor TermsLink;
+
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor PrivacyLink;
+
         protected global::System.Web.UI.WebControls.ContentPlaceHolder PageScripts;
 
     }

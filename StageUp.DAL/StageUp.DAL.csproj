@@ -29,9 +29,17 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ConexionSql.cs" />
+    <Compile Include="EjecutorStoredProcedure.cs" />
+    <Compile Include="DAL_UsuarioExterno.cs" />
+    <Compile Include="DAL_CodigoActivacion.cs" />
+    <Compile Include="DAL_CodigoRecuperacion.cs" />
+    <Compile Include="DAL_RegistroActividad.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

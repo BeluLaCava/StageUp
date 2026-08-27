@@ -7,7 +7,7 @@ namespace StageUp.DAL
     /// Punto único para obtener conexiones a SQL Server. Lee la cadena de
     /// conexión "StageUpConnectionString" del Web.config del proyecto que
     /// consume esta capa (StageUp.UI). No contiene reglas de negocio: solo
-    /// acceso a datos, como exige AGENTS.md para la capa DAL.
+    /// acceso a datos.
     /// </summary>
     public static class ConexionSql
     {

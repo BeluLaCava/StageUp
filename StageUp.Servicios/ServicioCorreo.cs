@@ -11,11 +11,9 @@ namespace StageUp.Servicios
     /// La configuración SMTP se lee de Web.config (appSettings) para no
     /// tener credenciales hardcodeadas en el código.
     ///
-    /// Nota: por ahora Web.config tiene valores de ejemplo/placeholder
+    /// por ahora Web.config tiene valores de ejemplo/placeholder
     /// (ver comentarios en el propio Web.config). Para que el envío real
     /// funcione hace falta cargar una cuenta de correo del proyecto
-    /// (se recomienda una cuenta de Gmail propia, con contraseña de
-    /// aplicación, como sugiere la pauta de la cátedra).
     /// Todos los métodos son tolerantes a fallas: si el envío no se puede
     /// completar, devuelven false en vez de romper el flujo del caso de
     /// uso (ver caminos alternativos A6 de CU-001-001 y A4 de CU-001-002).

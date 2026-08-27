@@ -1,12 +1,7 @@
 namespace StageUp.Seguridad
 {
     /// <summary>
-    /// Parámetros de seguridad de la plataforma. Varios de estos valores
-    /// (vigencia del código de activación, criterios de contraseña) no
-    /// están definidos de forma explícita en la documentación de StageUp
-    /// para este avance; se dejaron acá, centralizados y documentados,
-    /// como una decisión técnica razonable a validar con la cátedra/cliente
-    /// más adelante si hiciera falta ajustarlos.
+    /// Parámetros de seguridad de la plataforma. 
     /// </summary>
     public static class ConfiguracionSeguridad
     {
@@ -28,8 +23,7 @@ namespace StageUp.Seguridad
         public const int LongitudCodigo = 6;
 
         /// <summary>
-        /// Longitud mínima de contraseña (criterio de seguridad no definido
-        /// explícitamente en la documentación; se asume un mínimo razonable).
+        /// Longitud mínima de contraseña (mínimo razonable).
         /// </summary>
         public const int LongitudMinimaPassword = 8;
     }

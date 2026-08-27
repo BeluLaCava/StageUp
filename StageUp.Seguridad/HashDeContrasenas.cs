@@ -6,9 +6,7 @@ namespace StageUp.Seguridad
     /// <summary>
     /// Hashing de contraseñas con sal aleatoria por usuario (PBKDF2 /
     /// Rfc2898DeriveBytes, disponible en .NET Framework sin paquetes
-    /// externos). Reemplaza el esquema de SHA-256 sin sal que usaba el
-    /// proyecto de referencia Ingenieria-Software, que hoy se considera
-    /// débil para el manejo de credenciales.
+    /// externos). 
     /// El resultado se guarda como un único string con el formato:
     ///   {iteraciones}.{saltBase64}.{hashBase64}
     /// para no necesitar columnas adicionales en UsuarioExterno.passwordHash.

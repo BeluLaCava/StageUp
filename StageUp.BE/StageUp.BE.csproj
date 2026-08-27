@@ -32,6 +32,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Entidades\UsuarioExterno.cs" />
+    <Compile Include="Entidades\CodigoActivacion.cs" />
+    <Compile Include="Entidades\CodigoRecuperacion.cs" />
+    <Compile Include="Entidades\RegistroActividad.cs" />
+    <Compile Include="Entidades\AreaInterna.cs" />
+    <Compile Include="Entidades\RolInterno.cs" />
+    <Compile Include="Entidades\PermisoInterno.cs" />
+    <Compile Include="Entidades\UsuarioInterno.cs" />
+    <Compile Include="Enumerados\EstadoCuentaExterno.cs" />
+    <Compile Include="Enumerados\PerfilUsuarioExterno.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

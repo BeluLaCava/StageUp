@@ -29,9 +29,14 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ConfiguracionSeguridad.cs" />
+    <Compile Include="HashDeContrasenas.cs" />
+    <Compile Include="GeneradorDeCodigos.cs" />
+    <Compile Include="GestorDeSesion.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

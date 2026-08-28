@@ -92,6 +92,16 @@ namespace StageUp.UI
             MostrarMensaje(pnlMensajeActivacion, litMensajeActivacion, resultado.Mensaje, !resultado.Exitoso);
         }
 
+        protected void cvAceptaTerminos_ServerValidate(object source, ServerValidateEventArgs args)
+        {
+            args.IsValid = chkAceptaTerminos.Checked;
+        }
+
+        protected void cvAceptaPoliticaPrivacidad_ServerValidate(object source, ServerValidateEventArgs args)
+        {
+            args.IsValid = chkAceptaPoliticaPrivacidad.Checked;
+        }
+
         private static void MostrarMensaje(System.Web.UI.WebControls.Panel panel, Literal literal, string mensaje, bool esError)
         {
             literal.Text = mensaje;

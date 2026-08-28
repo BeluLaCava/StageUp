@@ -70,9 +70,9 @@
                         Acepto los <a class="text-link" href="TerminosCondiciones.aspx" target="_blank" rel="noopener">Términos y condiciones</a>.
                     </span>
                 </label>
-                <asp:RequiredFieldValidator ID="rfvAceptaTerminos" runat="server" ControlToValidate="chkAceptaTerminos"
+                <asp:CustomValidator ID="cvAceptaTerminos" runat="server" OnServerValidate="cvAceptaTerminos_ServerValidate"
                     Display="Dynamic" CssClass="field-error-text" ErrorMessage="Debés aceptar los Términos y condiciones."
-                    InitialValue="false" ValidationGroup="Registro" />
+                    ValidationGroup="Registro"  />
 
                 <label class="checkbox-field" for="<%= chkAceptaPoliticaPrivacidad.ClientID %>">
                     <asp:CheckBox ID="chkAceptaPoliticaPrivacidad" runat="server" />
@@ -80,9 +80,9 @@
                         Acepto la <a class="text-link" href="PoliticaPrivacidad.aspx" target="_blank" rel="noopener">Política de privacidad</a>.
                     </span>
                 </label>
-                <asp:RequiredFieldValidator ID="rfvAceptaPoliticaPrivacidad" runat="server" ControlToValidate="chkAceptaPoliticaPrivacidad"
+                <asp:CustomValidator ID="cvAceptaPoliticaPrivacidad" runat="server" OnServerValidate="cvAceptaPoliticaPrivacidad_ServerValidate"
                     Display="Dynamic" CssClass="field-error-text" ErrorMessage="Debés aceptar la Política de privacidad."
-                    InitialValue="false" ValidationGroup="Registro" />
+                    ValidationGroup="Registro" />
 
                 <asp:Button ID="btnRegistrarse" runat="server" CssClass="button button-primary button-full" Text="Registrarse"
                     ValidationGroup="Registro" OnClick="btnRegistrarse_Click" />

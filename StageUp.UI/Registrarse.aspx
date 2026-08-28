@@ -72,7 +72,7 @@
                 </label>
                 <asp:CustomValidator ID="cvAceptaTerminos" runat="server" OnServerValidate="cvAceptaTerminos_ServerValidate"
                     Display="Dynamic" CssClass="field-error-text" ErrorMessage="Debés aceptar los Términos y condiciones."
-                    ValidationGroup="Registro"  />
+                    ValidationGroup="Registro" />
 
                 <label class="checkbox-field" for="<%= chkAceptaPoliticaPrivacidad.ClientID %>">
                     <asp:CheckBox ID="chkAceptaPoliticaPrivacidad" runat="server" />

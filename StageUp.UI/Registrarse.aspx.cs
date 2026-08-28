@@ -92,6 +92,15 @@ namespace StageUp.UI
             MostrarMensaje(pnlMensajeActivacion, litMensajeActivacion, resultado.Mensaje, !resultado.Exitoso);
         }
 
+        /// <summary>
+        /// Validación server-side de los checkboxes de T&C/Política de
+        /// privacidad. Se usa CustomValidator (en vez de RequiredFieldValidator
+        /// con ControlToValidate apuntando al CheckBox) porque, en este
+        /// proyecto, apuntar un validador estándar directo a un CheckBox
+        /// tira en tiempo de ejecución "No se puede validar el control...".
+        /// Consultando el estado del control directamente acá se evita ese
+        /// problema por completo.
+        /// </summary>
         protected void cvAceptaTerminos_ServerValidate(object source, ServerValidateEventArgs args)
         {
             args.IsValid = chkAceptaTerminos.Checked;

@@ -35,6 +35,7 @@
     <Compile Include="ResultadoOperacion.cs" />
     <Compile Include="BLL_Bitacora.cs" />
     <Compile Include="BLL_UsuarioExterno.cs" />
+    <Compile Include="BLL_EspacioArtistico.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

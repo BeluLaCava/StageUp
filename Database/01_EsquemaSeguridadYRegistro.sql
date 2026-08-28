@@ -6,15 +6,6 @@
 
     Fuente de verdad: docs/referencia/StageUp_Tecnico.docx
     (10.7.4 Diccionario de Datos, CU-001-001, CU-001-002, CU-001-012, CU-001-013).
-
-    Cómo ejecutar:
-    1. Crear la base de datos StageUp (o la que se prefiera) en SQL Server local.
-    2. Ejecutar este script completo contra esa base (SQL Server Management Studio
-       o sqlcmd), en una base vacía o nueva.
-
-    Este script es incremental: agrega únicamente lo necesario para el
-    Avance 1. No incluye todavía tablas del core del negocio (espacios,
-    reservas, etc.), que corresponden a entregas posteriores.
 */
 
 SET NOCOUNT ON;

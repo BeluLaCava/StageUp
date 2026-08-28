@@ -37,6 +37,7 @@
     <Compile Include="MPP_CodigoActivacion.cs" />
     <Compile Include="MPP_CodigoRecuperacion.cs" />
     <Compile Include="MPP_RegistroActividad.cs" />
+    <Compile Include="MPP_EspacioArtistico.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

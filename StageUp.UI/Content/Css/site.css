@@ -3159,3 +3159,49 @@ body.overlay-open {
     padding-top: 1.5rem;
     border-top: 1px solid var(--color-border);
 }
+
+/* =====================================================================
+   Mis espacios (ABMC de EspacioArtistico).
+   ===================================================================== */
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-top: 1rem;
+}
+
+.space-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.space-row:last-child {
+    border-bottom: none;
+}
+
+.space-row-info h3 {
+    margin: 0 0 0.3rem;
+    color: var(--color-primary-dark);
+}
+
+.space-row-info p {
+    margin: 0 0 0.25rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+.space-row-descripcion {
+    color: var(--color-text) !important;
+}
+
+.space-row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    flex-shrink: 0;
+}

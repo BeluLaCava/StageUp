@@ -122,6 +122,13 @@
     <Compile Include="Site.Master.designer.cs">
       <DependentUpon>Site.Master</DependentUpon>
     </Compile>
+    <Compile Include="MisEspacios.aspx.cs">
+      <DependentUpon>MisEspacios.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="MisEspacios.aspx.designer.cs">
+      <DependentUpon>MisEspacios.aspx</DependentUpon>
+    </Compile>
     <Content Include="Ayuda\CentroAyuda.aspx" />
     <Content Include="Content\Css\site.css" />
     <Content Include="Content\Images\favicon.png" />
@@ -136,6 +143,7 @@
     <Content Include="Contactenos.aspx" />
     <Content Include="TerminosCondiciones.aspx" />
     <Content Include="PoliticaPrivacidad.aspx" />
+    <Content Include="MisEspacios.aspx" />
     <Content Include="Scripts\site.js" />
     <Content Include="Site.Master" />
     <Content Include="Web.config" />

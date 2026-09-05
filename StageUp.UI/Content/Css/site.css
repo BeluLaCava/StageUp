@@ -2834,6 +2834,18 @@ body.overlay-open {
     line-height: 1.2;
 }
 
+.space-card-excerpt {
+    margin: -0.6rem 0 1.2rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.space-card-meta {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+}
+
 .space-card-footer {
     display: flex;
     align-items: flex-end;

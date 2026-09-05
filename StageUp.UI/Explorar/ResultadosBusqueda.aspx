@@ -45,32 +45,32 @@
                         <h2 id="results-title">Espacios para explorar</h2>
                     </div>
                     <div class="results-grid" aria-live="polite" data-results-grid>
-                        <div class="empty-state explore-empty-state">
+                        <asp:Repeater ID="rptEspaciosPublicados" runat="server">
+                            <ItemTemplate>
+                                <article class="space-card">
+                                    <a class="space-card-link" href='<%# "DetalleEspacio.aspx?id=" + Eval("IdEspacioArtistico") %>'>
+                                        <div class="space-card-media"></div>
+                                        <div class="space-card-body">
+                                            <p class="space-card-location"><%# Eval("TipoEspacio") %></p>
+                                            <h3><%# Eval("NombreEspacio") %></h3>
+                                            <p class="space-card-excerpt"><%# ObtenerResumen(Eval("Descripcion") as string) %></p>
+                                            <div class="space-card-footer">
+                                                <span class="space-card-meta"><%# Eval("FechaPublicacion", "Publicado el {0:dd/MM/yyyy}") %></span>
+                                                <span class="space-card-action">Ver detalle <span aria-hidden="true">→</span></span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </article>
+                            </ItemTemplate>
+                        </asp:Repeater>
+
+                        <asp:Panel ID="pnlSinResultados" runat="server" CssClass="empty-state explore-empty-state">
                             <div class="empty-state-icon" aria-hidden="true"><span></span></div>
-                            <h3>Todavía no hay espacios para mostrar</h3>
-                            <p>Cuando existan espacios publicados, vas a poder encontrarlos acá según tus preferencias.</p>
-                            <button class="button button-secondary" type="button" data-filter-open>Revisar filtros</button>
-                        </div>
+                            <h3><asp:Literal ID="litTituloSinResultados" runat="server" Text="Todavía no hay espacios para mostrar" /></h3>
+                            <p><asp:Literal ID="litDescripcionSinResultados" runat="server" Text="Cuando existan espacios publicados, vas a poder encontrarlos acá según tus preferencias." /></p>
+                        </asp:Panel>
                     </div>
                 </div>
-                <template id="space-card-template">
-                    <article class="space-card" data-space-card>
-                        <a class="space-card-link" href="DetalleEspacio.aspx" data-space-link>
-                            <div class="space-card-media">
-                                <div class="space-card-image" data-space-image></div>
-                                <span class="space-card-rating" data-space-rating></span>
-                            </div>
-                            <div class="space-card-body">
-                                <p class="space-card-location" data-space-location></p>
-                                <h3 data-space-name></h3>
-                                <div class="space-card-footer">
-                                    <span class="space-card-price" data-space-price></span>
-                                    <span class="space-card-action">Ver detalle <span aria-hidden="true">→</span></span>
-                                </div>
-                            </div>
-                        </a>
-                    </article>
-                </template>
             </section>
         </div>
     </section>

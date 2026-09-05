@@ -93,6 +93,53 @@ namespace StageUp.BLL
             return _mppEspacio.ListarPorUsuarioGestor(idUsuarioGestor);
         }
 
+        /// <summary>
+        /// Catálogo público (CU-001-006, búsqueda simple): lista los
+        /// espacios publicados y activos, opcionalmente filtrados por un
+        /// único término de texto libre contra nombre, tipo y descripción.
+        /// La búsqueda avanzada por ubicación/capacidad/precio/
+        /// características queda para el Avance 2, cuando existan esas
+        /// entidades relacionadas.
+        /// </summary>
+        public List<EspacioArtistico> ListarPublicados(string textoBusqueda)
+        {
+            List<EspacioArtistico> publicados = _mppEspacio.ListarPublicados();
+
+            if (string.IsNullOrWhiteSpace(textoBusqueda))
+            {
+                return publicados;
+            }
+
+            string termino = textoBusqueda.Trim();
+            return publicados.FindAll(espacio =>
+                ContieneTexto(espacio.NombreEspacio, termino) ||
+                ContieneTexto(espacio.TipoEspacio, termino) ||
+                ContieneTexto(espacio.Descripcion, termino));
+        }
+
+        /// <summary>
+        /// Detalle público de un espacio (CU-001-006/CU-001-008): solo
+        /// devuelve el espacio si está publicado y activo, para que nadie
+        /// pueda ver por URL directa un espacio en borrador, pausado o
+        /// dado de baja de otro usuario.
+        /// </summary>
+        public EspacioArtistico ObtenerDetallePublicado(int idEspacioArtistico)
+        {
+            EspacioArtistico espacio = _mppEspacio.ObtenerPorId(idEspacioArtistico);
+            if (espacio == null || !espacio.Activo || !espacio.Publicado)
+            {
+                return null;
+            }
+
+            return espacio;
+        }
+
+        private static bool ContieneTexto(string valor, string termino)
+        {
+            return !string.IsNullOrEmpty(valor) &&
+                valor.IndexOf(termino, System.StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         public ResultadoOperacion Publicar(int idEspacioArtistico, int idUsuarioGestorSolicitante)
         {
             EspacioArtistico espacio = _mppEspacio.ObtenerPorId(idEspacioArtistico);

@@ -35,27 +35,29 @@
                         <a id="HelpLink" runat="server" class="nav-link" href="~/Ayuda/CentroAyuda.aspx">Ayuda</a>
                     </nav>
 
-                    <div class="public-actions">
+                    <div id="PublicActions" runat="server" class="public-actions">
                         <a id="LoginLink" runat="server" class="button button-ghost button-small" href="~/IniciarSesion.aspx">Iniciar sesión</a>
                         <a id="RegisterLink" runat="server" class="button button-primary button-small" href="~/Registrarse.aspx">Registrarse</a>
                     </div>
 
-                    <div class="authenticated-tools" data-authenticated-tools hidden>
+                    <div id="AuthenticatedTools" runat="server" class="authenticated-tools">
                         <span class="auth-tool" aria-disabled="true">Notificaciones</span>
                         <span class="auth-tool" aria-disabled="true">Mi perfil</span>
-                        <span class="user-summary" aria-label="Datos del usuario">Usuario</span>
+                        <span id="UserSummary" runat="server" class="user-summary" aria-label="Datos del usuario"></span>
+                        <asp:LinkButton ID="lnkCerrarSesion" runat="server" CssClass="auth-tool text-link" CausesValidation="false"
+                            Text="Cerrar sesión" OnClick="lnkCerrarSesion_Click" />
                     </div>
                 </div>
             </div>
         </header>
 
         <div class="app-shell">
-            <aside class="app-sidebar" data-authenticated-sidebar hidden aria-label="Navegación de usuario autenticado">
+            <aside id="AuthenticatedSidebar" runat="server" class="app-sidebar" aria-label="Navegación de usuario autenticado">
                 <div class="sidebar-heading">Mi StageUp</div>
                 <nav class="sidebar-navigation">
                     <span class="sidebar-link" aria-disabled="true">Mis reservas</span>
                     <span class="sidebar-link" aria-disabled="true">Mi perfil</span>
-                    <span class="sidebar-link" aria-disabled="true">Mis espacios</span>
+                    <a id="MisEspaciosLink" runat="server" class="sidebar-link" href="~/MisEspacios.aspx">Mis espacios</a>
                     <span class="sidebar-link" aria-disabled="true">Mis actividades</span>
                     <span class="sidebar-link" aria-disabled="true">Panel interno</span>
                 </nav>

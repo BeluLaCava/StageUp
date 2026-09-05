@@ -22,9 +22,21 @@ namespace StageUp.UI
 
         protected global::System.Web.UI.HtmlControls.HtmlAnchor HelpLink;
 
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl PublicActions;
+
         protected global::System.Web.UI.HtmlControls.HtmlAnchor LoginLink;
 
         protected global::System.Web.UI.HtmlControls.HtmlAnchor RegisterLink;
+
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl AuthenticatedTools;
+
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl UserSummary;
+
+        protected global::System.Web.UI.WebControls.LinkButton lnkCerrarSesion;
+
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl AuthenticatedSidebar;
+
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor MisEspaciosLink;
 
         protected global::System.Web.UI.WebControls.ContentPlaceHolder MainContent;
 

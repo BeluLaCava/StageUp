@@ -41,6 +41,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Services" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -129,6 +130,10 @@
     <Compile Include="MisEspacios.aspx.designer.cs">
       <DependentUpon>MisEspacios.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Servicios\ServicioEspacios.asmx.cs">
+      <DependentUpon>ServicioEspacios.asmx</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
     <Content Include="Ayuda\CentroAyuda.aspx" />
     <Content Include="Content\Css\site.css" />
     <Content Include="Content\Images\favicon.png" />
@@ -144,6 +149,7 @@
     <Content Include="TerminosCondiciones.aspx" />
     <Content Include="PoliticaPrivacidad.aspx" />
     <Content Include="MisEspacios.aspx" />
+    <Content Include="Servicios\ServicioEspacios.asmx" />
     <Content Include="Scripts\site.js" />
     <Content Include="Site.Master" />
     <Content Include="Web.config" />

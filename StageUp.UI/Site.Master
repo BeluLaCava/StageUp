@@ -84,7 +84,7 @@
         </footer>
 
         <asp:ContentPlaceHolder ID="PageScripts" runat="server" />
-        <script src="<%= ResolveUrl("~/Scripts/site.js") %>?v=20260906-1"></script>
+        <script src="<%= ResolveUrl("~/Scripts/site.js") %>?v=20260906-2"></script>
     </form>
 </body>
 </html>

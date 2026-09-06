@@ -330,6 +330,84 @@
         });
     }
 
+    // Maneja la selección de espacios para comparar (ítem 14 del checklist)
+    // en la página de resultados: cada tarjeta tiene una casilla "Comparar",
+    // y una barra flotante permite ir a CompararEspacios.aspx con los ids
+    // elegidos (entre 2 y un máximo fijo).
+    function setupComparisonBar() {
+        var bar = document.querySelector("[data-compare-bar]");
+        var checkboxes = Array.from(document.querySelectorAll("[data-compare-checkbox]"));
+
+        if (!bar || checkboxes.length === 0) {
+            return;
+        }
+
+        var CANTIDAD_MAXIMA = 3;
+        var barText = bar.querySelector("[data-compare-bar-text]");
+        var goButton = bar.querySelector("[data-compare-go]");
+        var clearButton = bar.querySelector("[data-compare-clear]");
+
+        // Devuelve las casillas que están tildadas en este momento.
+        function elegidos() {
+            return checkboxes.filter(function (checkbox) {
+                return checkbox.checked;
+            });
+        }
+
+        // Actualiza el texto de la barra, habilita/deshabilita "Comparar"
+        // y bloquea casillas nuevas una vez llegado al máximo permitido.
+        function actualizar() {
+            var seleccion = elegidos();
+            bar.hidden = seleccion.length === 0;
+
+            if (barText) {
+                if (seleccion.length === 1) {
+                    barText.textContent = "1 espacio seleccionado (elegí al menos 2 para comparar)";
+                } else {
+                    barText.textContent = seleccion.length + " espacios seleccionados";
+                }
+            }
+
+            if (goButton) {
+                goButton.disabled = seleccion.length < 2;
+            }
+
+            checkboxes.forEach(function (checkbox) {
+                if (!checkbox.checked) {
+                    checkbox.disabled = seleccion.length >= CANTIDAD_MAXIMA;
+                }
+            });
+        }
+
+        checkboxes.forEach(function (checkbox) {
+            checkbox.addEventListener("change", actualizar);
+        });
+
+        if (goButton) {
+            goButton.addEventListener("click", function () {
+                var ids = elegidos().map(function (checkbox) {
+                    return checkbox.value;
+                });
+
+                if (ids.length >= 2) {
+                    window.location.href = "CompararEspacios.aspx?ids=" + ids.join(",");
+                }
+            });
+        }
+
+        if (clearButton) {
+            clearButton.addEventListener("click", function () {
+                checkboxes.forEach(function (checkbox) {
+                    checkbox.checked = false;
+                    checkbox.disabled = false;
+                });
+                actualizar();
+            });
+        }
+
+        actualizar();
+    }
+
     // Apunte: maneja el modal del Asistente StageUp en la página de ayuda.
     // Es una vista previa visual: se abre, se cierra y permite marcar una opción.
     function setupAssistantModal() {
@@ -430,6 +508,7 @@
     setupFilters();
     setupResultsSearchState();
     setupSearchRedirects();
+    setupComparisonBar();
     setupAssistantModal();
     setupAccordions();
 }());

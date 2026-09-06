@@ -48,6 +48,10 @@
                         <asp:Repeater ID="rptEspaciosPublicados" runat="server">
                             <ItemTemplate>
                                 <article class="space-card">
+                                    <label class="space-card-compare">
+                                        <input type="checkbox" data-compare-checkbox value='<%# Eval("IdEspacioArtistico") %>' />
+                                        <span>Comparar</span>
+                                    </label>
                                     <a class="space-card-link" href='<%# "DetalleEspacio.aspx?id=" + Eval("IdEspacioArtistico") %>'>
                                         <div class="space-card-media"></div>
                                         <div class="space-card-body">
@@ -72,6 +76,14 @@
                     </div>
                 </div>
             </section>
+        </div>
+
+        <div class="compare-bar" data-compare-bar hidden aria-live="polite">
+            <span data-compare-bar-text>0 espacios seleccionados</span>
+            <div class="compare-bar-actions">
+                <button class="text-button compare-bar-clear" type="button" data-compare-clear>Limpiar</button>
+                <button class="button button-primary button-small" type="button" data-compare-go disabled>Comparar seleccionados</button>
+            </div>
         </div>
     </section>
 

@@ -73,6 +73,13 @@
     <Compile Include="Explorar\DetalleEspacio.aspx.designer.cs">
       <DependentUpon>DetalleEspacio.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Explorar\CompararEspacios.aspx.cs">
+      <DependentUpon>CompararEspacios.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Explorar\CompararEspacios.aspx.designer.cs">
+      <DependentUpon>CompararEspacios.aspx</DependentUpon>
+    </Compile>
     <Compile Include="IniciarSesion.aspx.cs">
       <DependentUpon>IniciarSesion.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -148,6 +155,7 @@
     <Content Include="Content\Images\stageup-logo.png" />
     <Content Include="Default.aspx" />
     <Content Include="Explorar\DetalleEspacio.aspx" />
+    <Content Include="Explorar\CompararEspacios.aspx" />
     <Content Include="Explorar\ResultadosBusqueda.aspx" />
     <Content Include="IniciarSesion.aspx" />
     <Content Include="Registrarse.aspx" />

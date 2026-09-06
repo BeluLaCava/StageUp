@@ -59,7 +59,7 @@
                     <span class="sidebar-link" aria-disabled="true">Mi perfil</span>
                     <a id="MisEspaciosLink" runat="server" class="sidebar-link" href="~/MisEspacios.aspx">Mis espacios</a>
                     <span class="sidebar-link" aria-disabled="true">Mis actividades</span>
-                    <span class="sidebar-link" aria-disabled="true">Panel interno</span>
+                    <a id="RegistrosActividadLink" runat="server" class="sidebar-link" href="~/Interno/RegistrosActividad.aspx">Registros de actividad</a>
                 </nav>
             </aside>
 
@@ -84,7 +84,7 @@
         </footer>
 
         <asp:ContentPlaceHolder ID="PageScripts" runat="server" />
-        <script src="<%= ResolveUrl("~/Scripts/site.js") %>?v=20260826-1"></script>
+        <script src="<%= ResolveUrl("~/Scripts/site.js") %>?v=20260906-1"></script>
     </form>
 </body>
 </html>

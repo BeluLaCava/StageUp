@@ -6,15 +6,18 @@ namespace StageUp.UI.Explorar
 {
     /// <summary>
     /// Code-behind de ResultadosBusqueda.aspx. Catálogo público de
-    /// espacios artísticos publicados (CU-001-006, búsqueda simple: un
-    /// único término de texto libre contra nombre/tipo/descripción).
+    /// espacios artísticos publicados (CU-001-006): búsqueda simple por
+    /// texto libre contra nombre/tipo/descripción, combinable con el
+    /// filtro de tipo de espacio de la búsqueda avanzada (ítem 15 de la
+    /// planilla de revisión, parámetro "tipo" en la URL).
     ///
-    /// La búsqueda avanzada (ubicación, capacidad, valor de referencia,
-    /// disponibilidad, características artísticas) que se ve en el panel
-    /// de "Más filtros" queda como vista previa visual: esos datos viven
-    /// en entidades relacionadas de EspacioArtistico que todavía no se
-    /// crearon (quedan para el Avance 2, ver BLL_EspacioArtistico), así
-    /// que por ahora esos filtros no están conectados a resultados reales.
+    /// El resto de la búsqueda avanzada (ubicación, capacidad, valor de
+    /// referencia, disponibilidad, características artísticas) que se ve
+    /// en el panel de "Más filtros" queda como vista previa visual: esos
+    /// datos viven en entidades relacionadas de EspacioArtistico que
+    /// todavía no se crearon (quedan para el Avance 2, ver
+    /// BLL_EspacioArtistico), así que por ahora esos filtros no están
+    /// conectados a resultados reales.
     /// </summary>
     public partial class ResultadosBusqueda : Page
     {
@@ -32,16 +35,27 @@ namespace StageUp.UI.Explorar
         private void CargarResultados()
         {
             string textoBusqueda = Request.QueryString["q"];
-            var espacios = _bllEspacio.ListarPublicados(textoBusqueda);
+            string tipoEspacio = Request.QueryString["tipo"];
+            var espacios = _bllEspacio.ListarPublicados(textoBusqueda, tipoEspacio);
 
             rptEspaciosPublicados.DataSource = espacios;
             rptEspaciosPublicados.DataBind();
 
             pnlSinResultados.Visible = espacios.Count == 0;
 
-            if (espacios.Count == 0 && !string.IsNullOrWhiteSpace(textoBusqueda))
+            bool hayFiltrosAplicados = !string.IsNullOrWhiteSpace(textoBusqueda) || !string.IsNullOrWhiteSpace(tipoEspacio);
+
+            if (espacios.Count == 0 && hayFiltrosAplicados)
             {
-                litTituloSinResultados.Text = "No encontramos espacios para \"" + Server.HtmlEncode(textoBusqueda) + "\"";
+                if (!string.IsNullOrWhiteSpace(textoBusqueda))
+                {
+                    litTituloSinResultados.Text = "No encontramos espacios para \"" + Server.HtmlEncode(textoBusqueda) + "\"";
+                }
+                else
+                {
+                    litTituloSinResultados.Text = "No encontramos espacios de tipo \"" + Server.HtmlEncode(tipoEspacio) + "\"";
+                }
+
                 litDescripcionSinResultados.Text = "Probá con otra palabra clave o revisá los filtros.";
             }
         }

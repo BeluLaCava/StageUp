@@ -85,21 +85,34 @@
         });
     }
 
-    // cuando llego a resultados desde la home, recupera el texto buscado de la URL y lo vuelve a mostrar dentro del buscador.
-    
+    // cuando llego a resultados desde la home o desde "Aplicar filtros", recupera el texto buscado y el tipo de espacio de la URL y los vuelve a mostrar en los controles correspondientes.
+
     function setupResultsSearchState() {
         var resultsPage = document.querySelector("[data-results-page]");
         var input = document.querySelector("[data-results-search-input]");
 
-        if (!resultsPage || !input || typeof window.URLSearchParams === "undefined") {
+        if (!resultsPage || typeof window.URLSearchParams === "undefined") {
             return;
         }
 
-        var term = new window.URLSearchParams(window.location.search).get("q");
+        var params = new window.URLSearchParams(window.location.search);
+        var term = params.get("q");
+        var tipo = params.get("tipo");
 
-        if (term) {
+        if (term && input) {
             input.value = term;
             // Esta clase permite que el CSS cambie un poco el diseño si hubo búsqueda.
+            resultsPage.classList.add("has-search-query");
+        }
+
+        if (tipo) {
+            var typeField = document.getElementById("filter-type");
+            if (typeField) {
+                typeField.value = tipo;
+                // Dispara el "change" para que setupFilters() (ya inicializado antes que esta función)
+                // muestre el chip de filtro activo correspondiente.
+                typeField.dispatchEvent(new Event("change"));
+            }
             resultsPage.classList.add("has-search-query");
         }
     }
@@ -274,8 +287,35 @@
 
         var applyButton = document.querySelector("[data-apply-filters]");
         if (applyButton) {
-            // Aplicar filtros por ahora solo actualiza la vista y cierra el panel.
             applyButton.addEventListener("click", function () {
+                // El único filtro que hoy se puede aplicar contra datos reales es
+                // "Tipo de espacio" (búsqueda avanzada, ítem 15). El resto de los
+                // campos de este panel (ubicación, capacidad, precio, disponibilidad,
+                // características) siguen siendo una vista previa visual: se
+                // muestran como filtro activo pero no recargan la búsqueda.
+                var typeField = document.getElementById("filter-type");
+
+                if (typeField && typeof window.URLSearchParams !== "undefined") {
+                    var searchInput = document.querySelector("[data-results-search-input]");
+                    var currentParams = new window.URLSearchParams(window.location.search);
+                    var nextParams = new window.URLSearchParams();
+
+                    var term = searchInput ? searchInput.value.trim() : (currentParams.get("q") || "").trim();
+                    if (term) {
+                        nextParams.set("q", term);
+                    }
+
+                    if (typeField.value) {
+                        nextParams.set("tipo", typeField.value);
+                    }
+
+                    var queryString = nextParams.toString();
+                    window.location.href = window.location.pathname + (queryString ? "?" + queryString : "");
+                    return;
+                }
+
+                // Si por algún motivo no está el campo de tipo (u otra página reutiliza
+                // este mismo panel), se mantiene el comportamiento anterior: solo visual.
                 renderSelections();
                 closePanel();
             });
@@ -387,9 +427,9 @@
     // Apunte: al cargar la página, se activan todas las funciones anteriores.
     // Si una página no tiene cierto elemento, esa función simplemente no hace nada.
     setupNavigation();
+    setupFilters();
     setupResultsSearchState();
     setupSearchRedirects();
-    setupFilters();
     setupAssistantModal();
     setupAccordions();
 }());

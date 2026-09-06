@@ -94,27 +94,41 @@ namespace StageUp.BLL
         }
 
         /// <summary>
-        /// Catálogo público (CU-001-006, búsqueda simple): lista los
-        /// espacios publicados y activos, opcionalmente filtrados por un
-        /// único término de texto libre contra nombre, tipo y descripción.
-        /// La búsqueda avanzada por ubicación/capacidad/precio/
-        /// características queda para el Avance 2, cuando existan esas
-        /// entidades relacionadas.
+        /// Catálogo público (CU-001-006): lista los espacios publicados y
+        /// activos, opcionalmente filtrados por un término de texto libre
+        /// (contra nombre, tipo y descripción) y/o por tipo de espacio
+        /// (búsqueda avanzada, ítem 15 de la planilla de revisión).
+        ///
+        /// El filtro por tipo es la única condición de la búsqueda
+        /// avanzada que quedó conectada a datos reales: ubicación,
+        /// capacidad, valor de referencia, disponibilidad y características
+        /// artísticas siguen siendo vista previa visual en el panel de
+        /// "Más filtros", porque esos datos viven en entidades relacionadas
+        /// de EspacioArtistico que todavía no se crearon (quedan para el
+        /// Avance 2, ver comentario de la clase). TipoEspacio en cambio es
+        /// una columna propia y real de EspacioArtistico, cargada como
+        /// texto libre por el gestor del espacio (ver MisEspacios.aspx), así
+        /// que el filtro se hace por coincidencia parcial igual que la
+        /// búsqueda por texto, no por igualdad exacta.
         /// </summary>
-        public List<EspacioArtistico> ListarPublicados(string textoBusqueda)
+        public List<EspacioArtistico> ListarPublicados(string textoBusqueda, string tipoEspacio = null)
         {
             List<EspacioArtistico> publicados = _mppEspacio.ListarPublicados();
 
-            if (string.IsNullOrWhiteSpace(textoBusqueda))
+            string termino = string.IsNullOrWhiteSpace(textoBusqueda) ? null : textoBusqueda.Trim();
+            string tipo = string.IsNullOrWhiteSpace(tipoEspacio) ? null : tipoEspacio.Trim();
+
+            if (termino == null && tipo == null)
             {
                 return publicados;
             }
 
-            string termino = textoBusqueda.Trim();
             return publicados.FindAll(espacio =>
-                ContieneTexto(espacio.NombreEspacio, termino) ||
-                ContieneTexto(espacio.TipoEspacio, termino) ||
-                ContieneTexto(espacio.Descripcion, termino));
+                (termino == null ||
+                    ContieneTexto(espacio.NombreEspacio, termino) ||
+                    ContieneTexto(espacio.TipoEspacio, termino) ||
+                    ContieneTexto(espacio.Descripcion, termino)) &&
+                (tipo == null || ContieneTexto(espacio.TipoEspacio, tipo)));
         }
 
         /// <summary>

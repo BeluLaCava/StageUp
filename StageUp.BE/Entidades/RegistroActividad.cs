@@ -19,5 +19,13 @@ namespace StageUp.BE.Entidades
         public string DescripcionOperacion { get; set; }
         public DateTime FechaOperacion { get; set; }
         public string OrigenOperacion { get; set; }
+
+        /// <summary>
+        /// Nombre completo y correo del responsable (externo o interno,
+        /// según cuál de los dos Id esté cargado). Solo se completan al
+        /// consultar/buscar registros (CU-001-013); no se usan al insertar.
+        /// </summary>
+        public string NombreResponsable { get; set; }
+        public string CorreoResponsable { get; set; }
     }
 }

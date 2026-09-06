@@ -134,6 +134,13 @@
       <DependentUpon>ServicioEspacios.asmx</DependentUpon>
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Interno\RegistrosActividad.aspx.cs">
+      <DependentUpon>RegistrosActividad.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\RegistrosActividad.aspx.designer.cs">
+      <DependentUpon>RegistrosActividad.aspx</DependentUpon>
+    </Compile>
     <Content Include="Ayuda\CentroAyuda.aspx" />
     <Content Include="Content\Css\site.css" />
     <Content Include="Content\Images\favicon.png" />
@@ -150,6 +157,7 @@
     <Content Include="PoliticaPrivacidad.aspx" />
     <Content Include="MisEspacios.aspx" />
     <Content Include="Servicios\ServicioEspacios.asmx" />
+    <Content Include="Interno\RegistrosActividad.aspx" />
     <Content Include="Scripts\site.js" />
     <Content Include="Site.Master" />
     <Content Include="Web.config" />

@@ -38,6 +38,8 @@ namespace StageUp.UI
 
         protected global::System.Web.UI.HtmlControls.HtmlAnchor MisEspaciosLink;
 
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor RegistrosActividadLink;
+
         protected global::System.Web.UI.WebControls.ContentPlaceHolder MainContent;
 
         protected global::System.Web.UI.HtmlControls.HtmlAnchor AboutLink;

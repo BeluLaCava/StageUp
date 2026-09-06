@@ -342,6 +342,24 @@ namespace StageUp.BLL
             return ResultadoOperacion.Ok("Tu contraseña fue actualizada correctamente. Ya podés iniciar sesión con tus nuevas credenciales.");
         }
 
+        /// <summary>
+        /// Busca el Id de un usuario externo a partir de su correo. Se usa
+        /// desde el filtro "usuario" de la consulta de bitácora
+        /// (CU-001-013): la pantalla recibe un correo (no un Id interno,
+        /// que el usuario no conoce) y necesita resolverlo antes de filtrar.
+        /// Devuelve null si no existe ningún usuario con ese correo.
+        /// </summary>
+        public int? ObtenerIdPorCorreo(string correoElectronico)
+        {
+            if (string.IsNullOrWhiteSpace(correoElectronico))
+            {
+                return null;
+            }
+
+            UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim());
+            return usuario == null ? (int?)null : usuario.IdUsuarioExterno;
+        }
+
         // ------------------------------------------------------------
         // Privados
         // ------------------------------------------------------------

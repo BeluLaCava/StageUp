@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -8,25 +9,30 @@ namespace StageUp.MPP
 {
     public class MPP_RegistroActividad
     {
-        private readonly DAL_RegistroActividad _dal = new DAL_RegistroActividad();
-
         public void Insertar(RegistroActividad registro)
         {
-            _dal.Insertar(
-                registro.IdUsuarioExternoResponsable,
-                registro.IdUsuarioInternoResponsable,
-                registro.TipoOperacion,
-                registro.TipoEntidadAfectada,
-                registro.IdEntidadAfectada,
-                registro.DescripcionOperacion,
-                registro.OrigenOperacion);
+            EjecutorStoredProcedure.Escribir(
+                "sp_RegistroActividad_Insertar",
+                new SqlParameter("@idUsuarioExternoResponsable", (object)registro.IdUsuarioExternoResponsable ?? DBNull.Value),
+                new SqlParameter("@idUsuarioInternoResponsable", (object)registro.IdUsuarioInternoResponsable ?? DBNull.Value),
+                new SqlParameter("@tipoOperacion", registro.TipoOperacion),
+                new SqlParameter("@tipoEntidadAfectada", registro.TipoEntidadAfectada),
+                new SqlParameter("@idEntidadAfectada", (object)registro.IdEntidadAfectada ?? DBNull.Value),
+                new SqlParameter("@descripcionOperacion", (object)registro.DescripcionOperacion ?? DBNull.Value),
+                new SqlParameter("@origenOperacion", (object)registro.OrigenOperacion ?? DBNull.Value));
         }
 
         public List<RegistroActividad> Buscar(
             int? idUsuarioExternoResponsable, DateTime? fechaDesde, DateTime? fechaHasta,
             string tipoOperacion, string tipoEntidadAfectada)
         {
-            DataTable tabla = _dal.Buscar(idUsuarioExternoResponsable, fechaDesde, fechaHasta, tipoOperacion, tipoEntidadAfectada);
+            DataTable tabla = EjecutorStoredProcedure.Leer(
+                "sp_RegistroActividad_Buscar",
+                new SqlParameter("@idUsuarioExternoResponsable", (object)idUsuarioExternoResponsable ?? DBNull.Value),
+                new SqlParameter("@fechaDesde", (object)fechaDesde ?? DBNull.Value),
+                new SqlParameter("@fechaHasta", (object)fechaHasta ?? DBNull.Value),
+                new SqlParameter("@tipoOperacion", (object)tipoOperacion ?? DBNull.Value),
+                new SqlParameter("@tipoEntidadAfectada", (object)tipoEntidadAfectada ?? DBNull.Value));
 
             var lista = new List<RegistroActividad>();
             foreach (DataRow fila in tabla.Rows)

@@ -4,23 +4,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    /// <summary>
-    /// Reglas de negocio del ABMC de EspacioArtistico (CU-001-007
-    /// Gestionar espacios artísticos). Cubre las columnas propias de la
-    /// entidad (nombre, descripción, tipo, estado, publicación, baja
-    /// lógica); las entidades relacionadas que describe el CU completo
-    /// (ubicación, características físicas, condiciones de uso, valores,
-    /// equipamiento, imágenes) quedan para una etapa posterior.
-    ///
-    /// Supuesto (no implementado todavía, a validar con la cátedra/cliente):
-    /// el CU real exige que el usuario esté "habilitado como gestor de
-    /// espacios" mediante una solicitud revisada y aprobada por un usuario
-    /// interno, antes de poder acceder a "Mis espacios". Esa revisión de
-    /// habilitación aparece además como un requerimiento propio en el
-    /// catálogo de RQF, separado de este ABMC. Mientras esa funcionalidad
-    /// no se implemente, cualquier usuario externo autenticado puede
-    /// administrar sus propios espacios.
-    /// </summary>
     public class BLL_EspacioArtistico
     {
         private readonly MPP_EspacioArtistico _mppEspacio = new MPP_EspacioArtistico();
@@ -93,24 +76,6 @@ namespace StageUp.BLL
             return _mppEspacio.ListarPorUsuarioGestor(idUsuarioGestor);
         }
 
-        /// <summary>
-        /// Catálogo público (CU-001-006): lista los espacios publicados y
-        /// activos, opcionalmente filtrados por un término de texto libre
-        /// (contra nombre, tipo y descripción) y/o por tipo de espacio
-        /// (búsqueda avanzada, ítem 15 de la planilla de revisión).
-        ///
-        /// El filtro por tipo es la única condición de la búsqueda
-        /// avanzada que quedó conectada a datos reales: ubicación,
-        /// capacidad, valor de referencia, disponibilidad y características
-        /// artísticas siguen siendo vista previa visual en el panel de
-        /// "Más filtros", porque esos datos viven en entidades relacionadas
-        /// de EspacioArtistico que todavía no se crearon (quedan para el
-        /// Avance 2, ver comentario de la clase). TipoEspacio en cambio es
-        /// una columna propia y real de EspacioArtistico, cargada como
-        /// texto libre por el gestor del espacio (ver MisEspacios.aspx), así
-        /// que el filtro se hace por coincidencia parcial igual que la
-        /// búsqueda por texto, no por igualdad exacta.
-        /// </summary>
         public List<EspacioArtistico> ListarPublicados(string textoBusqueda, string tipoEspacio = null)
         {
             List<EspacioArtistico> publicados = _mppEspacio.ListarPublicados();
@@ -131,12 +96,6 @@ namespace StageUp.BLL
                 (tipo == null || ContieneTexto(espacio.TipoEspacio, tipo)));
         }
 
-        /// <summary>
-        /// Detalle público de un espacio (CU-001-006/CU-001-008): solo
-        /// devuelve el espacio si está publicado y activo, para que nadie
-        /// pueda ver por URL directa un espacio en borrador, pausado o
-        /// dado de baja de otro usuario.
-        /// </summary>
         public EspacioArtistico ObtenerDetallePublicado(int idEspacioArtistico)
         {
             EspacioArtistico espacio = _mppEspacio.ObtenerPorId(idEspacioArtistico);
@@ -208,7 +167,6 @@ namespace StageUp.BLL
             return ResultadoOperacion.Ok("El espacio se dio de baja. Se mantiene en el historial pero ya no está disponible.");
         }
 
-        // A15 del CU-001-007: valores/campos con formato inválido.
         private static ResultadoOperacion ValidarDatosBasicos(string nombreEspacio, string descripcion, string tipoEspacio)
         {
             if (string.IsNullOrWhiteSpace(nombreEspacio))
@@ -239,9 +197,6 @@ namespace StageUp.BLL
             return ResultadoOperacion.Ok();
         }
 
-        // El espacio debe existir, no estar dado de baja, y pertenecer al
-        // usuario que está pidiendo la acción (nadie puede administrar el
-        // espacio de otro gestor).
         private static ResultadoOperacion ValidarPropiedad(EspacioArtistico espacio, int idUsuarioGestorSolicitante)
         {
             if (espacio == null || !espacio.Activo)

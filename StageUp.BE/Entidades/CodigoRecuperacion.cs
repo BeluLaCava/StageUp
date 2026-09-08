@@ -2,10 +2,6 @@ using System;
 
 namespace StageUp.BE.Entidades
 {
-    /// <summary>
-    /// Código de recuperación de contraseña, según CU-001-002.
-    /// Vigencia de 15 minutos según la especificación del caso de uso.
-    /// </summary>
     public class CodigoRecuperacion
     {
         public int IdCodigoRecuperacion { get; set; }

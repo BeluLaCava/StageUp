@@ -7,24 +7,6 @@ using StageUp.BLL;
 
 namespace StageUp.UI.Explorar
 {
-    /// <summary>
-    /// Code-behind de CompararEspacios.aspx. Resuelve el ítem 14 de la
-    /// planilla de revisión de la cátedra ("Comparación de precios/
-    /// calidad/características"): arma una tabla comparativa entre 2 y
-    /// <see cref="CantidadMaximaEspacios"/> espacios publicados, elegidos
-    /// por el usuario desde el catálogo (ResultadosBusqueda.aspx, casilla
-    /// "Comparar" + barra flotante) y recibidos acá por querystring
-    /// (?ids=1,2,3).
-    ///
-    /// Alcance (documentado también en el LEEME de la entrega): se
-    /// comparan únicamente las columnas reales que hoy tiene
-    /// EspacioArtistico (tipo, fecha de publicación, descripción — el
-    /// nombre se usa como encabezado de columna). La comparación completa
-    /// que describe la pauta de cátedra (precio, calidad, ubicación,
-    /// capacidad, equipamiento) depende de entidades relacionadas que
-    /// todavía no existen, mismo criterio de alcance ya aplicado en el
-    /// catálogo público y en el ABMC de EspacioArtistico.
-    /// </summary>
     public partial class CompararEspacios : Page
     {
         private const int CantidadMaximaEspacios = 3;
@@ -68,8 +50,6 @@ namespace StageUp.UI.Explorar
             MostrarComparacion(espacios, noEncontrados);
         }
 
-        // Acepta "1,2,3", ignora valores no numéricos o repetidos (A15-like:
-        // nunca confía en el contenido crudo de la URL).
         private static List<int> ParsearIds(string valorQueryString)
         {
             var ids = new List<int>();

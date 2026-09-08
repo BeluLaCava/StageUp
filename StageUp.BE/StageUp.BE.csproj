@@ -41,6 +41,7 @@
     <Compile Include="Entidades\PermisoInterno.cs" />
     <Compile Include="Entidades\UsuarioInterno.cs" />
     <Compile Include="Entidades\EspacioArtistico.cs" />
+    <Compile Include="Entidades\Faq.cs" />
     <Compile Include="Enumerados\EstadoCuentaExterno.cs" />
     <Compile Include="Enumerados\PerfilUsuarioExterno.cs" />
     <Compile Include="Enumerados\EstadoEspacio.cs" />

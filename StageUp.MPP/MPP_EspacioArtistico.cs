@@ -1,59 +1,75 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    /// <summary>
-    /// Mapeo entre la entidad de negocio EspacioArtistico y su persistencia
-    /// (a través de DAL_EspacioArtistico). La BLL solo conoce esta clase,
-    /// nunca a DAL_EspacioArtistico directamente.
-    /// </summary>
     public class MPP_EspacioArtistico
     {
-        private readonly DAL_EspacioArtistico _dal = new DAL_EspacioArtistico();
-
         public int Insertar(EspacioArtistico espacio)
         {
-            return _dal.Insertar(espacio.IdUsuarioGestor, espacio.NombreEspacio, espacio.Descripcion, espacio.TipoEspacio);
+            object resultado = EjecutorStoredProcedure.LeerEscalar(
+                "sp_EspacioArtistico_Insertar",
+                new SqlParameter("@idUsuarioGestor", espacio.IdUsuarioGestor),
+                new SqlParameter("@nombreEspacio", espacio.NombreEspacio),
+                new SqlParameter("@descripcion", (object)espacio.Descripcion ?? DBNull.Value),
+                new SqlParameter("@tipoEspacio", espacio.TipoEspacio));
+
+            return Convert.ToInt32(resultado);
         }
 
         public void Modificar(EspacioArtistico espacio)
         {
-            _dal.Modificar(espacio.IdEspacioArtistico, espacio.NombreEspacio, espacio.Descripcion, espacio.TipoEspacio);
+            EjecutorStoredProcedure.Escribir(
+                "sp_EspacioArtistico_Modificar",
+                new SqlParameter("@idEspacioArtistico", espacio.IdEspacioArtistico),
+                new SqlParameter("@nombreEspacio", espacio.NombreEspacio),
+                new SqlParameter("@descripcion", (object)espacio.Descripcion ?? DBNull.Value),
+                new SqlParameter("@tipoEspacio", espacio.TipoEspacio));
         }
 
         public EspacioArtistico ObtenerPorId(int idEspacioArtistico)
         {
-            DataTable tabla = _dal.ObtenerPorId(idEspacioArtistico);
+            DataTable tabla = EjecutorStoredProcedure.Leer(
+                "sp_EspacioArtistico_ObtenerPorId",
+                new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
         public List<EspacioArtistico> ListarPorUsuarioGestor(int idUsuarioGestor)
         {
-            return MapearDesdeTabla(_dal.ListarPorUsuarioGestor(idUsuarioGestor));
+            return MapearDesdeTabla(EjecutorStoredProcedure.Leer(
+                "sp_EspacioArtistico_ListarPorUsuarioGestor",
+                new SqlParameter("@idUsuarioGestor", idUsuarioGestor)));
         }
 
         public List<EspacioArtistico> ListarPublicados()
         {
-            return MapearDesdeTabla(_dal.ListarPublicados());
+            return MapearDesdeTabla(EjecutorStoredProcedure.Leer("sp_EspacioArtistico_ListarPublicados"));
         }
 
         public void Publicar(int idEspacioArtistico)
         {
-            _dal.Publicar(idEspacioArtistico);
+            EjecutorStoredProcedure.Escribir(
+                "sp_EspacioArtistico_Publicar",
+                new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
         }
 
         public void Pausar(int idEspacioArtistico)
         {
-            _dal.Pausar(idEspacioArtistico);
+            EjecutorStoredProcedure.Escribir(
+                "sp_EspacioArtistico_Pausar",
+                new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
         }
 
         public void BajaLogica(int idEspacioArtistico)
         {
-            _dal.BajaLogica(idEspacioArtistico);
+            EjecutorStoredProcedure.Escribir(
+                "sp_EspacioArtistico_BajaLogica",
+                new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
         }
 
         private static List<EspacioArtistico> MapearDesdeTabla(DataTable tabla)

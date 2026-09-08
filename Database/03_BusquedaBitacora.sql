@@ -1,20 +1,3 @@
--- =====================================================================
--- 03_BusquedaBitacora.sql
---
--- Agrega la consulta de la bitácora (CU-001-013 Consultar registros de
--- actividad) sobre la tabla RegistroActividad ya creada en
--- 01_EsquemaSeguridadYRegistro.sql. No crea tablas nuevas.
---
--- Nota de alcance: el CU completo define como actor a un "usuario interno
--- autorizado" con permisos específicos. Como la autenticación y los
--- permisos de usuarios internos (RolInterno/PermisoInterno/UsuarioInterno)
--- todavía no están implementados en la aplicación (son parte de una etapa
--- posterior), esta consulta se expone por ahora a cualquier usuario
--- externo autenticado, igual que se hizo con "Mis espacios" en el ABMC de
--- EspacioArtistico. Cuando se implemente el login/permisos de usuarios
--- internos, hay que migrar el control de acceso de esta pantalla a
--- validar el permiso correspondiente en vez de solo la sesión.
-
 IF OBJECT_ID('dbo.sp_RegistroActividad_Buscar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_RegistroActividad_Buscar;
 GO
 CREATE PROCEDURE dbo.sp_RegistroActividad_Buscar

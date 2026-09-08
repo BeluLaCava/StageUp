@@ -8,18 +8,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    /// <summary>
-    /// Code-behind de RegistrosActividad.aspx. Implementa CU-001-013
-    /// (Consultar registros de actividad): listado general de la
-    /// bitácora + filtros básicos opcionales (usuario, fecha, tipo de
-    /// operación, entidad afectada).
-    ///
-    /// Supuesto de alcance (ver también BLL_Bitacora): el CU define como
-    /// actor a un "usuario interno autorizado" con permisos específicos.
-    /// Como el login y los permisos de usuarios internos todavía no están
-    /// implementados, esta pantalla se restringe por ahora a cualquier
-    /// usuario externo autenticado (mismo criterio que MisEspacios.aspx).
-    /// </summary>
     public partial class RegistrosActividad : Page
     {
         private readonly BLL_Bitacora _bllBitacora = new BLL_Bitacora();
@@ -84,12 +72,6 @@ namespace StageUp.UI.Interno
             CargarTodos();
         }
 
-        /// <summary>
-        /// Nombre a mostrar por cada registro. Puede no haber nombre si el
-        /// registro corresponde a una acción sin un responsable identificado
-        /// (ninguno de los dos Id cargados, ej. si en el futuro se agregan
-        /// operaciones automáticas del propio sistema).
-        /// </summary>
         protected string ObtenerNombreMostrado(string nombreResponsable)
         {
             return string.IsNullOrWhiteSpace(nombreResponsable) ? "Sistema" : nombreResponsable;
@@ -133,13 +115,11 @@ namespace StageUp.UI.Interno
 
             if (hayFiltrosAplicados)
             {
-                // A4: existen registros, pero ninguno cumple los filtros aplicados.
                 litTituloSinResultados.Text = "No se encontraron registros para los filtros seleccionados.";
                 litDescripcionSinResultados.Text = "Probá modificar los filtros o hacé clic en \"Limpiar filtros\" para ver el listado completo.";
             }
             else
             {
-                // A2: no existen registros de actividad disponibles en absoluto.
                 litTituloSinResultados.Text = "Todavía no hay registros de actividad.";
                 litDescripcionSinResultados.Text = "A medida que se usen las funcionalidades del sistema (registro, login, alta de espacios, etc.), van a aparecer acá.";
             }

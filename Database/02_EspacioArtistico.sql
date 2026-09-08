@@ -1,27 +1,3 @@
--- =====================================================================
--- StageUp - Avance 1 - ABMC de EspacioArtistico
--- =====================================================================
--- Entidad core del negocio, según el diccionario de datos (10.7.4) de
--- StageUp_Tecnico.docx y el caso de uso CU-001-007 "Gestionar espacios
--- artisticos". Se implementan en esta entrega las columnas propias de
--- EspacioArtistico (alta, modificacion, publicar/pausar, baja logica y
--- consulta). Las entidades relacionadas que menciona el CU (ubicacion,
--- caracteristicas fisicas, condiciones de uso, valores, equipamiento,
--- imagenes) tienen sus propias tablas en el diccionario de datos pero
--- se dejan para una proxima etapa (Avance 2 - core del negocio), para
--- no sobrecargar esta entrega con una funcionalidad mucho mas amplia
--- que un ABMC basico.
---
--- Supuesto (no definido explicitamente en la documentacion, a validar):
--- CU-001-007 tambien describe una "habilitacion como gestor de espacios"
--- con revision/aprobacion antes de poder publicar espacios. Esa revision
--- aparece ademas como requerimiento aparte en el catalogo de RQF
--- ("revision de habilitacion como gestor"), por lo que se interpreta
--- como una funcionalidad propia, todavia no implementada. Por ahora,
--- para poder probar el ABMC de punta a punta, CUALQUIER usuario externo
--- autenticado puede dar de alta y administrar sus propios espacios.
--- =====================================================================
-
 IF OBJECT_ID('dbo.EspacioArtistico', 'U') IS NOT NULL
     DROP TABLE dbo.EspacioArtistico;
 GO
@@ -46,11 +22,6 @@ CREATE TABLE dbo.EspacioArtistico
 );
 GO
 
--- =====================================================================
--- Alta de un espacio artistico nuevo. Se crea siempre en estado
--- "Borrador" y sin publicar; el gestor lo publica despues con una
--- accion aparte (sp_EspacioArtistico_Publicar).
--- =====================================================================
 IF OBJECT_ID('dbo.sp_EspacioArtistico_Insertar', 'P') IS NOT NULL
     DROP PROCEDURE dbo.sp_EspacioArtistico_Insertar;
 GO
@@ -73,11 +44,6 @@ BEGIN
 END
 GO
 
--- =====================================================================
--- Modificacion de los datos propios del espacio (no cambia estado ni
--- publicacion, eso se hace con las acciones dedicadas de abajo).
--- Solo puede modificarse un espacio que no fue dado de baja.
--- =====================================================================
 IF OBJECT_ID('dbo.sp_EspacioArtistico_Modificar', 'P') IS NOT NULL
     DROP PROCEDURE dbo.sp_EspacioArtistico_Modificar;
 GO
@@ -118,10 +84,6 @@ BEGIN
 END
 GO
 
--- =====================================================================
--- Listado de "Mis espacios" para un gestor (incluye borradores, pausados
--- y publicados, pero no los dados de baja).
--- =====================================================================
 IF OBJECT_ID('dbo.sp_EspacioArtistico_ListarPorUsuarioGestor', 'P') IS NOT NULL
     DROP PROCEDURE dbo.sp_EspacioArtistico_ListarPorUsuarioGestor;
 GO
@@ -141,10 +103,6 @@ BEGIN
 END
 GO
 
--- =====================================================================
--- Listado publico de espacios publicados (para el catalogo publico que
--- se va a implementar como proximo paso del Avance 1).
--- =====================================================================
 IF OBJECT_ID('dbo.sp_EspacioArtistico_ListarPublicados', 'P') IS NOT NULL
     DROP PROCEDURE dbo.sp_EspacioArtistico_ListarPublicados;
 GO
@@ -202,10 +160,6 @@ BEGIN
 END
 GO
 
--- =====================================================================
--- Baja logica: nunca se elimina fisicamente el registro (asi lo exige
--- el CU-001-007 explicitamente).
--- =====================================================================
 IF OBJECT_ID('dbo.sp_EspacioArtistico_BajaLogica', 'P') IS NOT NULL
     DROP PROCEDURE dbo.sp_EspacioArtistico_BajaLogica;
 GO
@@ -226,8 +180,3 @@ BEGIN
       AND activo = 1;
 END
 GO
-
-SELECT ue.correoElectronico, ca.codigo, ca.fechaGeneracion, ca.fechaVencimiento, ca.utilizado
-FROM dbo.CodigoActivacion ca
-JOIN dbo.UsuarioExterno ue ON ue.idUsuarioExterno = ca.idUsuarioExterno
-ORDER BY ca.fechaGeneracion DESC;

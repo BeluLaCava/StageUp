@@ -6,18 +6,6 @@ using StageUp.BLL;
 
 namespace StageUp.UI.Servicios
 {
-    /// <summary>
-    /// Web Service SOAP (ASMX, la tecnología clásica de ASP.NET Web Forms
-    /// sobre .NET Framework) que expone el catálogo público de espacios
-    /// artísticos (CU-001-006) para que un sistema externo pueda consultar
-    /// espacios publicados de StageUp sin pasar por la interfaz web.
-    ///
-    /// Reutiliza exactamente la misma lógica de negocio que ya usan
-    /// Explorar/ResultadosBusqueda.aspx y Explorar/DetalleEspacio.aspx
-    /// (BLL_EspacioArtistico), así que no duplica reglas ni introduce
-    /// comportamiento nuevo: es la misma búsqueda simple y el mismo
-    /// detalle público, expuestos además como Web Service.
-    /// </summary>
     [WebService(Namespace = "http://stageup.local/servicios/")]
     [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
     [System.ComponentModel.ToolboxItem(false)]
@@ -58,14 +46,6 @@ namespace StageUp.UI.Servicios
         }
     }
 
-    /// <summary>
-    /// DTO público y serializable por SOAP para los métodos de
-    /// ServicioEspacios. Expone deliberadamente solo los datos que ya son
-    /// públicos en el catálogo (ResultadosBusqueda.aspx / DetalleEspacio.aspx);
-    /// no expone columnas internas de EspacioArtistico como IdUsuarioGestor,
-    /// EstadoEspacio, Activo, Publicado, FechaAlta, FechaBaja o
-    /// FechaUltimaModificacion.
-    /// </summary>
     public class EspacioPublicadoInfo
     {
         public int IdEspacioArtistico { get; set; }

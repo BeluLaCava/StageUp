@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -7,22 +8,30 @@ namespace StageUp.MPP
 {
     public class MPP_CodigoRecuperacion
     {
-        private readonly DAL_CodigoRecuperacion _dal = new DAL_CodigoRecuperacion();
-
         public int Insertar(CodigoRecuperacion codigo)
         {
-            return _dal.Insertar(codigo.IdUsuarioExterno, codigo.Codigo, codigo.FechaVencimiento);
+            object resultado = EjecutorStoredProcedure.LeerEscalar(
+                "sp_CodigoRecuperacion_Insertar",
+                new SqlParameter("@idUsuarioExterno", codigo.IdUsuarioExterno),
+                new SqlParameter("@codigo", codigo.Codigo),
+                new SqlParameter("@fechaVencimiento", codigo.FechaVencimiento));
+
+            return Convert.ToInt32(resultado);
         }
 
         public CodigoRecuperacion ObtenerVigentePorUsuario(int idUsuarioExterno)
         {
-            DataTable tabla = _dal.ObtenerVigentePorUsuario(idUsuarioExterno);
+            DataTable tabla = EjecutorStoredProcedure.Leer(
+                "sp_CodigoRecuperacion_ObtenerVigentePorUsuario",
+                new SqlParameter("@idUsuarioExterno", idUsuarioExterno));
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
         public void MarcarUtilizado(int idCodigoRecuperacion)
         {
-            _dal.MarcarUtilizado(idCodigoRecuperacion);
+            EjecutorStoredProcedure.Escribir(
+                "sp_CodigoRecuperacion_MarcarUtilizado",
+                new SqlParameter("@idCodigoRecuperacion", idCodigoRecuperacion));
         }
 
         private static CodigoRecuperacion MapearDesdeFila(DataRow fila)

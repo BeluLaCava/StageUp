@@ -30,6 +30,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.SqlClient" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -38,6 +39,7 @@
     <Compile Include="MPP_CodigoRecuperacion.cs" />
     <Compile Include="MPP_RegistroActividad.cs" />
     <Compile Include="MPP_EspacioArtistico.cs" />
+    <Compile Include="MPP_Faq.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

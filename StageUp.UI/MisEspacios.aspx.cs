@@ -8,25 +8,10 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    /// <summary>
-    /// Code-behind de MisEspacios.aspx. Implementa el ABMC de
-    /// EspacioArtistico (CU-001-007 Gestionar espacios artísticos) para
-    /// las columnas propias de la entidad: alta, modificación, publicar,
-    /// pausar y baja lógica.
-    ///
-    /// Requiere que el usuario esté autenticado (GestorDeSesion). No se
-    /// exige todavía la "habilitación como gestor" que describe el CU
-    /// completo (ver nota en BLL_EspacioArtistico) — cualquier usuario
-    /// externo logueado puede administrar sus propios espacios por ahora.
-    /// </summary>
     public partial class MisEspacios : Page
     {
         private readonly BLL_EspacioArtistico _bllEspacio = new BLL_EspacioArtistico();
 
-        /// <summary>
-        /// Id del espacio que se está editando actualmente. Null cuando el
-        /// formulario está en modo "alta de espacio nuevo".
-        /// </summary>
         private int? IdEspacioEnEdicion
         {
             get { return ViewState["IdEspacioEnEdicion"] as int?; }

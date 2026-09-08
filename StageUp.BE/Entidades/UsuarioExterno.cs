@@ -2,12 +2,6 @@ using System;
 
 namespace StageUp.BE.Entidades
 {
-    /// <summary>
-    /// Entidad de negocio UsuarioExterno, según el diccionario de datos
-    /// de StageUp_Tecnico.docx (10.7.4). Representa a las personas que
-    /// se registran públicamente en la plataforma (artistas / solicitantes
-    /// de espacios), a diferencia de UsuarioInterno (staff de StageUp).
-    /// </summary>
     public class UsuarioExterno
     {
         public int IdUsuarioExterno { get; set; }

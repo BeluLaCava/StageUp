@@ -4,21 +4,6 @@ using StageUp.BLL;
 
 namespace StageUp.UI.Explorar
 {
-    /// <summary>
-    /// Code-behind de ResultadosBusqueda.aspx. Catálogo público de
-    /// espacios artísticos publicados (CU-001-006): búsqueda simple por
-    /// texto libre contra nombre/tipo/descripción, combinable con el
-    /// filtro de tipo de espacio de la búsqueda avanzada (ítem 15 de la
-    /// planilla de revisión, parámetro "tipo" en la URL).
-    ///
-    /// El resto de la búsqueda avanzada (ubicación, capacidad, valor de
-    /// referencia, disponibilidad, características artísticas) que se ve
-    /// en el panel de "Más filtros" queda como vista previa visual: esos
-    /// datos viven en entidades relacionadas de EspacioArtistico que
-    /// todavía no se crearon (quedan para el Avance 2, ver
-    /// BLL_EspacioArtistico), así que por ahora esos filtros no están
-    /// conectados a resultados reales.
-    /// </summary>
     public partial class ResultadosBusqueda : Page
     {
         private const int LongitudMaximaResumen = 160;

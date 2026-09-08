@@ -2,12 +2,6 @@ using System;
 
 namespace StageUp.BE.Entidades
 {
-    /// <summary>
-    /// Entidad de negocio EspacioArtistico, según el diccionario de datos
-    /// de StageUp_Tecnico.docx (10.7.4). Representa el espacio que un
-    /// usuario externo habilitado como gestor ofrece dentro de StageUp
-    /// (CU-001-007 Gestionar espacios artísticos).
-    /// </summary>
     public class EspacioArtistico
     {
         public int IdEspacioArtistico { get; set; }

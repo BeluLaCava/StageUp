@@ -5,21 +5,6 @@ using System.Net.Mail;
 
 namespace StageUp.Servicios
 {
-    /// <summary>
-    /// Envío de correo electrónico (activación de cuenta, bienvenida,
-    /// recuperación de contraseña, notificación de cambio de contraseña).
-    /// La configuración SMTP se lee de Web.config (appSettings) para no
-    /// tener credenciales hardcodeadas en el código.
-    ///
-    /// Nota: por ahora Web.config tiene valores de ejemplo/placeholder
-    /// (ver comentarios en el propio Web.config). Para que el envío real
-    /// funcione hace falta cargar una cuenta de correo del proyecto
-    /// (se recomienda una cuenta de Gmail propia, con contraseña de
-    /// aplicación, como sugiere la pauta de la cátedra).
-    /// Todos los métodos son tolerantes a fallas: si el envío no se puede
-    /// completar, devuelven false en vez de romper el flujo del caso de
-    /// uso (ver caminos alternativos A6 de CU-001-001 y A4 de CU-001-002).
-    /// </summary>
     public class ServicioCorreo
     {
         public bool EnviarCodigoActivacion(string destinatario, string nombreDestinatario, string codigo)
@@ -101,9 +86,6 @@ namespace StageUp.Servicios
             }
             catch (Exception)
             {
-                // Envío no crítico para el flujo: se informa a la BLL como
-                // fallo (return false) y el caso de uso sigue su camino
-                // alternativo correspondiente, sin romper la operación.
                 return false;
             }
         }

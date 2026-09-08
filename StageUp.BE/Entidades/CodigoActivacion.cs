@@ -2,11 +2,6 @@ using System;
 
 namespace StageUp.BE.Entidades
 {
-    /// <summary>
-    /// Código de activación de cuenta enviado por correo electrónico,
-    /// según CU-001-001. Cada código pertenece a un UsuarioExterno,
-    /// tiene una vigencia definida y solo puede usarse una vez.
-    /// </summary>
     public class CodigoActivacion
     {
         public int IdCodigoActivacion { get; set; }

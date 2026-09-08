@@ -4,12 +4,6 @@ using System.Text;
 
 namespace StageUp.Seguridad
 {
-    /// <summary>
-    /// Generación de códigos de activación / recuperación. Se usan
-    /// códigos numéricos de 6 dígitos (fáciles de transcribir desde un
-    /// correo electrónico), generados con un generador criptográficamente
-    /// seguro en vez de System.Random.
-    /// </summary>
     public static class GeneradorDeCodigos
     {
         public static string GenerarCodigoNumerico(int longitud = ConfiguracionSeguridad.LongitudCodigo)

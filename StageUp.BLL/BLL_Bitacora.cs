@@ -1,16 +1,23 @@
+using System;
+using System.Collections.Generic;
 using StageUp.BE.Entidades;
 using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    /// <summary>
-    /// Registro de acciones en la bitácora del sistema (CU-001-013).
-    /// Se usa desde el resto de la BLL cada vez que una acción impacta en
-    /// la persistencia de información sensible.
-    /// </summary>
     public class BLL_Bitacora
     {
         private readonly MPP_RegistroActividad _mpp = new MPP_RegistroActividad();
+
+        public static readonly string[] TiposDeOperacion =
+        {
+            "ALTA", "MODIFICACION", "BAJA", "ACTIVACION", "LOGIN", "RECUPERACION_SOLICITADA"
+        };
+
+        public static readonly string[] TiposDeEntidadAfectada =
+        {
+            "UsuarioExterno", "EspacioArtistico"
+        };
 
         public void Registrar(
             int? idUsuarioExternoResponsable, string tipoOperacion, string tipoEntidadAfectada,
@@ -26,6 +33,13 @@ namespace StageUp.BLL
                 DescripcionOperacion = descripcionOperacion,
                 OrigenOperacion = origenOperacion
             });
+        }
+
+        public List<RegistroActividad> Buscar(
+            int? idUsuarioExternoResponsable = null, DateTime? fechaDesde = null, DateTime? fechaHasta = null,
+            string tipoOperacion = null, string tipoEntidadAfectada = null)
+        {
+            return _mpp.Buscar(idUsuarioExternoResponsable, fechaDesde, fechaHasta, tipoOperacion, tipoEntidadAfectada);
         }
     }
 }

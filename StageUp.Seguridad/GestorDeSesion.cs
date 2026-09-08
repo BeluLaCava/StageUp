@@ -4,11 +4,6 @@ using StageUp.BE.Entidades;
 
 namespace StageUp.Seguridad
 {
-    /// <summary>
-    /// Manejo de la sesión del usuario externo autenticado. Encapsula el
-    /// uso de HttpContext.Current.Session para que la UI y la BLL no
-    /// dependan directamente de la API de sesión de ASP.NET.
-    /// </summary>
     public static class GestorDeSesion
     {
         private const string ClaveIdUsuario = "StageUp.Sesion.IdUsuarioExterno";

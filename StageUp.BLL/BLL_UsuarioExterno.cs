@@ -8,13 +8,6 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-    /// <summary>
-    /// Reglas de negocio de CU-001-001 (Registrar y activar usuario
-    /// externo) y CU-001-002 (Recuperar acceso a la cuenta), más el login
-    /// básico necesario para poder usar la cuenta ya activada. Cada
-    /// método corresponde 1 a 1 a un camino (principal o alternativo) de
-    /// esos casos de uso; los comentarios remiten al paso del CU.
-    /// </summary>
     public class BLL_UsuarioExterno
     {
         private static readonly Regex PatronCorreo = new Regex(
@@ -26,16 +19,11 @@ namespace StageUp.BLL
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
 
-        // ------------------------------------------------------------
-        // CU-001-001 Registrar y activar usuario externo
-        // ------------------------------------------------------------
-
         public ResultadoOperacion<int> Registrar(
             string nombre, string apellido, string correoElectronico,
             string password, string confirmacionPassword,
             bool aceptaTerminos, bool aceptaPoliticaPrivacidad)
         {
-            // Paso 7 / A1: campos obligatorios completos.
             if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(apellido) ||
                 string.IsNullOrWhiteSpace(correoElectronico) || string.IsNullOrWhiteSpace(password) ||
                 string.IsNullOrWhiteSpace(confirmacionPassword))
@@ -44,21 +32,18 @@ namespace StageUp.BLL
                     "Completá todos los campos obligatorios para crear la cuenta.", "A1");
             }
 
-            // A2: formato de correo válido.
             if (!PatronCorreo.IsMatch(correoElectronico.Trim()))
             {
                 return ResultadoOperacion<int>.Error(
                     "El correo electrónico ingresado no tiene un formato válido.", "A2");
             }
 
-            // A5: aceptación de términos y política de privacidad, ambas obligatorias.
             if (!aceptaTerminos || !aceptaPoliticaPrivacidad)
             {
                 return ResultadoOperacion<int>.Error(
                     "Debés aceptar los Términos y condiciones y la Política de privacidad para continuar.", "A5");
             }
 
-            // A4: contraseña y confirmación deben coincidir.
             if (password != confirmacionPassword)
             {
                 return ResultadoOperacion<int>.Error(
@@ -73,7 +58,6 @@ namespace StageUp.BLL
                         ConfiguracionSeguridad.LongitudMinimaPassword));
             }
 
-            // A3: correo no debe estar registrado previamente.
             correoElectronico = correoElectronico.Trim().ToLowerInvariant();
             if (_mppUsuario.ObtenerPorCorreo(correoElectronico) != null)
             {
@@ -102,9 +86,6 @@ namespace StageUp.BLL
 
             bool envioOk = GenerarYEnviarCodigoActivacion(idUsuarioExterno, nuevoUsuario.CorreoElectronico, nuevoUsuario.Nombre);
 
-            // A6: si falla el envío del código, la cuenta queda igual registrada
-            // y pendiente de activación; se lo informamos a la UI para que
-            // ofrezca reintentar el envío.
             string mensaje = envioOk
                 ? "Te enviamos un código de activación a tu correo electrónico."
                 : "La cuenta se creó, pero no pudimos enviar el código de activación en este momento. Podés solicitar que lo reenviemos.";
@@ -112,10 +93,6 @@ namespace StageUp.BLL
             return ResultadoOperacion<int>.Ok(idUsuarioExterno, mensaje);
         }
 
-        /// <summary>
-        /// A6 (falla de envío) / A8 (código vencido): generar y reenviar un
-        /// nuevo código de activación para una cuenta pendiente.
-        /// </summary>
         public ResultadoOperacion ReenviarCodigoActivacion(int idUsuarioExterno)
         {
             UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
@@ -136,9 +113,6 @@ namespace StageUp.BLL
                 : ResultadoOperacion.Error("No pudimos enviar el código en este momento. Probá nuevamente en unos minutos.");
         }
 
-        /// <summary>
-        /// Escenario principal paso 13-18 + A7 (código incorrecto) + A8 (vencido).
-        /// </summary>
         public ResultadoOperacion ValidarActivacion(int idUsuarioExterno, string codigoIngresado)
         {
             if (string.IsNullOrWhiteSpace(codigoIngresado))
@@ -154,13 +128,11 @@ namespace StageUp.BLL
 
             CodigoActivacion codigo = _mppCodigoActivacion.ObtenerVigentePorUsuario(idUsuarioExterno);
 
-            // A7: el código ingresado no corresponde a la cuenta pendiente de activación.
             if (codigo == null || codigo.Codigo != codigoIngresado.Trim())
             {
                 return ResultadoOperacion.Error("El código ingresado no es válido.", "A7");
             }
 
-            // A8: el código se encuentra vencido.
             if (!codigo.EstaVigente(DateTime.Now))
             {
                 return ResultadoOperacion.Error(
@@ -179,13 +151,6 @@ namespace StageUp.BLL
             return ResultadoOperacion.Ok(
                 "Tu cuenta fue activada correctamente. Ya podés iniciar sesión.");
         }
-
-        // ------------------------------------------------------------
-        // Autenticación (necesaria para poder usar la cuenta activada;
-        // no tiene un CU propio en la documentación, se resuelve con el
-        // criterio de seguridad estándar de no revelar si el correo o la
-        // contraseña son los que fallaron).
-        // ------------------------------------------------------------
 
         public ResultadoOperacion<UsuarioExterno> IniciarSesion(string correoElectronico, string password)
         {
@@ -221,25 +186,14 @@ namespace StageUp.BLL
             return ResultadoOperacion<UsuarioExterno>.Ok(usuario);
         }
 
-        // ------------------------------------------------------------
-        // CU-001-002 Recuperar acceso a la cuenta
-        // ------------------------------------------------------------
-
-        /// <summary>
-        /// Escenario principal pasos 9-14 + A1/A2/A3. También se reutiliza
-        /// para el reenvío de código (A4/A6): cada llamada genera y envía
-        /// un código nuevo.
-        /// </summary>
         public ResultadoOperacion SolicitarRecuperacion(string correoElectronico)
         {
-            // A1: campo obligatorio.
             if (string.IsNullOrWhiteSpace(correoElectronico))
             {
                 return ResultadoOperacion.Error(
                     "Ingresá el correo electrónico asociado a tu cuenta.", "A1");
             }
 
-            // A2: formato válido.
             if (!PatronCorreo.IsMatch(correoElectronico.Trim()))
             {
                 return ResultadoOperacion.Error(
@@ -248,9 +202,6 @@ namespace StageUp.BLL
 
             UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim().ToLowerInvariant());
 
-            // A3: correo no registrado. Se responde con un mensaje genérico,
-            // sin confirmar ni desmentir la existencia de la cuenta, tal
-            // como pide la especificación ("sin exponer información sensible").
             if (usuario == null)
             {
                 return ResultadoOperacion.Ok(
@@ -273,17 +224,11 @@ namespace StageUp.BLL
                 usuario.IdUsuarioExterno, "RECUPERACION_SOLICITADA", "UsuarioExterno", usuario.IdUsuarioExterno,
                 "Generación de código de recuperación de contraseña.");
 
-            // A4: falla en el envío. Igual devolvemos éxito genérico (no exponemos
-            // si el correo existe), pero con un mensaje que permite reintentar.
             return envioOk
                 ? ResultadoOperacion.Ok("Si el correo ingresado corresponde a una cuenta registrada, vas a recibir un código de recuperación.")
                 : ResultadoOperacion.Error("No pudimos enviar el código en este momento. Probá nuevamente en unos minutos.", "A4");
         }
 
-        /// <summary>
-        /// Escenario principal pasos 16-21 + A5 (código incorrecto),
-        /// A6 (vencido), A7 (contraseña no cumple criterios), A8 (no coincide).
-        /// </summary>
         public ResultadoOperacion ValidarCodigoYActualizarPassword(
             string correoElectronico, string codigoIngresado, string nuevaPassword, string confirmacionNuevaPassword)
         {
@@ -295,26 +240,22 @@ namespace StageUp.BLL
             UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim().ToLowerInvariant());
             if (usuario == null)
             {
-                // Mismo criterio que en SolicitarRecuperacion: no confirmar/desmentir existencia de cuenta.
                 return ResultadoOperacion.Error("El código ingresado no es válido.", "A5");
             }
 
             CodigoRecuperacion codigo = _mppCodigoRecuperacion.ObtenerVigentePorUsuario(usuario.IdUsuarioExterno);
 
-            // A5: código incorrecto.
             if (codigo == null || codigo.Codigo != codigoIngresado.Trim())
             {
                 return ResultadoOperacion.Error("El código ingresado no es válido.", "A5");
             }
 
-            // A6: código vencido.
             if (!codigo.EstaVigente(DateTime.Now))
             {
                 return ResultadoOperacion.Error(
                     "El código ingresado ya no se encuentra vigente. Solicitá uno nuevo.", "A6");
             }
 
-            // A7: la nueva contraseña no cumple los criterios de seguridad.
             if (!CumpleCriteriosDeSeguridad(nuevaPassword))
             {
                 return ResultadoOperacion.Error(
@@ -324,7 +265,6 @@ namespace StageUp.BLL
                     "A7");
             }
 
-            // A8: no coincide con la confirmación.
             if (nuevaPassword != confirmacionNuevaPassword)
             {
                 return ResultadoOperacion.Error("La nueva contraseña y su confirmación no coinciden.", "A8");
@@ -342,9 +282,16 @@ namespace StageUp.BLL
             return ResultadoOperacion.Ok("Tu contraseña fue actualizada correctamente. Ya podés iniciar sesión con tus nuevas credenciales.");
         }
 
-        // ------------------------------------------------------------
-        // Privados
-        // ------------------------------------------------------------
+        public int? ObtenerIdPorCorreo(string correoElectronico)
+        {
+            if (string.IsNullOrWhiteSpace(correoElectronico))
+            {
+                return null;
+            }
+
+            UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim());
+            return usuario == null ? (int?)null : usuario.IdUsuarioExterno;
+        }
 
         private bool GenerarYEnviarCodigoActivacion(int idUsuarioExterno, string correoElectronico, string nombre)
         {
@@ -361,11 +308,6 @@ namespace StageUp.BLL
             return _servicioCorreo.EnviarCodigoActivacion(correoElectronico, nombre, codigo);
         }
 
-        /// <summary>
-        /// Criterio de seguridad para contraseñas (no definido explícitamente
-        /// en la documentación de StageUp para este avance): longitud mínima,
-        /// al menos una letra y al menos un número.
-        /// </summary>
         private static bool CumpleCriteriosDeSeguridad(string password)
         {
             if (string.IsNullOrEmpty(password) || password.Length < ConfiguracionSeguridad.LongitudMinimaPassword)

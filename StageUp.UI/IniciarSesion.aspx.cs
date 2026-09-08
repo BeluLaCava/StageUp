@@ -5,13 +5,6 @@ using StageUp.BLL;
 
 namespace StageUp.UI
 {
-    /// <summary>
-    /// Code-behind de IniciarSesion.aspx. Resuelve el login (necesario
-    /// para poder usar una cuenta ya activada) y, dentro de la misma
-    /// página, el flujo completo de CU-001-002 Recuperar acceso a la
-    /// cuenta (solicitar código -> validar código y definir nueva
-    /// contraseña -> confirmación).
-    /// </summary>
     public partial class IniciarSesion : Page
     {
         private readonly BLL_UsuarioExterno _bllUsuarioExterno = new BLL_UsuarioExterno();
@@ -109,10 +102,6 @@ namespace StageUp.UI
             MostrarPanel(pnlLogin);
         }
 
-        /// <summary>
-        /// Muestra únicamente el panel indicado y oculta el resto de los
-        /// pasos del flujo de login / recuperación.
-        /// </summary>
         private void MostrarPanel(System.Web.UI.WebControls.Panel panelAMostrar)
         {
             pnlLogin.Visible = ReferenceEquals(panelAMostrar, pnlLogin);

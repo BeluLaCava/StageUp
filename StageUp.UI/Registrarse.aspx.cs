@@ -5,23 +5,10 @@ using StageUp.BLL;
 
 namespace StageUp.UI
 {
-    /// <summary>
-    /// Code-behind de Registrarse.aspx. Implementa CU-001-001 Registrar y
-    /// activar usuario externo como un flujo de 3 pasos dentro de la misma
-    /// página (paneles), tal como lo describe el caso de uso: datos de
-    /// registro -> código de activación -> confirmación.
-    /// Esta página no accede a SQL Server ni contiene reglas de negocio:
-    /// solo llama a StageUp.BLL.BLL_UsuarioExterno.
-    /// </summary>
     public partial class Registrarse : Page
     {
         private readonly BLL_UsuarioExterno _bllUsuarioExterno = new BLL_UsuarioExterno();
 
-        /// <summary>
-        /// Id del usuario externo recién registrado, pendiente de activación.
-        /// Se guarda en ViewState para sobrevivir los postbacks del panel
-        /// de activación (reenviar código / activar cuenta).
-        /// </summary>
         private int? IdUsuarioExternoPendiente
         {
             get { return ViewState["IdUsuarioExternoPendiente"] as int?; }
@@ -90,6 +77,16 @@ namespace StageUp.UI
 
             ResultadoOperacion resultado = _bllUsuarioExterno.ReenviarCodigoActivacion(IdUsuarioExternoPendiente.Value);
             MostrarMensaje(pnlMensajeActivacion, litMensajeActivacion, resultado.Mensaje, !resultado.Exitoso);
+        }
+
+        protected void cvAceptaTerminos_ServerValidate(object source, ServerValidateEventArgs args)
+        {
+            args.IsValid = chkAceptaTerminos.Checked;
+        }
+
+        protected void cvAceptaPoliticaPrivacidad_ServerValidate(object source, ServerValidateEventArgs args)
+        {
+            args.IsValid = chkAceptaPoliticaPrivacidad.Checked;
         }
 
         private static void MostrarMensaje(System.Web.UI.WebControls.Panel panel, Literal literal, string mensaje, bool esError)

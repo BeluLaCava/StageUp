@@ -24,11 +24,21 @@
                     <p>Reunimos respuestas esenciales para ayudarte a comprender las funciones principales de StageUp.</p>
                 </div>
                 <div class="faq-list">
-                    <article class="faq-item"><h3><button type="button" aria-expanded="false" aria-controls="faq-answer-1" data-accordion-trigger><span class="faq-question"><span class="faq-number">01</span>¿Qué es StageUp?</span><span class="faq-toggle" aria-hidden="true">+</span></button></h3><div class="faq-answer" id="faq-answer-1" hidden><p>StageUp es una plataforma de intermediación digital que conecta a personas que necesitan espacios para actividades artísticas con gestores que desean ofrecerlos temporalmente.</p></div></article>
-                    <article class="faq-item"><h3><button type="button" aria-expanded="false" aria-controls="faq-answer-2" data-accordion-trigger><span class="faq-question"><span class="faq-number">02</span>¿Cómo puedo buscar un espacio?</span><span class="faq-toggle" aria-hidden="true">+</span></button></h3><div class="faq-answer" id="faq-answer-2" hidden><p>La exploración pública permite buscar por palabras clave y combinar filtros generales con características artísticas del espacio.</p></div></article>
-                    <article class="faq-item"><h3><button type="button" aria-expanded="false" aria-controls="faq-answer-3" data-accordion-trigger><span class="faq-question"><span class="faq-number">03</span>¿Cómo funcionan las reservas?</span><span class="faq-toggle" aria-hidden="true">+</span></button></h3><div class="faq-answer" id="faq-answer-3" hidden><p>Un usuario autenticado podrá seleccionar un día y una franja disponible para enviar una solicitud. El gestor correspondiente podrá aceptarla o rechazarla.</p></div></article>
-                    <article class="faq-item"><h3><button type="button" aria-expanded="false" aria-controls="faq-answer-4" data-accordion-trigger><span class="faq-question"><span class="faq-number">04</span>¿Qué significa ser gestor?</span><span class="faq-toggle" aria-hidden="true">+</span></button></h3><div class="faq-answer" id="faq-answer-4" hidden><p>Es un usuario habilitado para publicar y administrar espacios artísticos, configurar su disponibilidad y gestionar las solicitudes recibidas.</p></div></article>
-                    <article class="faq-item"><h3><button type="button" aria-expanded="false" aria-controls="faq-answer-5" data-accordion-trigger><span class="faq-question"><span class="faq-number">05</span>¿Para qué sirve una cuenta?</span><span class="faq-toggle" aria-hidden="true">+</span></button></h3><div class="faq-answer" id="faq-answer-5" hidden><p>La cuenta permitirá acceder a funciones que requieren identificación, como solicitar reservas, gestionar operaciones y registrar solicitudes de soporte.</p></div></article>
+                    <asp:Repeater ID="rptFaq" runat="server">
+                        <ItemTemplate>
+                            <article class="faq-item">
+                                <h3>
+                                    <button type="button" aria-expanded="false" aria-controls='faq-answer-<%# Container.ItemIndex + 1 %>' data-accordion-trigger>
+                                        <span class="faq-question"><span class="faq-number"><%# (Container.ItemIndex + 1).ToString("00") %></span><%# Eval("Pregunta") %></span>
+                                        <span class="faq-toggle" aria-hidden="true">+</span>
+                                    </button>
+                                </h3>
+                                <div class="faq-answer" id='faq-answer-<%# Container.ItemIndex + 1 %>' hidden>
+                                    <p><%# Eval("Respuesta") %></p>
+                                </div>
+                            </article>
+                        </ItemTemplate>
+                    </asp:Repeater>
                 </div>
             </section>
 

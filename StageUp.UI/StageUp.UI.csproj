@@ -41,6 +41,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Services" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -71,6 +72,13 @@
     </Compile>
     <Compile Include="Explorar\DetalleEspacio.aspx.designer.cs">
       <DependentUpon>DetalleEspacio.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Explorar\CompararEspacios.aspx.cs">
+      <DependentUpon>CompararEspacios.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Explorar\CompararEspacios.aspx.designer.cs">
+      <DependentUpon>CompararEspacios.aspx</DependentUpon>
     </Compile>
     <Compile Include="IniciarSesion.aspx.cs">
       <DependentUpon>IniciarSesion.aspx</DependentUpon>
@@ -122,6 +130,24 @@
     <Compile Include="Site.Master.designer.cs">
       <DependentUpon>Site.Master</DependentUpon>
     </Compile>
+    <Compile Include="MisEspacios.aspx.cs">
+      <DependentUpon>MisEspacios.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="MisEspacios.aspx.designer.cs">
+      <DependentUpon>MisEspacios.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Servicios\ServicioEspacios.asmx.cs">
+      <DependentUpon>ServicioEspacios.asmx</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Interno\RegistrosActividad.aspx.cs">
+      <DependentUpon>RegistrosActividad.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\RegistrosActividad.aspx.designer.cs">
+      <DependentUpon>RegistrosActividad.aspx</DependentUpon>
+    </Compile>
     <Content Include="Ayuda\CentroAyuda.aspx" />
     <Content Include="Content\Css\site.css" />
     <Content Include="Content\Images\favicon.png" />
@@ -129,6 +155,7 @@
     <Content Include="Content\Images\stageup-logo.png" />
     <Content Include="Default.aspx" />
     <Content Include="Explorar\DetalleEspacio.aspx" />
+    <Content Include="Explorar\CompararEspacios.aspx" />
     <Content Include="Explorar\ResultadosBusqueda.aspx" />
     <Content Include="IniciarSesion.aspx" />
     <Content Include="Registrarse.aspx" />
@@ -136,6 +163,9 @@
     <Content Include="Contactenos.aspx" />
     <Content Include="TerminosCondiciones.aspx" />
     <Content Include="PoliticaPrivacidad.aspx" />
+    <Content Include="MisEspacios.aspx" />
+    <Content Include="Servicios\ServicioEspacios.asmx" />
+    <Content Include="Interno\RegistrosActividad.aspx" />
     <Content Include="Scripts\site.js" />
     <Content Include="Site.Master" />
     <Content Include="Web.config" />

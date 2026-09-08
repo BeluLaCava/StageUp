@@ -3,14 +3,6 @@ using System.Security.Cryptography;
 
 namespace StageUp.Seguridad
 {
-    /// <summary>
-    /// Hashing de contraseñas con sal aleatoria por usuario (PBKDF2 /
-    /// Rfc2898DeriveBytes, disponible en .NET Framework sin paquetes
-    /// externos). 
-    /// El resultado se guarda como un único string con el formato:
-    ///   {iteraciones}.{saltBase64}.{hashBase64}
-    /// para no necesitar columnas adicionales en UsuarioExterno.passwordHash.
-    /// </summary>
     public static class HashDeContrasenas
     {
         private const int TamanioSalBytes = 16;
@@ -69,9 +61,6 @@ namespace StageUp.Seguridad
             }
         }
 
-        /// <summary>
-        /// Comparación en tiempo constante para evitar timing attacks.
-        /// </summary>
         private static bool SonIguales(byte[] a, byte[] b)
         {
             if (a.Length != b.Length)

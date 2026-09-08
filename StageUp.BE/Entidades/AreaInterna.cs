@@ -2,12 +2,6 @@ using System;
 
 namespace StageUp.BE.Entidades
 {
-    /// <summary>
-    /// Área interna de StageUp (ej. Tecnología, Administración). Forma
-    /// parte de la arquitectura Usuario Interno -> Rol -> Permiso que se
-    /// prepara desde este avance, aunque todavía no tiene pantallas de
-    /// administración propias.
-    /// </summary>
     public class AreaInterna
     {
         public int IdAreaInterna { get; set; }

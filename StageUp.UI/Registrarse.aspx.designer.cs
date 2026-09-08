@@ -34,10 +34,10 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.CompareValidator cvPassword;
 
         protected global::System.Web.UI.WebControls.CheckBox chkAceptaTerminos;
-        protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvAceptaTerminos;
+        protected global::System.Web.UI.WebControls.CustomValidator cvAceptaTerminos;
 
         protected global::System.Web.UI.WebControls.CheckBox chkAceptaPoliticaPrivacidad;
-        protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvAceptaPoliticaPrivacidad;
+        protected global::System.Web.UI.WebControls.CustomValidator cvAceptaPoliticaPrivacidad;
 
         protected global::System.Web.UI.WebControls.Button btnRegistrarse;
 

@@ -3,14 +3,9 @@ using System.Data.SqlClient;
 
 namespace StageUp.DAL
 {
-    /// <summary>
-    /// Helper común para ejecutar stored procedures por ADO.NET. Las
-    /// clases DAL_* de cada entidad arman los parámetros y usan este
-    /// helper en vez de repetir el manejo de SqlConnection/SqlCommand.
-    /// </summary>
-    internal static class EjecutorStoredProcedure
+    public static class EjecutorStoredProcedure
     {
-        public static DataTable EjecutarConsulta(string nombreSp, params SqlParameter[] parametros)
+        public static DataTable Leer(string nombreSp, params SqlParameter[] parametros)
         {
             var tabla = new DataTable();
 
@@ -32,7 +27,7 @@ namespace StageUp.DAL
             return tabla;
         }
 
-        public static object EjecutarEscalar(string nombreSp, params SqlParameter[] parametros)
+        public static object LeerEscalar(string nombreSp, params SqlParameter[] parametros)
         {
             using (SqlConnection conexion = ConexionSql.ObtenerConexion())
             using (var comando = new SqlCommand(nombreSp, conexion))
@@ -48,7 +43,7 @@ namespace StageUp.DAL
             }
         }
 
-        public static void EjecutarNonQuery(string nombreSp, params SqlParameter[] parametros)
+        public static void Escribir(string nombreSp, params SqlParameter[] parametros)
         {
             using (SqlConnection conexion = ConexionSql.ObtenerConexion())
             using (var comando = new SqlCommand(nombreSp, conexion))

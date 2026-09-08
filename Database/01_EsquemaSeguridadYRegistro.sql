@@ -1,28 +1,5 @@
-/*
-    StageUp - Avance 1
-    Esquema de base de datos: módulo de seguridad (registro, activación,
-    autenticación, recuperación de contraseña, bitácora) y preparación de
-    la arquitectura Usuario Interno -> Rol -> Permiso.
-
-    Fuente de verdad: docs/referencia/StageUp_Tecnico.docx
-    (10.7.4 Diccionario de Datos, CU-001-001, CU-001-002, CU-001-012, CU-001-013).
-
-    Cómo ejecutar:
-    1. Crear la base de datos StageUp (o la que se prefiera) en SQL Server local.
-    2. Ejecutar este script completo contra esa base (SQL Server Management Studio
-       o sqlcmd), en una base vacía o nueva.
-
-    Este script es incremental: agrega únicamente lo necesario para el
-    Avance 1. No incluye todavía tablas del core del negocio (espacios,
-    reservas, etc.), que corresponden a entregas posteriores.
-*/
-
 SET NOCOUNT ON;
 GO
-
--- =====================================================================
--- 1. TABLAS - USUARIO EXTERNO Y SEGURIDAD
--- =====================================================================
 
 IF OBJECT_ID('dbo.UsuarioExterno', 'U') IS NOT NULL DROP TABLE dbo.UsuarioExterno;
 GO
@@ -34,8 +11,8 @@ CREATE TABLE dbo.UsuarioExterno
     correoElectronico           NVARCHAR(300)       NOT NULL,
     passwordHash                NVARCHAR(510)       NOT NULL,
     telefono                    NVARCHAR(60)        NULL,
-    estadoCuenta                NVARCHAR(100)       NOT NULL, -- PendienteActivacion | Activa | Inactiva
-    perfilUsuario               NVARCHAR(100)       NOT NULL, -- ExternoSolicitante | GestorEspacios
+    estadoCuenta                NVARCHAR(100)       NOT NULL,
+    perfilUsuario               NVARCHAR(100)       NOT NULL,
     aceptaTerminos              BIT                 NOT NULL DEFAULT (0),
     aceptaPoliticaPrivacidad    BIT                 NOT NULL DEFAULT (0),
     fechaAceptacionTerminos     DATETIME            NULL,
@@ -82,13 +59,6 @@ CREATE TABLE dbo.CodigoRecuperacion
         REFERENCES dbo.UsuarioExterno (idUsuarioExterno)
 );
 GO
-
--- =====================================================================
--- 2. ARQUITECTURA USUARIO INTERNO -> ROL -> PERMISO
---    (solo esquema, para "preparar la arquitectura desde el inicio",
---    según la pauta de la primera entrega. Todavía no se construyen
---    pantallas de administración sobre estas tablas en este avance.)
--- =====================================================================
 
 IF OBJECT_ID('dbo.AreaInterna', 'U') IS NOT NULL DROP TABLE dbo.AreaInterna;
 GO
@@ -185,10 +155,6 @@ CREATE TABLE dbo.UsuarioInterno
 );
 GO
 
--- =====================================================================
--- 3. BITÁCORA (registros de actividad) - CU-001-013
--- =====================================================================
-
 IF OBJECT_ID('dbo.RegistroActividad', 'U') IS NOT NULL DROP TABLE dbo.RegistroActividad;
 GO
 CREATE TABLE dbo.RegistroActividad
@@ -209,10 +175,6 @@ CREATE TABLE dbo.RegistroActividad
         REFERENCES dbo.UsuarioInterno (idUsuarioInterno)
 );
 GO
-
--- =====================================================================
--- 4. STORED PROCEDURES - UsuarioExterno
--- =====================================================================
 
 IF OBJECT_ID('dbo.sp_UsuarioExterno_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_Insertar;
 GO
@@ -297,10 +259,6 @@ BEGIN
 END
 GO
 
--- =====================================================================
--- 5. STORED PROCEDURES - CodigoActivacion
--- =====================================================================
-
 IF OBJECT_ID('dbo.sp_CodigoActivacion_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CodigoActivacion_Insertar;
 GO
 CREATE PROCEDURE dbo.sp_CodigoActivacion_Insertar
@@ -346,10 +304,6 @@ BEGIN
 END
 GO
 
--- =====================================================================
--- 6. STORED PROCEDURES - CodigoRecuperacion
--- =====================================================================
-
 IF OBJECT_ID('dbo.sp_CodigoRecuperacion_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CodigoRecuperacion_Insertar;
 GO
 CREATE PROCEDURE dbo.sp_CodigoRecuperacion_Insertar
@@ -394,10 +348,6 @@ BEGIN
     WHERE idCodigoRecuperacion = @idCodigoRecuperacion;
 END
 GO
-
--- =====================================================================
--- 7. STORED PROCEDURE - RegistroActividad (bitácora)
--- =====================================================================
 
 IF OBJECT_ID('dbo.sp_RegistroActividad_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_RegistroActividad_Insertar;
 GO

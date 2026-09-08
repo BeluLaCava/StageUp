@@ -1,11 +1,5 @@
 namespace StageUp.BLL
 {
-    /// <summary>
-    /// Resultado uniforme de una operación de BLL, para que la UI pueda
-    /// mostrar el mensaje correspondiente a cada camino alternativo del
-    /// caso de uso sin depender de excepciones para el control de flujo
-    /// normal (las excepciones quedan para errores no esperados).
-    /// </summary>
     public class ResultadoOperacion
     {
         public bool Exitoso { get; private set; }
@@ -30,10 +24,6 @@ namespace StageUp.BLL
         }
     }
 
-    /// <summary>
-    /// Variante de ResultadoOperacion que además devuelve un valor
-    /// (por ejemplo, el id del usuario recién registrado).
-    /// </summary>
     public class ResultadoOperacion<T> : ResultadoOperacion
     {
         public T Valor { get; private set; }

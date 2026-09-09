@@ -1,3 +1,12 @@
+IF DB_ID(N'StageUp') IS NULL
+BEGIN
+    CREATE DATABASE StageUp;
+END
+GO
+
+USE StageUp;
+GO
+
 IF OBJECT_ID('dbo.EspacioArtistico', 'U') IS NOT NULL
     DROP TABLE dbo.EspacioArtistico;
 GO
@@ -34,13 +43,17 @@ CREATE PROCEDURE dbo.sp_EspacioArtistico_Insertar
 AS
 BEGIN
     SET NOCOUNT ON;
+    BEGIN TRY
+        INSERT INTO dbo.EspacioArtistico
+            (idUsuarioGestor, nombreEspacio, descripcion, tipoEspacio, estadoEspacio, publicado, activo, fechaAlta)
+        VALUES
+            (@idUsuarioGestor, @nombreEspacio, @descripcion, @tipoEspacio, N'Borrador', 0, 1, GETDATE());
 
-    INSERT INTO dbo.EspacioArtistico
-        (idUsuarioGestor, nombreEspacio, descripcion, tipoEspacio, estadoEspacio, publicado, activo, fechaAlta)
-    VALUES
-        (@idUsuarioGestor, @nombreEspacio, @descripcion, @tipoEspacio, N'Borrador', 0, 1, GETDATE());
-
-    SELECT CAST(SCOPE_IDENTITY() AS INT) AS idEspacioArtistico;
+        SELECT CAST(SCOPE_IDENTITY() AS INT) AS idEspacioArtistico;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
 END
 GO
 
@@ -56,14 +69,18 @@ CREATE PROCEDURE dbo.sp_EspacioArtistico_Modificar
 AS
 BEGIN
     SET NOCOUNT ON;
-
-    UPDATE dbo.EspacioArtistico
-    SET nombreEspacio           = @nombreEspacio,
-        descripcion             = @descripcion,
-        tipoEspacio             = @tipoEspacio,
-        fechaUltimaModificacion = GETDATE()
-    WHERE idEspacioArtistico = @idEspacioArtistico
-      AND activo = 1;
+    BEGIN TRY
+        UPDATE dbo.EspacioArtistico
+        SET nombreEspacio           = @nombreEspacio,
+            descripcion             = @descripcion,
+            tipoEspacio             = @tipoEspacio,
+            fechaUltimaModificacion = GETDATE()
+        WHERE idEspacioArtistico = @idEspacioArtistico
+          AND activo = 1;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
 END
 GO
 
@@ -130,14 +147,18 @@ CREATE PROCEDURE dbo.sp_EspacioArtistico_Publicar
 AS
 BEGIN
     SET NOCOUNT ON;
-
-    UPDATE dbo.EspacioArtistico
-    SET publicado               = 1,
-        estadoEspacio           = N'Publicado',
-        fechaPublicacion        = GETDATE(),
-        fechaUltimaModificacion = GETDATE()
-    WHERE idEspacioArtistico = @idEspacioArtistico
-      AND activo = 1;
+    BEGIN TRY
+        UPDATE dbo.EspacioArtistico
+        SET publicado               = 1,
+            estadoEspacio           = N'Publicado',
+            fechaPublicacion        = GETDATE(),
+            fechaUltimaModificacion = GETDATE()
+        WHERE idEspacioArtistico = @idEspacioArtistico
+          AND activo = 1;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
 END
 GO
 
@@ -150,13 +171,17 @@ CREATE PROCEDURE dbo.sp_EspacioArtistico_Pausar
 AS
 BEGIN
     SET NOCOUNT ON;
-
-    UPDATE dbo.EspacioArtistico
-    SET publicado               = 0,
-        estadoEspacio           = N'Pausado',
-        fechaUltimaModificacion = GETDATE()
-    WHERE idEspacioArtistico = @idEspacioArtistico
-      AND activo = 1;
+    BEGIN TRY
+        UPDATE dbo.EspacioArtistico
+        SET publicado               = 0,
+            estadoEspacio           = N'Pausado',
+            fechaUltimaModificacion = GETDATE()
+        WHERE idEspacioArtistico = @idEspacioArtistico
+          AND activo = 1;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
 END
 GO
 
@@ -169,14 +194,18 @@ CREATE PROCEDURE dbo.sp_EspacioArtistico_BajaLogica
 AS
 BEGIN
     SET NOCOUNT ON;
-
-    UPDATE dbo.EspacioArtistico
-    SET activo                  = 0,
-        publicado               = 0,
-        estadoEspacio           = N'Dado de baja',
-        fechaBaja               = GETDATE(),
-        fechaUltimaModificacion = GETDATE()
-    WHERE idEspacioArtistico = @idEspacioArtistico
-      AND activo = 1;
+    BEGIN TRY
+        UPDATE dbo.EspacioArtistico
+        SET activo                  = 0,
+            publicado               = 0,
+            estadoEspacio           = N'Dado de baja',
+            fechaBaja               = GETDATE(),
+            fechaUltimaModificacion = GETDATE()
+        WHERE idEspacioArtistico = @idEspacioArtistico
+          AND activo = 1;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
 END
 GO

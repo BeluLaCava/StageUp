@@ -43,10 +43,43 @@
                     </div>
 
                     <aside class="reservation-card" aria-label="Solicitud de reserva">
-                        <span class="reservation-card-label">¿Te interesa este espacio?</span>
-                        <p>Consultá la disponibilidad antes de enviar una solicitud.</p>
-                        <a class="button button-primary button-full" href="../IniciarSesion.aspx">Solicitar reserva</a>
-                        <small>Se requiere una cuenta activa y una sesión iniciada.</small>
+                        <asp:Panel ID="pnlReservarInvitado" runat="server">
+                            <span class="reservation-card-label">¿Te interesa este espacio?</span>
+                            <p>Consultá la disponibilidad antes de enviar una solicitud.</p>
+                            <a class="button button-primary button-full" href="../IniciarSesion.aspx">Solicitar reserva</a>
+                            <small>Se requiere una cuenta activa y una sesión iniciada.</small>
+                        </asp:Panel>
+
+                        <asp:Panel ID="pnlReservarPropio" runat="server" Visible="false">
+                            <span class="reservation-card-label">Este es tu espacio</span>
+                            <p>Administralo desde <a href="../MisEspacios.aspx">Mis espacios</a>.</p>
+                        </asp:Panel>
+
+                        <asp:Panel ID="pnlReservarMensaje" runat="server" Visible="false" CssClass="form-message">
+                            <asp:Literal ID="litReservarMensaje" runat="server" />
+                        </asp:Panel>
+
+                        <asp:Panel ID="pnlReservarFormulario" runat="server" Visible="false">
+                            <span class="reservation-card-label">¿Te interesa este espacio?</span>
+                            <p>Elegí una fecha y enviá tu solicitud. El gestor la va a aceptar o rechazar.</p>
+
+                            <div class="form-field">
+                                <label for="<%= txtFechaReserva.ClientID %>">Fecha *</label>
+                                <asp:TextBox ID="txtFechaReserva" runat="server" TextMode="Date" />
+                                <asp:RequiredFieldValidator ID="rfvFechaReserva" runat="server" ControlToValidate="txtFechaReserva"
+                                    Display="Dynamic" CssClass="field-error-text" ErrorMessage="Elegí una fecha." ValidationGroup="Reserva" />
+                            </div>
+
+                            <div class="form-field">
+                                <label for="<%= txtComentarioReserva.ClientID %>">Comentario (opcional)</label>
+                                <asp:TextBox ID="txtComentarioReserva" runat="server" TextMode="MultiLine" Rows="3" MaxLength="1000"
+                                    placeholder="Contale al gestor para qué necesitás el espacio." />
+                            </div>
+
+                            <asp:Button ID="btnSolicitarReserva" runat="server" CssClass="button button-primary button-full"
+                                Text="Enviar solicitud de reserva" ValidationGroup="Reserva" OnClick="btnSolicitarReserva_Click" />
+                            <small>Se requiere una cuenta activa y una sesión iniciada.</small>
+                        </asp:Panel>
                     </aside>
                 </div>
             </asp:Panel>

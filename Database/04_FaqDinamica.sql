@@ -1,3 +1,12 @@
+IF DB_ID(N'StageUp') IS NULL
+BEGIN
+    CREATE DATABASE StageUp;
+END
+GO
+
+USE StageUp;
+GO
+
 IF OBJECT_ID('dbo.Faq', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Faq

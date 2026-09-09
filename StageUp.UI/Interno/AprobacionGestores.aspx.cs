@@ -20,6 +20,12 @@ namespace StageUp.UI.Interno
                 return;
             }
 
+            if (!GestorDeSesion.TienePermisoInterno("APROBAR_GESTORES"))
+            {
+                Response.Redirect("~/Interno/PanelAdministrador.aspx");
+                return;
+            }
+
             if (!IsPostBack)
             {
                 CargarSolicitudes();

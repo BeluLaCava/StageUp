@@ -1,3 +1,12 @@
+IF DB_ID(N'StageUp') IS NULL
+BEGIN
+    CREATE DATABASE StageUp;
+END
+GO
+
+USE StageUp;
+GO
+
 SET NOCOUNT ON;
 GO
 
@@ -192,17 +201,21 @@ CREATE PROCEDURE dbo.sp_UsuarioExterno_Insertar
 AS
 BEGIN
     SET NOCOUNT ON;
+    BEGIN TRY
+        INSERT INTO dbo.UsuarioExterno
+            (nombre, apellido, correoElectronico, passwordHash, telefono,
+             estadoCuenta, perfilUsuario, aceptaTerminos, aceptaPoliticaPrivacidad,
+             fechaAceptacionTerminos, fechaAlta, activo)
+        VALUES
+            (@nombre, @apellido, @correoElectronico, @passwordHash, @telefono,
+             @estadoCuenta, @perfilUsuario, @aceptaTerminos, @aceptaPoliticaPrivacidad,
+             @fechaAceptacionTerminos, GETDATE(), 1);
 
-    INSERT INTO dbo.UsuarioExterno
-        (nombre, apellido, correoElectronico, passwordHash, telefono,
-         estadoCuenta, perfilUsuario, aceptaTerminos, aceptaPoliticaPrivacidad,
-         fechaAceptacionTerminos, fechaAlta, activo)
-    VALUES
-        (@nombre, @apellido, @correoElectronico, @passwordHash, @telefono,
-         @estadoCuenta, @perfilUsuario, @aceptaTerminos, @aceptaPoliticaPrivacidad,
-         @fechaAceptacionTerminos, GETDATE(), 1);
-
-    SELECT SCOPE_IDENTITY() AS idUsuarioExterno;
+        SELECT SCOPE_IDENTITY() AS idUsuarioExterno;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
 END
 GO
 
@@ -236,11 +249,16 @@ CREATE PROCEDURE dbo.sp_UsuarioExterno_ActivarCuenta
 AS
 BEGIN
     SET NOCOUNT ON;
-    UPDATE dbo.UsuarioExterno
-    SET estadoCuenta = @estadoCuenta,
-        fechaActivacion = GETDATE(),
-        fechaUltimaModificacion = GETDATE()
-    WHERE idUsuarioExterno = @idUsuarioExterno;
+    BEGIN TRY
+        UPDATE dbo.UsuarioExterno
+        SET estadoCuenta = @estadoCuenta,
+            fechaActivacion = GETDATE(),
+            fechaUltimaModificacion = GETDATE()
+        WHERE idUsuarioExterno = @idUsuarioExterno;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
 END
 GO
 
@@ -252,10 +270,35 @@ CREATE PROCEDURE dbo.sp_UsuarioExterno_ActualizarPassword
 AS
 BEGIN
     SET NOCOUNT ON;
-    UPDATE dbo.UsuarioExterno
-    SET passwordHash = @passwordHash,
-        fechaUltimaModificacion = GETDATE()
-    WHERE idUsuarioExterno = @idUsuarioExterno;
+    BEGIN TRY
+        UPDATE dbo.UsuarioExterno
+        SET passwordHash = @passwordHash,
+            fechaUltimaModificacion = GETDATE()
+        WHERE idUsuarioExterno = @idUsuarioExterno;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END
+GO
+
+IF OBJECT_ID('dbo.sp_UsuarioExterno_ActualizarPerfil', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_ActualizarPerfil;
+GO
+CREATE PROCEDURE dbo.sp_UsuarioExterno_ActualizarPerfil
+    @idUsuarioExterno   INT,
+    @perfilUsuario      NVARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        UPDATE dbo.UsuarioExterno
+        SET perfilUsuario = @perfilUsuario,
+            fechaUltimaModificacion = GETDATE()
+        WHERE idUsuarioExterno = @idUsuarioExterno;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
 END
 GO
 
@@ -268,10 +311,15 @@ CREATE PROCEDURE dbo.sp_CodigoActivacion_Insertar
 AS
 BEGIN
     SET NOCOUNT ON;
-    INSERT INTO dbo.CodigoActivacion (idUsuarioExterno, codigo, fechaGeneracion, fechaVencimiento, utilizado)
-    VALUES (@idUsuarioExterno, @codigo, GETDATE(), @fechaVencimiento, 0);
+    BEGIN TRY
+        INSERT INTO dbo.CodigoActivacion (idUsuarioExterno, codigo, fechaGeneracion, fechaVencimiento, utilizado)
+        VALUES (@idUsuarioExterno, @codigo, GETDATE(), @fechaVencimiento, 0);
 
-    SELECT SCOPE_IDENTITY() AS idCodigoActivacion;
+        SELECT SCOPE_IDENTITY() AS idCodigoActivacion;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
 END
 GO
 
@@ -297,10 +345,15 @@ CREATE PROCEDURE dbo.sp_CodigoActivacion_MarcarUtilizado
 AS
 BEGIN
     SET NOCOUNT ON;
-    UPDATE dbo.CodigoActivacion
-    SET utilizado = 1,
-        fechaUtilizacion = GETDATE()
-    WHERE idCodigoActivacion = @idCodigoActivacion;
+    BEGIN TRY
+        UPDATE dbo.CodigoActivacion
+        SET utilizado = 1,
+            fechaUtilizacion = GETDATE()
+        WHERE idCodigoActivacion = @idCodigoActivacion;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
 END
 GO
 
@@ -313,10 +366,15 @@ CREATE PROCEDURE dbo.sp_CodigoRecuperacion_Insertar
 AS
 BEGIN
     SET NOCOUNT ON;
-    INSERT INTO dbo.CodigoRecuperacion (idUsuarioExterno, codigo, fechaGeneracion, fechaVencimiento, utilizado)
-    VALUES (@idUsuarioExterno, @codigo, GETDATE(), @fechaVencimiento, 0);
+    BEGIN TRY
+        INSERT INTO dbo.CodigoRecuperacion (idUsuarioExterno, codigo, fechaGeneracion, fechaVencimiento, utilizado)
+        VALUES (@idUsuarioExterno, @codigo, GETDATE(), @fechaVencimiento, 0);
 
-    SELECT SCOPE_IDENTITY() AS idCodigoRecuperacion;
+        SELECT SCOPE_IDENTITY() AS idCodigoRecuperacion;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
 END
 GO
 
@@ -342,10 +400,15 @@ CREATE PROCEDURE dbo.sp_CodigoRecuperacion_MarcarUtilizado
 AS
 BEGIN
     SET NOCOUNT ON;
-    UPDATE dbo.CodigoRecuperacion
-    SET utilizado = 1,
-        fechaUtilizacion = GETDATE()
-    WHERE idCodigoRecuperacion = @idCodigoRecuperacion;
+    BEGIN TRY
+        UPDATE dbo.CodigoRecuperacion
+        SET utilizado = 1,
+            fechaUtilizacion = GETDATE()
+        WHERE idCodigoRecuperacion = @idCodigoRecuperacion;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
 END
 GO
 
@@ -362,11 +425,20 @@ CREATE PROCEDURE dbo.sp_RegistroActividad_Insertar
 AS
 BEGIN
     SET NOCOUNT ON;
-    INSERT INTO dbo.RegistroActividad
-        (idUsuarioExternoResponsable, idUsuarioInternoResponsable, tipoOperacion,
-         tipoEntidadAfectada, idEntidadAfectada, descripcionOperacion, fechaOperacion, origenOperacion)
-    VALUES
-        (@idUsuarioExternoResponsable, @idUsuarioInternoResponsable, @tipoOperacion,
-         @tipoEntidadAfectada, @idEntidadAfectada, @descripcionOperacion, GETDATE(), @origenOperacion);
+    BEGIN TRY
+        INSERT INTO dbo.RegistroActividad
+            (idUsuarioExternoResponsable, idUsuarioInternoResponsable, tipoOperacion,
+             tipoEntidadAfectada, idEntidadAfectada, descripcionOperacion, fechaOperacion, origenOperacion)
+        VALUES
+            (@idUsuarioExternoResponsable, @idUsuarioInternoResponsable, @tipoOperacion,
+             @tipoEntidadAfectada, @idEntidadAfectada, @descripcionOperacion, GETDATE(), @origenOperacion);
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
 END
 GO
+
+USE StageUp;
+GO
+SELECT name FROM sys.tables ORDER BY name;

@@ -3,6 +3,7 @@ namespace StageUp.BE.Enumerados
     public enum PerfilUsuarioExterno
     {
         ExternoSolicitante,
+        PendienteHabilitacionGestor,
         GestorEspacios
     }
 }

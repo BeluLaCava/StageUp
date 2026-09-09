@@ -1,3 +1,12 @@
+IF DB_ID(N'StageUp') IS NULL
+BEGIN
+    CREATE DATABASE StageUp;
+END
+GO
+
+USE StageUp;
+GO
+
 IF OBJECT_ID('dbo.sp_RegistroActividad_Buscar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_RegistroActividad_Buscar;
 GO
 CREATE PROCEDURE dbo.sp_RegistroActividad_Buscar

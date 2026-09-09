@@ -87,6 +87,13 @@
     <Compile Include="IniciarSesion.aspx.designer.cs">
       <DependentUpon>IniciarSesion.aspx</DependentUpon>
     </Compile>
+    <Compile Include="MiPerfil.aspx.cs">
+      <DependentUpon>MiPerfil.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="MiPerfil.aspx.designer.cs">
+      <DependentUpon>MiPerfil.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Registrarse.aspx.cs">
       <DependentUpon>Registrarse.aspx</DependentUpon>
@@ -207,6 +214,7 @@
     <Content Include="Explorar\CompararEspacios.aspx" />
     <Content Include="Explorar\ResultadosBusqueda.aspx" />
     <Content Include="IniciarSesion.aspx" />
+    <Content Include="MiPerfil.aspx" />
     <Content Include="Registrarse.aspx" />
     <Content Include="QuienesSomos.aspx" />
     <Content Include="Contactenos.aspx" />
@@ -223,6 +231,13 @@
     <Content Include="Interno\GestionRoles.aspx" />
     <Content Include="Interno\PermisosDelRol.aspx" />
     <Content Include="Scripts\site.js" />
+<<<<<<< Updated upstream
+=======
+    <Content Include="Scripts\espacios-ficha.js" />
+    <Content Include="Scripts\detalle-espacio.js" />
+    <Content Include="Content\Images\Espacios\sala-principal-ia.png" />
+    <Content Include="Content\Images\Espacios\estudio-fotografico-ia.png" />
+>>>>>>> Stashed changes
     <Content Include="Site.Master" />
     <Content Include="Web.config" />
   </ItemGroup>

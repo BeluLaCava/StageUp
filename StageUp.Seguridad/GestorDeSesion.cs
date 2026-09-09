@@ -64,6 +64,11 @@ namespace StageUp.Seguridad
             HttpContext.Current.Session[ClavePerfil] = perfilUsuario;
         }
 
+        public static void ActualizarNombreCompletoEnSesion(string nombre, string apellido)
+        {
+            HttpContext.Current.Session[ClaveNombreCompleto] = (nombre + " " + apellido).Trim();
+        }
+
         public static void IniciarSesionInterna(UsuarioInterno usuario, List<string> codigosPermisos)
         {
             if (usuario == null)

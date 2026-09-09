@@ -12,6 +12,8 @@ namespace StageUp.BE.Entidades
         public string Telefono { get; set; }
         public string EstadoCuenta { get; set; }
         public string PerfilUsuario { get; set; }
+        public string FotoPerfilRuta { get; set; }
+        public string DescripcionPerfil { get; set; }
         public bool AceptaTerminos { get; set; }
         public bool AceptaPoliticaPrivacidad { get; set; }
         public DateTime? FechaAceptacionTerminos { get; set; }

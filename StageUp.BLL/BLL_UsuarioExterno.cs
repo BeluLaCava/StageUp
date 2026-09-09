@@ -21,6 +21,11 @@ namespace StageUp.BLL
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
 
+        public bool PerfilCompletoHabilitado
+        {
+            get { return MPP_UsuarioExterno.PerfilCompletoHabilitado; }
+        }
+
         public ResultadoOperacion<int> Registrar(
             string nombre, string apellido, string correoElectronico,
             string password, string confirmacionPassword,
@@ -463,6 +468,93 @@ namespace StageUp.BLL
             {
                 return null;
             }
+        }
+
+        public UsuarioExterno ObtenerPerfilPorId(int idUsuarioExterno)
+        {
+            try
+            {
+                return _mppUsuario.ObtenerPerfilPorId(idUsuarioExterno);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return null;
+            }
+        }
+
+        public ResultadoOperacion ActualizarDatosPersonales(
+            int idUsuarioExterno, string nombre, string apellido, string correoElectronico,
+            string fotoPerfilRuta, string descripcionPerfil)
+        {
+            return EjecutarProtegido(() =>
+            {
+                if (idUsuarioExterno <= 0 || string.IsNullOrWhiteSpace(nombre) ||
+                    string.IsNullOrWhiteSpace(apellido) || string.IsNullOrWhiteSpace(correoElectronico))
+                {
+                    return ResultadoOperacion.Error("Completá nombre, apellido y correo electrónico.");
+                }
+
+                nombre = nombre.Trim();
+                apellido = apellido.Trim();
+                correoElectronico = correoElectronico.Trim().ToLowerInvariant();
+                descripcionPerfil = string.IsNullOrWhiteSpace(descripcionPerfil) ? null : descripcionPerfil.Trim();
+                fotoPerfilRuta = string.IsNullOrWhiteSpace(fotoPerfilRuta) ? null : fotoPerfilRuta.Trim();
+
+                if (nombre.Length > 100 || apellido.Length > 100)
+                {
+                    return ResultadoOperacion.Error("El nombre y el apellido no pueden superar los 100 caracteres.");
+                }
+
+                if (correoElectronico.Length > 300 || !PatronCorreo.IsMatch(correoElectronico))
+                {
+                    return ResultadoOperacion.Error("El correo electrónico ingresado no tiene un formato válido.");
+                }
+
+                if (descripcionPerfil != null && descripcionPerfil.Length > 1200)
+                {
+                    return ResultadoOperacion.Error("La descripción no puede superar los 1200 caracteres.");
+                }
+
+                if (fotoPerfilRuta != null && fotoPerfilRuta.Length > 500)
+                {
+                    return ResultadoOperacion.Error("La ruta de la foto de perfil es demasiado extensa.");
+                }
+
+                if (!PerfilCompletoHabilitado)
+                {
+                    return ResultadoOperacion.Error("La edición de datos personales está lista en la interfaz, pero todavía falta habilitar su integración con la base de datos.");
+                }
+
+                UsuarioExterno actual = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                if (actual == null)
+                {
+                    return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
+                }
+
+                UsuarioExterno usuarioConMismoCorreo = _mppUsuario.ObtenerPorCorreo(correoElectronico);
+                if (usuarioConMismoCorreo != null && usuarioConMismoCorreo.IdUsuarioExterno != idUsuarioExterno)
+                {
+                    return ResultadoOperacion.Error("Ya existe una cuenta registrada con ese correo electrónico.");
+                }
+
+                var perfil = new UsuarioExterno
+                {
+                    IdUsuarioExterno = idUsuarioExterno,
+                    Nombre = nombre,
+                    Apellido = apellido,
+                    CorreoElectronico = correoElectronico,
+                    FotoPerfilRuta = fotoPerfilRuta,
+                    DescripcionPerfil = descripcionPerfil
+                };
+
+                _mppUsuario.ActualizarDatosPersonales(perfil);
+
+                _bitacora.Registrar(
+                    idUsuarioExterno, "MODIFICACION", "UsuarioExterno", idUsuarioExterno,
+                    "Actualización de datos personales desde Mi perfil.");
+
+                return ResultadoOperacion.Ok("Tus datos personales fueron actualizados correctamente.");
+            });
         }
 
         private bool GenerarYEnviarCodigoActivacion(int idUsuarioExterno, string correoElectronico, string nombre)

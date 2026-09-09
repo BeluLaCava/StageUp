@@ -53,13 +53,18 @@
                                         <span>Comparar</span>
                                     </label>
                                     <a class="space-card-link" href='<%# "DetalleEspacio.aspx?id=" + Eval("IdEspacioArtistico") %>'>
-                                        <div class="space-card-media"></div>
+                                        <div class="space-card-media">
+                                            <asp:Image ID="imgEspacio" runat="server" CssClass="space-card-image" AlternateText='<%# Eval("NombreEspacio") %>' ImageUrl='<%# ObtenerFoto((StageUp.BE.Entidades.EspacioArtistico)Container.DataItem) %>' Visible='<%# !string.IsNullOrEmpty(ObtenerFoto((StageUp.BE.Entidades.EspacioArtistico)Container.DataItem)) %>' />
+                                            <asp:Panel ID="pnlSinFoto" runat="server" CssClass="space-card-photo-empty" Visible='<%# string.IsNullOrEmpty(ObtenerFoto((StageUp.BE.Entidades.EspacioArtistico)Container.DataItem)) %>'><span aria-hidden="true">◇</span><small>Fotografía pendiente</small></asp:Panel>
+                                            <span class="space-card-rating" aria-label="Este espacio todavía no tiene reseñas">Nuevo</span>
+                                        </div>
                                         <div class="space-card-body">
-                                            <p class="space-card-location"><%# Eval("TipoEspacio") %></p>
+                                            <p class="space-card-location"><%#: ObtenerUbicacion((StageUp.BE.Entidades.EspacioArtistico)Container.DataItem) %></p>
                                             <h3><%# Eval("NombreEspacio") %></h3>
+                                            <span class="space-card-type"><%#: Eval("TipoEspacio") %></span>
                                             <p class="space-card-excerpt"><%# ObtenerResumen(Eval("Descripcion") as string) %></p>
                                             <div class="space-card-footer">
-                                                <span class="space-card-meta"><%# Eval("FechaPublicacion", "Publicado el {0:dd/MM/yyyy}") %></span>
+                                                <span class="space-card-price"><%#: ObtenerPrecio((StageUp.BE.Entidades.EspacioArtistico)Container.DataItem) %></span>
                                                 <span class="space-card-action">Ver detalle <span aria-hidden="true">→</span></span>
                                             </div>
                                         </div>

@@ -30,6 +30,8 @@ namespace StageUp.UI
 
         protected global::System.Web.UI.HtmlControls.HtmlGenericControl AuthenticatedTools;
 
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor ProfileHeaderLink;
+
         protected global::System.Web.UI.HtmlControls.HtmlGenericControl UserSummary;
 
         protected global::System.Web.UI.WebControls.LinkButton lnkCerrarSesion;
@@ -37,6 +39,8 @@ namespace StageUp.UI
         protected global::System.Web.UI.HtmlControls.HtmlGenericControl AuthenticatedSidebar;
 
         protected global::System.Web.UI.HtmlControls.HtmlAnchor MisReservasLink;
+
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor ProfileSidebarLink;
 
         protected global::System.Web.UI.HtmlControls.HtmlAnchor MisEspaciosLink;
 

@@ -40,6 +40,7 @@
     <Compile Include="MPP_CodigoRecuperacion.cs" />
     <Compile Include="MPP_RegistroActividad.cs" />
     <Compile Include="MPP_EspacioArtistico.cs" />
+    <Compile Include="MPP_Reserva.cs" />
     <Compile Include="MPP_Faq.cs" />
     <Compile Include="MPP_UsuarioInterno.cs" />
     <Compile Include="MPP_RolInterno.cs" />

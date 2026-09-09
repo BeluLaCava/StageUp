@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using StageUp.BE.Entidades;
+using StageUp.BE.Enumerados;
 using StageUp.BLL;
 using StageUp.Seguridad;
 
@@ -15,6 +16,8 @@ namespace StageUp.UI
     public partial class MisEspacios : Page
     {
         private readonly BLL_EspacioArtistico _bllEspacio = new BLL_EspacioArtistico();
+        private readonly BLL_UsuarioExterno _bllUsuario = new BLL_UsuarioExterno();
+        private readonly BLL_Reserva _bllReserva = new BLL_Reserva();
 
         protected bool FichaCompletaActiva { get { return _bllEspacio.FichaCompletaHabilitada; } }
 
@@ -39,14 +42,48 @@ namespace StageUp.UI
                 return;
             }
 
-            if (!IsPostBack)
+            string perfil = GestorDeSesion.ObtenerPerfilActual();
+
+            pnlPendienteGestor.Visible = perfil == PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString();
+            pnlNoGestor.Visible = perfil == PerfilUsuarioExterno.ExternoSolicitante.ToString();
+            pnlPanelGestor.Visible = perfil == PerfilUsuarioExterno.GestorEspacios.ToString();
+            lnkNuevoEspacio.Visible = pnlPanelGestor.Visible;
+
+            if (!IsPostBack && pnlPanelGestor.Visible)
             {
                 CargarMisEspacios();
+                CargarSolicitudesRecibidas();
             }
+        }
+
+        protected void btnSolicitarGestor_Click(object sender, EventArgs e)
+        {
+            int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            ResultadoOperacion<int> resultado = _bllUsuario.SolicitarHabilitacionComoGestor(idUsuarioExterno);
+
+            if (!resultado.Exitoso)
+            {
+                MostrarMensaje(resultado.Mensaje, esError: true);
+                return;
+            }
+
+            // La solicitud quedó registrada: refrescamos la sesión para que el perfil
+            // actualizado (PendienteHabilitacionGestor) se refleje sin pedir un nuevo login.
+            GestorDeSesion.ActualizarPerfilEnSesion(PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString());
+
+            pnlNoGestor.Visible = false;
+            pnlPendienteGestor.Visible = true;
+            MostrarMensaje(resultado.Mensaje, esError: false);
         }
 
         protected void lnkNuevoEspacio_Click(object sender, EventArgs e)
         {
+            if (!EsGestorEspacios())
+            {
+                Response.Redirect("~/MisEspacios.aspx");
+                return;
+            }
+
             LimpiarFormulario();
             pnlMensaje.Visible = false;
             pnlFormularioEspacio.Visible = true;
@@ -56,6 +93,12 @@ namespace StageUp.UI
         {
             if (!Page.IsValid)
             {
+                return;
+            }
+
+            if (!EsGestorEspacios())
+            {
+                Response.Redirect("~/MisEspacios.aspx");
                 return;
             }
 
@@ -99,6 +142,12 @@ namespace StageUp.UI
 
         protected void rptMisEspacios_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
+            if (!EsGestorEspacios())
+            {
+                Response.Redirect("~/MisEspacios.aspx");
+                return;
+            }
+
             int idEspacioArtistico = Convert.ToInt32(e.CommandArgument);
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
             ResultadoOperacion resultado;
@@ -131,6 +180,62 @@ namespace StageUp.UI
 
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
             CargarMisEspacios();
+        }
+
+        protected void rptSolicitudes_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            if (!EsGestorEspacios())
+            {
+                Response.Redirect("~/MisEspacios.aspx");
+                return;
+            }
+
+            int idReserva = Convert.ToInt32(e.CommandArgument);
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            ResultadoOperacion resultado;
+
+            switch (e.CommandName)
+            {
+                case "Aceptar":
+                    resultado = _bllReserva.Aceptar(idReserva, idUsuarioGestor, null);
+                    break;
+
+                case "Rechazar":
+                    resultado = _bllReserva.Rechazar(idReserva, idUsuarioGestor, null);
+                    break;
+
+                default:
+                    return;
+            }
+
+            MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+            CargarSolicitudesRecibidas();
+        }
+
+        protected void rptSolicitudes_ItemDataBound(object sender, RepeaterItemEventArgs e)
+        {
+            if (e.Item.ItemType != ListItemType.Item && e.Item.ItemType != ListItemType.AlternatingItem)
+            {
+                return;
+            }
+
+            var reserva = (Reserva)e.Item.DataItem;
+            var lnkAceptar = (LinkButton)e.Item.FindControl("lnkAceptar");
+            var lnkRechazar = (LinkButton)e.Item.FindControl("lnkRechazar");
+
+            bool esPendiente = reserva.EstadoReserva == "Pendiente";
+            lnkAceptar.Visible = esPendiente;
+            lnkRechazar.Visible = esPendiente;
+        }
+
+        private void CargarSolicitudesRecibidas()
+        {
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            List<Reserva> solicitudes = _bllReserva.ListarSolicitudesRecibidas(idUsuarioGestor);
+
+            litSinSolicitudes.Visible = solicitudes.Count == 0;
+            rptSolicitudes.DataSource = solicitudes;
+            rptSolicitudes.DataBind();
         }
 
         protected void rptMisEspacios_ItemDataBound(object sender, RepeaterItemEventArgs e)
@@ -202,6 +307,15 @@ namespace StageUp.UI
             litMensaje.Text = mensaje;
             pnlMensaje.CssClass = esError ? "form-message form-message-error" : "form-message form-message-success";
             pnlMensaje.Visible = !string.IsNullOrEmpty(mensaje);
+        }
+
+        // Chequeo explícito de perfil para las acciones de gestor: no alcanza con ocultar
+        // el panel correspondiente (pnlPanelGestor), porque un perfil podría cambiar en la
+        // base de datos sin que la sesión actual se actualice. Cada acción que modifica un
+        // espacio o una solicitud recibida valida esto antes de ejecutar nada.
+        private bool EsGestorEspacios()
+        {
+            return GestorDeSesion.ObtenerPerfilActual() == PerfilUsuarioExterno.GestorEspacios.ToString();
         }
 
         protected override void OnPreRender(EventArgs e)

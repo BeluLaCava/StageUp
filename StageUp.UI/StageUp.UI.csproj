@@ -139,6 +139,13 @@
     <Compile Include="MisEspacios.aspx.designer.cs">
       <DependentUpon>MisEspacios.aspx</DependentUpon>
     </Compile>
+    <Compile Include="MisReservas.aspx.cs">
+      <DependentUpon>MisReservas.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="MisReservas.aspx.designer.cs">
+      <DependentUpon>MisReservas.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Servicios\ServicioEspacios.asmx.cs">
       <DependentUpon>ServicioEspacios.asmx</DependentUpon>
       <SubType>Component</SubType>
@@ -208,6 +215,7 @@
     <Content Include="TerminosCondiciones.aspx" />
     <Content Include="PoliticaPrivacidad.aspx" />
     <Content Include="MisEspacios.aspx" />
+    <Content Include="MisReservas.aspx" />
     <Content Include="Servicios\ServicioEspacios.asmx" />
     <Content Include="Interno\RegistrosActividad.aspx" />
     <Content Include="Interno\PanelInterno.Master" />

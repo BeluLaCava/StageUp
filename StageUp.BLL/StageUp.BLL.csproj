@@ -37,11 +37,17 @@
     <Compile Include="BLL_UsuarioExterno.cs" />
     <Compile Include="BLL_EspacioArtistico.cs" />
     <Compile Include="BLL_Faq.cs" />
+    <Compile Include="BLL_Reserva.cs" />
+    <Compile Include="BLL_UsuarioInterno.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">
       <Project>{3F2B3E32-C149-4A51-AE08-0A292D6B2102}</Project>
       <Name>StageUp.BE</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\StageUp.DAL\StageUp.DAL.csproj">
+      <Project>{6B0D2A15-B3CC-4A30-9202-48E4CB6F2105}</Project>
+      <Name>StageUp.DAL</Name>
     </ProjectReference>
     <ProjectReference Include="..\StageUp.MPP\StageUp.MPP.csproj">
       <Project>{5A71F4A4-0F9B-431C-A91B-2A5CFBDA2104}</Project>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using StageUp.BE.Entidades;
@@ -56,6 +57,28 @@ namespace StageUp.MPP
                 "sp_UsuarioExterno_ActualizarPassword",
                 new SqlParameter("@idUsuarioExterno", idUsuarioExterno),
                 new SqlParameter("@passwordHash", passwordHash));
+        }
+
+        public void ActualizarPerfil(int idUsuarioExterno, string perfilUsuario)
+        {
+            EjecutorStoredProcedure.Escribir(
+                "sp_UsuarioExterno_ActualizarPerfil",
+                new SqlParameter("@idUsuarioExterno", idUsuarioExterno),
+                new SqlParameter("@perfilUsuario", perfilUsuario));
+        }
+
+        public List<UsuarioExterno> ListarPorPerfil(string perfilUsuario)
+        {
+            DataTable tabla = EjecutorStoredProcedure.Leer(
+                "sp_UsuarioExterno_ListarPorPerfil",
+                new SqlParameter("@perfilUsuario", perfilUsuario));
+
+            var lista = new List<UsuarioExterno>();
+            foreach (DataRow fila in tabla.Rows)
+            {
+                lista.Add(MapearDesdeFila(fila));
+            }
+            return lista;
         }
 
         private static UsuarioExterno MapearDesdeFila(DataRow fila)

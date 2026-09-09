@@ -36,9 +36,9 @@ namespace StageUp.UI
 
         protected global::System.Web.UI.HtmlControls.HtmlGenericControl AuthenticatedSidebar;
 
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor MisEspaciosLink;
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor MisReservasLink;
 
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor RegistrosActividadLink;
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor MisEspaciosLink;
 
         protected global::System.Web.UI.WebControls.ContentPlaceHolder MainContent;
 
@@ -49,6 +49,8 @@ namespace StageUp.UI
         protected global::System.Web.UI.HtmlControls.HtmlAnchor TermsLink;
 
         protected global::System.Web.UI.HtmlControls.HtmlAnchor PrivacyLink;
+
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor InternalAccessLink;
 
         protected global::System.Web.UI.WebControls.ContentPlaceHolder PageScripts;
 

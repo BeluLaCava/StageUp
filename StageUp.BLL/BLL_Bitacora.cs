@@ -11,12 +11,13 @@ namespace StageUp.BLL
 
         public static readonly string[] TiposDeOperacion =
         {
-            "ALTA", "MODIFICACION", "BAJA", "ACTIVACION", "LOGIN", "RECUPERACION_SOLICITADA"
+            "ALTA", "MODIFICACION", "BAJA", "ACTIVACION", "LOGIN", "RECUPERACION_SOLICITADA",
+            "APROBACION", "RECHAZO"
         };
 
         public static readonly string[] TiposDeEntidadAfectada =
         {
-            "UsuarioExterno", "EspacioArtistico"
+            "UsuarioExterno", "UsuarioInterno", "EspacioArtistico", "Reserva"
         };
 
         public void Registrar(
@@ -27,6 +28,22 @@ namespace StageUp.BLL
             {
                 IdUsuarioExternoResponsable = idUsuarioExternoResponsable,
                 IdUsuarioInternoResponsable = null,
+                TipoOperacion = tipoOperacion,
+                TipoEntidadAfectada = tipoEntidadAfectada,
+                IdEntidadAfectada = idEntidadAfectada,
+                DescripcionOperacion = descripcionOperacion,
+                OrigenOperacion = origenOperacion
+            });
+        }
+
+        public void RegistrarInterno(
+            int idUsuarioInternoResponsable, string tipoOperacion, string tipoEntidadAfectada,
+            int? idEntidadAfectada, string descripcionOperacion, string origenOperacion = "StageUp.UI")
+        {
+            _mpp.Insertar(new RegistroActividad
+            {
+                IdUsuarioExternoResponsable = null,
+                IdUsuarioInternoResponsable = idUsuarioInternoResponsable,
                 TipoOperacion = tipoOperacion,
                 TipoEntidadAfectada = tipoEntidadAfectada,
                 IdEntidadAfectada = idEntidadAfectada,

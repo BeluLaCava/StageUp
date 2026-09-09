@@ -15,9 +15,9 @@ namespace StageUp.UI.Interno
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (!GestorDeSesion.EstaAutenticado())
+            if (!GestorDeSesion.EstaAutenticadoComoInterno())
             {
-                Response.Redirect("~/IniciarSesion.aspx");
+                Response.Redirect("~/Interno/IniciarSesionInterno.aspx");
                 return;
             }
 

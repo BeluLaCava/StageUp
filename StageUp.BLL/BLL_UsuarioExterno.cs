@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using StageUp.BE.Entidades;
 using StageUp.BE.Enumerados;
+using StageUp.DAL;
 using StageUp.MPP;
 using StageUp.Seguridad;
 using StageUp.Servicios;
@@ -24,262 +26,413 @@ namespace StageUp.BLL
             string password, string confirmacionPassword,
             bool aceptaTerminos, bool aceptaPoliticaPrivacidad)
         {
-            if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(apellido) ||
-                string.IsNullOrWhiteSpace(correoElectronico) || string.IsNullOrWhiteSpace(password) ||
-                string.IsNullOrWhiteSpace(confirmacionPassword))
+            return EjecutarProtegido(() =>
             {
-                return ResultadoOperacion<int>.Error(
-                    "Completá todos los campos obligatorios para crear la cuenta.", "A1");
-            }
+                if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(apellido) ||
+                    string.IsNullOrWhiteSpace(correoElectronico) || string.IsNullOrWhiteSpace(password) ||
+                    string.IsNullOrWhiteSpace(confirmacionPassword))
+                {
+                    return ResultadoOperacion<int>.Error(
+                        "Completá todos los campos obligatorios para crear la cuenta.", "A1");
+                }
 
-            if (!PatronCorreo.IsMatch(correoElectronico.Trim()))
-            {
-                return ResultadoOperacion<int>.Error(
-                    "El correo electrónico ingresado no tiene un formato válido.", "A2");
-            }
+                if (!PatronCorreo.IsMatch(correoElectronico.Trim()))
+                {
+                    return ResultadoOperacion<int>.Error(
+                        "El correo electrónico ingresado no tiene un formato válido.", "A2");
+                }
 
-            if (!aceptaTerminos || !aceptaPoliticaPrivacidad)
-            {
-                return ResultadoOperacion<int>.Error(
-                    "Debés aceptar los Términos y condiciones y la Política de privacidad para continuar.", "A5");
-            }
+                if (!aceptaTerminos || !aceptaPoliticaPrivacidad)
+                {
+                    return ResultadoOperacion<int>.Error(
+                        "Debés aceptar los Términos y condiciones y la Política de privacidad para continuar.", "A5");
+                }
 
-            if (password != confirmacionPassword)
-            {
-                return ResultadoOperacion<int>.Error(
-                    "La contraseña y su confirmación no coinciden.", "A4");
-            }
+                if (password != confirmacionPassword)
+                {
+                    return ResultadoOperacion<int>.Error(
+                        "La contraseña y su confirmación no coinciden.", "A4");
+                }
 
-            if (!CumpleCriteriosDeSeguridad(password))
-            {
-                return ResultadoOperacion<int>.Error(
-                    string.Format(
-                        "La contraseña debe tener al menos {0} caracteres e incluir letras y números.",
-                        ConfiguracionSeguridad.LongitudMinimaPassword));
-            }
+                if (!CumpleCriteriosDeSeguridad(password))
+                {
+                    return ResultadoOperacion<int>.Error(
+                        string.Format(
+                            "La contraseña debe tener al menos {0} caracteres e incluir letras y números.",
+                            ConfiguracionSeguridad.LongitudMinimaPassword));
+                }
 
-            correoElectronico = correoElectronico.Trim().ToLowerInvariant();
-            if (_mppUsuario.ObtenerPorCorreo(correoElectronico) != null)
-            {
-                return ResultadoOperacion<int>.Error(
-                    "Ya existe una cuenta registrada con ese correo electrónico.", "A3");
-            }
+                correoElectronico = correoElectronico.Trim().ToLowerInvariant();
+                if (_mppUsuario.ObtenerPorCorreo(correoElectronico) != null)
+                {
+                    return ResultadoOperacion<int>.Error(
+                        "Ya existe una cuenta registrada con ese correo electrónico.", "A3");
+                }
 
-            var nuevoUsuario = new UsuarioExterno
-            {
-                Nombre = nombre.Trim(),
-                Apellido = apellido.Trim(),
-                CorreoElectronico = correoElectronico,
-                PasswordHash = HashDeContrasenas.CrearHash(password),
-                EstadoCuenta = EstadoCuentaExterno.PendienteActivacion.ToString(),
-                PerfilUsuario = PerfilUsuarioExterno.ExternoSolicitante.ToString(),
-                AceptaTerminos = true,
-                AceptaPoliticaPrivacidad = true,
-                FechaAceptacionTerminos = DateTime.Now
-            };
+                var nuevoUsuario = new UsuarioExterno
+                {
+                    Nombre = nombre.Trim(),
+                    Apellido = apellido.Trim(),
+                    CorreoElectronico = correoElectronico,
+                    PasswordHash = HashDeContrasenas.CrearHash(password),
+                    EstadoCuenta = EstadoCuentaExterno.PendienteActivacion.ToString(),
+                    PerfilUsuario = PerfilUsuarioExterno.ExternoSolicitante.ToString(),
+                    AceptaTerminos = true,
+                    AceptaPoliticaPrivacidad = true,
+                    FechaAceptacionTerminos = DateTime.Now
+                };
 
-            int idUsuarioExterno = _mppUsuario.Insertar(nuevoUsuario);
+                int idUsuarioExterno = _mppUsuario.Insertar(nuevoUsuario);
 
-            _bitacora.Registrar(
-                idUsuarioExterno, "ALTA", "UsuarioExterno", idUsuarioExterno,
-                "Registro de cuenta de usuario externo (pendiente de activación).");
+                _bitacora.Registrar(
+                    idUsuarioExterno, "ALTA", "UsuarioExterno", idUsuarioExterno,
+                    "Registro de cuenta de usuario externo (pendiente de activación).");
 
-            bool envioOk = GenerarYEnviarCodigoActivacion(idUsuarioExterno, nuevoUsuario.CorreoElectronico, nuevoUsuario.Nombre);
+                bool envioOk = GenerarYEnviarCodigoActivacion(idUsuarioExterno, nuevoUsuario.CorreoElectronico, nuevoUsuario.Nombre);
 
-            string mensaje = envioOk
-                ? "Te enviamos un código de activación a tu correo electrónico."
-                : "La cuenta se creó, pero no pudimos enviar el código de activación en este momento. Podés solicitar que lo reenviemos.";
+                string mensaje = envioOk
+                    ? "Te enviamos un código de activación a tu correo electrónico."
+                    : "La cuenta se creó, pero no pudimos enviar el código de activación en este momento. Podés solicitar que lo reenviemos.";
 
-            return ResultadoOperacion<int>.Ok(idUsuarioExterno, mensaje);
+                return ResultadoOperacion<int>.Ok(idUsuarioExterno, mensaje);
+            });
         }
 
         public ResultadoOperacion ReenviarCodigoActivacion(int idUsuarioExterno)
         {
-            UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
-            if (usuario == null)
+            return EjecutarProtegido(() =>
             {
-                return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
-            }
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                if (usuario == null)
+                {
+                    return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
+                }
 
-            if (usuario.EstadoCuenta == EstadoCuentaExterno.Activa.ToString())
-            {
-                return ResultadoOperacion.Error("Esta cuenta ya se encuentra activa.");
-            }
+                if (usuario.EstadoCuenta == EstadoCuentaExterno.Activa.ToString())
+                {
+                    return ResultadoOperacion.Error("Esta cuenta ya se encuentra activa.");
+                }
 
-            bool envioOk = GenerarYEnviarCodigoActivacion(usuario.IdUsuarioExterno, usuario.CorreoElectronico, usuario.Nombre);
+                bool envioOk = GenerarYEnviarCodigoActivacion(usuario.IdUsuarioExterno, usuario.CorreoElectronico, usuario.Nombre);
 
-            return envioOk
-                ? ResultadoOperacion.Ok("Te enviamos un nuevo código de activación a tu correo electrónico.")
-                : ResultadoOperacion.Error("No pudimos enviar el código en este momento. Probá nuevamente en unos minutos.");
+                return envioOk
+                    ? ResultadoOperacion.Ok("Te enviamos un nuevo código de activación a tu correo electrónico.")
+                    : ResultadoOperacion.Error("No pudimos enviar el código en este momento. Probá nuevamente en unos minutos.");
+            });
         }
 
         public ResultadoOperacion ValidarActivacion(int idUsuarioExterno, string codigoIngresado)
         {
-            if (string.IsNullOrWhiteSpace(codigoIngresado))
+            return EjecutarProtegido(() =>
             {
-                return ResultadoOperacion.Error("Ingresá el código de activación que recibiste por correo.");
-            }
+                if (string.IsNullOrWhiteSpace(codigoIngresado))
+                {
+                    return ResultadoOperacion.Error("Ingresá el código de activación que recibiste por correo.");
+                }
 
-            UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
-            if (usuario == null)
-            {
-                return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
-            }
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                if (usuario == null)
+                {
+                    return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
+                }
 
-            CodigoActivacion codigo = _mppCodigoActivacion.ObtenerVigentePorUsuario(idUsuarioExterno);
+                CodigoActivacion codigo = _mppCodigoActivacion.ObtenerVigentePorUsuario(idUsuarioExterno);
 
-            if (codigo == null || codigo.Codigo != codigoIngresado.Trim())
-            {
-                return ResultadoOperacion.Error("El código ingresado no es válido.", "A7");
-            }
+                if (codigo == null || codigo.Codigo != codigoIngresado.Trim())
+                {
+                    return ResultadoOperacion.Error("El código ingresado no es válido.", "A7");
+                }
 
-            if (!codigo.EstaVigente(DateTime.Now))
-            {
-                return ResultadoOperacion.Error(
-                    "El código ingresado ya no se encuentra vigente. Solicitá uno nuevo.", "A8");
-            }
+                if (!codigo.EstaVigente(DateTime.Now))
+                {
+                    return ResultadoOperacion.Error(
+                        "El código ingresado ya no se encuentra vigente. Solicitá uno nuevo.", "A8");
+                }
 
-            _mppCodigoActivacion.MarcarUtilizado(codigo.IdCodigoActivacion);
-            _mppUsuario.ActivarCuenta(usuario.IdUsuarioExterno, EstadoCuentaExterno.Activa.ToString());
+                _mppCodigoActivacion.MarcarUtilizado(codigo.IdCodigoActivacion);
+                _mppUsuario.ActivarCuenta(usuario.IdUsuarioExterno, EstadoCuentaExterno.Activa.ToString());
 
-            _bitacora.Registrar(
-                usuario.IdUsuarioExterno, "ACTIVACION", "UsuarioExterno", usuario.IdUsuarioExterno,
-                "Activación de cuenta de usuario externo.");
+                _bitacora.Registrar(
+                    usuario.IdUsuarioExterno, "ACTIVACION", "UsuarioExterno", usuario.IdUsuarioExterno,
+                    "Activación de cuenta de usuario externo.");
 
-            _servicioCorreo.EnviarBienvenida(usuario.CorreoElectronico, usuario.Nombre);
+                _servicioCorreo.EnviarBienvenida(usuario.CorreoElectronico, usuario.Nombre);
 
-            return ResultadoOperacion.Ok(
-                "Tu cuenta fue activada correctamente. Ya podés iniciar sesión.");
+                return ResultadoOperacion.Ok(
+                    "Tu cuenta fue activada correctamente. Ya podés iniciar sesión.");
+            });
         }
 
         public ResultadoOperacion<UsuarioExterno> IniciarSesion(string correoElectronico, string password)
         {
-            if (string.IsNullOrWhiteSpace(correoElectronico) || string.IsNullOrWhiteSpace(password))
+            return EjecutarProtegido(() =>
             {
-                return ResultadoOperacion<UsuarioExterno>.Error("Ingresá tu correo electrónico y tu contraseña.");
-            }
+                if (string.IsNullOrWhiteSpace(correoElectronico) || string.IsNullOrWhiteSpace(password))
+                {
+                    return ResultadoOperacion<UsuarioExterno>.Error("Ingresá tu correo electrónico y tu contraseña.");
+                }
 
-            UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim().ToLowerInvariant());
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim().ToLowerInvariant());
 
-            if (usuario == null || !HashDeContrasenas.Verificar(password, usuario.PasswordHash))
-            {
-                return ResultadoOperacion<UsuarioExterno>.Error("El correo electrónico o la contraseña son incorrectos.");
-            }
+                if (usuario == null || !HashDeContrasenas.Verificar(password, usuario.PasswordHash))
+                {
+                    return ResultadoOperacion<UsuarioExterno>.Error("El correo electrónico o la contraseña son incorrectos.");
+                }
 
-            if (usuario.EstadoCuenta == EstadoCuentaExterno.PendienteActivacion.ToString())
-            {
-                return ResultadoOperacion<UsuarioExterno>.Error(
-                    "Tu cuenta todavía no fue activada. Revisá tu correo electrónico para activarla.");
-            }
+                if (usuario.EstadoCuenta == EstadoCuentaExterno.PendienteActivacion.ToString())
+                {
+                    return ResultadoOperacion<UsuarioExterno>.Error(
+                        "Tu cuenta todavía no fue activada. Revisá tu correo electrónico para activarla.");
+                }
 
-            if (usuario.EstadoCuenta != EstadoCuentaExterno.Activa.ToString())
-            {
-                return ResultadoOperacion<UsuarioExterno>.Error("Esta cuenta no se encuentra habilitada.");
-            }
+                if (usuario.EstadoCuenta != EstadoCuentaExterno.Activa.ToString())
+                {
+                    return ResultadoOperacion<UsuarioExterno>.Error("Esta cuenta no se encuentra habilitada.");
+                }
 
-            GestorDeSesion.IniciarSesion(usuario);
+                GestorDeSesion.IniciarSesion(usuario);
 
-            _bitacora.Registrar(
-                usuario.IdUsuarioExterno, "LOGIN", "UsuarioExterno", usuario.IdUsuarioExterno,
-                "Inicio de sesión de usuario externo.");
+                _bitacora.Registrar(
+                    usuario.IdUsuarioExterno, "LOGIN", "UsuarioExterno", usuario.IdUsuarioExterno,
+                    "Inicio de sesión de usuario externo.");
 
-            return ResultadoOperacion<UsuarioExterno>.Ok(usuario);
+                return ResultadoOperacion<UsuarioExterno>.Ok(usuario);
+            });
         }
 
         public ResultadoOperacion SolicitarRecuperacion(string correoElectronico)
         {
-            if (string.IsNullOrWhiteSpace(correoElectronico))
+            return EjecutarProtegido(() =>
             {
-                return ResultadoOperacion.Error(
-                    "Ingresá el correo electrónico asociado a tu cuenta.", "A1");
-            }
+                if (string.IsNullOrWhiteSpace(correoElectronico))
+                {
+                    return ResultadoOperacion.Error(
+                        "Ingresá el correo electrónico asociado a tu cuenta.", "A1");
+                }
 
-            if (!PatronCorreo.IsMatch(correoElectronico.Trim()))
-            {
-                return ResultadoOperacion.Error(
-                    "El correo electrónico ingresado no tiene un formato válido.", "A2");
-            }
+                if (!PatronCorreo.IsMatch(correoElectronico.Trim()))
+                {
+                    return ResultadoOperacion.Error(
+                        "El correo electrónico ingresado no tiene un formato válido.", "A2");
+                }
 
-            UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim().ToLowerInvariant());
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim().ToLowerInvariant());
 
-            if (usuario == null)
-            {
-                return ResultadoOperacion.Ok(
-                    "Si el correo ingresado corresponde a una cuenta registrada, vas a recibir un código de recuperación.");
-            }
+                if (usuario == null)
+                {
+                    return ResultadoOperacion.Ok(
+                        "Si el correo ingresado corresponde a una cuenta registrada, vas a recibir un código de recuperación.");
+                }
 
-            string codigo = GeneradorDeCodigos.GenerarCodigoNumerico();
-            DateTime vencimiento = DateTime.Now.AddMinutes(ConfiguracionSeguridad.MinutosVigenciaCodigoRecuperacion);
+                string codigo = GeneradorDeCodigos.GenerarCodigoNumerico();
+                DateTime vencimiento = DateTime.Now.AddMinutes(ConfiguracionSeguridad.MinutosVigenciaCodigoRecuperacion);
 
-            _mppCodigoRecuperacion.Insertar(new CodigoRecuperacion
-            {
-                IdUsuarioExterno = usuario.IdUsuarioExterno,
-                Codigo = codigo,
-                FechaVencimiento = vencimiento
+                _mppCodigoRecuperacion.Insertar(new CodigoRecuperacion
+                {
+                    IdUsuarioExterno = usuario.IdUsuarioExterno,
+                    Codigo = codigo,
+                    FechaVencimiento = vencimiento
+                });
+
+                bool envioOk = _servicioCorreo.EnviarCodigoRecuperacion(usuario.CorreoElectronico, usuario.Nombre, codigo);
+
+                _bitacora.Registrar(
+                    usuario.IdUsuarioExterno, "RECUPERACION_SOLICITADA", "UsuarioExterno", usuario.IdUsuarioExterno,
+                    "Generación de código de recuperación de contraseña.");
+
+                return envioOk
+                    ? ResultadoOperacion.Ok("Si el correo ingresado corresponde a una cuenta registrada, vas a recibir un código de recuperación.")
+                    : ResultadoOperacion.Error("No pudimos enviar el código en este momento. Probá nuevamente en unos minutos.", "A4");
             });
-
-            bool envioOk = _servicioCorreo.EnviarCodigoRecuperacion(usuario.CorreoElectronico, usuario.Nombre, codigo);
-
-            _bitacora.Registrar(
-                usuario.IdUsuarioExterno, "RECUPERACION_SOLICITADA", "UsuarioExterno", usuario.IdUsuarioExterno,
-                "Generación de código de recuperación de contraseña.");
-
-            return envioOk
-                ? ResultadoOperacion.Ok("Si el correo ingresado corresponde a una cuenta registrada, vas a recibir un código de recuperación.")
-                : ResultadoOperacion.Error("No pudimos enviar el código en este momento. Probá nuevamente en unos minutos.", "A4");
         }
 
         public ResultadoOperacion ValidarCodigoYActualizarPassword(
             string correoElectronico, string codigoIngresado, string nuevaPassword, string confirmacionNuevaPassword)
         {
-            if (string.IsNullOrWhiteSpace(correoElectronico) || string.IsNullOrWhiteSpace(codigoIngresado))
+            return EjecutarProtegido(() =>
             {
-                return ResultadoOperacion.Error("Ingresá el código de recuperación que recibiste por correo.");
-            }
+                if (string.IsNullOrWhiteSpace(correoElectronico) || string.IsNullOrWhiteSpace(codigoIngresado))
+                {
+                    return ResultadoOperacion.Error("Ingresá el código de recuperación que recibiste por correo.");
+                }
 
-            UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim().ToLowerInvariant());
-            if (usuario == null)
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim().ToLowerInvariant());
+                if (usuario == null)
+                {
+                    return ResultadoOperacion.Error("El código ingresado no es válido.", "A5");
+                }
+
+                CodigoRecuperacion codigo = _mppCodigoRecuperacion.ObtenerVigentePorUsuario(usuario.IdUsuarioExterno);
+
+                if (codigo == null || codigo.Codigo != codigoIngresado.Trim())
+                {
+                    return ResultadoOperacion.Error("El código ingresado no es válido.", "A5");
+                }
+
+                if (!codigo.EstaVigente(DateTime.Now))
+                {
+                    return ResultadoOperacion.Error(
+                        "El código ingresado ya no se encuentra vigente. Solicitá uno nuevo.", "A6");
+                }
+
+                if (!CumpleCriteriosDeSeguridad(nuevaPassword))
+                {
+                    return ResultadoOperacion.Error(
+                        string.Format(
+                            "La nueva contraseña debe tener al menos {0} caracteres e incluir letras y números.",
+                            ConfiguracionSeguridad.LongitudMinimaPassword),
+                        "A7");
+                }
+
+                if (nuevaPassword != confirmacionNuevaPassword)
+                {
+                    return ResultadoOperacion.Error("La nueva contraseña y su confirmación no coinciden.", "A8");
+                }
+
+                _mppCodigoRecuperacion.MarcarUtilizado(codigo.IdCodigoRecuperacion);
+                _mppUsuario.ActualizarPassword(usuario.IdUsuarioExterno, HashDeContrasenas.CrearHash(nuevaPassword));
+
+                _bitacora.Registrar(
+                    usuario.IdUsuarioExterno, "MODIFICACION", "UsuarioExterno", usuario.IdUsuarioExterno,
+                    "Actualización de contraseña por recuperación de cuenta.");
+
+                _servicioCorreo.EnviarNotificacionCambioPassword(usuario.CorreoElectronico, usuario.Nombre);
+
+                return ResultadoOperacion.Ok("Tu contraseña fue actualizada correctamente. Ya podés iniciar sesión con tus nuevas credenciales.");
+            });
+        }
+
+        public ResultadoOperacion CambiarPassword(int idUsuarioExterno, string passwordActual, string nuevaPassword, string confirmacionNuevaPassword)
+        {
+            return EjecutarProtegido(() =>
             {
-                return ResultadoOperacion.Error("El código ingresado no es válido.", "A5");
-            }
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                if (usuario == null)
+                {
+                    return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
+                }
 
-            CodigoRecuperacion codigo = _mppCodigoRecuperacion.ObtenerVigentePorUsuario(usuario.IdUsuarioExterno);
+                if (string.IsNullOrWhiteSpace(passwordActual) || !HashDeContrasenas.Verificar(passwordActual, usuario.PasswordHash))
+                {
+                    return ResultadoOperacion.Error("La contraseña actual ingresada es incorrecta.");
+                }
 
-            if (codigo == null || codigo.Codigo != codigoIngresado.Trim())
+                if (!CumpleCriteriosDeSeguridad(nuevaPassword))
+                {
+                    return ResultadoOperacion.Error(
+                        string.Format(
+                            "La nueva contraseña debe tener al menos {0} caracteres e incluir letras y números.",
+                            ConfiguracionSeguridad.LongitudMinimaPassword));
+                }
+
+                if (nuevaPassword != confirmacionNuevaPassword)
+                {
+                    return ResultadoOperacion.Error("La nueva contraseña y su confirmación no coinciden.");
+                }
+
+                _mppUsuario.ActualizarPassword(usuario.IdUsuarioExterno, HashDeContrasenas.CrearHash(nuevaPassword));
+
+                _bitacora.Registrar(
+                    usuario.IdUsuarioExterno, "MODIFICACION", "UsuarioExterno", usuario.IdUsuarioExterno,
+                    "Cambio de contraseña desde el perfil del usuario.");
+
+                _servicioCorreo.EnviarNotificacionCambioPassword(usuario.CorreoElectronico, usuario.Nombre);
+
+                return ResultadoOperacion.Ok("Tu contraseña fue actualizada correctamente.");
+            });
+        }
+
+        public ResultadoOperacion<int> SolicitarHabilitacionComoGestor(int idUsuarioExterno)
+        {
+            return EjecutarProtegido(() =>
             {
-                return ResultadoOperacion.Error("El código ingresado no es válido.", "A5");
-            }
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                if (usuario == null)
+                {
+                    return ResultadoOperacion<int>.Error("No se encontró la cuenta indicada.");
+                }
 
-            if (!codigo.EstaVigente(DateTime.Now))
+                if (usuario.PerfilUsuario == PerfilUsuarioExterno.GestorEspacios.ToString())
+                {
+                    return ResultadoOperacion<int>.Error("Tu cuenta ya está habilitada como gestor de espacios.");
+                }
+
+                if (usuario.PerfilUsuario == PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString())
+                {
+                    return ResultadoOperacion<int>.Error("Ya tenés una solicitud de habilitación como gestor pendiente de aprobación.");
+                }
+
+                _mppUsuario.ActualizarPerfil(idUsuarioExterno, PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString());
+
+                _bitacora.Registrar(
+                    idUsuarioExterno, "MODIFICACION", "UsuarioExterno", idUsuarioExterno,
+                    "Solicitud de habilitación como gestor de espacios (queda pendiente de aprobación).");
+
+                return ResultadoOperacion<int>.Ok(idUsuarioExterno,
+                    "Tu solicitud para ser gestor de espacios quedó registrada. Un administrador la va a revisar.");
+            });
+        }
+
+        public List<UsuarioExterno> ListarPendientesHabilitacionGestor()
+        {
+            try
             {
-                return ResultadoOperacion.Error(
-                    "El código ingresado ya no se encuentra vigente. Solicitá uno nuevo.", "A6");
+                return _mppUsuario.ListarPorPerfil(PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString());
             }
-
-            if (!CumpleCriteriosDeSeguridad(nuevaPassword))
+            catch (ErrorAccesoDatosException)
             {
-                return ResultadoOperacion.Error(
-                    string.Format(
-                        "La nueva contraseña debe tener al menos {0} caracteres e incluir letras y números.",
-                        ConfiguracionSeguridad.LongitudMinimaPassword),
-                    "A7");
+                return new List<UsuarioExterno>();
             }
+        }
 
-            if (nuevaPassword != confirmacionNuevaPassword)
+        public ResultadoOperacion AprobarHabilitacionComoGestor(int idUsuarioExterno, int idUsuarioInternoResponsable)
+        {
+            return EjecutarProtegido(() =>
             {
-                return ResultadoOperacion.Error("La nueva contraseña y su confirmación no coinciden.", "A8");
-            }
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                if (usuario == null)
+                {
+                    return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
+                }
 
-            _mppCodigoRecuperacion.MarcarUtilizado(codigo.IdCodigoRecuperacion);
-            _mppUsuario.ActualizarPassword(usuario.IdUsuarioExterno, HashDeContrasenas.CrearHash(nuevaPassword));
+                if (usuario.PerfilUsuario != PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString())
+                {
+                    return ResultadoOperacion.Error("Esta cuenta no tiene una solicitud de habilitación pendiente.");
+                }
 
-            _bitacora.Registrar(
-                usuario.IdUsuarioExterno, "MODIFICACION", "UsuarioExterno", usuario.IdUsuarioExterno,
-                "Actualización de contraseña por recuperación de cuenta.");
+                _mppUsuario.ActualizarPerfil(idUsuarioExterno, PerfilUsuarioExterno.GestorEspacios.ToString());
 
-            _servicioCorreo.EnviarNotificacionCambioPassword(usuario.CorreoElectronico, usuario.Nombre);
+                _bitacora.RegistrarInterno(
+                    idUsuarioInternoResponsable, "APROBACION", "UsuarioExterno", idUsuarioExterno,
+                    "Aprobación de solicitud de habilitación como gestor de espacios.");
 
-            return ResultadoOperacion.Ok("Tu contraseña fue actualizada correctamente. Ya podés iniciar sesión con tus nuevas credenciales.");
+                return ResultadoOperacion.Ok("La cuenta fue habilitada como gestora de espacios.");
+            });
+        }
+
+        public ResultadoOperacion RechazarHabilitacionComoGestor(int idUsuarioExterno, int idUsuarioInternoResponsable)
+        {
+            return EjecutarProtegido(() =>
+            {
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                if (usuario == null)
+                {
+                    return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
+                }
+
+                if (usuario.PerfilUsuario != PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString())
+                {
+                    return ResultadoOperacion.Error("Esta cuenta no tiene una solicitud de habilitación pendiente.");
+                }
+
+                _mppUsuario.ActualizarPerfil(idUsuarioExterno, PerfilUsuarioExterno.ExternoSolicitante.ToString());
+
+                _bitacora.RegistrarInterno(
+                    idUsuarioInternoResponsable, "RECHAZO", "UsuarioExterno", idUsuarioExterno,
+                    "Rechazo de solicitud de habilitación como gestor de espacios.");
+
+                return ResultadoOperacion.Ok("La solicitud fue rechazada.");
+            });
         }
 
         public int? ObtenerIdPorCorreo(string correoElectronico)
@@ -289,8 +442,27 @@ namespace StageUp.BLL
                 return null;
             }
 
-            UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim());
-            return usuario == null ? (int?)null : usuario.IdUsuarioExterno;
+            try
+            {
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim());
+                return usuario == null ? (int?)null : usuario.IdUsuarioExterno;
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return null;
+            }
+        }
+
+        public UsuarioExterno ObtenerPorId(int idUsuarioExterno)
+        {
+            try
+            {
+                return _mppUsuario.ObtenerPorId(idUsuarioExterno);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return null;
+            }
         }
 
         private bool GenerarYEnviarCodigoActivacion(int idUsuarioExterno, string correoElectronico, string nombre)
@@ -325,6 +497,30 @@ namespace StageUp.BLL
             }
 
             return tieneLetra && tieneNumero;
+        }
+
+        private static ResultadoOperacion EjecutarProtegido(Func<ResultadoOperacion> operacion)
+        {
+            try
+            {
+                return operacion();
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion.Error(ex.Message);
+            }
+        }
+
+        private static ResultadoOperacion<T> EjecutarProtegido<T>(Func<ResultadoOperacion<T>> operacion)
+        {
+            try
+            {
+                return operacion();
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion<T>.Error(ex.Message);
+            }
         }
     }
 }

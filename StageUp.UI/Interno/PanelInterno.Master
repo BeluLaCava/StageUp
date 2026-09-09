@@ -1,0 +1,34 @@
+<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="PanelInterno.Master.cs" Inherits="StageUp.UI.Interno.PanelInterno" %>
+
+<!DOCTYPE html>
+<html lang="es">
+<head id="Head1" runat="server">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><asp:ContentPlaceHolder ID="TitleContent" runat="server">Panel administrativo | StageUp</asp:ContentPlaceHolder></title>
+    <link rel="icon" type="image/png" href="<%= ResolveUrl("~/Content/Images/favicon.png") %>" />
+    <link href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20260909-1" rel="stylesheet" />
+</head>
+<body>
+    <form id="form1" runat="server">
+        <header class="internal-header">
+            <div class="internal-header-inner container-wide">
+                <a class="internal-brand" href="~/Interno/PanelAdministrador.aspx" runat="server">StageUp · Panel administrativo</a>
+                <nav class="internal-nav" aria-label="Navegación del panel administrativo">
+                    <a href="~/Interno/AprobacionGestores.aspx" runat="server">Aprobación de gestores</a>
+                    <a href="~/Interno/RegistrosActividad.aspx" runat="server">Registros de actividad</a>
+                </nav>
+                <div class="internal-session">
+                    <span id="InternalUserSummary" runat="server" class="internal-user-summary"></span>
+                    <asp:LinkButton ID="lnkCerrarSesionInterna" runat="server" CssClass="text-link" CausesValidation="false"
+                        Text="Cerrar sesión" OnClick="lnkCerrarSesionInterna_Click" />
+                </div>
+            </div>
+        </header>
+
+        <main class="internal-content container-wide">
+            <asp:ContentPlaceHolder ID="MainContent" runat="server" />
+        </main>
+    </form>
+</body>
+</html>

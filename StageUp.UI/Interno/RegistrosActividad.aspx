@@ -1,4 +1,4 @@
-<%@ Page Title="Registros de actividad | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="RegistrosActividad.aspx.cs" Inherits="StageUp.UI.Interno.RegistrosActividad" %>
+<%@ Page Title="Registros de actividad | StageUp" Language="C#" MasterPageFile="~/Interno/PanelInterno.Master" AutoEventWireup="true" CodeBehind="RegistrosActividad.aspx.cs" Inherits="StageUp.UI.Interno.RegistrosActividad" %>
 
 <asp:Content ID="RegistrosActividadContent" ContentPlaceHolderID="MainContent" runat="server">
     <section class="static-page">
@@ -13,7 +13,6 @@
                 <asp:Literal ID="litMensaje" runat="server" />
             </asp:Panel>
 
-            <!-- Filtros de consulta (CU-001-013, camino alternativo A3: opcionales, no obligatorios) -->
             <asp:Panel ID="pnlFiltros" runat="server" CssClass="auth-card" role="search" aria-labelledby="filtros-bitacora-title">
                 <div class="auth-card-header">
                     <h2 id="filtros-bitacora-title">Filtros</h2>
@@ -51,7 +50,6 @@
                 </div>
             </asp:Panel>
 
-            <!-- Listado de registros -->
             <div class="auth-card">
                 <div class="auth-card-header">
                     <h2>Registros</h2>

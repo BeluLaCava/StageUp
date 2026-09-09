@@ -3315,6 +3315,102 @@ body.overlay-open {
     border-bottom: none;
 }
 
+.footer-link-muted {
+    opacity: 0.6;
+    font-size: 0.85rem;
+}
+
+.internal-header {
+    background: var(--color-primary-dark);
+    color: var(--color-nude-light);
+    padding: 1.1rem 0;
+}
+
+.internal-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.internal-brand {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--color-nude-light);
+    text-decoration: none;
+}
+
+.internal-nav {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.internal-nav a {
+    color: var(--color-nude);
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.internal-nav a:hover,
+.internal-nav a:focus-visible {
+    color: var(--color-nude-light);
+    text-decoration: underline;
+}
+
+.internal-session {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.internal-user-summary {
+    font-size: 0.9rem;
+    color: var(--color-nude);
+}
+
+.internal-session .text-link {
+    color: var(--color-nude-light);
+}
+
+.internal-content {
+    padding: 2.5rem 0 4rem;
+}
+
+.internal-panel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1.5rem;
+}
+
+.internal-panel-card {
+    display: block;
+    padding: 1.5rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.internal-panel-card:hover,
+.internal-panel-card:focus-visible {
+    box-shadow: var(--shadow-soft);
+    transform: translateY(-2px);
+}
+
+.internal-panel-card h2 {
+    margin: 0 0 0.5rem;
+    color: var(--color-primary);
+}
+
+.internal-panel-card p {
+    margin: 0;
+    color: var(--color-text-muted);
+}
+
 .comparison-note {
     margin-top: 1.25rem;
     color: var(--color-text-muted);

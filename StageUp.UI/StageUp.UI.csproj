@@ -137,6 +137,13 @@
     <Compile Include="MisEspacios.aspx.designer.cs">
       <DependentUpon>MisEspacios.aspx</DependentUpon>
     </Compile>
+    <Compile Include="MisReservas.aspx.cs">
+      <DependentUpon>MisReservas.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="MisReservas.aspx.designer.cs">
+      <DependentUpon>MisReservas.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Servicios\ServicioEspacios.asmx.cs">
       <DependentUpon>ServicioEspacios.asmx</DependentUpon>
       <SubType>Component</SubType>
@@ -147,6 +154,34 @@
     </Compile>
     <Compile Include="Interno\RegistrosActividad.aspx.designer.cs">
       <DependentUpon>RegistrosActividad.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\PanelInterno.Master.cs">
+      <DependentUpon>PanelInterno.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\PanelInterno.Master.designer.cs">
+      <DependentUpon>PanelInterno.Master</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\IniciarSesionInterno.aspx.cs">
+      <DependentUpon>IniciarSesionInterno.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\IniciarSesionInterno.aspx.designer.cs">
+      <DependentUpon>IniciarSesionInterno.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\PanelAdministrador.aspx.cs">
+      <DependentUpon>PanelAdministrador.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\PanelAdministrador.aspx.designer.cs">
+      <DependentUpon>PanelAdministrador.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\AprobacionGestores.aspx.cs">
+      <DependentUpon>AprobacionGestores.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\AprobacionGestores.aspx.designer.cs">
+      <DependentUpon>AprobacionGestores.aspx</DependentUpon>
     </Compile>
     <Content Include="Ayuda\CentroAyuda.aspx" />
     <Content Include="Content\Css\site.css" />
@@ -164,8 +199,13 @@
     <Content Include="TerminosCondiciones.aspx" />
     <Content Include="PoliticaPrivacidad.aspx" />
     <Content Include="MisEspacios.aspx" />
+    <Content Include="MisReservas.aspx" />
     <Content Include="Servicios\ServicioEspacios.asmx" />
     <Content Include="Interno\RegistrosActividad.aspx" />
+    <Content Include="Interno\PanelInterno.Master" />
+    <Content Include="Interno\IniciarSesionInterno.aspx" />
+    <Content Include="Interno\PanelAdministrador.aspx" />
+    <Content Include="Interno\AprobacionGestores.aspx" />
     <Content Include="Scripts\site.js" />
     <Content Include="Site.Master" />
     <Content Include="Web.config" />

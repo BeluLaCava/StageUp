@@ -42,6 +42,11 @@
 
             <asp:Panel ID="pnlPanelGestor" runat="server" Visible="false">
 
+            <nav class="gestor-subnav" aria-label="Navegación de gestor de espacios">
+                <a href="~/MisEspacios.aspx" runat="server" class="active">Administrar espacios</a>
+                <a href="~/SolicitudesRecibidas.aspx" runat="server">Solicitudes recibidas<asp:Literal ID="litBadgeSolicitudes" runat="server" /></a>
+            </nav>
+
             <div class="managed-spaces-list">
 
                 <asp:Literal ID="litSinEspacios" runat="server" Visible="false" Text="&lt;div class=&quot;managed-spaces-empty&quot;&gt;&lt;h2&gt;Aún no tienes espacios cargados&lt;/h2&gt;&lt;p&gt;Agregá tu primer espacio y preparalo para compartirlo.&lt;/p&gt;&lt;/div&gt;" />
@@ -75,34 +80,6 @@
                     </ItemTemplate>
                 </asp:Repeater>
                 </div>
-            </div>
-
-            <!-- Solicitudes de reserva recibidas sobre los espacios de este gestor -->
-            <div class="auth-card">
-                <div class="auth-card-header">
-                    <h2>Solicitudes de reserva recibidas</h2>
-                    <p>Aceptá o rechazá las solicitudes que te envíen sobre tus espacios.</p>
-                </div>
-
-                <asp:Literal ID="litSinSolicitudes" runat="server" Visible="false" Text="Todavía no recibiste ninguna solicitud de reserva." />
-
-                <asp:Repeater ID="rptSolicitudes" runat="server" OnItemCommand="rptSolicitudes_ItemCommand" OnItemDataBound="rptSolicitudes_ItemDataBound">
-                    <ItemTemplate>
-                        <div class="space-row">
-                            <div class="space-row-info">
-                                <h3><%# Eval("NombreEspacio") %></h3>
-                                <p>Solicitada por <%# Eval("NombreSolicitante") %> (<%# Eval("CorreoSolicitante") %>) para el <%# Eval("FechaSolicitada", "{0:dd/MM/yyyy}") %> · Estado: <%# Eval("EstadoReserva") %></p>
-                                <p class="space-row-descripcion"><%# Eval("ComentarioSolicitante") %></p>
-                            </div>
-                            <div class="space-row-actions">
-                                <asp:LinkButton ID="lnkAceptar" runat="server" CssClass="text-link" CausesValidation="false"
-                                    CommandName="Aceptar" CommandArgument='<%# Eval("IdReserva") %>' Text="Aceptar" />
-                                <asp:LinkButton ID="lnkRechazar" runat="server" CssClass="text-link" CausesValidation="false"
-                                    CommandName="Rechazar" CommandArgument='<%# Eval("IdReserva") %>' Text="Rechazar" />
-                            </div>
-                        </div>
-                    </ItemTemplate>
-                </asp:Repeater>
             </div>
 
             <asp:Panel ID="pnlFormularioEspacio" runat="server" Visible="false" DefaultButton="btnGuardarEspacio">

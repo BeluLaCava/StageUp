@@ -21,6 +21,11 @@ namespace StageUp.UI
 
         protected bool FichaCompletaActiva { get { return _bllEspacio.FichaCompletaHabilitada; } }
 
+        // Cantidad de solicitudes de reserva pendientes de resolver, para el badge
+        // de la sub-navegación hacia SolicitudesRecibidas.aspx (esa pantalla es la
+        // que administra el detalle; acá solo se muestra un contador).
+        protected int CantidadSolicitudesPendientes { get; private set; }
+
         private string FotoRutaActual
         {
             get { return ViewState["FotoRutaActual"] as string; }
@@ -49,10 +54,17 @@ namespace StageUp.UI
             pnlPanelGestor.Visible = perfil == PerfilUsuarioExterno.GestorEspacios.ToString();
             lnkNuevoEspacio.Visible = pnlPanelGestor.Visible;
 
-            if (!IsPostBack && pnlPanelGestor.Visible)
+            if (pnlPanelGestor.Visible)
             {
-                CargarMisEspacios();
-                CargarSolicitudesRecibidas();
+                if (!IsPostBack)
+                {
+                    CargarMisEspacios();
+                }
+
+                CantidadSolicitudesPendientes = ContarSolicitudesPendientes();
+                litBadgeSolicitudes.Text = CantidadSolicitudesPendientes > 0
+                    ? " <span class=\"gestor-subnav-badge\">" + CantidadSolicitudesPendientes + "</span>"
+                    : string.Empty;
             }
         }
 
@@ -182,62 +194,6 @@ namespace StageUp.UI
             CargarMisEspacios();
         }
 
-        protected void rptSolicitudes_ItemCommand(object source, RepeaterCommandEventArgs e)
-        {
-            if (!EsGestorEspacios())
-            {
-                Response.Redirect("~/MisEspacios.aspx");
-                return;
-            }
-
-            int idReserva = Convert.ToInt32(e.CommandArgument);
-            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
-            ResultadoOperacion resultado;
-
-            switch (e.CommandName)
-            {
-                case "Aceptar":
-                    resultado = _bllReserva.Aceptar(idReserva, idUsuarioGestor, null);
-                    break;
-
-                case "Rechazar":
-                    resultado = _bllReserva.Rechazar(idReserva, idUsuarioGestor, null);
-                    break;
-
-                default:
-                    return;
-            }
-
-            MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
-            CargarSolicitudesRecibidas();
-        }
-
-        protected void rptSolicitudes_ItemDataBound(object sender, RepeaterItemEventArgs e)
-        {
-            if (e.Item.ItemType != ListItemType.Item && e.Item.ItemType != ListItemType.AlternatingItem)
-            {
-                return;
-            }
-
-            var reserva = (Reserva)e.Item.DataItem;
-            var lnkAceptar = (LinkButton)e.Item.FindControl("lnkAceptar");
-            var lnkRechazar = (LinkButton)e.Item.FindControl("lnkRechazar");
-
-            bool esPendiente = reserva.EstadoReserva == "Pendiente";
-            lnkAceptar.Visible = esPendiente;
-            lnkRechazar.Visible = esPendiente;
-        }
-
-        private void CargarSolicitudesRecibidas()
-        {
-            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
-            List<Reserva> solicitudes = _bllReserva.ListarSolicitudesRecibidas(idUsuarioGestor);
-
-            litSinSolicitudes.Visible = solicitudes.Count == 0;
-            rptSolicitudes.DataSource = solicitudes;
-            rptSolicitudes.DataBind();
-        }
-
         protected void rptMisEspacios_ItemDataBound(object sender, RepeaterItemEventArgs e)
         {
             if (e.Item.ItemType != ListItemType.Item && e.Item.ItemType != ListItemType.AlternatingItem)
@@ -261,6 +217,22 @@ namespace StageUp.UI
             litSinEspacios.Visible = espacios.Count == 0;
             rptMisEspacios.DataSource = espacios;
             rptMisEspacios.DataBind();
+        }
+
+        private int ContarSolicitudesPendientes()
+        {
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            List<Reserva> solicitudes = _bllReserva.ListarSolicitudesRecibidas(idUsuarioGestor);
+
+            int pendientes = 0;
+            foreach (Reserva solicitud in solicitudes)
+            {
+                if (solicitud.EstadoReserva == "Pendiente")
+                {
+                    pendientes++;
+                }
+            }
+            return pendientes;
         }
 
         private void CargarEspacioEnFormulario(int idEspacioArtistico)

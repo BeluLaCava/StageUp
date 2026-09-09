@@ -837,7 +837,6 @@ a.text-link:focus-visible {
     }
 }
 
-/* Public search */
 .hero-search,
 .marketplace-search {
     display: grid;
@@ -910,7 +909,6 @@ a.text-link:focus-visible {
     margin-top: 1.25rem;
 }
 
-/* Explore spaces */
 .explore-page,
 .help-page {
     min-height: calc(100vh - var(--navbar-height));
@@ -1411,7 +1409,6 @@ body.overlay-open {
     overflow: hidden;
 }
 
-/* Help center */
 .help-hero {
     text-align: center;
 }
@@ -1725,7 +1722,6 @@ body.overlay-open {
     }
 }
 
-/* Refined marketplace composition */
 .explore-header .container-wide,
 .help-hero .container-narrow {
     position: relative;
@@ -1910,7 +1906,6 @@ body.overlay-open {
     font-size: clamp(1.8rem, 4vw, 2.35rem);
 }
 
-/* Refined progressive help journey */
 .help-hero {
     padding-block: clamp(3.8rem, 8vw, 6.2rem);
 }
@@ -2350,7 +2345,6 @@ body.overlay-open {
     }
 }
 
-/* Explorar espacios: marketplace layout */
 .explore-page .explore-page-container {
     width: min(calc(100% - 3rem), 75rem);
     margin-inline: auto;
@@ -2737,7 +2731,6 @@ body.overlay-open {
     }
 }
 
-/* Public exploration flow: results and detail */
 .explore-page.has-search-query .explore-header {
     padding-block: clamp(2.25rem, 5vw, 3.75rem);
 }
@@ -3093,10 +3086,6 @@ body.overlay-open {
     }
 }
 
-/* =====================================================================
-   Mensajes de formulario y validación (Avance 1: registro, login,
-   activación de cuenta, recuperación de contraseña).
-   ===================================================================== */
 
 .form-message {
     margin-bottom: 1.15rem;
@@ -3125,10 +3114,6 @@ body.overlay-open {
     font-size: 0.82rem;
 }
 
-/* =====================================================================
-   Páginas estáticas institucionales (Quiénes somos, Contáctenos,
-   Términos y condiciones, Política de privacidad).
-   ===================================================================== */
 
 .static-page {
     padding: 3rem 0 4.5rem;
@@ -3172,9 +3157,6 @@ body.overlay-open {
     border-top: 1px solid var(--color-border);
 }
 
-/* =====================================================================
-   Mis espacios (ABMC de EspacioArtistico).
-   ===================================================================== */
 
 .form-actions {
     display: flex;
@@ -3218,9 +3200,6 @@ body.overlay-open {
     flex-shrink: 0;
 }
 
-/* Comparación de espacios (ítem 14 del checklist): casilla "Comparar" en
-   cada tarjeta del catálogo, barra flotante de selección, y tabla
-   comparativa en CompararEspacios.aspx. */
 
 .space-card {
     position: relative;

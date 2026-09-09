@@ -1,7 +1,6 @@
 USE master;
 GO
 
--- Limpiar las tablas que quedaron mal creadas en master (orden por dependencias FK)
 IF OBJECT_ID('dbo.RegistroActividad','U')  IS NOT NULL DROP TABLE dbo.RegistroActividad;
 IF OBJECT_ID('dbo.RolInternoPermiso','U')  IS NOT NULL DROP TABLE dbo.RolInternoPermiso;
 IF OBJECT_ID('dbo.UsuarioInterno','U')     IS NOT NULL DROP TABLE dbo.UsuarioInterno;
@@ -13,7 +12,6 @@ IF OBJECT_ID('dbo.AreaInterna','U')        IS NOT NULL DROP TABLE dbo.AreaIntern
 IF OBJECT_ID('dbo.UsuarioExterno','U')     IS NOT NULL DROP TABLE dbo.UsuarioExterno;
 GO
 
--- Limpiar los stored procedures que también quedaron creados en master
 IF OBJECT_ID('dbo.sp_UsuarioExterno_Insertar','P')                     IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_Insertar;
 IF OBJECT_ID('dbo.sp_UsuarioExterno_ObtenerPorCorreo','P')             IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_ObtenerPorCorreo;
 IF OBJECT_ID('dbo.sp_UsuarioExterno_ObtenerPorId','P')                 IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_ObtenerPorId;

@@ -9,7 +9,6 @@
                 <p>Ingresá para acceder, más adelante, a tus reservas, espacios y actividades.</p>
             </div>
 
-            <!-- Inicio de sesión -->
             <asp:Panel ID="pnlLogin" runat="server" CssClass="auth-card" role="form" aria-labelledby="login-title">
                 <div class="auth-card-header">
                     <h2 id="login-title">Iniciar sesión</h2>
@@ -47,7 +46,6 @@
                 </p>
             </asp:Panel>
 
-            <!-- Recuperación paso 1: solicitar código (CU-001-002 pasos 7-14) -->
             <asp:Panel ID="pnlRecuperarSolicitar" runat="server" Visible="false" CssClass="auth-card" role="form" aria-labelledby="recover-title">
                 <div class="auth-card-header">
                     <h2 id="recover-title">Recuperar contraseña</h2>
@@ -74,7 +72,6 @@
                 </p>
             </asp:Panel>
 
-            <!-- Recuperación paso 2: código + nueva contraseña (CU-001-002 pasos 15-21) -->
             <asp:Panel ID="pnlRecuperarActualizar" runat="server" Visible="false" CssClass="auth-card" role="form" aria-labelledby="recover-update-title">
                 <div class="auth-card-header">
                     <h2 id="recover-update-title">Ingresá el código y tu nueva contraseña</h2>
@@ -120,7 +117,6 @@
                 </p>
             </asp:Panel>
 
-            <!-- Recuperación paso 3: confirmación (CU-001-002 paso 21) -->
             <asp:Panel ID="pnlRecuperarExito" runat="server" Visible="false" CssClass="auth-card">
                 <div class="auth-card-header">
                     <h2>Contraseña actualizada</h2>

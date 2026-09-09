@@ -11,7 +11,7 @@ namespace StageUp.MPP
     {
         public int Insertar(UsuarioExterno usuario)
         {
-            object resultado = EjecutorStoredProcedure.LeerEscalar(
+            object resultado = Conexion.Instance.LeerEscalar(
                 "sp_UsuarioExterno_Insertar",
                 new SqlParameter("@nombre", usuario.Nombre),
                 new SqlParameter("@apellido", usuario.Apellido),
@@ -29,7 +29,7 @@ namespace StageUp.MPP
 
         public UsuarioExterno ObtenerPorCorreo(string correoElectronico)
         {
-            DataTable tabla = EjecutorStoredProcedure.Leer(
+            DataTable tabla = Conexion.Instance.Leer(
                 "sp_UsuarioExterno_ObtenerPorCorreo",
                 new SqlParameter("@correoElectronico", correoElectronico));
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
@@ -37,7 +37,7 @@ namespace StageUp.MPP
 
         public UsuarioExterno ObtenerPorId(int idUsuarioExterno)
         {
-            DataTable tabla = EjecutorStoredProcedure.Leer(
+            DataTable tabla = Conexion.Instance.Leer(
                 "sp_UsuarioExterno_ObtenerPorId",
                 new SqlParameter("@idUsuarioExterno", idUsuarioExterno));
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
@@ -45,7 +45,7 @@ namespace StageUp.MPP
 
         public void ActivarCuenta(int idUsuarioExterno, string estadoCuenta)
         {
-            EjecutorStoredProcedure.Escribir(
+            Conexion.Instance.Guardar(
                 "sp_UsuarioExterno_ActivarCuenta",
                 new SqlParameter("@idUsuarioExterno", idUsuarioExterno),
                 new SqlParameter("@estadoCuenta", estadoCuenta));
@@ -53,7 +53,7 @@ namespace StageUp.MPP
 
         public void ActualizarPassword(int idUsuarioExterno, string passwordHash)
         {
-            EjecutorStoredProcedure.Escribir(
+            Conexion.Instance.Guardar(
                 "sp_UsuarioExterno_ActualizarPassword",
                 new SqlParameter("@idUsuarioExterno", idUsuarioExterno),
                 new SqlParameter("@passwordHash", passwordHash));
@@ -61,7 +61,7 @@ namespace StageUp.MPP
 
         public void ActualizarPerfil(int idUsuarioExterno, string perfilUsuario)
         {
-            EjecutorStoredProcedure.Escribir(
+            Conexion.Instance.Guardar(
                 "sp_UsuarioExterno_ActualizarPerfil",
                 new SqlParameter("@idUsuarioExterno", idUsuarioExterno),
                 new SqlParameter("@perfilUsuario", perfilUsuario));
@@ -69,7 +69,7 @@ namespace StageUp.MPP
 
         public List<UsuarioExterno> ListarPorPerfil(string perfilUsuario)
         {
-            DataTable tabla = EjecutorStoredProcedure.Leer(
+            DataTable tabla = Conexion.Instance.Leer(
                 "sp_UsuarioExterno_ListarPorPerfil",
                 new SqlParameter("@perfilUsuario", perfilUsuario));
 

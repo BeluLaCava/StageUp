@@ -10,7 +10,7 @@ namespace StageUp.MPP
     {
         public int Insertar(CodigoActivacion codigo)
         {
-            object resultado = EjecutorStoredProcedure.LeerEscalar(
+            object resultado = Conexion.Instance.LeerEscalar(
                 "sp_CodigoActivacion_Insertar",
                 new SqlParameter("@idUsuarioExterno", codigo.IdUsuarioExterno),
                 new SqlParameter("@codigo", codigo.Codigo),
@@ -21,7 +21,7 @@ namespace StageUp.MPP
 
         public CodigoActivacion ObtenerVigentePorUsuario(int idUsuarioExterno)
         {
-            DataTable tabla = EjecutorStoredProcedure.Leer(
+            DataTable tabla = Conexion.Instance.Leer(
                 "sp_CodigoActivacion_ObtenerVigentePorUsuario",
                 new SqlParameter("@idUsuarioExterno", idUsuarioExterno));
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
@@ -29,7 +29,7 @@ namespace StageUp.MPP
 
         public void MarcarUtilizado(int idCodigoActivacion)
         {
-            EjecutorStoredProcedure.Escribir(
+            Conexion.Instance.Guardar(
                 "sp_CodigoActivacion_MarcarUtilizado",
                 new SqlParameter("@idCodigoActivacion", idCodigoActivacion));
         }

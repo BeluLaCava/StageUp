@@ -11,7 +11,7 @@ namespace StageUp.MPP
     {
         public void Insertar(RegistroActividad registro)
         {
-            EjecutorStoredProcedure.Escribir(
+            Conexion.Instance.Guardar(
                 "sp_RegistroActividad_Insertar",
                 new SqlParameter("@idUsuarioExternoResponsable", (object)registro.IdUsuarioExternoResponsable ?? DBNull.Value),
                 new SqlParameter("@idUsuarioInternoResponsable", (object)registro.IdUsuarioInternoResponsable ?? DBNull.Value),
@@ -26,7 +26,7 @@ namespace StageUp.MPP
             int? idUsuarioExternoResponsable, DateTime? fechaDesde, DateTime? fechaHasta,
             string tipoOperacion, string tipoEntidadAfectada)
         {
-            DataTable tabla = EjecutorStoredProcedure.Leer(
+            DataTable tabla = Conexion.Instance.Leer(
                 "sp_RegistroActividad_Buscar",
                 new SqlParameter("@idUsuarioExternoResponsable", (object)idUsuarioExternoResponsable ?? DBNull.Value),
                 new SqlParameter("@fechaDesde", (object)fechaDesde ?? DBNull.Value),

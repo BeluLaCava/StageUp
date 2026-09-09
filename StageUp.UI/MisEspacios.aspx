@@ -13,7 +13,6 @@
                 <asp:Literal ID="litMensaje" runat="server" />
             </asp:Panel>
 
-            <!-- Alta / edición (CU-001-007, escenario principal) -->
             <asp:Panel ID="pnlFormularioEspacio" runat="server" CssClass="auth-card" role="form" aria-labelledby="form-espacio-title">
                 <div class="auth-card-header">
                     <h2 id="form-espacio-title"><asp:Literal ID="litTituloFormulario" runat="server" Text="Nuevo espacio" /></h2>
@@ -47,7 +46,6 @@
                 </div>
             </asp:Panel>
 
-            <!-- Listado de espacios del gestor autenticado -->
             <div class="auth-card">
                 <div class="auth-card-header">
                     <h2>Tus espacios</h2>

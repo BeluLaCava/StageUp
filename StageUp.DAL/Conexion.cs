@@ -16,8 +16,31 @@ namespace StageUp.DAL
         }
     }
 
-    public static class EjecutorStoredProcedure
+    public sealed class Conexion
     {
+        private static Conexion _instance;
+        private static readonly object _lock = new object();
+
+        private Conexion()
+        {
+        }
+
+        public static Conexion Instance
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new Conexion();
+                    }
+
+                    return _instance;
+                }
+            }
+        }
+
         private const string NombreCadenaConexion = "StageUpConnectionString";
 
         private static SqlConnection ObtenerConexion()
@@ -26,7 +49,7 @@ namespace StageUp.DAL
             return new SqlConnection(cadena);
         }
 
-        public static DataTable Leer(string nombreSp, params SqlParameter[] parametros)
+        public DataTable Leer(string nombreSp, params SqlParameter[] parametros)
         {
             try
             {
@@ -56,7 +79,7 @@ namespace StageUp.DAL
             }
         }
 
-        public static object LeerEscalar(string nombreSp, params SqlParameter[] parametros)
+        public object LeerEscalar(string nombreSp, params SqlParameter[] parametros)
         {
             try
             {
@@ -76,11 +99,11 @@ namespace StageUp.DAL
             catch (Exception ex)
             {
                 throw new ErrorAccesoDatosException(
-                    nombreSp, "Ocurrió un error al guardar los datos. Probá nuevamente en unos minutos.", ex);
+                    nombreSp, "Ocurrió un error al ejecutar la operación. Probá nuevamente en unos minutos.", ex);
             }
         }
 
-        public static void Escribir(string nombreSp, params SqlParameter[] parametros)
+        public bool Guardar(string nombreSp, params SqlParameter[] parametros)
         {
             try
             {
@@ -94,7 +117,30 @@ namespace StageUp.DAL
                     }
 
                     conexion.Open();
-                    comando.ExecuteNonQuery();
+                    using (SqlTransaction transaccion = conexion.BeginTransaction())
+                    {
+                        comando.Transaction = transaccion;
+
+                        try
+                        {
+                            comando.ExecuteNonQuery();
+                            transaccion.Commit();
+                            return true;
+                        }
+                        catch (Exception ex)
+                        {
+                            try
+                            {
+                                transaccion.Rollback();
+                            }
+                            catch (Exception errorRollback)
+                            {
+                                ex.Data["ErrorRollback"] = errorRollback;
+                            }
+
+                            throw;
+                        }
+                    }
                 }
             }
             catch (Exception ex)

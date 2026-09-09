@@ -9,7 +9,6 @@
                 <p>Creá tu cuenta para comenzar a formar parte de una comunidad artística más visible y organizada.</p>
             </div>
 
-            <!-- Paso 1: datos de registro (CU-001-001, escenario principal pasos 5-8) -->
             <asp:Panel ID="pnlDatosRegistro" runat="server" CssClass="auth-card" role="form" aria-labelledby="register-title">
                 <div class="auth-card-header">
                     <h2 id="register-title">Crear una cuenta</h2>
@@ -93,7 +92,6 @@
                 </p>
             </asp:Panel>
 
-            <!-- Paso 2: activación por código (CU-001-001, escenario principal pasos 12-18) -->
             <asp:Panel ID="pnlActivacion" runat="server" Visible="false" CssClass="auth-card" role="form" aria-labelledby="activation-title">
                 <div class="auth-card-header">
                     <h2 id="activation-title">Activá tu cuenta</h2>
@@ -121,7 +119,6 @@
                 </p>
             </asp:Panel>
 
-            <!-- Paso 3: confirmación (CU-001-001, paso 18) -->
             <asp:Panel ID="pnlExitoRegistro" runat="server" Visible="false" CssClass="auth-card">
                 <div class="auth-card-header">
                     <h2>¡Cuenta activada!</h2>

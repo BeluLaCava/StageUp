@@ -10,7 +10,7 @@ namespace StageUp.MPP
     {
         public List<Faq> ListarActivas()
         {
-            DataTable tabla = EjecutorStoredProcedure.Leer("sp_Faq_ListarActivas");
+            DataTable tabla = Conexion.Instance.Leer("sp_Faq_ListarActivas");
 
             var lista = new List<Faq>();
             foreach (DataRow fila in tabla.Rows)

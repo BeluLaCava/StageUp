@@ -11,7 +11,7 @@ namespace StageUp.MPP
     {
         public int Insertar(RolInterno rol)
         {
-            object resultado = EjecutorStoredProcedure.LeerEscalar(
+            object resultado = Conexion.Instance.LeerEscalar(
                 "sp_RolInterno_Insertar",
                 new SqlParameter("@idAreaInterna", (object)rol.IdAreaInterna ?? DBNull.Value),
                 new SqlParameter("@nombreRol", rol.NombreRol),
@@ -23,7 +23,7 @@ namespace StageUp.MPP
 
         public void Modificar(RolInterno rol)
         {
-            EjecutorStoredProcedure.Escribir(
+            Conexion.Instance.Guardar(
                 "sp_RolInterno_Modificar",
                 new SqlParameter("@idRolInterno", rol.IdRolInterno),
                 new SqlParameter("@idAreaInterna", (object)rol.IdAreaInterna ?? DBNull.Value),
@@ -33,7 +33,7 @@ namespace StageUp.MPP
 
         public RolInterno ObtenerPorId(int idRolInterno)
         {
-            DataTable tabla = EjecutorStoredProcedure.Leer(
+            DataTable tabla = Conexion.Instance.Leer(
                 "sp_RolInterno_ObtenerPorId",
                 new SqlParameter("@idRolInterno", idRolInterno));
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
@@ -41,7 +41,7 @@ namespace StageUp.MPP
 
         public List<RolInterno> Listar()
         {
-            DataTable tabla = EjecutorStoredProcedure.Leer("sp_RolInterno_Listar");
+            DataTable tabla = Conexion.Instance.Leer("sp_RolInterno_Listar");
             var lista = new List<RolInterno>();
             foreach (DataRow fila in tabla.Rows)
             {
@@ -52,7 +52,7 @@ namespace StageUp.MPP
 
         public void Baja(int idRolInterno)
         {
-            EjecutorStoredProcedure.Escribir(
+            Conexion.Instance.Guardar(
                 "sp_RolInterno_Baja",
                 new SqlParameter("@idRolInterno", idRolInterno));
         }

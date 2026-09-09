@@ -11,7 +11,7 @@ namespace StageUp.MPP
     {
         public int Insertar(EspacioArtistico espacio)
         {
-            object resultado = EjecutorStoredProcedure.LeerEscalar(
+            object resultado = Conexion.Instance.LeerEscalar(
                 "sp_EspacioArtistico_Insertar",
                 new SqlParameter("@idUsuarioGestor", espacio.IdUsuarioGestor),
                 new SqlParameter("@nombreEspacio", espacio.NombreEspacio),
@@ -23,7 +23,7 @@ namespace StageUp.MPP
 
         public void Modificar(EspacioArtistico espacio)
         {
-            EjecutorStoredProcedure.Escribir(
+            Conexion.Instance.Guardar(
                 "sp_EspacioArtistico_Modificar",
                 new SqlParameter("@idEspacioArtistico", espacio.IdEspacioArtistico),
                 new SqlParameter("@nombreEspacio", espacio.NombreEspacio),
@@ -33,7 +33,7 @@ namespace StageUp.MPP
 
         public EspacioArtistico ObtenerPorId(int idEspacioArtistico)
         {
-            DataTable tabla = EjecutorStoredProcedure.Leer(
+            DataTable tabla = Conexion.Instance.Leer(
                 "sp_EspacioArtistico_ObtenerPorId",
                 new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
@@ -41,33 +41,33 @@ namespace StageUp.MPP
 
         public List<EspacioArtistico> ListarPorUsuarioGestor(int idUsuarioGestor)
         {
-            return MapearDesdeTabla(EjecutorStoredProcedure.Leer(
+            return MapearDesdeTabla(Conexion.Instance.Leer(
                 "sp_EspacioArtistico_ListarPorUsuarioGestor",
                 new SqlParameter("@idUsuarioGestor", idUsuarioGestor)));
         }
 
         public List<EspacioArtistico> ListarPublicados()
         {
-            return MapearDesdeTabla(EjecutorStoredProcedure.Leer("sp_EspacioArtistico_ListarPublicados"));
+            return MapearDesdeTabla(Conexion.Instance.Leer("sp_EspacioArtistico_ListarPublicados"));
         }
 
         public void Publicar(int idEspacioArtistico)
         {
-            EjecutorStoredProcedure.Escribir(
+            Conexion.Instance.Guardar(
                 "sp_EspacioArtistico_Publicar",
                 new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
         }
 
         public void Pausar(int idEspacioArtistico)
         {
-            EjecutorStoredProcedure.Escribir(
+            Conexion.Instance.Guardar(
                 "sp_EspacioArtistico_Pausar",
                 new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
         }
 
         public void BajaLogica(int idEspacioArtistico)
         {
-            EjecutorStoredProcedure.Escribir(
+            Conexion.Instance.Guardar(
                 "sp_EspacioArtistico_BajaLogica",
                 new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
         }

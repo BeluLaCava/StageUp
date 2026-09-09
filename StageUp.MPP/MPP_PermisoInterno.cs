@@ -11,13 +11,13 @@ namespace StageUp.MPP
     {
         public List<PermisoInterno> Listar()
         {
-            DataTable tabla = EjecutorStoredProcedure.Leer("sp_PermisoInterno_Listar");
+            DataTable tabla = Conexion.Instance.Leer("sp_PermisoInterno_Listar");
             return MapearLista(tabla);
         }
 
         public List<PermisoInterno> ListarPorRol(int idRolInterno)
         {
-            DataTable tabla = EjecutorStoredProcedure.Leer(
+            DataTable tabla = Conexion.Instance.Leer(
                 "sp_PermisoInterno_ListarPorRol",
                 new SqlParameter("@idRolInterno", idRolInterno));
             return MapearLista(tabla);

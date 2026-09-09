@@ -10,7 +10,7 @@ namespace StageUp.MPP
     {
         public int Insertar(UsuarioInterno usuario)
         {
-            object resultado = EjecutorStoredProcedure.LeerEscalar(
+            object resultado = Conexion.Instance.LeerEscalar(
                 "sp_UsuarioInterno_Insertar",
                 new SqlParameter("@idAreaInterna", usuario.IdAreaInterna),
                 new SqlParameter("@idRolInterno", usuario.IdRolInterno),
@@ -25,7 +25,7 @@ namespace StageUp.MPP
 
         public UsuarioInterno ObtenerPorCorreo(string correoElectronico)
         {
-            DataTable tabla = EjecutorStoredProcedure.Leer(
+            DataTable tabla = Conexion.Instance.Leer(
                 "sp_UsuarioInterno_ObtenerPorCorreo",
                 new SqlParameter("@correoElectronico", correoElectronico));
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
@@ -33,7 +33,7 @@ namespace StageUp.MPP
 
         public UsuarioInterno ObtenerPorId(int idUsuarioInterno)
         {
-            DataTable tabla = EjecutorStoredProcedure.Leer(
+            DataTable tabla = Conexion.Instance.Leer(
                 "sp_UsuarioInterno_ObtenerPorId",
                 new SqlParameter("@idUsuarioInterno", idUsuarioInterno));
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
@@ -41,7 +41,7 @@ namespace StageUp.MPP
 
         public int ContarActivosPorRol(int idRolInterno)
         {
-            object resultado = EjecutorStoredProcedure.LeerEscalar(
+            object resultado = Conexion.Instance.LeerEscalar(
                 "sp_UsuarioInterno_ContarActivosPorRol",
                 new SqlParameter("@idRolInterno", idRolInterno));
 

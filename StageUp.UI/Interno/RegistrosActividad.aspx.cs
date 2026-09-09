@@ -21,6 +21,12 @@ namespace StageUp.UI.Interno
                 return;
             }
 
+            if (!GestorDeSesion.TienePermisoInterno("VER_BITACORA"))
+            {
+                Response.Redirect("~/Interno/PanelAdministrador.aspx");
+                return;
+            }
+
             if (!IsPostBack)
             {
                 PoblarFiltros();

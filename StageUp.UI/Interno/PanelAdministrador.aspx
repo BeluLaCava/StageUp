@@ -10,15 +10,20 @@
 
         <div class="static-page-body">
             <div class="internal-panel-grid">
-                <a class="internal-panel-card" href="~/Interno/AprobacionGestores.aspx" runat="server">
-                    <h2>Aprobación de gestores</h2>
-                    <p>Revisá y aprobá o rechazá las solicitudes de usuarios que piden habilitarse como gestores de espacios.</p>
-                </a>
-                <a class="internal-panel-card" href="~/Interno/RegistrosActividad.aspx" runat="server">
-                    <h2>Registros de actividad</h2>
-                    <p>Consultá la bitácora completa del sistema, con filtros por usuario, fecha y tipo de operación.</p>
-                </a>
+                <asp:Repeater ID="rptAccesos" runat="server">
+                    <ItemTemplate>
+                        <a class="internal-panel-card" href="<%# Eval("Url") %>">
+                            <h2><%# Eval("Nombre") %></h2>
+                            <p><%# Eval("Descripcion") %></p>
+                        </a>
+                    </ItemTemplate>
+                </asp:Repeater>
             </div>
+
+            <asp:Panel ID="pnlSinAccesos" runat="server" CssClass="empty-state" Visible="false">
+                <h3>Todavía no tenés secciones habilitadas</h3>
+                <p>Tu rol no tiene permisos asignados. Pedile a un administrador que te habilite acceso a alguna sección.</p>
+            </asp:Panel>
         </div>
     </section>
 </asp:Content>

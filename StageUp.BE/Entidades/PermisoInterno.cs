@@ -11,8 +11,10 @@ namespace StageUp.BE.Entidades
         public string Modulo { get; set; }
         public string Accion { get; set; }
         public string EstadoPermiso { get; set; }
+        public string UrlAsociada { get; set; }
         public DateTime FechaAlta { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
         public bool Activo { get; set; }
+        public bool Asignado { get; set; }
     }
 }

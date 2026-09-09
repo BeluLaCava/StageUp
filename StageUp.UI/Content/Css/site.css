@@ -3411,6 +3411,12 @@ body.overlay-open {
     color: var(--color-text-muted);
 }
 
+.permission-modulo {
+    color: var(--color-text-muted);
+    font-weight: 400;
+    font-size: 0.82rem;
+}
+
 .comparison-note {
     margin-top: 1.25rem;
     color: var(--color-text-muted);

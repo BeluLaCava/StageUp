@@ -183,6 +183,20 @@
     <Compile Include="Interno\AprobacionGestores.aspx.designer.cs">
       <DependentUpon>AprobacionGestores.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Interno\GestionRoles.aspx.cs">
+      <DependentUpon>GestionRoles.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\GestionRoles.aspx.designer.cs">
+      <DependentUpon>GestionRoles.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\PermisosDelRol.aspx.cs">
+      <DependentUpon>PermisosDelRol.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\PermisosDelRol.aspx.designer.cs">
+      <DependentUpon>PermisosDelRol.aspx</DependentUpon>
+    </Compile>
     <Content Include="Ayuda\CentroAyuda.aspx" />
     <Content Include="Content\Css\site.css" />
     <Content Include="Content\Images\favicon.png" />
@@ -206,6 +220,8 @@
     <Content Include="Interno\IniciarSesionInterno.aspx" />
     <Content Include="Interno\PanelAdministrador.aspx" />
     <Content Include="Interno\AprobacionGestores.aspx" />
+    <Content Include="Interno\GestionRoles.aspx" />
+    <Content Include="Interno\PermisosDelRol.aspx" />
     <Content Include="Scripts\site.js" />
     <Content Include="Site.Master" />
     <Content Include="Web.config" />

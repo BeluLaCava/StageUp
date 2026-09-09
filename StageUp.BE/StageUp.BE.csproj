@@ -48,6 +48,9 @@
     <Compile Include="Enumerados\EstadoEspacio.cs" />
     <Compile Include="Enumerados\EstadoReserva.cs" />
     <Compile Include="Enumerados\EstadoCuentaInterno.cs" />
+    <Compile Include="Menu\ComponenteMenu.cs" />
+    <Compile Include="Menu\ItemMenu.cs" />
+    <Compile Include="Menu\GrupoMenu.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

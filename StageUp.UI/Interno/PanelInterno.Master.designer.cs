@@ -8,6 +8,8 @@ namespace StageUp.UI.Interno
 
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
+        protected global::System.Web.UI.WebControls.Repeater rptMenu;
+
         protected global::System.Web.UI.HtmlControls.HtmlGenericControl InternalUserSummary;
 
         protected global::System.Web.UI.WebControls.LinkButton lnkCerrarSesionInterna;

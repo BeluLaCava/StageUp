@@ -39,6 +39,15 @@ namespace StageUp.MPP
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
+        public int ContarActivosPorRol(int idRolInterno)
+        {
+            object resultado = EjecutorStoredProcedure.LeerEscalar(
+                "sp_UsuarioInterno_ContarActivosPorRol",
+                new SqlParameter("@idRolInterno", idRolInterno));
+
+            return Convert.ToInt32(resultado);
+        }
+
         private static UsuarioInterno MapearDesdeFila(DataRow fila)
         {
             return new UsuarioInterno

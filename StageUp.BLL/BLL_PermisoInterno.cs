@@ -9,7 +9,7 @@ namespace StageUp.BLL
     public class BLL_PermisoInterno
     {
         private readonly MPP_PermisoInterno _mppPermiso = new MPP_PermisoInterno();
-        private readonly MPP_RolInternoPermiso _mppRolPermiso = new MPP_RolInternoPermiso();
+        private readonly BLL_RolInternoPermiso _bllRolPermiso = new BLL_RolInternoPermiso();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
         public List<PermisoInterno> Listar()
@@ -84,13 +84,13 @@ namespace StageUp.BLL
         {
             try
             {
-                _mppRolPermiso.EliminarPorRol(idRolInterno);
+                _bllRolPermiso.EliminarPorRol(idRolInterno);
 
                 if (idsPermisosSeleccionados != null)
                 {
                     foreach (int idPermisoInterno in idsPermisosSeleccionados)
                     {
-                        _mppRolPermiso.Insertar(idRolInterno, idPermisoInterno);
+                        _bllRolPermiso.Insertar(idRolInterno, idPermisoInterno);
                     }
                 }
 

@@ -7,7 +7,7 @@ namespace StageUp.BLL
 {
     public class BLL_Bitacora
     {
-        private readonly MPP_RegistroActividad _mpp = new MPP_RegistroActividad();
+        private readonly MPP_Bitacora _mpp = new MPP_Bitacora();
 
         public static readonly string[] TiposDeOperacion =
         {

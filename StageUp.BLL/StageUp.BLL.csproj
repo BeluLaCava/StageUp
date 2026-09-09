@@ -34,6 +34,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResultadoOperacion.cs" />
     <Compile Include="BLL_Bitacora.cs" />
+    <Compile Include="BLL_CodigoActivacion.cs" />
+    <Compile Include="BLL_CodigoRecuperacion.cs" />
     <Compile Include="BLL_UsuarioExterno.cs" />
     <Compile Include="BLL_EspacioArtistico.cs" />
     <Compile Include="BLL_Reserva.cs" />
@@ -41,6 +43,7 @@
     <Compile Include="BLL_UsuarioInterno.cs" />
     <Compile Include="BLL_RolInterno.cs" />
     <Compile Include="BLL_PermisoInterno.cs" />
+    <Compile Include="BLL_RolInternoPermiso.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

@@ -16,8 +16,8 @@ namespace StageUp.BLL
             @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled);
 
         private readonly MPP_UsuarioExterno _mppUsuario = new MPP_UsuarioExterno();
-        private readonly MPP_CodigoActivacion _mppCodigoActivacion = new MPP_CodigoActivacion();
-        private readonly MPP_CodigoRecuperacion _mppCodigoRecuperacion = new MPP_CodigoRecuperacion();
+        private readonly BLL_CodigoActivacion _bllCodigoActivacion = new BLL_CodigoActivacion();
+        private readonly BLL_CodigoRecuperacion _bllCodigoRecuperacion = new BLL_CodigoRecuperacion();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
 
@@ -136,7 +136,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
                 }
 
-                CodigoActivacion codigo = _mppCodigoActivacion.ObtenerVigentePorUsuario(idUsuarioExterno);
+                CodigoActivacion codigo = _bllCodigoActivacion.ObtenerVigentePorUsuario(idUsuarioExterno);
 
                 if (codigo == null || codigo.Codigo != codigoIngresado.Trim())
                 {
@@ -149,7 +149,7 @@ namespace StageUp.BLL
                         "El código ingresado ya no se encuentra vigente. Solicitá uno nuevo.", "A8");
                 }
 
-                _mppCodigoActivacion.MarcarUtilizado(codigo.IdCodigoActivacion);
+                _bllCodigoActivacion.MarcarUtilizado(codigo.IdCodigoActivacion);
                 _mppUsuario.ActivarCuenta(usuario.IdUsuarioExterno, EstadoCuentaExterno.Activa.ToString());
 
                 _bitacora.Registrar(
@@ -227,7 +227,7 @@ namespace StageUp.BLL
                 string codigo = GeneradorDeCodigos.GenerarCodigoNumerico();
                 DateTime vencimiento = DateTime.Now.AddMinutes(ConfiguracionSeguridad.MinutosVigenciaCodigoRecuperacion);
 
-                _mppCodigoRecuperacion.Insertar(new CodigoRecuperacion
+                _bllCodigoRecuperacion.Insertar(new CodigoRecuperacion
                 {
                     IdUsuarioExterno = usuario.IdUsuarioExterno,
                     Codigo = codigo,
@@ -262,7 +262,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("El código ingresado no es válido.", "A5");
                 }
 
-                CodigoRecuperacion codigo = _mppCodigoRecuperacion.ObtenerVigentePorUsuario(usuario.IdUsuarioExterno);
+                CodigoRecuperacion codigo = _bllCodigoRecuperacion.ObtenerVigentePorUsuario(usuario.IdUsuarioExterno);
 
                 if (codigo == null || codigo.Codigo != codigoIngresado.Trim())
                 {
@@ -289,7 +289,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("La nueva contraseña y su confirmación no coinciden.", "A8");
                 }
 
-                _mppCodigoRecuperacion.MarcarUtilizado(codigo.IdCodigoRecuperacion);
+                _bllCodigoRecuperacion.MarcarUtilizado(codigo.IdCodigoRecuperacion);
                 _mppUsuario.ActualizarPassword(usuario.IdUsuarioExterno, HashDeContrasenas.CrearHash(nuevaPassword));
 
                 _bitacora.Registrar(
@@ -470,7 +470,7 @@ namespace StageUp.BLL
             string codigo = GeneradorDeCodigos.GenerarCodigoNumerico();
             DateTime vencimiento = DateTime.Now.AddMinutes(ConfiguracionSeguridad.MinutosVigenciaCodigoActivacion);
 
-            _mppCodigoActivacion.Insertar(new CodigoActivacion
+            _bllCodigoActivacion.Insertar(new CodigoActivacion
             {
                 IdUsuarioExterno = idUsuarioExterno,
                 Codigo = codigo,

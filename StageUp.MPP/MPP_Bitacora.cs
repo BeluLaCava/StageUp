@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    public class MPP_RegistroActividad
+    public class MPP_Bitacora
     {
         public void Insertar(RegistroActividad registro)
         {

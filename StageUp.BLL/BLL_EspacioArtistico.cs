@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using System;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using StageUp.BE.Entidades;
 using StageUp.MPP;
 
@@ -13,6 +16,93 @@ namespace StageUp.BLL
         private const int LongitudMaximaDescripcion = 2000;
         private const int LongitudMaximaTipoEspacio = 200;
         private const string TipoEntidadBitacora = "EspacioArtistico";
+
+        public bool FichaCompletaHabilitada
+        {
+            get { return MPP_EspacioArtistico.FichaCompletaHabilitada; }
+        }
+
+        public ResultadoOperacion ValidarFicha(EspacioArtistico espacio)
+        {
+            if (espacio == null || espacio.Ficha == null)
+                return ResultadoOperacion.Error("Completá la información del espacio.");
+            ResultadoOperacion basicos = ValidarDatosBasicos(espacio.NombreEspacio, espacio.Descripcion, espacio.TipoEspacio);
+            if (!basicos.Exitoso) return basicos;
+            FichaEspacio ficha = espacio.Ficha;
+            if (string.IsNullOrWhiteSpace(ficha.Provincia) || ficha.Provincia.Length > 100 ||
+                string.IsNullOrWhiteSpace(ficha.Ciudad) || ficha.Ciudad.Length > 150 ||
+                string.IsNullOrWhiteSpace(ficha.Direccion) || ficha.Direccion.Length > 300)
+                return ResultadoOperacion.Error("Completá provincia, ciudad y dirección dentro de los límites indicados.");
+            if (!ficha.CapacidadMaxima.HasValue || ficha.CapacidadMaxima < 1 || ficha.CapacidadMaxima > 100000)
+                return ResultadoOperacion.Error("La capacidad debe ser un número entero entre 1 y 100.000 personas.");
+            if (!ficha.PrecioHora.HasValue || ficha.PrecioHora <= 0 || ficha.PrecioHora > 99999999.99m ||
+                decimal.Round(ficha.PrecioHora.Value, 2) != ficha.PrecioHora.Value)
+                return ResultadoOperacion.Error("Ingresá un precio por hora positivo, con hasta dos decimales.");
+            if (ficha.Moneda != "ARS" && ficha.Moneda != "USD")
+                return ResultadoOperacion.Error("Seleccioná la moneda del precio.");
+            if (!string.IsNullOrEmpty(ficha.FotoRuta) &&
+                !Regex.IsMatch(ficha.FotoRuta, @"^~/Content/Uploads/Espacios/[a-f0-9]{32}\.jpg$"))
+                return ResultadoOperacion.Error("La ruta de la foto no es válida.");
+            if ((ficha.TipoPiso ?? "").Length > 100 || (ficha.DetalleEquipamiento ?? "").Length > 1000)
+                return ResultadoOperacion.Error("Revisá la extensión del tipo de piso y el detalle de equipamiento.");
+            var permitidos = new HashSet<string> { "ESPEJOS", "SONIDO", "INSTRUMENTOS", "EQUIPAMIENTO", "ESCENARIO", "ILUMINACION" };
+            if (ficha.Equipamiento == null || ficha.Equipamiento.Count > permitidos.Count)
+                return ResultadoOperacion.Error("Revisá las características seleccionadas.");
+            var seleccionados = new HashSet<string>();
+            foreach (string codigo in ficha.Equipamiento)
+                if (!permitidos.Contains(codigo) || !seleccionados.Add(codigo))
+                    return ResultadoOperacion.Error("Hay características no válidas o repetidas.");
+            if (ficha.Disponibilidad == null || ficha.Disponibilidad.Count == 0 || ficha.Disponibilidad.Count > 100)
+                return ResultadoOperacion.Error("Agregá al menos una franja de disponibilidad (máximo 100).");
+            bool tieneHorario = false;
+            for (int i = 0; i < ficha.Disponibilidad.Count; i++)
+            {
+                FranjaEspacio franja = ficha.Disponibilidad[i];
+                if (franja == null) return ResultadoOperacion.Error("Revisá las franjas horarias.");
+                bool fechaConcreta = !string.IsNullOrEmpty(franja.Fecha);
+                DateTime fecha;
+                if (fechaConcreta == franja.DiaSemana.HasValue ||
+                    (fechaConcreta && !DateTime.TryParseExact(franja.Fecha, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out fecha)) ||
+                    (!fechaConcreta && (franja.DiaSemana < 1 || franja.DiaSemana > 7)))
+                    return ResultadoOperacion.Error("Cada horario debe indicar un día de la semana o una fecha válida.");
+                if (franja.Bloqueado && (!fechaConcreta || franja.MinutoDesde != 0 || franja.MinutoHasta != 1440))
+                    return ResultadoOperacion.Error("El cierre debe corresponder a una fecha completa.");
+                if (franja.MinutoDesde < 0 || franja.MinutoHasta > 1440 || franja.MinutoHasta <= franja.MinutoDesde ||
+                    franja.MinutoDesde % 30 != 0 || franja.MinutoHasta % 30 != 0)
+                    return ResultadoOperacion.Error("Usá horarios en intervalos de 30 minutos, con fin posterior al inicio.");
+                tieneHorario |= !franja.Bloqueado;
+                for (int j = 0; j < i; j++)
+                {
+                    FranjaEspacio otra = ficha.Disponibilidad[j];
+                    bool mismoDia = fechaConcreta ? franja.Fecha == otra.Fecha :
+                        string.IsNullOrEmpty(otra.Fecha) && franja.DiaSemana == otra.DiaSemana;
+                    if (mismoDia && franja.MinutoDesde < otra.MinutoHasta && otra.MinutoDesde < franja.MinutoHasta)
+                        return ResultadoOperacion.Error("Hay horarios superpuestos para el mismo día.");
+                }
+            }
+            return tieneHorario ? ResultadoOperacion.Ok() : ResultadoOperacion.Error("Agregá al menos un horario abierto.");
+        }
+
+        public ResultadoOperacion<int> GuardarFicha(EspacioArtistico espacio, int idUsuarioGestor)
+        {
+            if (!FichaCompletaHabilitada)
+                return ResultadoOperacion<int>.Error("El guardado de los datos adicionales todavía no está habilitado.");
+            ResultadoOperacion validacion = ValidarFicha(espacio);
+            if (!validacion.Exitoso) return ResultadoOperacion<int>.Error(validacion.Mensaje);
+            if (espacio.IdEspacioArtistico != 0)
+            {
+                ResultadoOperacion propiedad = ValidarPropiedad(_mppEspacio.ObtenerPorId(espacio.IdEspacioArtistico), idUsuarioGestor);
+                if (!propiedad.Exitoso) return ResultadoOperacion<int>.Error(propiedad.Mensaje);
+            }
+            espacio.IdUsuarioGestor = idUsuarioGestor;
+            espacio.NombreEspacio = espacio.NombreEspacio.Trim();
+            espacio.TipoEspacio = espacio.TipoEspacio.Trim();
+            espacio.Descripcion = string.IsNullOrWhiteSpace(espacio.Descripcion) ? null : espacio.Descripcion.Trim();
+            int id = _mppEspacio.GuardarFicha(espacio);
+            _bitacora.Registrar(idUsuarioGestor, espacio.IdEspacioArtistico == 0 ? "ALTA" : "MODIFICACION",
+                TipoEntidadBitacora, id, "Guardado de ficha completa del espacio artístico.");
+            return ResultadoOperacion<int>.Ok(id, "El espacio se guardó correctamente.");
+        }
 
         public ResultadoOperacion<int> Registrar(int idUsuarioGestor, string nombreEspacio, string descripcion, string tipoEspacio)
         {

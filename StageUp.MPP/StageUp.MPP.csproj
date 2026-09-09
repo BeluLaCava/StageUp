@@ -30,6 +30,8 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -39,7 +41,6 @@
     <Compile Include="MPP_RegistroActividad.cs" />
     <Compile Include="MPP_EspacioArtistico.cs" />
     <Compile Include="MPP_Faq.cs" />
-    <Compile Include="MPP_Reserva.cs" />
     <Compile Include="MPP_UsuarioInterno.cs" />
     <Compile Include="MPP_RolInterno.cs" />
     <Compile Include="MPP_PermisoInterno.cs" />

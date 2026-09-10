@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using System.Web.UI;
 using StageUp.BE.Entidades;
@@ -122,7 +123,7 @@ namespace StageUp.UI.Explorar
 
             AgregarFilaComparacion(html, "Publicado el", espacios,
                 espacio => espacio.FechaPublicacion.HasValue
-                    ? espacio.FechaPublicacion.Value.ToString("dd/MM/yyyy")
+                    ? espacio.FechaPublicacion.Value.ToString("d", CultureInfo.CurrentCulture)
                     : "-");
 
             AgregarFilaComparacion(html, "Descripción", espacios,

@@ -179,7 +179,7 @@ namespace StageUp.UI
             var partes = new List<string>();
             if (reserva.SolicitanteDesde.HasValue)
             {
-                partes.Add("Miembro desde " + reserva.SolicitanteDesde.Value.ToString("MMMM 'de' yyyy", CultureInfo.GetCultureInfo("es-AR")));
+                partes.Add("Miembro desde " + reserva.SolicitanteDesde.Value.ToString("Y", CultureInfo.CurrentCulture));
             }
 
             int cantidad = reserva.CantidadReservasAceptadasSolicitante;
@@ -213,7 +213,7 @@ namespace StageUp.UI
             }
 
             return horario + " · Importe estimado: " +
-                reserva.ImporteEstimado.Value.ToString("0.##", CultureInfo.InvariantCulture) + " " + (reserva.Moneda ?? "ARS");
+                reserva.ImporteEstimado.Value.ToString("0.##", CultureInfo.CurrentCulture) + " " + (reserva.Moneda ?? "ARS");
         }
 
         private static string FormatearHora(int minutos)

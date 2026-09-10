@@ -213,6 +213,7 @@
     <Compile Include="Interno\PermisosDelRol.aspx.designer.cs">
       <DependentUpon>PermisosDelRol.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Infraestructura\MasterPageMultidioma.cs" />
     <Compile Include="Interno\GestionIdiomas.aspx.cs">
       <DependentUpon>GestionIdiomas.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

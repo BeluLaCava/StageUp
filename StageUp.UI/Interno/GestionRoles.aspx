@@ -1,20 +1,22 @@
 <%@ Page Title="Gestión de roles | StageUp" Language="C#" MasterPageFile="~/Interno/PanelInterno.Master" AutoEventWireup="true" CodeBehind="GestionRoles.aspx.cs" Inherits="StageUp.UI.Interno.GestionRoles" %>
 
 <asp:Content ID="GestionRolesContent" ContentPlaceHolderID="MainContent" runat="server">
-    <section class="static-page">
-        <div class="static-page-header">
+    <section class="static-page internal-page internal-management-page">
+        <div class="static-page-header internal-page-hero">
             <span class="section-label">Administración</span>
             <h1>Gestión de roles y permisos</h1>
             <p>Los roles agrupan los permisos que puede tener un usuario interno. Los permisos disponibles son fijos; desde acá se decide cuáles tiene cada rol.</p>
         </div>
 
-        <div class="static-page-body">
+        <div class="static-page-body internal-admin-stack">
             <asp:Panel ID="pnlMensaje" runat="server" Visible="false" CssClass="form-message">
                 <asp:Literal ID="litMensaje" runat="server" />
             </asp:Panel>
 
-            <asp:Panel ID="pnlFormularioRol" runat="server" CssClass="auth-card">
+            <div class="admin-two-column-layout">
+            <asp:Panel ID="pnlFormularioRol" runat="server" CssClass="auth-card admin-editor-card">
                 <div class="auth-card-header">
+                    <span class="admin-card-eyebrow" data-i18n="AdminUI_Configuracion">Configuración</span>
                     <h2><asp:Literal ID="litTituloFormulario" runat="server" Text="Nuevo rol" /></h2>
                     <p>El nombre del rol es obligatorio.</p>
                 </div>
@@ -39,8 +41,9 @@
                 </div>
             </asp:Panel>
 
-            <div class="auth-card">
+            <div class="auth-card admin-list-card">
                 <div class="auth-card-header">
+                    <span class="admin-card-eyebrow" data-i18n="AdminUI_Directorio">Directorio</span>
                     <h2>Roles existentes</h2>
                 </div>
 
@@ -48,23 +51,27 @@
 
                 <asp:Repeater ID="rptRoles" runat="server" OnItemCommand="rptRoles_ItemCommand">
                     <ItemTemplate>
-                        <div class="space-row">
+                        <div class="space-row admin-list-row role-list-row">
                             <div class="space-row-info">
+                                <span class="admin-row-icon admin-row-icon-role" aria-hidden="true"></span>
+                                <div>
                                 <h3><%# Eval("NombreRol") %></h3>
                                 <p><%# Eval("Descripcion") %></p>
+                                </div>
                             </div>
                             <div class="space-row-actions">
-                                <asp:LinkButton runat="server" CssClass="text-link" CausesValidation="false"
+                                <asp:LinkButton runat="server" CssClass="admin-action-link" CausesValidation="false"
                                     CommandName="Editar" CommandArgument='<%# Eval("IdRolInterno") %>' Text="Editar" />
-                                <asp:LinkButton runat="server" CssClass="text-link" CausesValidation="false"
+                                <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
                                     CommandName="Permisos" CommandArgument='<%# Eval("IdRolInterno") %>' Text="Permisos" />
-                                <asp:LinkButton runat="server" CssClass="text-link" CausesValidation="false"
+                                <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-danger" CausesValidation="false"
                                     CommandName="Baja" CommandArgument='<%# Eval("IdRolInterno") %>' Text="Dar de baja"
                                     OnClientClick="return confirm('¿Seguro que querés dar de baja este rol?');" />
                             </div>
                         </div>
                     </ItemTemplate>
                 </asp:Repeater>
+            </div>
             </div>
         </div>
     </section>

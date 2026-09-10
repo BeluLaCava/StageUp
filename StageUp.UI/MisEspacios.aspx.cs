@@ -493,7 +493,7 @@ namespace StageUp.UI
             var partes = new List<string>();
             if (!string.IsNullOrWhiteSpace(ficha.Ciudad)) partes.Add(ficha.Ciudad);
             if (ficha.CapacidadMaxima.HasValue) partes.Add("Hasta " + ficha.CapacidadMaxima + " personas");
-            if (ficha.PrecioHora.HasValue) partes.Add(ficha.Moneda + " " + ficha.PrecioHora.Value.ToString("N2", CultureInfo.GetCultureInfo("es-AR")) + " / hora");
+            if (ficha.PrecioHora.HasValue) partes.Add(ficha.Moneda + " " + ficha.PrecioHora.Value.ToString("N2", CultureInfo.CurrentCulture) + " / hora");
             return string.Join(" · ", partes);
         }
     }

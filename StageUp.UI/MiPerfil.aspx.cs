@@ -171,7 +171,7 @@ namespace StageUp.UI
             litCorreo.Text = usuario.CorreoElectronico;
             litFechaAlta.Text = usuario.FechaAlta == DateTime.MinValue
                 ? "No disponible"
-                : usuario.FechaAlta.ToString("MMMM 'de' yyyy", CultureInfo.GetCultureInfo("es-AR"));
+                : usuario.FechaAlta.ToString("Y", CultureInfo.CurrentCulture);
             litDescripcion.Text = string.IsNullOrWhiteSpace(usuario.DescripcionPerfil)
                 ? "Todavía no agregaste una descripción a tu perfil."
                 : usuario.DescripcionPerfil;

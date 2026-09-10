@@ -159,7 +159,7 @@ namespace StageUp.UI.Explorar
             }
 
             return (espacio.Ficha.Moneda ?? "ARS") + " " +
-                espacio.Ficha.PrecioHora.Value.ToString("N2", CultureInfo.GetCultureInfo("es-AR")) + " / hora";
+                espacio.Ficha.PrecioHora.Value.ToString("N2", CultureInfo.CurrentCulture) + " / hora";
         }
 
         private static bool EsFotoValida(string ruta)

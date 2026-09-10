@@ -273,14 +273,12 @@ namespace StageUp.UI.Explorar
         private static string FormatearPrecio(FichaEspacio ficha)
         {
             return (ficha.Moneda ?? "ARS") + " " +
-                ficha.PrecioHora.Value.ToString("N2", CultureInfo.GetCultureInfo("es-AR")) + " / hora";
+                ficha.PrecioHora.Value.ToString("N2", CultureInfo.CurrentCulture) + " / hora";
         }
 
         private static List<string> FormatearDisponibilidad(List<FranjaEspacio> franjas)
         {
             var resultado = new List<string>();
-            string[] dias = { "", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" };
-
             foreach (FranjaEspacio franja in franjas ?? new List<FranjaEspacio>())
             {
                 if (franja == null)
@@ -291,7 +289,7 @@ namespace StageUp.UI.Explorar
                 string dia = franja.DiaSemana.HasValue &&
                     franja.DiaSemana.Value >= 1 &&
                     franja.DiaSemana.Value <= 7
-                    ? dias[franja.DiaSemana.Value]
+                    ? FormatearDiaSemana(franja.DiaSemana.Value)
                     : FormatearFecha(franja.Fecha);
 
                 resultado.Add(franja.Bloqueado
@@ -302,12 +300,21 @@ namespace StageUp.UI.Explorar
             return resultado;
         }
 
+        private static string FormatearDiaSemana(int diaSemana)
+        {
+            DayOfWeek dia = (DayOfWeek)(diaSemana % 7);
+            string nombre = CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(dia);
+            return string.IsNullOrEmpty(nombre)
+                ? string.Empty
+                : char.ToUpper(nombre[0], CultureInfo.CurrentCulture) + nombre.Substring(1);
+        }
+
         private static string FormatearFecha(string valor)
         {
             DateTime fecha;
             return DateTime.TryParseExact(valor, "yyyy-MM-dd", CultureInfo.InvariantCulture,
                 DateTimeStyles.None, out fecha)
-                ? fecha.ToString("dd/MM/yyyy")
+                ? fecha.ToString("d", CultureInfo.CurrentCulture)
                 : valor;
         }
 

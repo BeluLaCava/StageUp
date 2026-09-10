@@ -15,10 +15,14 @@
 
     var porClave = configuracion.porClave || {};
     var porTextoNormalizado = {};
+    var plantillas = [];
     var textosBase = configuracion.porTexto || {};
 
     Object.keys(textosBase).forEach(function (texto) {
         porTextoNormalizado[normalizar(texto)] = textosBase[texto];
+        if (/\{\d+\}/.test(texto)) {
+            plantillas.push(crearPlantilla(normalizar(texto), textosBase[texto]));
+        }
     });
 
     function normalizar(texto) {
@@ -27,9 +31,64 @@
 
     function traducirValor(valor) {
         var normalizado = normalizar(valor);
-        return normalizado && Object.prototype.hasOwnProperty.call(porTextoNormalizado, normalizado)
-            ? porTextoNormalizado[normalizado]
-            : null;
+        if (!normalizado) {
+            return null;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(porTextoNormalizado, normalizado)) {
+            return porTextoNormalizado[normalizado];
+        }
+
+        for (var indice = 0; indice < plantillas.length; indice++) {
+            var plantilla = plantillas[indice];
+            var coincidencia = normalizado.match(plantilla.patron);
+            if (coincidencia) {
+                return completarPlantilla(plantilla, coincidencia);
+            }
+        }
+
+        return null;
+    }
+
+    function escaparExpresionRegular(valor) {
+        return valor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function crearPlantilla(textoBase, traduccion) {
+        var indices = [];
+        var partes = [];
+        var expresion = /\{(\d+)\}/g;
+        var posicion = 0;
+        var coincidencia;
+
+        while ((coincidencia = expresion.exec(textoBase))) {
+            partes.push(escaparExpresionRegular(textoBase.substring(posicion, coincidencia.index)));
+            partes.push("([\\s\\S]+?)");
+            indices.push(parseInt(coincidencia[1], 10));
+            posicion = coincidencia.index + coincidencia[0].length;
+        }
+
+        partes.push(escaparExpresionRegular(textoBase.substring(posicion)));
+        return {
+            patron: new RegExp("^" + partes.join("") + "$"),
+            indices: indices,
+            traduccion: traduccion
+        };
+    }
+
+    function completarPlantilla(plantilla, coincidencia) {
+        var valores = {};
+        plantilla.indices.forEach(function (indice, posicion) {
+            var valor = coincidencia[posicion + 1];
+            var valorNormalizado = normalizar(valor);
+            valores[indice] = Object.prototype.hasOwnProperty.call(porTextoNormalizado, valorNormalizado)
+                ? porTextoNormalizado[valorNormalizado]
+                : valor;
+        });
+
+        return plantilla.traduccion.replace(/\{(\d+)\}/g, function (marcador, indice) {
+            return Object.prototype.hasOwnProperty.call(valores, indice) ? valores[indice] : marcador;
+        });
     }
 
     function traducirPorClave(elemento, atributoClave, atributoDestino) {
@@ -41,6 +100,8 @@
         var traduccion = porClave[clave];
         if (atributoDestino) {
             elemento.setAttribute(atributoDestino, traduccion);
+        } else if (elemento.tagName === "INPUT" && /^(button|submit)$/i.test(elemento.type)) {
+            elemento.value = traduccion;
         } else {
             elemento.textContent = traduccion;
         }
@@ -82,7 +143,7 @@
             return true;
         }
 
-        return /^(SCRIPT|STYLE|TEXTAREA|SELECT|OPTION|CODE|PRE)$/.test(padre.tagName) ||
+        return /^(SCRIPT|STYLE|TEXTAREA|CODE|PRE)$/.test(padre.tagName) ||
             padre.closest("[data-i18n-skip]") !== null;
     }
 
@@ -160,6 +221,30 @@
     }
 
     aplicarTraducciones(document);
+
+    window.StageUpI18n = {
+        traducir: function (texto) {
+            return traducirValor(texto) || texto;
+        },
+        traducirClave: function (clave) {
+            return Object.prototype.hasOwnProperty.call(porClave, clave) ? porClave[clave] : clave;
+        }
+    };
+
+    if (!window.__stageUpI18nDialogos) {
+        var alertaOriginal = window.alert;
+        var confirmacionOriginal = window.confirm;
+
+        window.alert = function (mensaje) {
+            return alertaOriginal.call(window, traducirValor(mensaje) || mensaje);
+        };
+
+        window.confirm = function (mensaje) {
+            return confirmacionOriginal.call(window, traducirValor(mensaje) || mensaje);
+        };
+
+        window.__stageUpI18nDialogos = true;
+    }
 
     if (window.MutationObserver) {
         var observador = new MutationObserver(function (cambios) {

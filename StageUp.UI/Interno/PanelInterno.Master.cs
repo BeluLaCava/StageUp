@@ -1,14 +1,20 @@
 using System;
-using System.Web.UI;
 using StageUp.BE.Menu;
 using StageUp.BLL;
 using StageUp.Seguridad;
+using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Interno
 {
-    public partial class PanelInterno : MasterPage
+    public partial class PanelInterno : MasterPageMultidioma
     {
         private readonly BLL_PermisoInterno _bllPermiso = new BLL_PermisoInterno();
+
+        protected override void OnInit(EventArgs e)
+        {
+            base.OnInit(e);
+            InicializarMultidioma(ddlIdioma, hdnDiccionarioIdioma, HtmlRoot, LanguageSelector);
+        }
 
         protected void Page_Load(object sender, EventArgs e)
         {

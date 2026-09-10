@@ -2,6 +2,8 @@ namespace StageUp.UI.Interno
 {
     public partial class PanelInterno
     {
+        protected global::System.Web.UI.HtmlControls.HtmlElement HtmlRoot;
+
         protected global::System.Web.UI.HtmlControls.HtmlHead Head1;
 
         protected global::System.Web.UI.WebControls.ContentPlaceHolder TitleContent;
@@ -10,10 +12,16 @@ namespace StageUp.UI.Interno
 
         protected global::System.Web.UI.WebControls.Repeater rptMenu;
 
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl LanguageSelector;
+
+        protected global::System.Web.UI.WebControls.DropDownList ddlIdioma;
+
         protected global::System.Web.UI.HtmlControls.HtmlGenericControl InternalUserSummary;
 
         protected global::System.Web.UI.WebControls.LinkButton lnkCerrarSesionInterna;
 
         protected global::System.Web.UI.WebControls.ContentPlaceHolder MainContent;
+
+        protected global::System.Web.UI.WebControls.HiddenField hdnDiccionarioIdioma;
     }
 }

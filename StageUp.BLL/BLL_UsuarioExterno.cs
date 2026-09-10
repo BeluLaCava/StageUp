@@ -20,6 +20,7 @@ namespace StageUp.BLL
         private readonly BLL_CodigoRecuperacion _bllCodigoRecuperacion = new BLL_CodigoRecuperacion();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
+        private readonly ServicioRecaptcha _servicioRecaptcha = new ServicioRecaptcha();
 
         public bool PerfilCompletoHabilitado
         {
@@ -168,13 +169,20 @@ namespace StageUp.BLL
             });
         }
 
-        public ResultadoOperacion<UsuarioExterno> IniciarSesion(string correoElectronico, string password)
+        public ResultadoOperacion<UsuarioExterno> IniciarSesion(
+            string correoElectronico, string password, string respuestaCaptcha)
         {
             return EjecutarProtegido(() =>
             {
                 if (string.IsNullOrWhiteSpace(correoElectronico) || string.IsNullOrWhiteSpace(password))
                 {
                     return ResultadoOperacion<UsuarioExterno>.Error("Ingresá tu correo electrónico y tu contraseña.");
+                }
+
+                ResultadoValidacionRecaptcha captcha = _servicioRecaptcha.Validar(respuestaCaptcha);
+                if (!captcha.EsValido)
+                {
+                    return ResultadoOperacion<UsuarioExterno>.Error(ObtenerMensajeCaptcha(captcha.Estado));
                 }
 
                 UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim().ToLowerInvariant());
@@ -589,6 +597,21 @@ namespace StageUp.BLL
             }
 
             return tieneLetra && tieneNumero;
+        }
+
+        private static string ObtenerMensajeCaptcha(EstadoValidacionRecaptcha estado)
+        {
+            switch (estado)
+            {
+                case EstadoValidacionRecaptcha.RespuestaVacia:
+                    return "Confirmá que no sos un robot.";
+                case EstadoValidacionRecaptcha.RespuestaInvalida:
+                    return "La verificación de seguridad no fue válida. Intentá nuevamente.";
+                case EstadoValidacionRecaptcha.ConfiguracionIncompleta:
+                    return "El CAPTCHA no está configurado. Contactá al administrador.";
+                default:
+                    return "No pudimos validar el CAPTCHA en este momento. Probá nuevamente.";
+            }
         }
 
         private static ResultadoOperacion EjecutarProtegido(Func<ResultadoOperacion> operacion)

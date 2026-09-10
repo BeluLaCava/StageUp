@@ -1,19 +1,25 @@
 <%@ Master Language="C#" AutoEventWireup="true" CodeBehind="PanelInterno.Master.cs" Inherits="StageUp.UI.Interno.PanelInterno" %>
 
 <!DOCTYPE html>
-<html lang="es">
+<html id="HtmlRoot" runat="server" lang="es">
 <head id="Head1" runat="server">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><asp:ContentPlaceHolder ID="TitleContent" runat="server">Panel administrativo | StageUp</asp:ContentPlaceHolder></title>
     <link rel="icon" type="image/png" href="<%= ResolveUrl("~/Content/Images/favicon.png") %>" />
-    <link href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20260909-2" rel="stylesheet" />
+    <link href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20260910-2" rel="stylesheet" />
 </head>
-<body>
+<body class="internal-body">
     <form id="form1" runat="server">
         <header class="internal-header">
             <div class="internal-header-inner container-wide">
-                <a class="internal-brand" href="~/Interno/PanelAdministrador.aspx" runat="server">StageUp · Panel administrativo</a>
+                <a class="internal-brand" href="~/Interno/PanelAdministrador.aspx" runat="server">
+                    <span class="internal-brand-mark" aria-hidden="true">S</span>
+                    <span class="internal-brand-copy">
+                        <strong>StageUp</strong>
+                        <small>Panel administrativo</small>
+                    </span>
+                </a>
                 <nav class="internal-nav" aria-label="Navegación del panel administrativo">
                     <asp:Repeater ID="rptMenu" runat="server">
                         <ItemTemplate>
@@ -22,8 +28,13 @@
                     </asp:Repeater>
                 </nav>
                 <div class="internal-session">
+                    <div id="LanguageSelector" runat="server" class="language-selector internal-language-selector">
+                        <label for="<%= ddlIdioma.ClientID %>" data-i18n="General_Idioma">Idioma</label>
+                        <asp:DropDownList ID="ddlIdioma" runat="server" CssClass="language-select" AutoPostBack="true"
+                            DataTextField="NombreIdioma" DataValueField="IdIdioma" aria-label="Seleccionar idioma" data-i18n-skip="true" />
+                    </div>
                     <span id="InternalUserSummary" runat="server" class="internal-user-summary"></span>
-                    <asp:LinkButton ID="lnkCerrarSesionInterna" runat="server" CssClass="text-link" CausesValidation="false"
+                    <asp:LinkButton ID="lnkCerrarSesionInterna" runat="server" CssClass="internal-logout" CausesValidation="false"
                         Text="Cerrar sesión" OnClick="lnkCerrarSesionInterna_Click" />
                 </div>
             </div>
@@ -32,6 +43,9 @@
         <main class="internal-content container-wide">
             <asp:ContentPlaceHolder ID="MainContent" runat="server" />
         </main>
+
+        <asp:HiddenField ID="hdnDiccionarioIdioma" runat="server" ClientIDMode="Static" />
+        <script src="<%= ResolveUrl("~/Scripts/multidioma.js") %>?v=20260910-2"></script>
     </form>
 </body>
 </html>

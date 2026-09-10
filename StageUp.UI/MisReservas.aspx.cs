@@ -80,7 +80,7 @@ namespace StageUp.UI
                 if (reserva.ImporteEstimado.HasValue)
                 {
                     horario += " · Importe estimado: " +
-                        reserva.ImporteEstimado.Value.ToString("0.##", CultureInfo.InvariantCulture) + " " + (reserva.Moneda ?? "ARS");
+                        reserva.ImporteEstimado.Value.ToString("0.##", CultureInfo.CurrentCulture) + " " + (reserva.Moneda ?? "ARS");
                 }
 
                 litHorarioImporte.Text = Server.HtmlEncode(horario);
@@ -108,7 +108,7 @@ namespace StageUp.UI
             decimal comision = decimal.Round(reserva.ImporteEstimado.Value * 0.10m, 2);
             return "Esta reserva ya está aceptada y faltan menos de 24hs para el horario reservado. " +
                 "Si la cancelás ahora se te va a aplicar una comisión de cancelación de " +
-                comision.ToString("0.##", CultureInfo.InvariantCulture) + " " + (reserva.Moneda ?? "ARS") + ". ¿Querés continuar?";
+                comision.ToString("0.##", CultureInfo.CurrentCulture) + " " + (reserva.Moneda ?? "ARS") + ". ¿Querés continuar?";
         }
 
         private static string FormatearHora(int minutos)

@@ -1,4 +1,4 @@
-<%@ Page Title="Solicitudes recibidas | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" Culture="es-AR" UICulture="es-AR" CodeBehind="SolicitudesRecibidas.aspx.cs" Inherits="StageUp.UI.SolicitudesRecibidas" %>
+<%@ Page Title="Solicitudes recibidas | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="SolicitudesRecibidas.aspx.cs" Inherits="StageUp.UI.SolicitudesRecibidas" %>
 
 <asp:Content ID="SolicitudesRecibidasContent" ContentPlaceHolderID="MainContent" runat="server">
     <section class="requests-page">

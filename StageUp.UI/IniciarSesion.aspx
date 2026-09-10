@@ -37,6 +37,16 @@
                         Display="Dynamic" CssClass="field-error-text" ErrorMessage="Ingresá tu contraseña." ValidationGroup="Login" />
                 </div>
 
+                <div class="captcha-field" aria-labelledby="captcha-login-title">
+                    <div class="captcha-field-copy">
+                        <strong id="captcha-login-title" data-i18n="Captcha_Titulo">Verificación de seguridad</strong>
+                        <span data-i18n="Captcha_Ayuda">Marcá la casilla para continuar.</span>
+                    </div>
+                    <div class="captcha-widget-frame">
+                        <div class="g-recaptcha" data-sitekey="<%= ClaveSitioRecaptcha %>"></div>
+                    </div>
+                </div>
+
                 <asp:Button ID="btnIniciarSesion" runat="server" CssClass="button button-primary button-full" Text="Iniciar sesión"
                     ValidationGroup="Login" OnClick="btnIniciarSesion_Click" />
 
@@ -127,4 +137,8 @@
             </asp:Panel>
         </div>
     </section>
+</asp:Content>
+
+<asp:Content ID="LoginScripts" ContentPlaceHolderID="PageScripts" runat="server">
+    <script src="https://www.google.com/recaptcha/api.js?hl=<%= CodigoIdiomaRecaptcha %>" async defer></script>
 </asp:Content>

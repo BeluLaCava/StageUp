@@ -177,6 +177,54 @@ namespace StageUp.MPP
             return lista;
         }
 
+        // Ítem 5 (filtros completos del catálogo): el filtrado por ubicación,
+        // precio, capacidad, tipo de piso, equipamiento y disponibilidad se
+        // resuelve en SQL (sp_EspacioArtistico_BuscarPublicados) en vez de traer
+        // todo y filtrar en memoria. Solo tiene sentido con la ficha completa
+        // habilitada (sin ella no existen las columnas para filtrar).
+        public List<EspacioArtistico> BuscarPublicados(FiltroBusquedaEspacios filtro)
+        {
+            if (!FichaCompletaHabilitada)
+            {
+                throw new InvalidOperationException("La búsqueda avanzada todavía no está habilitada.");
+            }
+
+            DateTime? fechaDisponibilidad = string.IsNullOrEmpty(filtro.FechaDisponibilidad)
+                ? (DateTime?)null
+                : DateTime.ParseExact(filtro.FechaDisponibilidad, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+            List<string> equipamiento = filtro.Equipamiento ?? new List<string>();
+
+            List<EspacioArtistico> lista = MapearDesdeTabla(Conexion.Instance.Leer(
+                "sp_EspacioArtistico_BuscarPublicados",
+                new SqlParameter("@textoBusqueda", (object)filtro.TextoBusqueda ?? DBNull.Value),
+                new SqlParameter("@tipoEspacio", (object)filtro.TipoEspacio ?? DBNull.Value),
+                new SqlParameter("@ubicacion", (object)filtro.Ubicacion ?? DBNull.Value),
+                new SqlParameter("@precioMaximo", (object)filtro.PrecioMaximo ?? DBNull.Value),
+                new SqlParameter("@capacidadMinima", (object)filtro.CapacidadMinima ?? DBNull.Value),
+                new SqlParameter("@tipoPiso", (object)filtro.TipoPiso ?? DBNull.Value),
+                new SqlParameter("@fechaDisponibilidad", (object)fechaDisponibilidad ?? DBNull.Value),
+                new SqlParameter("@minutoDesde", (object)filtro.MinutoDesde ?? DBNull.Value),
+                new SqlParameter("@minutoHasta", (object)filtro.MinutoHasta ?? DBNull.Value),
+                new SqlParameter("@reqEspejos", equipamiento.Contains("ESPEJOS")),
+                new SqlParameter("@reqSonido", equipamiento.Contains("SONIDO")),
+                new SqlParameter("@reqInstrumentos", equipamiento.Contains("INSTRUMENTOS")),
+                new SqlParameter("@reqEquipamiento", equipamiento.Contains("EQUIPAMIENTO")),
+                new SqlParameter("@reqEscenario", equipamiento.Contains("ESCENARIO")),
+                new SqlParameter("@reqIluminacion", equipamiento.Contains("ILUMINACION"))));
+
+            // Mismo patrón que ListarPublicados: las tres consultas hijas traen
+            // equipamiento/franjas/fotos de TODOS los espacios publicados, pero
+            // CompletarDatosHijosDeFicha solo les presta atención a los que están
+            // en el diccionario armado a partir de "lista" (ya filtrada por SQL).
+            CompletarDatosHijosDeFicha(
+                lista,
+                "sp_FichaEspacioEquipamiento_ListarPublicados", "sp_FranjaEspacio_ListarPublicados", "sp_EspacioFoto_ListarPublicados",
+                () => new SqlParameter[0]);
+
+            return lista;
+        }
+
         public void Publicar(int idEspacioArtistico)
         {
             Conexion.Instance.Guardar(

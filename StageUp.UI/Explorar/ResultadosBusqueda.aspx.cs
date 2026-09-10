@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Web;
 using System.Web.UI;
 using StageUp.BE.Entidades;
 using StageUp.BLL;
@@ -24,14 +26,19 @@ namespace StageUp.UI.Explorar
         {
             string textoBusqueda = Request.QueryString["q"];
             string tipoEspacio = Request.QueryString["tipo"];
-            var espacios = _bllEspacio.ListarPublicados(textoBusqueda, tipoEspacio);
+            FiltroBusquedaEspacios filtro = ArmarFiltroDesdeQueryString(textoBusqueda, tipoEspacio);
+
+            var espacios = _bllEspacio.Buscar(filtro);
 
             rptEspaciosPublicados.DataSource = espacios;
             rptEspaciosPublicados.DataBind();
 
             pnlSinResultados.Visible = espacios.Count == 0;
 
-            bool hayFiltrosAplicados = !string.IsNullOrWhiteSpace(textoBusqueda) || !string.IsNullOrWhiteSpace(tipoEspacio);
+            bool hayFiltrosAplicados = !string.IsNullOrWhiteSpace(textoBusqueda) || !string.IsNullOrWhiteSpace(tipoEspacio) ||
+                !string.IsNullOrWhiteSpace(filtro.Ubicacion) || !string.IsNullOrWhiteSpace(filtro.TipoPiso) ||
+                filtro.PrecioMaximo.HasValue || filtro.CapacidadMinima.HasValue ||
+                !string.IsNullOrWhiteSpace(filtro.FechaDisponibilidad) || (filtro.Equipamiento != null && filtro.Equipamiento.Count > 0);
 
             if (espacios.Count == 0 && hayFiltrosAplicados)
             {
@@ -39,13 +46,54 @@ namespace StageUp.UI.Explorar
                 {
                     litTituloSinResultados.Text = "No encontramos espacios para \"" + Server.HtmlEncode(textoBusqueda) + "\"";
                 }
-                else
+                else if (!string.IsNullOrWhiteSpace(tipoEspacio))
                 {
                     litTituloSinResultados.Text = "No encontramos espacios de tipo \"" + Server.HtmlEncode(tipoEspacio) + "\"";
+                }
+                else
+                {
+                    litTituloSinResultados.Text = "No encontramos espacios con esos filtros";
                 }
 
                 litDescripcionSinResultados.Text = "Probá con otra palabra clave o revisá los filtros.";
             }
+        }
+
+        // Ítem 5 (filtros completos del catálogo): junta todos los parámetros que
+        // puede mandar el drawer de "Más filtros" (ver site.js, setupFilters/
+        // data-apply-filters). La sanitización real (formatos, rangos, códigos de
+        // equipamiento válidos) la hace BLL_EspacioArtistico.Buscar — acá solo se
+        // leen los valores tal cual llegan por querystring.
+        private static FiltroBusquedaEspacios ArmarFiltroDesdeQueryString(string textoBusqueda, string tipoEspacio)
+        {
+            var filtro = new FiltroBusquedaEspacios
+            {
+                TextoBusqueda = textoBusqueda,
+                TipoEspacio = tipoEspacio,
+                Ubicacion = HttpContext.Current.Request.QueryString["ubicacion"],
+                TipoPiso = HttpContext.Current.Request.QueryString["piso"],
+                FechaDisponibilidad = HttpContext.Current.Request.QueryString["fecha"]
+            };
+
+            decimal precioMaximo;
+            if (decimal.TryParse(HttpContext.Current.Request.QueryString["precioMax"], NumberStyles.Number, CultureInfo.InvariantCulture, out precioMaximo))
+            {
+                filtro.PrecioMaximo = precioMaximo;
+            }
+
+            int capacidadMinima;
+            if (int.TryParse(HttpContext.Current.Request.QueryString["capacidadMin"], out capacidadMinima))
+            {
+                filtro.CapacidadMinima = capacidadMinima;
+            }
+
+            string equipamiento = HttpContext.Current.Request.QueryString["equip"];
+            if (!string.IsNullOrWhiteSpace(equipamiento))
+            {
+                filtro.Equipamiento = new List<string>(equipamiento.Split(','));
+            }
+
+            return filtro;
         }
 
         protected string ObtenerResumen(string descripcion)

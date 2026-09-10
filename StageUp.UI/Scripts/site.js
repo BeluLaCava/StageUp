@@ -96,6 +96,41 @@
             }
             resultsPage.classList.add("has-search-query");
         }
+
+        // Ítem 5 (filtros completos del catálogo): repone en el drawer de "Más
+        // filtros" los criterios que ya vinieron por querystring (por ejemplo al
+        // recargar la página, o al llegar desde un link compartido con filtros),
+        // para que "Filtros seleccionados" y el formulario reflejen la búsqueda
+        // que realmente se aplicó.
+        var camposTexto = [
+            { param: "ubicacion", id: "filter-location" },
+            { param: "capacidadMin", id: "filter-capacity" },
+            { param: "precioMax", id: "filter-price" },
+            { param: "fecha", id: "filter-availability" },
+            { param: "piso", id: "filter-floor" }
+        ];
+
+        camposTexto.forEach(function (campo) {
+            var valor = params.get(campo.param);
+            var elemento = document.getElementById(campo.id);
+            if (valor && elemento) {
+                elemento.value = valor;
+                elemento.dispatchEvent(new Event("change"));
+                resultsPage.classList.add("has-search-query");
+            }
+        });
+
+        var equipamiento = params.get("equip");
+        if (equipamiento) {
+            var codigos = equipamiento.split(",");
+            document.querySelectorAll("[data-equip-code]").forEach(function (checkbox) {
+                if (codigos.indexOf(checkbox.getAttribute("data-equip-code")) !== -1) {
+                    checkbox.checked = true;
+                    checkbox.dispatchEvent(new Event("change"));
+                }
+            });
+            resultsPage.classList.add("has-search-query");
+        }
     }
 
     function setupFilters() {
@@ -265,6 +300,34 @@
 
                     if (typeField.value) {
                         nextParams.set("tipo", typeField.value);
+                    }
+
+                    // Ítem 5: el resto de los filtros del drawer ("Más filtros") ahora
+                    // también se mandan por querystring, para que ResultadosBusqueda.aspx.cs
+                    // los pase a BLL_EspacioArtistico.Buscar en vez de quedar solo
+                    // "visuales" como hasta ahora.
+                    var camposTexto = [
+                        { id: "filter-location", param: "ubicacion" },
+                        { id: "filter-capacity", param: "capacidadMin" },
+                        { id: "filter-price", param: "precioMax" },
+                        { id: "filter-availability", param: "fecha" },
+                        { id: "filter-floor", param: "piso" }
+                    ];
+
+                    camposTexto.forEach(function (campo) {
+                        var elemento = document.getElementById(campo.id);
+                        var valor = elemento ? elemento.value.trim() : "";
+                        if (valor) {
+                            nextParams.set(campo.param, valor);
+                        }
+                    });
+
+                    var codigosEquipamiento = Array.from(document.querySelectorAll("[data-equip-code]"))
+                        .filter(function (checkbox) { return checkbox.checked; })
+                        .map(function (checkbox) { return checkbox.getAttribute("data-equip-code"); });
+
+                    if (codigosEquipamiento.length > 0) {
+                        nextParams.set("equip", codigosEquipamiento.join(","));
                     }
 
                     var queryString = nextParams.toString();

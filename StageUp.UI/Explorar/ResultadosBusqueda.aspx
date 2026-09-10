@@ -121,12 +121,12 @@
                 <div class="filter-group-heading"><span class="artistic-filter-badge">Diferencial StageUp</span><h3 id="artistic-filters-title">Características artísticas</h3><p>Combiná simultáneamente las condiciones necesarias para desarrollar tu actividad.</p></div>
                 <div class="form-field"><label for="filter-floor">Tipo de piso</label><input id="filter-floor" type="text" placeholder="Ingresar tipo de piso" data-advanced-select /></div>
                 <div class="artistic-options">
-                    <label class="feature-option"><input type="checkbox" value="Espejos" data-advanced-filter /><span>Espejos</span></label>
-                    <label class="feature-option"><input type="checkbox" value="Iluminación" data-advanced-filter /><span>Iluminación</span></label>
-                    <label class="feature-option"><input type="checkbox" value="Sonido / acústica" data-advanced-filter /><span>Sonido / acústica</span></label>
-                    <label class="feature-option"><input type="checkbox" value="Escenario" data-advanced-filter /><span>Escenario</span></label>
-                    <label class="feature-option"><input type="checkbox" value="Instrumentos" data-advanced-filter /><span>Instrumentos</span></label>
-                    <label class="feature-option"><input type="checkbox" value="Equipamiento" data-advanced-filter /><span>Equipamiento</span></label>
+                    <label class="feature-option"><input type="checkbox" value="Espejos" data-advanced-filter data-equip-code="ESPEJOS" /><span>Espejos</span></label>
+                    <label class="feature-option"><input type="checkbox" value="Iluminación" data-advanced-filter data-equip-code="ILUMINACION" /><span>Iluminación</span></label>
+                    <label class="feature-option"><input type="checkbox" value="Sonido / acústica" data-advanced-filter data-equip-code="SONIDO" /><span>Sonido / acústica</span></label>
+                    <label class="feature-option"><input type="checkbox" value="Escenario" data-advanced-filter data-equip-code="ESCENARIO" /><span>Escenario</span></label>
+                    <label class="feature-option"><input type="checkbox" value="Instrumentos" data-advanced-filter data-equip-code="INSTRUMENTOS" /><span>Instrumentos</span></label>
+                    <label class="feature-option"><input type="checkbox" value="Equipamiento" data-advanced-filter data-equip-code="EQUIPAMIENTO" /><span>Equipamiento</span></label>
                 </div>
                 <div class="filter-combination-note"><strong>Una búsqueda, varios criterios.</strong><span>Por ejemplo: espejos + tipo de piso + sonido, o escenario + iluminación + capacidad.</span></div>
             </section>

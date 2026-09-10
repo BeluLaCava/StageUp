@@ -72,4 +72,35 @@ namespace StageUp.BE.Entidades
         public int MinutoHasta { get; set; }
         public bool Bloqueado { get; set; }
     }
+
+    // Ítem 5 (filtros completos del catálogo): agrupa todos los criterios que
+    // puede combinar una búsqueda en ResultadosBusqueda.aspx. Los campos vacíos
+    // o en null significan "sin filtrar por esto" — BLL_EspacioArtistico.Buscar
+    // sanitiza y valida cada uno antes de pasarlo a la MPP.
+    public class FiltroBusquedaEspacios
+    {
+        public string TextoBusqueda { get; set; }
+        public string TipoEspacio { get; set; }
+
+        // Un solo campo de ubicación (la pantalla solo ofrece "Ciudad o zona"
+        // en un único cuadro de texto): se busca tanto en Ciudad como en
+        // Provincia de FichaEspacio.
+        public string Ubicacion { get; set; }
+        public decimal? PrecioMaximo { get; set; }
+        public int? CapacidadMinima { get; set; }
+        public string TipoPiso { get; set; }
+
+        // Mismo formato "yyyy-MM-dd" que FranjaEspacio.Fecha. MinutoDesde/
+        // MinutoHasta son opcionales incluso con fecha cargada: si no vienen,
+        // solo se exige que el espacio tenga algún horario abierto ese día
+        // (la pantalla hoy solo ofrece elegir una fecha, sin rango horario).
+        public string FechaDisponibilidad { get; set; }
+        public int? MinutoDesde { get; set; }
+        public int? MinutoHasta { get; set; }
+
+        // Códigos de FichaEspacioEquipamiento (ver permitidos en
+        // BLL_EspacioArtistico.ValidarFicha). Selección múltiple: el espacio
+        // tiene que tener TODOS los códigos pedidos, no cualquiera.
+        public List<string> Equipamiento { get; set; } = new List<string>();
+    }
 }

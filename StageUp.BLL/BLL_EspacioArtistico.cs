@@ -20,6 +20,12 @@ namespace StageUp.BLL
         private const int MaxFotosPorEspacio = 8;
         private const string TipoEntidadBitacora = "EspacioArtistico";
 
+        // Códigos válidos de equipamiento (ver ValidarFicha) — se reutiliza en
+        // Buscar (ítem 5) para descartar códigos desconocidos que puedan llegar
+        // por querystring antes de pasarlos a la MPP.
+        private static readonly HashSet<string> EquipamientoPermitido =
+            new HashSet<string> { "ESPEJOS", "SONIDO", "INSTRUMENTOS", "EQUIPAMIENTO", "ESCENARIO", "ILUMINACION" };
+
         public bool FichaCompletaHabilitada
         {
             get { return MPP_EspacioArtistico.FichaCompletaHabilitada; }
@@ -58,7 +64,7 @@ namespace StageUp.BLL
             }
             if ((ficha.TipoPiso ?? "").Length > 100 || (ficha.DetalleEquipamiento ?? "").Length > 1000)
                 return ResultadoOperacion.Error("Revisá la extensión del tipo de piso y el detalle de equipamiento.");
-            var permitidos = new HashSet<string> { "ESPEJOS", "SONIDO", "INSTRUMENTOS", "EQUIPAMIENTO", "ESCENARIO", "ILUMINACION" };
+            HashSet<string> permitidos = EquipamientoPermitido;
             if (ficha.Equipamiento == null || ficha.Equipamiento.Count > permitidos.Count)
                 return ResultadoOperacion.Error("Revisá las características seleccionadas.");
             var seleccionados = new HashSet<string>();
@@ -223,6 +229,81 @@ namespace StageUp.BLL
                     ContieneTexto(espacio.TipoEspacio, termino) ||
                     ContieneTexto(espacio.Descripcion, termino)) &&
                 (tipo == null || ContieneTexto(espacio.TipoEspacio, tipo)));
+        }
+
+        // Ítem 5 (filtros completos del catálogo): reemplaza el filtrado en
+        // memoria de ListarPublicados por un filtrado en SQL que combina todos
+        // los criterios de la pantalla de resultados. Sin ficha completa
+        // habilitada no hay columnas de ubicación/precio/capacidad/equipamiento
+        // para filtrar, así que se cae al comportamiento anterior (texto + tipo).
+        public List<EspacioArtistico> Buscar(FiltroBusquedaEspacios filtro)
+        {
+            filtro = Sanitizar(filtro ?? new FiltroBusquedaEspacios());
+
+            if (!FichaCompletaHabilitada)
+            {
+                return ListarPublicados(filtro.TextoBusqueda, filtro.TipoEspacio);
+            }
+
+            try
+            {
+                return _mppEspacio.BuscarPublicados(filtro);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return new List<EspacioArtistico>();
+            }
+        }
+
+        private static FiltroBusquedaEspacios Sanitizar(FiltroBusquedaEspacios filtro)
+        {
+            var limpio = new FiltroBusquedaEspacios
+            {
+                TextoBusqueda = NormalizarTexto(filtro.TextoBusqueda),
+                TipoEspacio = NormalizarTexto(filtro.TipoEspacio),
+                Ubicacion = NormalizarTexto(filtro.Ubicacion),
+                TipoPiso = NormalizarTexto(filtro.TipoPiso),
+                PrecioMaximo = filtro.PrecioMaximo.HasValue && filtro.PrecioMaximo.Value > 0 ? filtro.PrecioMaximo : null,
+                CapacidadMinima = filtro.CapacidadMinima.HasValue && filtro.CapacidadMinima.Value > 0 ? filtro.CapacidadMinima : null
+            };
+
+            string fecha = NormalizarTexto(filtro.FechaDisponibilidad);
+            DateTime valorFecha;
+            limpio.FechaDisponibilidad = fecha != null &&
+                DateTime.TryParseExact(fecha, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out valorFecha)
+                ? fecha
+                : null;
+
+            // El rango horario solo se toma en cuenta si viene la fecha, y solo si
+            // ambos extremos son válidos (mismo criterio de intervalos de 30
+            // minutos que ValidarFicha exige para las franjas).
+            if (limpio.FechaDisponibilidad != null &&
+                filtro.MinutoDesde.HasValue && filtro.MinutoHasta.HasValue &&
+                filtro.MinutoDesde.Value >= 0 && filtro.MinutoHasta.Value <= 1440 &&
+                filtro.MinutoHasta.Value > filtro.MinutoDesde.Value &&
+                filtro.MinutoDesde.Value % 30 == 0 && filtro.MinutoHasta.Value % 30 == 0)
+            {
+                limpio.MinutoDesde = filtro.MinutoDesde;
+                limpio.MinutoHasta = filtro.MinutoHasta;
+            }
+
+            if (filtro.Equipamiento != null)
+            {
+                foreach (string codigo in filtro.Equipamiento)
+                {
+                    if (codigo != null && EquipamientoPermitido.Contains(codigo) && !limpio.Equipamiento.Contains(codigo))
+                    {
+                        limpio.Equipamiento.Add(codigo);
+                    }
+                }
+            }
+
+            return limpio;
+        }
+
+        private static string NormalizarTexto(string valor)
+        {
+            return string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
         }
 
         public EspacioArtistico ObtenerDetallePublicado(int idEspacioArtistico)

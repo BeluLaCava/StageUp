@@ -41,6 +41,7 @@
     <Compile Include="BLL_Reserva.cs" />
     <Compile Include="BLL_Faq.cs" />
     <Compile Include="BLL_UsuarioInterno.cs" />
+    <Compile Include="BLL_AreaInterna.cs" />
     <Compile Include="BLL_RolInterno.cs" />
     <Compile Include="BLL_PermisoInterno.cs" />
     <Compile Include="BLL_RolInternoPermiso.cs" />

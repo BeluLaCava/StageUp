@@ -206,6 +206,13 @@
     <Compile Include="Interno\GestionRoles.aspx.designer.cs">
       <DependentUpon>GestionRoles.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Interno\GestionUsuariosInternos.aspx.cs">
+      <DependentUpon>GestionUsuariosInternos.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\GestionUsuariosInternos.aspx.designer.cs">
+      <DependentUpon>GestionUsuariosInternos.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Interno\PermisosDelRol.aspx.cs">
       <DependentUpon>PermisosDelRol.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -254,6 +261,7 @@
     <Content Include="Interno\PanelAdministrador.aspx" />
     <Content Include="Interno\AprobacionGestores.aspx" />
     <Content Include="Interno\GestionRoles.aspx" />
+    <Content Include="Interno\GestionUsuariosInternos.aspx" />
     <Content Include="Interno\PermisosDelRol.aspx" />
     <Content Include="Interno\GestionIdiomas.aspx" />
     <Content Include="Interno\ConfigurarIdioma.aspx" />

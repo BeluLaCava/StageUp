@@ -43,6 +43,7 @@
     <Compile Include="MPP_Reserva.cs" />
     <Compile Include="MPP_Faq.cs" />
     <Compile Include="MPP_UsuarioInterno.cs" />
+    <Compile Include="MPP_AreaInterna.cs" />
     <Compile Include="MPP_RolInterno.cs" />
     <Compile Include="MPP_PermisoInterno.cs" />
     <Compile Include="MPP_RolInternoPermiso.cs" />

@@ -7,6 +7,8 @@ namespace StageUp.BE.Entidades
         public int IdUsuarioInterno { get; set; }
         public int IdAreaInterna { get; set; }
         public int IdRolInterno { get; set; }
+        public string NombreArea { get; set; }
+        public string NombreRol { get; set; }
         public string Nombre { get; set; }
         public string Apellido { get; set; }
         public string CorreoElectronico { get; set; }

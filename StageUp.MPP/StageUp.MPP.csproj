@@ -46,6 +46,8 @@
     <Compile Include="MPP_RolInterno.cs" />
     <Compile Include="MPP_PermisoInterno.cs" />
     <Compile Include="MPP_RolInternoPermiso.cs" />
+    <Compile Include="MPP_ComponentePermiso.cs" />
+    <Compile Include="MPP_RolInternoComponentePermiso.cs" />
     <Compile Include="MPP_Idioma.cs" />
     <Compile Include="MPP_Traduccion.cs" />
   </ItemGroup>

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using StageUp.BE.Entidades;
 using StageUp.BE.Menu;
+using StageUp.BE.Permisos;
 using StageUp.DAL;
 using StageUp.MPP;
 
@@ -8,53 +8,16 @@ namespace StageUp.BLL
 {
     public class BLL_PermisoInterno
     {
-        private readonly MPP_PermisoInterno _mppPermiso = new MPP_PermisoInterno();
-        private readonly BLL_RolInternoPermiso _bllRolPermiso = new BLL_RolInternoPermiso();
+        private readonly MPP_ComponentePermiso _mppComponente = new MPP_ComponentePermiso();
+        private readonly MPP_RolInternoComponentePermiso _mppRolComponente = new MPP_RolInternoComponentePermiso();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
-
-        public List<PermisoInterno> Listar()
-        {
-            try
-            {
-                return _mppPermiso.Listar();
-            }
-            catch (ErrorAccesoDatosException)
-            {
-                return new List<PermisoInterno>();
-            }
-        }
-
-        public List<PermisoInterno> ListarPorRol(int idRolInterno)
-        {
-            try
-            {
-                return _mppPermiso.ListarPorRol(idRolInterno);
-            }
-            catch (ErrorAccesoDatosException)
-            {
-                return new List<PermisoInterno>();
-            }
-        }
-
-        public List<PermisoInterno> ListarConAsignacion(int idRolInterno)
-        {
-            List<PermisoInterno> todos = Listar();
-            List<PermisoInterno> asignados = ListarPorRol(idRolInterno);
-
-            foreach (PermisoInterno permiso in todos)
-            {
-                permiso.Asignado = ContieneCodigo(asignados, permiso.CodigoPermiso);
-            }
-
-            return todos;
-        }
 
         public List<string> ListarCodigosPermisosDeRol(int idRolInterno)
         {
             var codigos = new List<string>();
-            foreach (PermisoInterno permiso in ListarPorRol(idRolInterno))
+            foreach (PermisoHoja hoja in ObtenerHojasAsignadas(idRolInterno))
             {
-                codigos.Add(permiso.CodigoPermiso);
+                codigos.Add(hoja.CodigoPermiso);
             }
             return codigos;
         }
@@ -63,34 +26,57 @@ namespace StageUp.BLL
         {
             var raiz = new GrupoMenu("Menú");
             GrupoMenu grupoActual = null;
-            string moduloActual = null;
+            string nombreGrupoActual = null;
 
-            foreach (PermisoInterno permiso in ListarPorRol(idRolInterno))
+            foreach (PermisoHoja hoja in ObtenerHojasAsignadas(idRolInterno))
             {
-                if (grupoActual == null || permiso.Modulo != moduloActual)
+                string nombreGrupo = hoja.NombreGrupo ?? "General";
+                if (grupoActual == null || nombreGrupo != nombreGrupoActual)
                 {
-                    grupoActual = new GrupoMenu(permiso.Modulo);
+                    grupoActual = new GrupoMenu(nombreGrupo);
                     raiz.Agregar(grupoActual);
-                    moduloActual = permiso.Modulo;
+                    nombreGrupoActual = nombreGrupo;
                 }
 
-                grupoActual.Agregar(new ItemMenu(permiso.NombrePermiso, permiso.UrlAsociada, permiso.Descripcion));
+                grupoActual.Agregar(new ItemMenu(hoja.Nombre, hoja.UrlAsociada, hoja.Descripcion));
             }
 
             return raiz;
         }
 
-        public ResultadoOperacion AsignarPermisosARol(int idRolInterno, List<int> idsPermisosSeleccionados, int idUsuarioInternoResponsable)
+        public GrupoPermisos ListarComponentesRaizConAsignacion(int idRolInterno)
+        {
+            GrupoPermisos raiz;
+            List<int> idsAsignados;
+            try
+            {
+                raiz = _mppComponente.ListarArbol();
+                idsAsignados = _mppRolComponente.ListarIdsPorRol(idRolInterno);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return new GrupoPermisos(0, "Permisos");
+            }
+
+            foreach (PermisoHoja hoja in raiz.Listar())
+            {
+                hoja.Asignado = idsAsignados.Contains(hoja.IdComponentePermiso);
+            }
+
+            return raiz;
+        }
+
+        public ResultadoOperacion AsignarComponentesARol(int idRolInterno, List<int> idsComponentesSeleccionados, int idUsuarioInternoResponsable)
         {
             try
             {
-                _bllRolPermiso.EliminarPorRol(idRolInterno);
+                _mppRolComponente.EliminarPorRol(idRolInterno);
 
-                if (idsPermisosSeleccionados != null)
+                if (idsComponentesSeleccionados != null)
                 {
-                    foreach (int idPermisoInterno in idsPermisosSeleccionados)
+                    foreach (int idComponentePermiso in idsComponentesSeleccionados)
                     {
-                        _bllRolPermiso.Insertar(idRolInterno, idPermisoInterno);
+                        _mppRolComponente.Insertar(idRolInterno, idComponentePermiso);
                     }
                 }
 
@@ -106,16 +92,31 @@ namespace StageUp.BLL
             }
         }
 
-        private static bool ContieneCodigo(List<PermisoInterno> permisos, string codigoPermiso)
+        private List<PermisoHoja> ObtenerHojasAsignadas(int idRolInterno)
         {
-            foreach (PermisoInterno permiso in permisos)
+            var hojasAsignadas = new List<PermisoHoja>();
+
+            GrupoPermisos raiz;
+            List<int> idsAsignados;
+            try
             {
-                if (permiso.CodigoPermiso == codigoPermiso)
+                raiz = _mppComponente.ListarArbol();
+                idsAsignados = _mppRolComponente.ListarIdsPorRol(idRolInterno);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return hojasAsignadas;
+            }
+
+            foreach (PermisoHoja hoja in raiz.Listar())
+            {
+                if (idsAsignados.Contains(hoja.IdComponentePermiso))
                 {
-                    return true;
+                    hojasAsignadas.Add(hoja);
                 }
             }
-            return false;
+
+            return hojasAsignadas;
         }
     }
 }

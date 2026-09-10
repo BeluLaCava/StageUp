@@ -28,9 +28,9 @@
                         <label class="checkbox-field">
                             <asp:CheckBox ID="chkPermiso" runat="server" Checked='<%# Eval("Asignado") %>' />
                             <span>
-                                <strong><%# Eval("NombrePermiso") %></strong>
-                                <span class="permission-modulo">(<%# Eval("Modulo") %>)</span>
-                                <asp:HiddenField ID="hdnIdPermiso" runat="server" Value='<%# Eval("IdPermisoInterno") %>' />
+                                <strong><%# Eval("Nombre") %></strong>
+                                <span class="permission-modulo">(<%# Eval("NombreGrupo") %>)</span>
+                                <asp:HiddenField ID="hdnIdComponente" runat="server" Value='<%# Eval("IdComponentePermiso") %>' />
                                 <br /><%# Eval("Descripcion") %>
                             </span>
                         </label>

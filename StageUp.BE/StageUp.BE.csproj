@@ -55,6 +55,9 @@
     <Compile Include="Menu\ComponenteMenu.cs" />
     <Compile Include="Menu\ItemMenu.cs" />
     <Compile Include="Menu\GrupoMenu.cs" />
+    <Compile Include="Permisos\PermisoComponente.cs" />
+    <Compile Include="Permisos\PermisoHoja.cs" />
+    <Compile Include="Permisos\GrupoPermisos.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

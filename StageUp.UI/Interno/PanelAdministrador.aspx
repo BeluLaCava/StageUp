@@ -12,7 +12,7 @@
             <div class="internal-panel-grid">
                 <asp:Repeater ID="rptAccesos" runat="server">
                     <ItemTemplate>
-                        <a class="internal-panel-card" href="<%# Eval("Url") %>">
+                        <a class="internal-panel-card" href='<%# ResolveUrl(Eval("Url").ToString()) %>'>
                             <h2><%# Eval("Nombre") %></h2>
                             <p><%# Eval("Descripcion") %></p>
                         </a>

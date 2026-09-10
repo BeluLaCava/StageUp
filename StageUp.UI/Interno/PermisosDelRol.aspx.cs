@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using StageUp.BE.Entidades;
+using StageUp.BE.Permisos;
 using StageUp.BLL;
 using StageUp.Seguridad;
 
@@ -67,16 +68,16 @@ namespace StageUp.UI.Interno
             foreach (RepeaterItem item in rptPermisos.Items)
             {
                 var chkPermiso = (CheckBox)item.FindControl("chkPermiso");
-                var hdnIdPermiso = (HiddenField)item.FindControl("hdnIdPermiso");
+                var hdnIdComponente = (HiddenField)item.FindControl("hdnIdComponente");
 
                 if (chkPermiso.Checked)
                 {
-                    idsSeleccionados.Add(Convert.ToInt32(hdnIdPermiso.Value));
+                    idsSeleccionados.Add(Convert.ToInt32(hdnIdComponente.Value));
                 }
             }
 
             int idUsuarioInternoResponsable = GestorDeSesion.ObtenerIdUsuarioInternoActual().Value;
-            ResultadoOperacion resultado = _bllPermiso.AsignarPermisosARol(
+            ResultadoOperacion resultado = _bllPermiso.AsignarComponentesARol(
                 IdRolInterno.Value, idsSeleccionados, idUsuarioInternoResponsable);
 
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
@@ -85,7 +86,7 @@ namespace StageUp.UI.Interno
 
         private void CargarPermisos(int idRolInterno)
         {
-            List<PermisoInterno> permisos = _bllPermiso.ListarConAsignacion(idRolInterno);
+            List<PermisoHoja> permisos = _bllPermiso.ListarComponentesRaizConAsignacion(idRolInterno).Listar();
             rptPermisos.DataSource = permisos;
             rptPermisos.DataBind();
         }

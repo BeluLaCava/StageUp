@@ -26,6 +26,7 @@
                         <header class="space-detail-heading">
                             <p class="space-detail-location"><asp:Literal ID="litTipoEspacio" runat="server" /></p>
                             <h1><asp:Literal ID="litNombreEspacio" runat="server" /></h1>
+                            <p class="space-detail-gestor"><asp:Literal ID="litInfoGestor" runat="server" /></p>
                             <div class="space-detail-summary">
                                 <span><asp:Literal ID="litFechaPublicacion" runat="server" /></span>
                             </div>

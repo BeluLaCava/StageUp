@@ -93,6 +93,8 @@ namespace StageUp.UI.Explorar
                 ? "Publicado el " + espacio.FechaPublicacion.Value.ToString("dd/MM/yyyy")
                 : string.Empty;
 
+            litInfoGestor.Text = ObtenerInfoGestor(espacio);
+
             Title = espacio.NombreEspacio + " | StageUp";
 
             int? idUsuarioActual = GestorDeSesion.EstaAutenticado() ? GestorDeSesion.ObtenerIdUsuarioActual() : null;
@@ -100,6 +102,31 @@ namespace StageUp.UI.Explorar
             pnlReservarInvitado.Visible = idUsuarioActual == null;
             pnlReservarPropio.Visible = idUsuarioActual != null && idUsuarioActual.Value == espacio.IdUsuarioGestor;
             pnlReservarFormulario.Visible = idUsuarioActual != null && idUsuarioActual.Value != espacio.IdUsuarioGestor;
+        }
+
+        // Misma lógica de "reputación" liviana que ResultadosBusqueda.aspx.cs
+        // (antigüedad como gestor + espacios publicados), sin sistema de
+        // calificaciones todavía (queda para el Avance 2).
+        private string ObtenerInfoGestor(EspacioArtistico espacio)
+        {
+            if (string.IsNullOrWhiteSpace(espacio.NombreCompletoGestor))
+            {
+                return string.Empty;
+            }
+
+            string texto = "Gestiona " + Server.HtmlEncode(espacio.NombreCompletoGestor);
+
+            if (espacio.GestorDesde.HasValue)
+            {
+                texto += " · en StageUp desde " + espacio.GestorDesde.Value.ToString("MM/yyyy");
+            }
+
+            if (espacio.CantidadEspaciosPublicadosGestor > 1)
+            {
+                texto += " · " + espacio.CantidadEspaciosPublicadosGestor + " espacios publicados";
+            }
+
+            return texto;
         }
 
         private void MostrarMensajeReserva(string mensaje, bool esError)

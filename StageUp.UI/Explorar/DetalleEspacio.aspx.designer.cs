@@ -9,6 +9,7 @@ namespace StageUp.UI.Explorar
         protected global::System.Web.UI.WebControls.Panel pnlDetalleEspacio;
         protected global::System.Web.UI.WebControls.Literal litTipoEspacio;
         protected global::System.Web.UI.WebControls.Literal litNombreEspacio;
+        protected global::System.Web.UI.WebControls.Literal litInfoGestor;
         protected global::System.Web.UI.WebControls.Literal litFechaPublicacion;
         protected global::System.Web.UI.WebControls.Literal litDescripcion;
 

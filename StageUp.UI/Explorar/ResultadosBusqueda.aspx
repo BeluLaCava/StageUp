@@ -58,6 +58,7 @@
                                             <p class="space-card-location"><%# Eval("TipoEspacio") %></p>
                                             <h3><%# Eval("NombreEspacio") %></h3>
                                             <p class="space-card-excerpt"><%# ObtenerResumen(Eval("Descripcion") as string) %></p>
+                                            <p class="space-card-gestor"><%# ObtenerInfoGestor(Container.DataItem) %></p>
                                             <div class="space-card-footer">
                                                 <span class="space-card-meta"><%# Eval("FechaPublicacion", "Publicado el {0:dd/MM/yyyy}") %></span>
                                                 <span class="space-card-action">Ver detalle <span aria-hidden="true">→</span></span>

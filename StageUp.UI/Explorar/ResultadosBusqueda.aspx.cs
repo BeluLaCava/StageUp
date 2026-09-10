@@ -1,5 +1,6 @@
 using System;
 using System.Web.UI;
+using StageUp.BE.Entidades;
 using StageUp.BLL;
 
 namespace StageUp.UI.Explorar
@@ -59,6 +60,32 @@ namespace StageUp.UI.Explorar
             }
 
             return texto.Substring(0, LongitudMaximaResumen).TrimEnd() + "…";
+        }
+
+        // "Reputación" liviana del gestor (tanda 4, sin sistema de calificaciones
+        // todavía): antigüedad como gestor + cantidad de espacios publicados. Devuelve
+        // vacío si el espacio no trae datos de gestor (ver EspacioArtistico.NombreGestor).
+        protected string ObtenerInfoGestor(object dataItem)
+        {
+            var espacio = dataItem as EspacioArtistico;
+            if (espacio == null || string.IsNullOrWhiteSpace(espacio.NombreCompletoGestor))
+            {
+                return string.Empty;
+            }
+
+            string texto = "Gestiona " + Server.HtmlEncode(espacio.NombreCompletoGestor);
+
+            if (espacio.GestorDesde.HasValue)
+            {
+                texto += " · en StageUp desde " + espacio.GestorDesde.Value.ToString("MM/yyyy");
+            }
+
+            if (espacio.CantidadEspaciosPublicadosGestor > 1)
+            {
+                texto += " · " + espacio.CantidadEspaciosPublicadosGestor + " espacios publicados";
+            }
+
+            return texto;
         }
     }
 }

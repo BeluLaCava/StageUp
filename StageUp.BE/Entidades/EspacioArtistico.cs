@@ -18,6 +18,26 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaPublicacion { get; set; }
         public DateTime? FechaBaja { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
+
+        // Datos del gestor para mostrar en el catálogo público y en el detalle del
+        // espacio (tanda 4). Se completan solo cuando el espacio viene de una consulta
+        // que hace JOIN con UsuarioExterno (catálogo/detalle público); en el resto de
+        // los casos (por ejemplo "Mis espacios", donde el gestor ya es uno mismo)
+        // quedan en su valor por defecto y no se muestran.
+        public string NombreGestor { get; set; }
+        public string ApellidoGestor { get; set; }
+        public DateTime? GestorDesde { get; set; }
+        public int CantidadEspaciosPublicadosGestor { get; set; }
+
+        public string NombreCompletoGestor
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(NombreGestor) && string.IsNullOrWhiteSpace(ApellidoGestor))
+                    return null;
+                return (NombreGestor + " " + ApellidoGestor).Trim();
+            }
+        }
     }
 
     public class FichaEspacio

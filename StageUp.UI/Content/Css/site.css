@@ -2839,6 +2839,16 @@ body.overlay-open {
     font-size: 0.85rem;
 }
 
+.space-card-gestor {
+    margin: -0.6rem 0 1rem;
+    color: var(--color-brown);
+    font-size: 0.82rem;
+}
+
+.space-card-gestor:empty {
+    display: none;
+}
+
 .space-card-footer {
     display: flex;
     align-items: flex-end;
@@ -2985,6 +2995,16 @@ body.overlay-open {
     margin: 0;
     color: var(--color-brown);
     font-weight: 750;
+}
+
+.space-detail-gestor {
+    margin: 0.5rem 0 1rem;
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+}
+
+.space-detail-gestor:empty {
+    display: none;
 }
 
 .space-detail-summary,

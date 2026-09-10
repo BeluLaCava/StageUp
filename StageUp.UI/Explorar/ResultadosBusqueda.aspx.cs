@@ -1,4 +1,6 @@
 using System;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Web.UI;
 using StageUp.BE.Entidades;
 using StageUp.BLL;
@@ -62,9 +64,57 @@ namespace StageUp.UI.Explorar
             return texto.Substring(0, LongitudMaximaResumen).TrimEnd() + "…";
         }
 
-        // "Reputación" liviana del gestor (tanda 4, sin sistema de calificaciones
-        // todavía): antigüedad como gestor + cantidad de espacios publicados. Devuelve
-        // vacío si el espacio no trae datos de gestor (ver EspacioArtistico.NombreGestor).
+        protected string ObtenerFoto(EspacioArtistico espacio)
+        {
+            string ruta = espacio.Ficha == null ? null : espacio.Ficha.FotoRuta;
+            return EsFotoValida(ruta) ? ruta : string.Empty;
+        }
+
+        protected string ObtenerUbicacion(EspacioArtistico espacio)
+        {
+            FichaEspacio ficha = espacio.Ficha;
+            if (ficha == null)
+            {
+                return "Ubicación a confirmar";
+            }
+
+            if (!string.IsNullOrWhiteSpace(ficha.Ciudad) && !string.IsNullOrWhiteSpace(ficha.Provincia))
+            {
+                return ficha.Ciudad + ", " + ficha.Provincia;
+            }
+
+            if (!string.IsNullOrWhiteSpace(ficha.Ciudad))
+            {
+                return ficha.Ciudad;
+            }
+
+            return string.IsNullOrWhiteSpace(ficha.Provincia) ? "Ubicación a confirmar" : ficha.Provincia;
+        }
+
+        protected string ObtenerCapacidad(EspacioArtistico espacio)
+        {
+            return espacio.Ficha != null && espacio.Ficha.CapacidadMaxima.HasValue
+                ? "Hasta " + espacio.Ficha.CapacidadMaxima.Value + " personas"
+                : "Capacidad a consultar";
+        }
+
+        protected string ObtenerPrecio(EspacioArtistico espacio)
+        {
+            if (espacio.Ficha == null || !espacio.Ficha.PrecioHora.HasValue)
+            {
+                return "Valor a consultar";
+            }
+
+            return (espacio.Ficha.Moneda ?? "ARS") + " " +
+                espacio.Ficha.PrecioHora.Value.ToString("N2", CultureInfo.GetCultureInfo("es-AR")) + " / hora";
+        }
+
+        private static bool EsFotoValida(string ruta)
+        {
+            return !string.IsNullOrEmpty(ruta) &&
+                Regex.IsMatch(ruta, @"^~/Content/Uploads/Espacios/[a-f0-9]{32}\.jpg$");
+        }
+
         protected string ObtenerInfoGestor(object dataItem)
         {
             var espacio = dataItem as EspacioArtistico;

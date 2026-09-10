@@ -89,6 +89,13 @@
     <Compile Include="IniciarSesion.aspx.designer.cs">
       <DependentUpon>IniciarSesion.aspx</DependentUpon>
     </Compile>
+    <Compile Include="MiPerfil.aspx.cs">
+      <DependentUpon>MiPerfil.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="MiPerfil.aspx.designer.cs">
+      <DependentUpon>MiPerfil.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Registrarse.aspx.cs">
       <DependentUpon>Registrarse.aspx</DependentUpon>
@@ -206,6 +213,20 @@
     <Compile Include="Interno\PermisosDelRol.aspx.designer.cs">
       <DependentUpon>PermisosDelRol.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Interno\GestionIdiomas.aspx.cs">
+      <DependentUpon>GestionIdiomas.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\GestionIdiomas.aspx.designer.cs">
+      <DependentUpon>GestionIdiomas.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\ConfigurarIdioma.aspx.cs">
+      <DependentUpon>ConfigurarIdioma.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\ConfigurarIdioma.aspx.designer.cs">
+      <DependentUpon>ConfigurarIdioma.aspx</DependentUpon>
+    </Compile>
     <Content Include="Ayuda\CentroAyuda.aspx" />
     <Content Include="Content\Css\site.css" />
     <Content Include="Content\Images\favicon.png" />
@@ -216,6 +237,7 @@
     <Content Include="Explorar\CompararEspacios.aspx" />
     <Content Include="Explorar\ResultadosBusqueda.aspx" />
     <Content Include="IniciarSesion.aspx" />
+    <Content Include="MiPerfil.aspx" />
     <Content Include="Registrarse.aspx" />
     <Content Include="QuienesSomos.aspx" />
     <Content Include="Contactenos.aspx" />
@@ -232,8 +254,11 @@
     <Content Include="Interno\AprobacionGestores.aspx" />
     <Content Include="Interno\GestionRoles.aspx" />
     <Content Include="Interno\PermisosDelRol.aspx" />
+    <Content Include="Interno\GestionIdiomas.aspx" />
+    <Content Include="Interno\ConfigurarIdioma.aspx" />
     <Content Include="Scripts\site.js" />
     <Content Include="Scripts\espacios-ficha.js" />
+    <Content Include="Scripts\detalle-espacio.js" />
     <Content Include="Content\Images\Espacios\sala-principal-ia.png" />
     <Content Include="Content\Images\Espacios\estudio-fotografico-ia.png" />
     <Content Include="Site.Master" />

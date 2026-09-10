@@ -26,5 +26,7 @@ namespace StageUp.BE.Entidades
         public int IdUsuarioGestor { get; set; }
         public string NombreSolicitante { get; set; }
         public string CorreoSolicitante { get; set; }
+        public DateTime? SolicitanteDesde { get; set; }
+        public int CantidadReservasAceptadasSolicitante { get; set; }
     }
 }

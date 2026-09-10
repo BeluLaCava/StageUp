@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
+using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using StageUp.BE.Entidades;
@@ -21,10 +24,6 @@ namespace StageUp.UI
                 return;
             }
 
-            // Esta pantalla es exclusiva del perfil GestorEspacios. Si el usuario
-            // autenticado tiene otro perfil, lo mandamos a "Mis espacios", que ya
-            // muestra el mensaje correspondiente (pendiente de aprobación o
-            // todavía no es gestor).
             if (!EsGestorEspacios())
             {
                 Response.Redirect("~/MisEspacios.aspx");
@@ -77,10 +76,12 @@ namespace StageUp.UI
             var reserva = (Reserva)e.Item.DataItem;
             var lnkAceptar = (LinkButton)e.Item.FindControl("lnkAceptar");
             var lnkRechazar = (LinkButton)e.Item.FindControl("lnkRechazar");
+            var pnlAcciones = (Panel)e.Item.FindControl("pnlAcciones");
 
             bool esPendiente = reserva.EstadoReserva == "Pendiente";
             lnkAceptar.Visible = esPendiente;
             lnkRechazar.Visible = esPendiente;
+            pnlAcciones.Visible = esPendiente;
         }
 
         private void CargarSolicitudesRecibidas()
@@ -88,21 +89,116 @@ namespace StageUp.UI
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
             List<Reserva> solicitudes = _bllReserva.ListarSolicitudesRecibidas(idUsuarioGestor);
 
-            litSinSolicitudes.Visible = solicitudes.Count == 0;
+            int cantidadPendientes = 0;
+            foreach (Reserva solicitud in solicitudes)
+            {
+                if (solicitud.EstadoReserva == EstadoReserva.Pendiente.ToString())
+                {
+                    cantidadPendientes++;
+                }
+            }
+
+            litCantidadPendientes.Text = cantidadPendientes.ToString(CultureInfo.InvariantCulture);
+            litCantidadResueltas.Text = (solicitudes.Count - cantidadPendientes).ToString(CultureInfo.InvariantCulture);
+            litCantidadTotal.Text = solicitudes.Count.ToString(CultureInfo.InvariantCulture);
+            pnlSinSolicitudes.Visible = solicitudes.Count == 0;
             rptSolicitudes.DataSource = solicitudes;
             rptSolicitudes.DataBind();
         }
 
         private void MostrarMensaje(string mensaje, bool esError)
         {
-            litMensaje.Text = mensaje;
+            litMensaje.Text = HttpUtility.HtmlEncode(mensaje);
             pnlMensaje.CssClass = esError ? "form-message form-message-error" : "form-message form-message-success";
             pnlMensaje.Visible = !string.IsNullOrEmpty(mensaje);
         }
 
-        // Mismo chequeo explícito de perfil que en MisEspacios.aspx.cs: no alcanza
-        // con ocultar el enlace en la sub-navegación, porque el perfil podría haber
-        // cambiado en la base de datos sin que la sesión actual se actualice.
+        protected string ObtenerClaseSolicitud(Reserva reserva)
+        {
+            if (reserva == null)
+            {
+                return "request-card";
+            }
+
+            switch (reserva.EstadoReserva)
+            {
+                case "Pendiente":
+                    return "request-card request-card-pending";
+                case "Aceptada":
+                    return "request-card request-card-accepted";
+                case "Rechazada":
+                case "Cancelada":
+                    return "request-card request-card-rejected";
+                default:
+                    return "request-card";
+            }
+        }
+
+        protected string ObtenerClaseEstado(string estado)
+        {
+            switch (estado)
+            {
+                case "Pendiente":
+                    return "request-status request-status-pending";
+                case "Aceptada":
+                    return "request-status request-status-accepted";
+                case "Rechazada":
+                case "Cancelada":
+                    return "request-status request-status-rejected";
+                default:
+                    return "request-status";
+            }
+        }
+
+        protected string ObtenerIniciales(Reserva reserva)
+        {
+            string nombre = reserva == null ? null : reserva.NombreSolicitante;
+            if (string.IsNullOrWhiteSpace(nombre))
+            {
+                return "SU";
+            }
+
+            string[] partes = nombre.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var iniciales = new StringBuilder();
+            iniciales.Append(char.ToUpper(partes[0][0], CultureInfo.CurrentCulture));
+            if (partes.Length > 1)
+            {
+                iniciales.Append(char.ToUpper(partes[partes.Length - 1][0], CultureInfo.CurrentCulture));
+            }
+
+            return iniciales.ToString();
+        }
+
+        protected string ObtenerActividadSolicitante(Reserva reserva)
+        {
+            if (reserva == null)
+            {
+                return "Todavía no hay actividad para mostrar.";
+            }
+
+            var partes = new List<string>();
+            if (reserva.SolicitanteDesde.HasValue)
+            {
+                partes.Add("Miembro desde " + reserva.SolicitanteDesde.Value.ToString("MMMM 'de' yyyy", CultureInfo.GetCultureInfo("es-AR")));
+            }
+
+            int cantidad = reserva.CantidadReservasAceptadasSolicitante;
+            if (cantidad == 0)
+            {
+                partes.Add("Sin reservas aceptadas anteriores");
+            }
+            else if (cantidad == 1)
+            {
+                partes.Add("1 reserva aceptada anteriormente");
+            }
+            else
+            {
+                partes.Add(cantidad.ToString(CultureInfo.InvariantCulture) + " reservas aceptadas anteriormente");
+            }
+
+            return string.Join(" · ", partes);
+        }
+
         private bool EsGestorEspacios()
         {
             return GestorDeSesion.ObtenerPerfilActual() == PerfilUsuarioExterno.GestorEspacios.ToString();

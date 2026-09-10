@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using StageUp.BE.Entidades;
@@ -9,6 +10,11 @@ namespace StageUp.MPP
 {
     public class MPP_UsuarioExterno
     {
+        public static bool PerfilCompletoHabilitado
+        {
+            get { return string.Equals(ConfigurationManager.AppSettings["PerfilCompletoHabilitado"], "true", StringComparison.OrdinalIgnoreCase); }
+        }
+
         public int Insertar(UsuarioExterno usuario)
         {
             object resultado = Conexion.Instance.LeerEscalar(
@@ -43,6 +49,19 @@ namespace StageUp.MPP
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
+        public UsuarioExterno ObtenerPerfilPorId(int idUsuarioExterno)
+        {
+            if (!PerfilCompletoHabilitado)
+            {
+                return ObtenerPorId(idUsuarioExterno);
+            }
+
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_UsuarioExterno_ObtenerPerfilPorIdV2",
+                new SqlParameter("@idUsuarioExterno", idUsuarioExterno));
+            return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
+        }
+
         public void ActivarCuenta(int idUsuarioExterno, string estadoCuenta)
         {
             Conexion.Instance.Guardar(
@@ -65,6 +84,23 @@ namespace StageUp.MPP
                 "sp_UsuarioExterno_ActualizarPerfil",
                 new SqlParameter("@idUsuarioExterno", idUsuarioExterno),
                 new SqlParameter("@perfilUsuario", perfilUsuario));
+        }
+
+        public void ActualizarDatosPersonales(UsuarioExterno usuario)
+        {
+            if (!PerfilCompletoHabilitado)
+            {
+                throw new InvalidOperationException("La edición completa del perfil todavía no está habilitada.");
+            }
+
+            Conexion.Instance.Guardar(
+                "sp_UsuarioExterno_ActualizarDatosPerfilV2",
+                new SqlParameter("@idUsuarioExterno", usuario.IdUsuarioExterno),
+                new SqlParameter("@nombre", usuario.Nombre),
+                new SqlParameter("@apellido", usuario.Apellido),
+                new SqlParameter("@correoElectronico", usuario.CorreoElectronico),
+                new SqlParameter("@fotoPerfilRuta", (object)usuario.FotoPerfilRuta ?? DBNull.Value),
+                new SqlParameter("@descripcionPerfil", (object)usuario.DescripcionPerfil ?? DBNull.Value));
         }
 
         public List<UsuarioExterno> ListarPorPerfil(string perfilUsuario)
@@ -93,6 +129,8 @@ namespace StageUp.MPP
                 Telefono = fila["telefono"] == DBNull.Value ? null : fila["telefono"].ToString(),
                 EstadoCuenta = fila["estadoCuenta"].ToString(),
                 PerfilUsuario = fila["perfilUsuario"].ToString(),
+                FotoPerfilRuta = LeerTextoOpcional(fila, "fotoPerfilRuta"),
+                DescripcionPerfil = LeerTextoOpcional(fila, "descripcionPerfil"),
                 AceptaTerminos = Convert.ToBoolean(fila["aceptaTerminos"]),
                 AceptaPoliticaPrivacidad = Convert.ToBoolean(fila["aceptaPoliticaPrivacidad"]),
                 FechaAceptacionTerminos = fila["fechaAceptacionTerminos"] == DBNull.Value
@@ -106,6 +144,13 @@ namespace StageUp.MPP
                     ? (DateTime?)null : Convert.ToDateTime(fila["fechaUltimaModificacion"]),
                 Activo = Convert.ToBoolean(fila["activo"])
             };
+        }
+
+        private static string LeerTextoOpcional(DataRow fila, string columna)
+        {
+            return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value
+                ? fila[columna].ToString()
+                : null;
         }
     }
 }

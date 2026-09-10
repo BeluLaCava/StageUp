@@ -43,6 +43,8 @@
     <Compile Include="Entidades\EspacioArtistico.cs" />
     <Compile Include="Entidades\Faq.cs" />
     <Compile Include="Entidades\Reserva.cs" />
+    <Compile Include="Entidades\Idioma.cs" />
+    <Compile Include="Entidades\Traduccion.cs" />
     <Compile Include="Enumerados\EstadoCuentaExterno.cs" />
     <Compile Include="Enumerados\PerfilUsuarioExterno.cs" />
     <Compile Include="Enumerados\EstadoEspacio.cs" />

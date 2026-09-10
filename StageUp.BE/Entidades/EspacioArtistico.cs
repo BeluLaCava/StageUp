@@ -42,6 +42,10 @@ namespace StageUp.BE.Entidades
 
     public class FichaEspacio
     {
+        // FotoRuta se mantiene por compatibilidad con espacios cargados antes de la
+        // tanda de "varias fotografías" (ítem 3): si Fotos viene vacía, la UI cae a
+        // esta única foto. Los espacios guardados con el formulario nuevo ya no la
+        // usan como fuente de verdad — GuardarFicha la fija a Fotos[0] si hay alguna.
         public string FotoRuta { get; set; }
         public string Provincia { get; set; }
         public string Ciudad { get; set; }
@@ -53,6 +57,11 @@ namespace StageUp.BE.Entidades
         public string DetalleEquipamiento { get; set; }
         public List<string> Equipamiento { get; set; } = new List<string>();
         public List<FranjaEspacio> Disponibilidad { get; set; } = new List<FranjaEspacio>();
+
+        // Varias fotografías (ítem 3, tanda 10/09): rutas en el mismo formato que
+        // FotoRuta (~/Content/Uploads/Espacios/<hash>.jpg), en el orden en que se
+        // muestran. La primera de la lista es la portada/principal.
+        public List<string> Fotos { get; set; } = new List<string>();
     }
 
     public class FranjaEspacio

@@ -73,6 +73,21 @@ namespace StageUp.MPP
                     new SqlParameter("@bloqueado", franja.Bloqueado));
             }
 
+            // Ítem 3 (varias fotografías): mismo patrón que equipamiento/franjas — no
+            // hace falta un DELETE aparte para EspacioFoto, porque sp_FichaEspacio_EliminarPorEspacio
+            // ya vació la FichaEspacio anterior y el ON DELETE CASCADE se llevó sus fotos.
+            // El orden de la lista define "orden"; la primera es la principal/portada.
+            List<string> fotos = ficha.Fotos ?? new List<string>();
+            for (int indice = 0; indice < fotos.Count; indice++)
+            {
+                Conexion.Instance.Guardar(
+                    "sp_EspacioFoto_Insertar",
+                    new SqlParameter("@idEspacioArtistico", idEspacioArtistico),
+                    new SqlParameter("@rutaFoto", fotos[indice]),
+                    new SqlParameter("@orden", indice),
+                    new SqlParameter("@esPrincipal", indice == 0));
+            }
+
             return idEspacioArtistico;
         }
 
@@ -120,9 +135,9 @@ namespace StageUp.MPP
 
             if (FichaCompletaHabilitada)
             {
-                CompletarEquipamientoYDisponibilidad(
+                CompletarDatosHijosDeFicha(
                     new List<EspacioArtistico> { espacio },
-                    "sp_FichaEspacioEquipamiento_ListarPorEspacio", "sp_FranjaEspacio_ListarPorEspacio",
+                    "sp_FichaEspacioEquipamiento_ListarPorEspacio", "sp_FranjaEspacio_ListarPorEspacio", "sp_EspacioFoto_ListarPorEspacio",
                     () => new[] { new SqlParameter("@idEspacioArtistico", idEspacioArtistico) });
             }
 
@@ -137,9 +152,9 @@ namespace StageUp.MPP
 
             if (FichaCompletaHabilitada)
             {
-                CompletarEquipamientoYDisponibilidad(
+                CompletarDatosHijosDeFicha(
                     lista,
-                    "sp_FichaEspacioEquipamiento_ListarPorUsuarioGestor", "sp_FranjaEspacio_ListarPorUsuarioGestor",
+                    "sp_FichaEspacioEquipamiento_ListarPorUsuarioGestor", "sp_FranjaEspacio_ListarPorUsuarioGestor", "sp_EspacioFoto_ListarPorUsuarioGestor",
                     () => new[] { new SqlParameter("@idUsuarioGestor", idUsuarioGestor) });
             }
 
@@ -153,9 +168,9 @@ namespace StageUp.MPP
 
             if (FichaCompletaHabilitada)
             {
-                CompletarEquipamientoYDisponibilidad(
+                CompletarDatosHijosDeFicha(
                     lista,
-                    "sp_FichaEspacioEquipamiento_ListarPublicados", "sp_FranjaEspacio_ListarPublicados",
+                    "sp_FichaEspacioEquipamiento_ListarPublicados", "sp_FranjaEspacio_ListarPublicados", "sp_EspacioFoto_ListarPublicados",
                     () => new SqlParameter[0]);
             }
 
@@ -239,8 +254,8 @@ namespace StageUp.MPP
         // Lee las columnas de FichaEspacio si vinieron en la fila (LEFT JOIN de las
         // V2) y el espacio ya tiene una ficha cargada; devuelve una ficha vacía si la
         // ficha completa no está habilitada o el espacio todavía no tiene ficha.
-        // Equipamiento y Disponibilidad se completan aparte, con
-        // CompletarEquipamientoYDisponibilidad, porque son listas 1 a N.
+        // Equipamiento, Disponibilidad y Fotos se completan aparte, con
+        // CompletarDatosHijosDeFicha, porque son listas 1 a N.
         private static FichaEspacio LeerFicha(DataRow fila)
         {
             if (!FichaCompletaHabilitada || !fila.Table.Columns.Contains("provincia") || fila["provincia"] == DBNull.Value)
@@ -262,12 +277,12 @@ namespace StageUp.MPP
             };
         }
 
-        // Completa Equipamiento y Disponibilidad de una lista de espacios ya mapeados,
-        // con dos consultas (una por tabla hija) en vez de una por espacio. Cada
-        // consulta se arma con crearParametros() por separado: los SqlParameter no se
-        // pueden reutilizar entre dos comandos distintos.
-        private static void CompletarEquipamientoYDisponibilidad(
-            List<EspacioArtistico> espacios, string spEquipamiento, string spFranjas, Func<SqlParameter[]> crearParametros)
+        // Completa Equipamiento, Disponibilidad y Fotos de una lista de espacios ya
+        // mapeados, con tres consultas (una por tabla hija) en vez de una por espacio.
+        // Cada consulta se arma con crearParametros() por separado: los SqlParameter
+        // no se pueden reutilizar entre dos comandos distintos.
+        private static void CompletarDatosHijosDeFicha(
+            List<EspacioArtistico> espacios, string spEquipamiento, string spFranjas, string spFotos, Func<SqlParameter[]> crearParametros)
         {
             if (espacios.Count == 0)
             {
@@ -304,6 +319,18 @@ namespace StageUp.MPP
                         MinutoHasta = Convert.ToInt32(fila["minutoHasta"]),
                         Bloqueado = Convert.ToBoolean(fila["bloqueado"])
                     });
+                }
+            }
+
+            // Ítem 3: las fotos ya vienen ordenadas por "orden" desde el SP, así que
+            // alcanza con agregarlas en el orden en que llegan (fotos[0] = principal).
+            DataTable fotos = Conexion.Instance.Leer(spFotos, crearParametros());
+            foreach (DataRow fila in fotos.Rows)
+            {
+                EspacioArtistico espacio;
+                if (porId.TryGetValue(Convert.ToInt32(fila["idEspacioArtistico"]), out espacio))
+                {
+                    espacio.Ficha.Fotos.Add(fila["rutaFoto"].ToString());
                 }
             }
         }

@@ -3,7 +3,7 @@ namespace StageUp.UI
 {
     public partial class MisEspacios
     {
-        protected global::System.Web.UI.WebControls.Image imgFotoActual;
+        protected global::System.Web.UI.WebControls.HiddenField hdnFotosActuales;
         protected global::System.Web.UI.WebControls.FileUpload archivoFoto;
         protected global::System.Web.UI.WebControls.TextBox txtProvincia;
         protected global::System.Web.UI.WebControls.TextBox txtCiudad;

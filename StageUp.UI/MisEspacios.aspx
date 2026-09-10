@@ -116,16 +116,16 @@
                 <fieldset class="space-extra-fields" <%= FichaCompletaActiva ? "" : "disabled" %>>
                     <legend>La ficha de tu espacio</legend>
                     <section class="space-form-section">
-                        <h3>01 · Foto de portada</h3>
-                        <p>Elegí una imagen horizontal y bien iluminada de tu espacio.</p>
+                        <h3>01 · Fotos del espacio</h3>
+                        <p>Subí una o varias fotos horizontales y bien iluminadas. La primera de la lista se usa como portada en el catálogo y el detalle.</p>
+                        <asp:HiddenField ID="hdnFotosActuales" runat="server" ClientIDMode="Static" Value="[]" />
+                        <ul id="photo-gallery" class="space-photo-gallery" aria-label="Fotos cargadas de este espacio" data-app-root='<%= ResolveUrl("~/") %>'></ul>
+                        <p id="photo-gallery-vacia" class="space-photo-gallery-vacia">Todavía no cargaste ninguna foto.</p>
                         <div class="space-photo-upload">
-                            <asp:Image ID="imgFotoActual" runat="server" ClientIDMode="Static" AlternateText="Vista previa de la portada" CssClass="space-photo-preview" />
-                            <div>
-                                <label for="<%= archivoFoto.ClientID %>">Subir o reemplazar foto</label>
-                                <asp:FileUpload ID="archivoFoto" runat="server" ClientIDMode="Static" accept="image/jpeg,image/png" />
-                                <small>JPG o PNG, hasta 3 MB. Si no elegís otra imagen, se conserva la actual.</small>
-                                <span id="photo-error" role="alert"></span>
-                            </div>
+                            <label for="<%= archivoFoto.ClientID %>">Agregar fotos</label>
+                            <asp:FileUpload ID="archivoFoto" runat="server" ClientIDMode="Static" accept="image/jpeg,image/png" AllowMultiple="true" />
+                            <small>JPG o PNG, hasta 3 MB cada una, hasta 8 fotos en total.</small>
+                            <span id="photo-error" role="alert"></span>
                         </div>
                     </section>
                     <section class="space-form-section">

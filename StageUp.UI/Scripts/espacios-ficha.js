@@ -90,24 +90,83 @@
     }
     price.addEventListener("input", showPrice);
     currency.addEventListener("change", showPrice);
-    var upload = document.getElementById("archivoFoto");
-    var preview = document.getElementById("imgFotoActual");
-    var originalSource = preview.getAttribute("src") || "";
-    var objectUrl;
-    upload.addEventListener("change", function () {
-        document.getElementById("photo-error").textContent = "";
-        if (objectUrl) URL.revokeObjectURL(objectUrl);
-        var file = upload.files[0];
-        if (!file) { preview.src = originalSource; return; }
-        if (file.size > 3 * 1024 * 1024 || !/\.(jpe?g|png)$/i.test(file.name)) {
-            upload.value = "";
-            preview.src = originalSource;
-            document.getElementById("photo-error").textContent = "Elegí una imagen JPG o PNG de hasta 3 MB.";
-            return;
+    // Ítem 3 (varias fotografías): galería de fotos ya guardadas, con "Quitar" y
+    // "Usar como portada" por foto (mismo patrón que la lista de horarios de más
+    // arriba: un array en memoria que se mantiene sincronizado con un hidden field
+    // en cada cambio, para que sobreviva al postback del formulario).
+    var fotosHidden = document.getElementById("hdnFotosActuales");
+    if (fotosHidden) {
+        var fotos = [];
+        try { fotos = JSON.parse(fotosHidden.value || "[]") || []; } catch (e) { fotos = []; }
+        var gallery = document.getElementById("photo-gallery");
+        var vacia = document.getElementById("photo-gallery-vacia");
+        var appRoot = gallery.getAttribute("data-app-root") || "/";
+        function resolverRuta(ruta) {
+            return appRoot + ruta.replace(/^~\//, "");
         }
-        objectUrl = URL.createObjectURL(file);
-        preview.src = objectUrl;
-    });
+        function renderFotos() {
+            fotosHidden.value = JSON.stringify(fotos);
+            gallery.textContent = "";
+            vacia.hidden = fotos.length > 0;
+            fotos.forEach(function (ruta, index) {
+                var item = document.createElement("li");
+                item.className = "space-photo-item";
+                var img = document.createElement("img");
+                img.src = resolverRuta(ruta);
+                img.alt = "Foto " + (index + 1) + " del espacio";
+                item.appendChild(img);
+                if (index === 0) {
+                    var badge = document.createElement("span");
+                    badge.className = "space-photo-badge";
+                    badge.textContent = "Portada";
+                    item.appendChild(badge);
+                }
+                var acciones = document.createElement("div");
+                acciones.className = "space-photo-item-actions";
+                if (index !== 0) {
+                    var portada = document.createElement("button");
+                    portada.type = "button";
+                    portada.textContent = "Usar como portada";
+                    portada.addEventListener("click", function () {
+                        fotos.splice(index, 1);
+                        fotos.unshift(ruta);
+                        renderFotos();
+                    });
+                    acciones.appendChild(portada);
+                }
+                var quitar = document.createElement("button");
+                quitar.type = "button";
+                quitar.textContent = "Quitar";
+                quitar.setAttribute("aria-label", "Quitar foto " + (index + 1) + " del espacio");
+                quitar.addEventListener("click", function () {
+                    fotos.splice(index, 1);
+                    renderFotos();
+                });
+                acciones.appendChild(quitar);
+                item.appendChild(acciones);
+                gallery.appendChild(item);
+            });
+        }
+        renderFotos();
+    }
+
+    var upload = document.getElementById("archivoFoto");
+    if (upload) {
+        upload.addEventListener("change", function () {
+            var error = document.getElementById("photo-error");
+            error.textContent = "";
+            var invalidas = [];
+            Array.prototype.forEach.call(upload.files, function (file) {
+                if (file.size > 3 * 1024 * 1024 || !/\.(jpe?g|png)$/i.test(file.name)) {
+                    invalidas.push(file.name);
+                }
+            });
+            if (invalidas.length > 0) {
+                error.textContent = "Estas imágenes no son válidas (deben ser JPG o PNG de hasta 3 MB): " + invalidas.join(", ");
+            }
+        });
+    }
+
     render();
     showPrice();
 }());

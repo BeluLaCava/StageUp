@@ -351,10 +351,29 @@ namespace StageUp.UI.Explorar
         private static List<string> ObtenerFotos(EspacioArtistico espacio)
         {
             var fotos = new List<string>();
-            string ruta = espacio.Ficha == null ? null : espacio.Ficha.FotoRuta;
-            if (EsFotoValida(ruta))
+
+            // Ítem 3 (varias fotografías): Ficha.Fotos es la fuente de verdad para
+            // espacios guardados con el formulario nuevo. Si viene vacía (espacio
+            // cargado antes de esta tanda, con una sola foto), se cae a FotoRuta.
+            List<string> fotosFicha = espacio.Ficha == null ? null : espacio.Ficha.Fotos;
+            if (fotosFicha != null)
             {
-                fotos.Add(ruta);
+                foreach (string rutaFoto in fotosFicha)
+                {
+                    if (EsFotoValida(rutaFoto))
+                    {
+                        fotos.Add(rutaFoto);
+                    }
+                }
+            }
+
+            if (fotos.Count == 0)
+            {
+                string ruta = espacio.Ficha == null ? null : espacio.Ficha.FotoRuta;
+                if (EsFotoValida(ruta))
+                {
+                    fotos.Add(ruta);
+                }
             }
 
             if (fotos.Count == 0 &&

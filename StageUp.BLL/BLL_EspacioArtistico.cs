@@ -17,6 +17,7 @@ namespace StageUp.BLL
         private const int LongitudMaximaNombre = 300;
         private const int LongitudMaximaDescripcion = 2000;
         private const int LongitudMaximaTipoEspacio = 200;
+        private const int MaxFotosPorEspacio = 8;
         private const string TipoEntidadBitacora = "EspacioArtistico";
 
         public bool FichaCompletaHabilitada
@@ -45,6 +46,16 @@ namespace StageUp.BLL
             if (!string.IsNullOrEmpty(ficha.FotoRuta) &&
                 !Regex.IsMatch(ficha.FotoRuta, @"^~/Content/Uploads/Espacios/[a-f0-9]{32}\.jpg$"))
                 return ResultadoOperacion.Error("La ruta de la foto no es válida.");
+            // Ítem 3 (varias fotografías): mismo formato de ruta que FotoRuta, hasta
+            // MaxFotosPorEspacio en total.
+            if (ficha.Fotos != null)
+            {
+                if (ficha.Fotos.Count > MaxFotosPorEspacio)
+                    return ResultadoOperacion.Error("Podés cargar hasta " + MaxFotosPorEspacio + " fotos por espacio.");
+                foreach (string foto in ficha.Fotos)
+                    if (string.IsNullOrEmpty(foto) || !Regex.IsMatch(foto, @"^~/Content/Uploads/Espacios/[a-f0-9]{32}\.jpg$"))
+                        return ResultadoOperacion.Error("Hay una foto con una ruta no válida.");
+            }
             if ((ficha.TipoPiso ?? "").Length > 100 || (ficha.DetalleEquipamiento ?? "").Length > 1000)
                 return ResultadoOperacion.Error("Revisá la extensión del tipo de piso y el detalle de equipamiento.");
             var permitidos = new HashSet<string> { "ESPEJOS", "SONIDO", "INSTRUMENTOS", "EQUIPAMIENTO", "ESCENARIO", "ILUMINACION" };
@@ -100,6 +111,11 @@ namespace StageUp.BLL
             espacio.NombreEspacio = espacio.NombreEspacio.Trim();
             espacio.TipoEspacio = espacio.TipoEspacio.Trim();
             espacio.Descripcion = string.IsNullOrWhiteSpace(espacio.Descripcion) ? null : espacio.Descripcion.Trim();
+            // fotoRuta queda como la principal de Fotos, para que las pantallas viejas
+            // que todavía solo miran fotoRuta (por ejemplo si se deshabilita la ficha
+            // completa) sigan mostrando algo razonable.
+            if (espacio.Ficha.Fotos != null && espacio.Ficha.Fotos.Count > 0)
+                espacio.Ficha.FotoRuta = espacio.Ficha.Fotos[0];
             int id = _mppEspacio.GuardarFicha(espacio);
             _bitacora.Registrar(idUsuarioGestor, espacio.IdEspacioArtistico == 0 ? "ALTA" : "MODIFICACION",
                 TipoEntidadBitacora, id, "Guardado de ficha completa del espacio artístico.");

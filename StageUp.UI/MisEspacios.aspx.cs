@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Web;
 using System.Web.Script.Serialization;
 using System.Collections.Generic;
 using System.Web.UI;
@@ -26,11 +27,9 @@ namespace StageUp.UI
         // que administra el detalle; acá solo se muestra un contador).
         protected int CantidadSolicitudesPendientes { get; private set; }
 
-        private string FotoRutaActual
-        {
-            get { return ViewState["FotoRutaActual"] as string; }
-            set { ViewState["FotoRutaActual"] = value; }
-        }
+        // Mismo tope que BLL_EspacioArtistico.ValidarFicha (MaxFotosPorEspacio): se
+        // repite acá para poder avisar antes de escribir ningún archivo a disco.
+        private const int MaxFotosPorEspacio = 8;
 
         private int? IdEspacioEnEdicion
         {
@@ -300,8 +299,14 @@ namespace StageUp.UI
         private void CargarFicha(EspacioArtistico espacio)
         {
             FichaEspacio ficha = espacio.Ficha ?? new FichaEspacio();
-            FotoRutaActual = ficha.FotoRuta;
-            imgFotoActual.ImageUrl = ObtenerFoto(espacio);
+
+            // Fuente de verdad: Fotos. Si viene vacía (espacio cargado antes de esta
+            // tanda, con una sola foto), se muestra FotoRuta como única foto inicial.
+            List<string> fotos = ficha.Fotos != null && ficha.Fotos.Count > 0
+                ? ficha.Fotos
+                : (!string.IsNullOrEmpty(ficha.FotoRuta) ? new List<string> { ficha.FotoRuta } : new List<string>());
+            hdnFotosActuales.Value = new JavaScriptSerializer().Serialize(fotos);
+
             txtProvincia.Text = ficha.Provincia;
             txtCiudad.Text = ficha.Ciudad;
             txtDireccion.Text = ficha.Direccion;
@@ -332,6 +337,27 @@ namespace StageUp.UI
                     ErrorFormulario("Hay demasiados horarios cargados.");
                     return;
                 }
+
+                List<string> fotos;
+                try
+                {
+                    fotos = new JavaScriptSerializer().Deserialize<List<string>>(hdnFotosActuales.Value) ?? new List<string>();
+                }
+                catch (ArgumentException)
+                {
+                    fotos = new List<string>();
+                }
+
+                // Chequeo temprano del tope de fotos (antes de escribir nada a disco):
+                // hdnFotosActuales.Value ya refleja las fotos existentes que el usuario
+                // no quitó del lado del cliente (ver espacios-ficha.js).
+                int cantidadNuevas = archivoFoto.HasFiles ? archivoFoto.PostedFiles.Count : 0;
+                if (fotos.Count + cantidadNuevas > MaxFotosPorEspacio)
+                {
+                    ErrorFormulario("Podés cargar hasta " + MaxFotosPorEspacio + " fotos por espacio. Quitá alguna antes de agregar más.");
+                    return;
+                }
+
                 var espacio = new EspacioArtistico
                 {
                     IdEspacioArtistico = IdEspacioEnEdicion ?? 0,
@@ -340,7 +366,8 @@ namespace StageUp.UI
                     Descripcion = txtDescripcion.Text,
                     Ficha = new FichaEspacio
                     {
-                        FotoRuta = FotoRutaActual,
+                        FotoRuta = fotos.Count > 0 ? fotos[0] : null,
+                        Fotos = fotos,
                         Provincia = txtProvincia.Text.Trim(),
                         Ciudad = txtCiudad.Text.Trim(),
                         Direccion = txtDireccion.Text.Trim(),
@@ -354,18 +381,30 @@ namespace StageUp.UI
                 };
                 foreach (ListItem item in cblEquipamiento.Items)
                     if (item.Selected) espacio.Ficha.Equipamiento.Add(item.Value);
+
+                // Las fotos nuevas se procesan (y se validan como imagen de verdad) acá,
+                // después de las validaciones baratas de arriba, para no escribir
+                // archivos a disco si el resto del formulario todavía tiene errores.
+                if (archivoFoto.HasFiles)
+                {
+                    foreach (HttpPostedFile archivo in archivoFoto.PostedFiles)
+                    {
+                        if (archivo == null || archivo.ContentLength == 0) continue;
+                        espacio.Ficha.Fotos.Add(GuardarFoto(archivo));
+                    }
+                    if (espacio.Ficha.Fotos.Count > 0)
+                    {
+                        espacio.Ficha.FotoRuta = espacio.Ficha.Fotos[0];
+                    }
+                }
+
                 ResultadoOperacion validacion = _bllEspacio.ValidarFicha(espacio);
                 if (!validacion.Exitoso)
                 {
                     ErrorFormulario(validacion.Mensaje);
                     return;
                 }
-                if (archivoFoto.HasFile)
-                {
-                    FotoRutaActual = GuardarFoto();
-                    espacio.Ficha.FotoRuta = FotoRutaActual;
-                    imgFotoActual.ImageUrl = FotoRutaActual;
-                }
+
                 ResultadoOperacion<int> resultado = _bllEspacio.GuardarFicha(espacio, idUsuarioGestor);
                 if (!resultado.Exitoso)
                 {
@@ -378,7 +417,7 @@ namespace StageUp.UI
             }
             catch (ArgumentException ex)
             {
-                ErrorFormulario("Revisá la imagen y los horarios ingresados.");
+                ErrorFormulario("Revisá las imágenes y los horarios ingresados.");
                 System.Diagnostics.Trace.TraceError(ex.ToString());
             }
             catch (Exception ex)
@@ -388,13 +427,17 @@ namespace StageUp.UI
             }
         }
 
-        private string GuardarFoto()
+        // Valida, redimensiona (máximo 1600px de lado mayor) y guarda una foto
+        // subida. Recibe el HttpPostedFile en vez de leer directo del control
+        // archivoFoto para poder reutilizarse con cada archivo de PostedFiles
+        // cuando se suben varios a la vez.
+        private string GuardarFoto(HttpPostedFile archivo)
         {
-            string extension = Path.GetExtension(archivoFoto.FileName).ToLowerInvariant();
-            if (archivoFoto.PostedFile.ContentLength > 3 * 1024 * 1024 ||
+            string extension = Path.GetExtension(archivo.FileName).ToLowerInvariant();
+            if (archivo.ContentLength > 3 * 1024 * 1024 ||
                 (extension != ".jpg" && extension != ".jpeg" && extension != ".png"))
                 throw new ArgumentException("Formato o tamaño de imagen no válido.");
-            using (System.Drawing.Image original = System.Drawing.Image.FromStream(archivoFoto.FileContent, true, true))
+            using (System.Drawing.Image original = System.Drawing.Image.FromStream(archivo.InputStream, true, true))
             {
                 if ((original.RawFormat.Guid != System.Drawing.Imaging.ImageFormat.Jpeg.Guid &&
                      original.RawFormat.Guid != System.Drawing.Imaging.ImageFormat.Png.Guid) ||
@@ -425,7 +468,9 @@ namespace StageUp.UI
 
         protected string ObtenerFoto(EspacioArtistico espacio)
         {
-            string ruta = espacio.Ficha == null ? null : espacio.Ficha.FotoRuta;
+            string ruta = espacio.Ficha != null && espacio.Ficha.Fotos != null && espacio.Ficha.Fotos.Count > 0
+                ? espacio.Ficha.Fotos[0]
+                : (espacio.Ficha == null ? null : espacio.Ficha.FotoRuta);
             if (!string.IsNullOrEmpty(ruta) && Regex.IsMatch(ruta, @"^~/Content/Uploads/Espacios/[a-f0-9]{32}\.jpg$"))
                 return ruta;
             if (string.Equals(espacio.NombreEspacio, "Sala Principal StageUp", StringComparison.OrdinalIgnoreCase))

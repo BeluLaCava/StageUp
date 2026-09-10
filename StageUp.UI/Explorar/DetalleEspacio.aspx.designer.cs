@@ -36,6 +36,12 @@ namespace StageUp.UI.Explorar
         protected global::System.Web.UI.WebControls.Repeater rptDisponibilidad;
         protected global::System.Web.UI.WebControls.Panel pnlSinDisponibilidad;
         protected global::System.Web.UI.WebControls.Panel pnlSinFicha;
+        protected global::System.Web.UI.WebControls.Panel pnlResumenResenas;
+        protected global::System.Web.UI.WebControls.Literal litPromedioResenas;
+        protected global::System.Web.UI.WebControls.Literal litEstrellasResenas;
+        protected global::System.Web.UI.WebControls.Literal litCantidadResenas;
+        protected global::System.Web.UI.WebControls.Repeater rptResenasEspacio;
+        protected global::System.Web.UI.WebControls.Panel pnlSinResenas;
         protected global::System.Web.UI.WebControls.Literal litPrecioReserva;
         protected global::System.Web.UI.WebControls.Panel pnlReservarMensaje;
         protected global::System.Web.UI.WebControls.Literal litReservarMensaje;

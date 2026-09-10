@@ -15,6 +15,13 @@ namespace StageUp.UI
     public partial class SolicitudesRecibidas : Page
     {
         private readonly BLL_Reserva _bllReserva = new BLL_Reserva();
+        private readonly BLL_Calificacion _bllCalificacion = new BLL_Calificacion();
+
+        private int? IdReservaCalificando
+        {
+            get { return ViewState["IdReservaCalificando"] as int?; }
+            set { ViewState["IdReservaCalificando"] = value; }
+        }
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -50,6 +57,13 @@ namespace StageUp.UI
 
             switch (e.CommandName)
             {
+                case "CalificarSolicitante":
+                    IdReservaCalificando = idReserva;
+                    ddlPuntajeSolicitante.SelectedIndex = 0;
+                    txtComentarioCalificacionSolicitante.Text = string.Empty;
+                    pnlCalificarSolicitante.Visible = true;
+                    return;
+
                 case "Aceptar":
                     resultado = _bllReserva.Aceptar(idReserva, idUsuarioGestor, null);
                     break;
@@ -77,11 +91,61 @@ namespace StageUp.UI
             var lnkAceptar = (LinkButton)e.Item.FindControl("lnkAceptar");
             var lnkRechazar = (LinkButton)e.Item.FindControl("lnkRechazar");
             var pnlAcciones = (Panel)e.Item.FindControl("pnlAcciones");
+            var pnlAccionesCalificacion = (Panel)e.Item.FindControl("pnlAccionesCalificacion");
+            var lnkCalificarSolicitante = (LinkButton)e.Item.FindControl("lnkCalificarSolicitante");
+            var pnlCalificacionRealizada = (Panel)e.Item.FindControl("pnlCalificacionSolicitanteRealizada");
 
             bool esPendiente = reserva.EstadoReserva == "Pendiente";
             lnkAceptar.Visible = esPendiente;
             lnkRechazar.Visible = esPendiente;
             pnlAcciones.Visible = esPendiente;
+
+            bool finalizada = reserva.EstadoReserva == EstadoReserva.Finalizada.ToString();
+            pnlAccionesCalificacion.Visible = finalizada;
+            lnkCalificarSolicitante.Visible = finalizada && !reserva.CalificacionSolicitanteRealizada;
+            pnlCalificacionRealizada.Visible = finalizada && reserva.CalificacionSolicitanteRealizada;
+        }
+
+        protected void lnkCerrarCalificacionSolicitante_Click(object sender, EventArgs e)
+        {
+            CerrarCalificacion();
+        }
+
+        protected void btnEnviarCalificacionSolicitante_Click(object sender, EventArgs e)
+        {
+            if (!Page.IsValid || !IdReservaCalificando.HasValue)
+            {
+                return;
+            }
+
+            int puntaje;
+            if (!int.TryParse(ddlPuntajeSolicitante.SelectedValue, out puntaje))
+            {
+                MostrarMensaje("Elegí una calificación entre 1 y 5 estrellas.", true);
+                return;
+            }
+
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            ResultadoOperacion<int> resultado = _bllCalificacion.CalificarSolicitante(
+                IdReservaCalificando.Value,
+                idUsuarioGestor,
+                puntaje,
+                txtComentarioCalificacionSolicitante.Text);
+
+            MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+            if (resultado.Exitoso)
+            {
+                CerrarCalificacion();
+                CargarSolicitudesRecibidas();
+            }
+        }
+
+        private void CerrarCalificacion()
+        {
+            IdReservaCalificando = null;
+            pnlCalificarSolicitante.Visible = false;
+            ddlPuntajeSolicitante.SelectedIndex = 0;
+            txtComentarioCalificacionSolicitante.Text = string.Empty;
         }
 
         private void CargarSolicitudesRecibidas()
@@ -126,6 +190,8 @@ namespace StageUp.UI
                     return "request-card request-card-pending";
                 case "Aceptada":
                     return "request-card request-card-accepted";
+                case "Finalizada":
+                    return "request-card request-card-finished";
                 case "Rechazada":
                 case "Cancelada":
                     return "request-card request-card-rejected";
@@ -142,6 +208,8 @@ namespace StageUp.UI
                     return "request-status request-status-pending";
                 case "Aceptada":
                     return "request-status request-status-accepted";
+                case "Finalizada":
+                    return "request-status request-status-finished";
                 case "Rechazada":
                 case "Cancelada":
                     return "request-status request-status-rejected";
@@ -197,6 +265,35 @@ namespace StageUp.UI
             }
 
             return string.Join(" · ", partes);
+        }
+
+        protected string ObtenerEstrellasSolicitante(Reserva reserva)
+        {
+            if (reserva == null || reserva.CantidadCalificacionesSolicitante == 0)
+            {
+                return "☆☆☆☆☆";
+            }
+
+            int llenas = Math.Max(0, Math.Min(5, (int)Math.Round(reserva.PromedioCalificacionSolicitante)));
+            return new string('★', llenas) + new string('☆', 5 - llenas);
+        }
+
+        protected string ObtenerResumenReputacionSolicitante(Reserva reserva)
+        {
+            if (reserva == null || reserva.CantidadCalificacionesSolicitante == 0)
+            {
+                return "Sin calificaciones todavía";
+            }
+
+            int cantidad = reserva.CantidadCalificacionesSolicitante;
+            return reserva.PromedioCalificacionSolicitante.ToString("0.0", CultureInfo.CurrentCulture) + " de 5 · " +
+                cantidad + (cantidad == 1 ? " calificación" : " calificaciones");
+        }
+
+        protected string ObtenerEstrellas(int puntaje)
+        {
+            int valor = Math.Max(0, Math.Min(5, puntaje));
+            return new string('★', valor) + new string('☆', 5 - valor);
         }
 
         protected string ObtenerHorarioTexto(Reserva reserva)

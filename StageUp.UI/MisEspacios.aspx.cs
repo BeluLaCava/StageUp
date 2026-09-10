@@ -17,6 +17,7 @@ namespace StageUp.UI
     public partial class MisEspacios : Page
     {
         private readonly BLL_EspacioArtistico _bllEspacio = new BLL_EspacioArtistico();
+        private readonly BLL_Calificacion _bllCalificacion = new BLL_Calificacion();
         private readonly BLL_UsuarioExterno _bllUsuario = new BLL_UsuarioExterno();
         private readonly BLL_Reserva _bllReserva = new BLL_Reserva();
 
@@ -212,6 +213,7 @@ namespace StageUp.UI
         {
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
             List<EspacioArtistico> espacios = _bllEspacio.ListarMisEspacios(idUsuarioGestor);
+            _bllCalificacion.CompletarReputacionesEspacios(espacios);
 
             litSinEspacios.Visible = espacios.Count == 0;
             rptMisEspacios.DataSource = espacios;
@@ -495,6 +497,17 @@ namespace StageUp.UI
             if (ficha.CapacidadMaxima.HasValue) partes.Add("Hasta " + ficha.CapacidadMaxima + " personas");
             if (ficha.PrecioHora.HasValue) partes.Add(ficha.Moneda + " " + ficha.PrecioHora.Value.ToString("N2", CultureInfo.CurrentCulture) + " / hora");
             return string.Join(" · ", partes);
+        }
+
+        protected string ObtenerReputacion(EspacioArtistico espacio)
+        {
+            if (espacio == null || espacio.CantidadCalificaciones == 0)
+            {
+                return "Sin reseñas todavía";
+            }
+
+            return "★ " + espacio.PromedioCalificacion.ToString("0.0", CultureInfo.CurrentCulture) + " de 5 · " +
+                espacio.CantidadCalificaciones + (espacio.CantidadCalificaciones == 1 ? " reseña" : " reseñas");
         }
     }
 }

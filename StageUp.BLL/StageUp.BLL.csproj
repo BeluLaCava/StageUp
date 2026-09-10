@@ -39,6 +39,7 @@
     <Compile Include="BLL_UsuarioExterno.cs" />
     <Compile Include="BLL_EspacioArtistico.cs" />
     <Compile Include="BLL_Reserva.cs" />
+    <Compile Include="BLL_Calificacion.cs" />
     <Compile Include="BLL_Faq.cs" />
     <Compile Include="BLL_UsuarioInterno.cs" />
     <Compile Include="BLL_AreaInterna.cs" />

@@ -63,7 +63,7 @@
                                                 <span aria-hidden="true">◇</span>
                                                 <small>Fotografía pendiente</small>
                                             </asp:Panel>
-                                            <span class="space-card-rating">Sin reseñas</span>
+                                            <span class="space-card-rating"><%#: ObtenerReputacion((StageUp.BE.Entidades.EspacioArtistico)Container.DataItem) %></span>
                                         </div>
                                         <div class="space-card-body">
                                             <p class="space-card-location"><%#: ObtenerUbicacion((StageUp.BE.Entidades.EspacioArtistico)Container.DataItem) %></p>

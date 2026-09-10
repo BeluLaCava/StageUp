@@ -28,6 +28,8 @@ namespace StageUp.BE.Entidades
         public string ApellidoGestor { get; set; }
         public DateTime? GestorDesde { get; set; }
         public int CantidadEspaciosPublicadosGestor { get; set; }
+        public decimal PromedioCalificacion { get; set; }
+        public int CantidadCalificaciones { get; set; }
 
         public string NombreCompletoGestor
         {

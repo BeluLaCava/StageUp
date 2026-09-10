@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Web.UI;
@@ -12,6 +13,7 @@ namespace StageUp.UI
     {
         private const int MaximoBytesFoto = 5 * 1024 * 1024;
         private readonly BLL_UsuarioExterno _bllUsuario = new BLL_UsuarioExterno();
+        private readonly BLL_Calificacion _bllCalificacion = new BLL_Calificacion();
 
         private string FotoPerfilRutaActual
         {
@@ -188,6 +190,50 @@ namespace StageUp.UI
             {
                 imgPerfil.ImageUrl = usuario.FotoPerfilRuta;
             }
+
+            CargarCalificaciones(idUsuario);
+        }
+
+        private void CargarCalificaciones(int idUsuario)
+        {
+            ResumenReputacion resumen = _bllCalificacion.ObtenerResumenUsuario(idUsuario);
+            List<Calificacion> recibidas = _bllCalificacion.ListarRecibidasPorUsuario(idUsuario);
+            List<Calificacion> realizadas = _bllCalificacion.ListarRealizadasPorUsuario(idUsuario);
+
+            litEstrellasPerfil.Text = ObtenerEstrellas((int)Math.Round(resumen.Promedio));
+            litResumenReputacionPerfil.Text = resumen.CantidadCalificaciones == 0
+                ? "Sin calificaciones todavía"
+                : resumen.Promedio.ToString("0.0", CultureInfo.CurrentCulture) + " de 5 · " +
+                  resumen.CantidadCalificaciones + (resumen.CantidadCalificaciones == 1 ? " calificación" : " calificaciones");
+            litAyudaReputacionPerfil.Text = resumen.CantidadCalificaciones == 0
+                ? "Cuando finalicen tus primeras reservas, vas a poder ver acá tu puntaje y los comentarios recibidos."
+                : "Este puntaje reúne las experiencias que los gestores registraron después de reservas finalizadas.";
+
+            pnlSinCalificacionesRecibidas.Visible = recibidas.Count == 0;
+            rptCalificacionesRecibidas.DataSource = recibidas;
+            rptCalificacionesRecibidas.DataBind();
+
+            pnlSinCalificacionesRealizadas.Visible = realizadas.Count == 0;
+            rptCalificacionesRealizadas.DataSource = realizadas;
+            rptCalificacionesRealizadas.DataBind();
+        }
+
+        protected string ObtenerEstrellas(int puntaje)
+        {
+            int valor = Math.Max(0, Math.Min(5, puntaje));
+            return new string('★', valor) + new string('☆', 5 - valor);
+        }
+
+        protected string ObtenerDestinoCalificacion(Calificacion calificacion)
+        {
+            if (calificacion == null)
+            {
+                return "Experiencia StageUp";
+            }
+
+            return calificacion.TipoCalificacion == "Espacio"
+                ? "Espacio: " + calificacion.NombreEspacio
+                : "Solicitante: " + calificacion.NombreEvaluado;
         }
 
         private string GuardarFotoPerfil(out string rutaFisica)

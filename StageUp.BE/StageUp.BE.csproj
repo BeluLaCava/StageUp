@@ -43,6 +43,7 @@
     <Compile Include="Entidades\EspacioArtistico.cs" />
     <Compile Include="Entidades\Faq.cs" />
     <Compile Include="Entidades\Reserva.cs" />
+    <Compile Include="Entidades\Calificacion.cs" />
     <Compile Include="Entidades\Idioma.cs" />
     <Compile Include="Entidades\Traduccion.cs" />
     <Compile Include="Interfaces\IObservadorIdioma.cs" />
@@ -51,6 +52,7 @@
     <Compile Include="Enumerados\PerfilUsuarioExterno.cs" />
     <Compile Include="Enumerados\EstadoEspacio.cs" />
     <Compile Include="Enumerados\EstadoReserva.cs" />
+    <Compile Include="Enumerados\TipoCalificacion.cs" />
     <Compile Include="Enumerados\EstadoCuentaInterno.cs" />
     <Compile Include="Menu\ComponenteMenu.cs" />
     <Compile Include="Menu\ItemMenu.cs" />

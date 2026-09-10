@@ -22,6 +22,7 @@ namespace StageUp.BLL
         private readonly MPP_Reserva _mppReserva = new MPP_Reserva();
         private readonly MPP_EspacioArtistico _mppEspacio = new MPP_EspacioArtistico();
         private readonly MPP_UsuarioExterno _mppUsuario = new MPP_UsuarioExterno();
+        private readonly MPP_Calificacion _mppCalificacion = new MPP_Calificacion();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
         private const int LongitudMaximaComentario = 1000;
@@ -212,6 +213,7 @@ namespace StageUp.BLL
         {
             try
             {
+                _mppReserva.FinalizarVencidas();
                 return _mppReserva.ListarPorSolicitante(idUsuarioExternoSolicitante);
             }
             catch (ErrorAccesoDatosException)
@@ -224,6 +226,7 @@ namespace StageUp.BLL
         {
             try
             {
+                _mppReserva.FinalizarVencidas();
                 List<Reserva> solicitudes = _mppReserva.ListarPorGestor(idUsuarioGestor);
                 CompletarReputacionSolicitantes(solicitudes);
                 return solicitudes;
@@ -238,6 +241,16 @@ namespace StageUp.BLL
         {
             var usuarios = new Dictionary<int, UsuarioExterno>();
             var reservasAceptadas = new Dictionary<int, int>();
+            var calificacionesPorUsuario = new Dictionary<int, List<Calificacion>>();
+            Dictionary<int, ResumenReputacion> resumenes = new Dictionary<int, ResumenReputacion>();
+
+            try
+            {
+                resumenes = _mppCalificacion.ListarResumenesUsuarios();
+            }
+            catch (ErrorAccesoDatosException)
+            {
+            }
 
             foreach (Reserva solicitud in solicitudes)
             {
@@ -260,7 +273,8 @@ namespace StageUp.BLL
                         List<Reserva> historial = _mppReserva.ListarPorSolicitante(idSolicitante);
                         foreach (Reserva reserva in historial)
                         {
-                            if (reserva.EstadoReserva == EstadoReserva.Aceptada.ToString())
+                            if (reserva.EstadoReserva == EstadoReserva.Aceptada.ToString() ||
+                                reserva.EstadoReserva == EstadoReserva.Finalizada.ToString())
                             {
                                 cantidadAceptadas++;
                             }
@@ -272,6 +286,18 @@ namespace StageUp.BLL
 
                     usuarios[idSolicitante] = usuario;
                     reservasAceptadas[idSolicitante] = cantidadAceptadas;
+
+                    try
+                    {
+                        List<Calificacion> calificaciones = _mppCalificacion.ListarRecibidasPorUsuario(idSolicitante);
+                        calificacionesPorUsuario[idSolicitante] = calificaciones.Count <= 3
+                            ? calificaciones
+                            : calificaciones.GetRange(0, 3);
+                    }
+                    catch (ErrorAccesoDatosException)
+                    {
+                        calificacionesPorUsuario[idSolicitante] = new List<Calificacion>();
+                    }
                 }
 
                 UsuarioExterno solicitante = usuarios[idSolicitante];
@@ -290,6 +316,13 @@ namespace StageUp.BLL
                 }
 
                 solicitud.CantidadReservasAceptadasSolicitante = reservasAceptadas[idSolicitante];
+                solicitud.CalificacionesSolicitante = calificacionesPorUsuario[idSolicitante];
+                ResumenReputacion resumen;
+                if (resumenes.TryGetValue(idSolicitante, out resumen))
+                {
+                    solicitud.PromedioCalificacionSolicitante = resumen.Promedio;
+                    solicitud.CantidadCalificacionesSolicitante = resumen.CantidadCalificaciones;
+                }
             }
         }
 
@@ -308,6 +341,12 @@ namespace StageUp.BLL
                 if (!validacion.Exitoso)
                 {
                     return validacion;
+                }
+
+                DateTime finalReserva = reserva.FechaSolicitada.Date.AddMinutes(reserva.MinutoHasta ?? 1440);
+                if (finalReserva <= DateTime.Now)
+                {
+                    return ResultadoOperacion.Error("El horario solicitado ya terminó y no se puede aceptar.");
                 }
 
                 string comentarioLimpio = string.IsNullOrWhiteSpace(comentarioResolucion) ? null : comentarioResolucion.Trim();
@@ -372,6 +411,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
+                _mppReserva.FinalizarVencidas();
                 Reserva reserva = _mppReserva.ObtenerPorId(idReserva);
                 if (reserva == null)
                 {

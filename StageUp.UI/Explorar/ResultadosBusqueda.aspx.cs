@@ -13,6 +13,7 @@ namespace StageUp.UI.Explorar
     {
         private const int LongitudMaximaResumen = 160;
         private readonly BLL_EspacioArtistico _bllEspacio = new BLL_EspacioArtistico();
+        private readonly BLL_Calificacion _bllCalificacion = new BLL_Calificacion();
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -29,6 +30,7 @@ namespace StageUp.UI.Explorar
             FiltroBusquedaEspacios filtro = ArmarFiltroDesdeQueryString(textoBusqueda, tipoEspacio);
 
             var espacios = _bllEspacio.Buscar(filtro);
+            _bllCalificacion.CompletarReputacionesEspacios(espacios);
 
             rptEspaciosPublicados.DataSource = espacios;
             rptEspaciosPublicados.DataBind();
@@ -160,6 +162,18 @@ namespace StageUp.UI.Explorar
 
             return (espacio.Ficha.Moneda ?? "ARS") + " " +
                 espacio.Ficha.PrecioHora.Value.ToString("N2", CultureInfo.CurrentCulture) + " / hora";
+        }
+
+        protected string ObtenerReputacion(EspacioArtistico espacio)
+        {
+            if (espacio == null || espacio.CantidadCalificaciones == 0)
+            {
+                return "Nuevo · Sin reseñas";
+            }
+
+            return "★ " + espacio.PromedioCalificacion.ToString("0.0", CultureInfo.CurrentCulture) +
+                " · " + espacio.CantidadCalificaciones +
+                (espacio.CantidadCalificaciones == 1 ? " reseña" : " reseñas");
         }
 
         private static bool EsFotoValida(string ruta)

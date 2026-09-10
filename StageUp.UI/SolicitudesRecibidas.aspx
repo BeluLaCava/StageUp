@@ -87,9 +87,19 @@
                                         </div>
                                     </div>
                                     <div class="request-reputation">
-                                        <span class="request-reputation-stars" aria-hidden="true">☆☆☆☆☆</span>
-                                        <strong>Sin calificaciones todavía</strong>
+                                        <span class="request-reputation-stars" aria-hidden="true"><%#: ObtenerEstrellasSolicitante((StageUp.BE.Entidades.Reserva)Container.DataItem) %></span>
+                                        <strong><%#: ObtenerResumenReputacionSolicitante((StageUp.BE.Entidades.Reserva)Container.DataItem) %></strong>
                                         <p><%#: ObtenerActividadSolicitante((StageUp.BE.Entidades.Reserva)Container.DataItem) %></p>
+                                        <asp:Panel ID="pnlHistorialReputacion" runat="server" CssClass="request-reputation-history"
+                                            Visible='<%# ((StageUp.BE.Entidades.Reserva)Container.DataItem).CalificacionesSolicitante.Count > 0 %>'>
+                                            <small data-i18n="Calificacion_UltimasOpiniones">Últimas opiniones de gestores</small>
+                                            <asp:Repeater ID="rptHistorialReputacion" runat="server"
+                                                DataSource='<%# ((StageUp.BE.Entidades.Reserva)Container.DataItem).CalificacionesSolicitante %>'>
+                                                <ItemTemplate>
+                                                    <blockquote><span aria-hidden="true"><%#: ObtenerEstrellas(Convert.ToInt32(Eval("Puntaje"))) %></span><%#: Eval("Comentario") %></blockquote>
+                                                </ItemTemplate>
+                                            </asp:Repeater>
+                                        </asp:Panel>
                                     </div>
                                 </aside>
                             </div>
@@ -105,10 +115,57 @@
                                         Text="Aceptar solicitud" OnClientClick="return confirm('¿Querés aceptar esta solicitud?');" />
                                 </div>
                             </asp:Panel>
+                            <asp:Panel ID="pnlAccionesCalificacion" runat="server" CssClass="request-card-actions request-card-review-actions">
+                                <span data-i18n="Calificacion_FinalizadaGestor">La reserva finalizó. Ya podés contar cómo fue la experiencia con el solicitante.</span>
+                                <asp:LinkButton ID="lnkCalificarSolicitante" runat="server" CssClass="button button-primary button-small"
+                                    CausesValidation="false" CommandName="CalificarSolicitante" CommandArgument='<%# Eval("IdReserva") %>'
+                                    Text="Calificar solicitante" data-i18n="Calificacion_CalificarSolicitante" />
+                                <asp:Panel ID="pnlCalificacionSolicitanteRealizada" runat="server" CssClass="review-completed-badge">
+                                    <span aria-hidden="true">✓</span> <span data-i18n="Calificacion_CalificacionEnviada">Calificación enviada</span>
+                                </asp:Panel>
+                            </asp:Panel>
                         </article>
                     </ItemTemplate>
                 </asp:Repeater>
             </div>
         </div>
     </section>
+
+    <asp:Panel ID="pnlCalificarSolicitante" runat="server" Visible="false" CssClass="review-dialog-layer">
+        <dialog class="review-dialog" open aria-labelledby="review-user-title">
+            <asp:LinkButton ID="lnkCerrarCalificacionSolicitante" runat="server" CssClass="review-dialog-close" CausesValidation="false"
+                OnClick="lnkCerrarCalificacionSolicitante_Click" aria-label="Cerrar">×</asp:LinkButton>
+            <span class="section-label" data-i18n="Calificacion_ExperienciaVerificada">Experiencia verificada</span>
+            <h2 id="review-user-title" data-i18n="Calificacion_TituloSolicitante">¿Cómo fue la experiencia con el solicitante?</h2>
+            <p data-i18n="Calificacion_AyudaSolicitante">Tu calificación será visible para el usuario y ayudará a otros gestores a evaluar futuras solicitudes.</p>
+            <div class="form-field">
+                <label for="<%= ddlPuntajeSolicitante.ClientID %>" data-i18n="Calificacion_Puntaje">Calificación *</label>
+                <asp:DropDownList ID="ddlPuntajeSolicitante" runat="server" CssClass="review-score-select">
+                    <asp:ListItem Value="">Seleccioná una puntuación</asp:ListItem>
+                    <asp:ListItem Value="5">★★★★★ · Excelente</asp:ListItem>
+                    <asp:ListItem Value="4">★★★★☆ · Muy bueno</asp:ListItem>
+                    <asp:ListItem Value="3">★★★☆☆ · Bueno</asp:ListItem>
+                    <asp:ListItem Value="2">★★☆☆☆ · Regular</asp:ListItem>
+                    <asp:ListItem Value="1">★☆☆☆☆ · Malo</asp:ListItem>
+                </asp:DropDownList>
+                <asp:RequiredFieldValidator ID="rfvPuntajeSolicitante" runat="server" ControlToValidate="ddlPuntajeSolicitante"
+                    InitialValue="" ValidationGroup="CalificarSolicitante" Display="Dynamic" CssClass="field-error-text"
+                    ErrorMessage="Elegí una calificación entre 1 y 5 estrellas." />
+            </div>
+            <div class="form-field">
+                <label for="<%= txtComentarioCalificacionSolicitante.ClientID %>" data-i18n="Calificacion_Comentario">Comentario *</label>
+                <asp:TextBox ID="txtComentarioCalificacionSolicitante" runat="server" TextMode="MultiLine" Rows="5" MaxLength="1000"
+                    CssClass="review-comment" placeholder="Contá si respetó el horario, el espacio y los acuerdos." data-i18n-placeholder="Calificacion_PlaceholderSolicitante" />
+                <asp:RequiredFieldValidator ID="rfvComentarioCalificacionSolicitante" runat="server" ControlToValidate="txtComentarioCalificacionSolicitante"
+                    ValidationGroup="CalificarSolicitante" Display="Dynamic" CssClass="field-error-text"
+                    ErrorMessage="Escribí un comentario sobre tu experiencia." />
+            </div>
+            <div class="review-dialog-actions">
+                <asp:LinkButton ID="lnkCancelarCalificacionSolicitante" runat="server" CssClass="button button-secondary" CausesValidation="false"
+                    OnClick="lnkCerrarCalificacionSolicitante_Click" data-i18n="General_Cancelar">Cancelar</asp:LinkButton>
+                <asp:Button ID="btnEnviarCalificacionSolicitante" runat="server" CssClass="button button-primary"
+                    ValidationGroup="CalificarSolicitante" Text="Enviar calificación" OnClick="btnEnviarCalificacionSolicitante_Click" data-i18n="Calificacion_Enviar" />
+            </div>
+        </dialog>
+    </asp:Panel>
 </asp:Content>

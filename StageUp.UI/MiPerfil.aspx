@@ -27,11 +27,11 @@
                     <span class="profile-role"><asp:Literal ID="litPerfilUsuario" runat="server" Mode="Encode" /></span>
                     <p class="profile-summary-email"><asp:Literal ID="litCorreoResumen" runat="server" Mode="Encode" /></p>
 
-                    <div class="profile-reputation" aria-label="Reputación sin calificaciones">
+                    <div class="profile-reputation" aria-label="Tu reputación como solicitante">
                         <span class="profile-card-eyebrow">Tu reputación</span>
-                        <div class="profile-stars" aria-hidden="true">☆☆☆☆☆</div>
-                        <strong>Sin calificaciones todavía</strong>
-                        <p>Cuando finalicen tus primeras reservas, vas a poder ver acá tu puntaje y los comentarios recibidos.</p>
+                        <div class="profile-stars" aria-hidden="true"><asp:Literal ID="litEstrellasPerfil" runat="server" /></div>
+                        <strong><asp:Literal ID="litResumenReputacionPerfil" runat="server" Mode="Encode" /></strong>
+                        <p><asp:Literal ID="litAyudaReputacionPerfil" runat="server" Mode="Encode" /></p>
                     </div>
                 </aside>
 
@@ -114,6 +114,47 @@
                                 <asp:LinkButton ID="lnkCancelarEdicion" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCancelarEdicion_Click">Cancelar</asp:LinkButton>
                             </div>
                         </asp:Panel>
+                    </section>
+
+                    <section class="profile-card" aria-labelledby="profile-reviews-title">
+                        <div class="profile-card-header">
+                            <div>
+                                <span class="profile-card-eyebrow" data-i18n="Calificacion_Historial">Experiencias verificadas</span>
+                                <h2 id="profile-reviews-title" data-i18n="Calificacion_MisCalificaciones">Mis calificaciones</h2>
+                            </div>
+                        </div>
+                        <div class="profile-reviews-grid">
+                            <section aria-labelledby="received-reviews-title">
+                                <h3 id="received-reviews-title" data-i18n="Calificacion_Recibidas">Recibidas como solicitante</h3>
+                                <asp:Panel ID="pnlSinCalificacionesRecibidas" runat="server" CssClass="profile-reviews-empty">
+                                    Todavía no recibiste calificaciones. Aparecerán después de tus reservas finalizadas.
+                                </asp:Panel>
+                                <asp:Repeater ID="rptCalificacionesRecibidas" runat="server">
+                                    <ItemTemplate>
+                                        <article class="profile-review-item">
+                                            <header><strong><%#: Eval("NombreEspacio") %></strong><span><%#: ObtenerEstrellas(Convert.ToInt32(Eval("Puntaje"))) %></span></header>
+                                            <p><%#: Eval("Comentario") %></p>
+                                            <small>Reserva del <%# Eval("FechaReserva", "{0:dd/MM/yyyy}") %> · Por <%#: Eval("NombreAutor") %></small>
+                                        </article>
+                                    </ItemTemplate>
+                                </asp:Repeater>
+                            </section>
+                            <section aria-labelledby="made-reviews-title">
+                                <h3 id="made-reviews-title" data-i18n="Calificacion_Realizadas">Realizadas</h3>
+                                <asp:Panel ID="pnlSinCalificacionesRealizadas" runat="server" CssClass="profile-reviews-empty">
+                                    Todavía no realizaste calificaciones.
+                                </asp:Panel>
+                                <asp:Repeater ID="rptCalificacionesRealizadas" runat="server">
+                                    <ItemTemplate>
+                                        <article class="profile-review-item">
+                                            <header><strong><%#: ObtenerDestinoCalificacion((StageUp.BE.Entidades.Calificacion)Container.DataItem) %></strong><span><%#: ObtenerEstrellas(Convert.ToInt32(Eval("Puntaje"))) %></span></header>
+                                            <p><%#: Eval("Comentario") %></p>
+                                            <small>Reserva del <%# Eval("FechaReserva", "{0:dd/MM/yyyy}") %></small>
+                                        </article>
+                                    </ItemTemplate>
+                                </asp:Repeater>
+                            </section>
+                        </div>
                     </section>
 
                     <section class="profile-card" aria-labelledby="security-title">

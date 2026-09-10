@@ -118,11 +118,32 @@
                         <section class="space-detail-section" aria-labelledby="space-reviews-title">
                             <span class="eyebrow">Experiencias verificadas</span>
                             <h2 id="space-reviews-title">Reseñas del espacio</h2>
-                            <div class="space-reviews-empty">
+                            <asp:Panel ID="pnlResumenResenas" runat="server" CssClass="space-reviews-summary">
+                                <span class="space-reviews-score"><asp:Literal ID="litPromedioResenas" runat="server" /></span>
+                                <div>
+                                    <span class="space-reviews-stars" aria-hidden="true"><asp:Literal ID="litEstrellasResenas" runat="server" /></span>
+                                    <strong><asp:Literal ID="litCantidadResenas" runat="server" /></strong>
+                                    <p data-i18n="Calificacion_SoloReservasVerificadas">Todas las opiniones corresponden a reservas finalizadas.</p>
+                                </div>
+                            </asp:Panel>
+                            <asp:Repeater ID="rptResenasEspacio" runat="server">
+                                <ItemTemplate>
+                                    <article class="space-review-card">
+                                        <header>
+                                            <div class="space-review-avatar" aria-hidden="true"><%#: ObtenerInicialesResena(Eval("NombreAutor") as string) %></div>
+                                            <div><strong><%#: Eval("NombreAutor") %></strong><span>Reserva del <%# Eval("FechaReserva", "{0:dd/MM/yyyy}") %></span></div>
+                                            <span class="space-review-rating" aria-label='<%# Eval("Puntaje") + " de 5 estrellas" %>'><%#: ObtenerEstrellas(Convert.ToInt32(Eval("Puntaje"))) %></span>
+                                        </header>
+                                        <p><%#: Eval("Comentario") %></p>
+                                        <small>Publicada el <%# Eval("FechaAlta", "{0:dd/MM/yyyy}") %></small>
+                                    </article>
+                                </ItemTemplate>
+                            </asp:Repeater>
+                            <asp:Panel ID="pnlSinResenas" runat="server" CssClass="space-reviews-empty">
                                 <span class="space-reviews-stars" aria-hidden="true">☆☆☆☆☆</span>
                                 <strong>Todavía no hay reseñas</strong>
-                                <p>Las opiniones aparecerán cuando se incorpore el circuito de calificaciones posterior a una reserva finalizada.</p>
-                            </div>
+                                <p>Cuando finalice la primera reserva, la persona que utilizó el espacio podrá compartir su experiencia.</p>
+                            </asp:Panel>
                         </section>
                     </div>
 

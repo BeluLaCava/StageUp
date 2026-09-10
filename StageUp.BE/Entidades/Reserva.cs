@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
@@ -20,6 +21,7 @@ namespace StageUp.BE.Entidades
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaResolucion { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
+        public DateTime? FechaFinalizacion { get; set; }
 
         // Horario y precio pactado (columnas normalizadas, tanda 10/09). Nulos para
         // reservas viejas hechas antes de que existiera el planificador de horarios.
@@ -43,5 +45,10 @@ namespace StageUp.BE.Entidades
         public string CorreoSolicitante { get; set; }
         public DateTime? SolicitanteDesde { get; set; }
         public int CantidadReservasAceptadasSolicitante { get; set; }
+        public decimal PromedioCalificacionSolicitante { get; set; }
+        public int CantidadCalificacionesSolicitante { get; set; }
+        public bool CalificacionEspacioRealizada { get; set; }
+        public bool CalificacionSolicitanteRealizada { get; set; }
+        public List<Calificacion> CalificacionesSolicitante { get; set; } = new List<Calificacion>();
     }
 }

@@ -97,6 +97,11 @@ namespace StageUp.MPP
                 new SqlParameter("@importeComision", (object)importeComision ?? DBNull.Value));
         }
 
+        public void FinalizarVencidas()
+        {
+            Conexion.Instance.Guardar("sp_Reserva_FinalizarVencidas");
+        }
+
         private static List<Reserva> MapearDesdeTabla(DataTable tabla)
         {
             var lista = new List<Reserva>();
@@ -121,6 +126,8 @@ namespace StageUp.MPP
                 FechaCreacion = Convert.ToDateTime(fila["fechaCreacion"]),
                 FechaResolucion = fila["fechaResolucion"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(fila["fechaResolucion"]),
                 FechaUltimaModificacion = fila["fechaUltimaModificacion"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(fila["fechaUltimaModificacion"]),
+                FechaFinalizacion = fila.Table.Columns.Contains("fechaFinalizacion") && fila["fechaFinalizacion"] != DBNull.Value
+                    ? Convert.ToDateTime(fila["fechaFinalizacion"]) : (DateTime?)null,
                 MinutoDesde = fila.Table.Columns.Contains("minutoDesde") && fila["minutoDesde"] != DBNull.Value ? Convert.ToInt32(fila["minutoDesde"]) : (int?)null,
                 MinutoHasta = fila.Table.Columns.Contains("minutoHasta") && fila["minutoHasta"] != DBNull.Value ? Convert.ToInt32(fila["minutoHasta"]) : (int?)null,
                 PrecioHoraPactado = fila.Table.Columns.Contains("precioHoraPactado") && fila["precioHoraPactado"] != DBNull.Value ? Convert.ToDecimal(fila["precioHoraPactado"]) : (decimal?)null,
@@ -130,7 +137,13 @@ namespace StageUp.MPP
                 ImporteComision = fila.Table.Columns.Contains("importeComision") && fila["importeComision"] != DBNull.Value ? Convert.ToDecimal(fila["importeComision"]) : (decimal?)null,
                 FechaCancelacion = fila.Table.Columns.Contains("fechaCancelacion") && fila["fechaCancelacion"] != DBNull.Value ? Convert.ToDateTime(fila["fechaCancelacion"]) : (DateTime?)null,
                 NombreEspacio = fila.Table.Columns.Contains("nombreEspacio") && fila["nombreEspacio"] != DBNull.Value ? fila["nombreEspacio"].ToString() : null,
-                IdUsuarioGestor = fila.Table.Columns.Contains("idUsuarioGestor") ? Convert.ToInt32(fila["idUsuarioGestor"]) : 0
+                IdUsuarioGestor = fila.Table.Columns.Contains("idUsuarioGestor") ? Convert.ToInt32(fila["idUsuarioGestor"]) : 0,
+                PromedioCalificacionSolicitante = fila.Table.Columns.Contains("promedioCalificacionSolicitante") && fila["promedioCalificacionSolicitante"] != DBNull.Value
+                    ? Convert.ToDecimal(fila["promedioCalificacionSolicitante"]) : 0m,
+                CantidadCalificacionesSolicitante = fila.Table.Columns.Contains("cantidadCalificacionesSolicitante")
+                    ? Convert.ToInt32(fila["cantidadCalificacionesSolicitante"]) : 0,
+                CalificacionEspacioRealizada = fila.Table.Columns.Contains("calificacionEspacioRealizada") && Convert.ToBoolean(fila["calificacionEspacioRealizada"]),
+                CalificacionSolicitanteRealizada = fila.Table.Columns.Contains("calificacionSolicitanteRealizada") && Convert.ToBoolean(fila["calificacionSolicitanteRealizada"])
             };
 
             if (fila.Table.Columns.Contains("nombreSolicitante") && fila["nombreSolicitante"] != DBNull.Value)

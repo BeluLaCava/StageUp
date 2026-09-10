@@ -10,6 +10,9 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Literal litNombreResumen;
         protected global::System.Web.UI.WebControls.Literal litPerfilUsuario;
         protected global::System.Web.UI.WebControls.Literal litCorreoResumen;
+        protected global::System.Web.UI.WebControls.Literal litEstrellasPerfil;
+        protected global::System.Web.UI.WebControls.Literal litResumenReputacionPerfil;
+        protected global::System.Web.UI.WebControls.Literal litAyudaReputacionPerfil;
         protected global::System.Web.UI.WebControls.LinkButton lnkEditarDatos;
         protected global::System.Web.UI.WebControls.Panel pnlVistaDatos;
         protected global::System.Web.UI.WebControls.Literal litNombre;
@@ -30,6 +33,10 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.TextBox txtDescripcion;
         protected global::System.Web.UI.WebControls.Button btnGuardarDatos;
         protected global::System.Web.UI.WebControls.LinkButton lnkCancelarEdicion;
+        protected global::System.Web.UI.WebControls.Panel pnlSinCalificacionesRecibidas;
+        protected global::System.Web.UI.WebControls.Repeater rptCalificacionesRecibidas;
+        protected global::System.Web.UI.WebControls.Panel pnlSinCalificacionesRealizadas;
+        protected global::System.Web.UI.WebControls.Repeater rptCalificacionesRealizadas;
         protected global::System.Web.UI.WebControls.LinkButton lnkCambiarPassword;
         protected global::System.Web.UI.WebControls.Panel pnlPasswordResumen;
         protected global::System.Web.UI.WebControls.Panel pnlCambiarPassword;

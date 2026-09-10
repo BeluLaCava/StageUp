@@ -18,6 +18,13 @@ namespace StageUp.UI
     public partial class MisReservas : Page
     {
         private readonly BLL_Reserva _bllReserva = new BLL_Reserva();
+        private readonly BLL_Calificacion _bllCalificacion = new BLL_Calificacion();
+
+        private int? IdReservaCalificando
+        {
+            get { return ViewState["IdReservaCalificando"] as int?; }
+            set { ViewState["IdReservaCalificando"] = value; }
+        }
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -35,12 +42,22 @@ namespace StageUp.UI
 
         protected void rptMisReservas_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
+            int idReserva = Convert.ToInt32(e.CommandArgument);
+
+            if (e.CommandName == "CalificarEspacio")
+            {
+                IdReservaCalificando = idReserva;
+                ddlPuntajeEspacio.SelectedIndex = 0;
+                txtComentarioCalificacionEspacio.Text = string.Empty;
+                pnlCalificarEspacio.Visible = true;
+                return;
+            }
+
             if (e.CommandName != "Cancelar")
             {
                 return;
             }
 
-            int idReserva = Convert.ToInt32(e.CommandArgument);
             int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
 
             ResultadoOperacion resultado = _bllReserva.Cancelar(idReserva, idUsuarioExterno);
@@ -59,6 +76,8 @@ namespace StageUp.UI
             var reserva = (Reserva)e.Item.DataItem;
 
             var lnkCancelar = (LinkButton)e.Item.FindControl("lnkCancelar");
+            var lnkCalificarEspacio = (LinkButton)e.Item.FindControl("lnkCalificarEspacio");
+            var pnlCalificacionRealizada = (Panel)e.Item.FindControl("pnlCalificacionEspacioRealizada");
             bool puedeCancelar = reserva.EstadoReserva == "Pendiente" || reserva.EstadoReserva == "Aceptada";
             lnkCancelar.Visible = puedeCancelar;
             if (puedeCancelar)
@@ -66,6 +85,10 @@ namespace StageUp.UI
                 lnkCancelar.Attributes["onclick"] =
                     "return confirm('" + ObtenerMensajeConfirmacionCancelacion(reserva).Replace("'", "\\'") + "');";
             }
+
+            bool finalizada = reserva.EstadoReserva == "Finalizada";
+            lnkCalificarEspacio.Visible = finalizada && !reserva.CalificacionEspacioRealizada;
+            pnlCalificacionRealizada.Visible = finalizada && reserva.CalificacionEspacioRealizada;
 
             var litComentarioResolucion = (Literal)e.Item.FindControl("litComentarioResolucion");
             if (litComentarioResolucion != null && !string.IsNullOrEmpty(reserva.ComentarioResolucion))
@@ -85,6 +108,48 @@ namespace StageUp.UI
 
                 litHorarioImporte.Text = Server.HtmlEncode(horario);
             }
+        }
+
+        protected void lnkCerrarCalificacionEspacio_Click(object sender, EventArgs e)
+        {
+            CerrarCalificacion();
+        }
+
+        protected void btnEnviarCalificacionEspacio_Click(object sender, EventArgs e)
+        {
+            if (!Page.IsValid || !IdReservaCalificando.HasValue)
+            {
+                return;
+            }
+
+            int puntaje;
+            if (!int.TryParse(ddlPuntajeEspacio.SelectedValue, out puntaje))
+            {
+                MostrarMensaje("Elegí una calificación entre 1 y 5 estrellas.", true);
+                return;
+            }
+
+            int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            ResultadoOperacion<int> resultado = _bllCalificacion.CalificarEspacio(
+                IdReservaCalificando.Value,
+                idUsuarioExterno,
+                puntaje,
+                txtComentarioCalificacionEspacio.Text);
+
+            MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+            if (resultado.Exitoso)
+            {
+                CerrarCalificacion();
+                CargarMisReservas();
+            }
+        }
+
+        private void CerrarCalificacion()
+        {
+            IdReservaCalificando = null;
+            pnlCalificarEspacio.Visible = false;
+            ddlPuntajeEspacio.SelectedIndex = 0;
+            txtComentarioCalificacionEspacio.Text = string.Empty;
         }
 
         // Aviso orientativo en el cliente: el cálculo real (y el que manda) se

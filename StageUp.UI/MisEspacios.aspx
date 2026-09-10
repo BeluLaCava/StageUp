@@ -63,9 +63,11 @@
                                 <h3><%#: Eval("NombreEspacio") %></h3>
                                 <p><%#: Eval("TipoEspacio") %> · Estado: <%#: Eval("EstadoEspacio") %></p>
                                 <p class="managed-space-details"><%#: ResumenFicha((StageUp.BE.Entidades.EspacioArtistico)Container.DataItem) %></p>
+                                <p class="managed-space-reputation"><%#: ObtenerReputacion((StageUp.BE.Entidades.EspacioArtistico)Container.DataItem) %></p>
                                 <p class="managed-space-description"><%#: Eval("Descripcion") %></p>
                             </div>
                             <div class="managed-space-actions">
+                                <a class="text-link" href='<%# "Explorar/DetalleEspacio.aspx?id=" + Eval("IdEspacioArtistico") + "#space-reviews-title" %>' data-i18n="Calificacion_VerResenas">Ver reseñas</a>
                                 <asp:LinkButton ID="lnkEditar" runat="server" CssClass="text-link" CausesValidation="false"
                                     CommandName="Editar" CommandArgument='<%# Eval("IdEspacioArtistico") %>' Text="Editar" />
                                 <asp:LinkButton ID="lnkPublicar" runat="server" CssClass="text-link" CausesValidation="false"

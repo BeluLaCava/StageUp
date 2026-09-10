@@ -37,6 +37,11 @@
                             <div class="space-row-actions">
                                 <asp:LinkButton ID="lnkCancelar" runat="server" CssClass="text-link" CausesValidation="false"
                                     CommandName="Cancelar" CommandArgument='<%# Eval("IdReserva") %>' Text="Cancelar" />
+                                <asp:LinkButton ID="lnkCalificarEspacio" runat="server" CssClass="button button-primary button-small" CausesValidation="false"
+                                    CommandName="CalificarEspacio" CommandArgument='<%# Eval("IdReserva") %>' Text="Calificar espacio" data-i18n="Calificacion_CalificarEspacio" />
+                                <asp:Panel ID="pnlCalificacionEspacioRealizada" runat="server" CssClass="review-completed-badge">
+                                    <span aria-hidden="true">✓</span> <span data-i18n="Calificacion_ResenaEnviada">Reseña enviada</span>
+                                </asp:Panel>
                             </div>
                         </div>
                     </ItemTemplate>
@@ -44,4 +49,42 @@
             </div>
         </div>
     </section>
+
+    <asp:Panel ID="pnlCalificarEspacio" runat="server" Visible="false" CssClass="review-dialog-layer">
+        <dialog class="review-dialog" open aria-labelledby="review-space-title">
+            <asp:LinkButton ID="lnkCerrarCalificacionEspacio" runat="server" CssClass="review-dialog-close" CausesValidation="false"
+                OnClick="lnkCerrarCalificacionEspacio_Click" aria-label="Cerrar">×</asp:LinkButton>
+            <span class="section-label" data-i18n="Calificacion_ExperienciaVerificada">Experiencia verificada</span>
+            <h2 id="review-space-title" data-i18n="Calificacion_TituloEspacio">¿Cómo estuvo el espacio?</h2>
+            <p data-i18n="Calificacion_AyudaEspacio">Tu opinión ayudará a otras personas a elegir y al gestor a seguir mejorando.</p>
+            <div class="form-field">
+                <label for="<%= ddlPuntajeEspacio.ClientID %>" data-i18n="Calificacion_Puntaje">Calificación *</label>
+                <asp:DropDownList ID="ddlPuntajeEspacio" runat="server" CssClass="review-score-select">
+                    <asp:ListItem Value="">Seleccioná una puntuación</asp:ListItem>
+                    <asp:ListItem Value="5">★★★★★ · Excelente</asp:ListItem>
+                    <asp:ListItem Value="4">★★★★☆ · Muy bueno</asp:ListItem>
+                    <asp:ListItem Value="3">★★★☆☆ · Bueno</asp:ListItem>
+                    <asp:ListItem Value="2">★★☆☆☆ · Regular</asp:ListItem>
+                    <asp:ListItem Value="1">★☆☆☆☆ · Malo</asp:ListItem>
+                </asp:DropDownList>
+                <asp:RequiredFieldValidator ID="rfvPuntajeEspacio" runat="server" ControlToValidate="ddlPuntajeEspacio"
+                    InitialValue="" ValidationGroup="CalificarEspacio" Display="Dynamic" CssClass="field-error-text"
+                    ErrorMessage="Elegí una calificación entre 1 y 5 estrellas." />
+            </div>
+            <div class="form-field">
+                <label for="<%= txtComentarioCalificacionEspacio.ClientID %>" data-i18n="Calificacion_Comentario">Comentario *</label>
+                <asp:TextBox ID="txtComentarioCalificacionEspacio" runat="server" TextMode="MultiLine" Rows="5" MaxLength="1000"
+                    CssClass="review-comment" placeholder="Contá cómo fue tu experiencia con el espacio." data-i18n-placeholder="Calificacion_PlaceholderEspacio" />
+                <asp:RequiredFieldValidator ID="rfvComentarioCalificacionEspacio" runat="server" ControlToValidate="txtComentarioCalificacionEspacio"
+                    ValidationGroup="CalificarEspacio" Display="Dynamic" CssClass="field-error-text"
+                    ErrorMessage="Escribí un comentario sobre tu experiencia." />
+            </div>
+            <div class="review-dialog-actions">
+                <asp:LinkButton ID="lnkCancelarCalificacionEspacio" runat="server" CssClass="button button-secondary" CausesValidation="false"
+                    OnClick="lnkCerrarCalificacionEspacio_Click" data-i18n="General_Cancelar">Cancelar</asp:LinkButton>
+                <asp:Button ID="btnEnviarCalificacionEspacio" runat="server" CssClass="button button-primary"
+                    ValidationGroup="CalificarEspacio" Text="Publicar reseña" OnClick="btnEnviarCalificacionEspacio_Click" data-i18n="Calificacion_Publicar" />
+            </div>
+        </dialog>
+    </asp:Panel>
 </asp:Content>

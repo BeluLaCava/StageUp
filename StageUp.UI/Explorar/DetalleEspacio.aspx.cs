@@ -14,6 +14,7 @@ namespace StageUp.UI.Explorar
     {
         private readonly BLL_EspacioArtistico _bllEspacio = new BLL_EspacioArtistico();
         private readonly BLL_Reserva _bllReserva = new BLL_Reserva();
+        private readonly BLL_Calificacion _bllCalificacion = new BLL_Calificacion();
 
         private int? IdEspacioArtistico
         {
@@ -130,6 +131,7 @@ namespace StageUp.UI.Explorar
 
             CargarGestor(espacio);
             CargarFicha(ficha);
+            CargarResenas(espacio.IdEspacioArtistico);
             CargarReserva(espacio, ficha);
 
             Title = espacio.NombreEspacio + " | StageUp";
@@ -144,7 +146,7 @@ namespace StageUp.UI.Explorar
             litNombreGestor.Text = Server.HtmlEncode(nombre);
             litInicialesGestor.Text = Server.HtmlEncode(ObtenerIniciales(nombre));
 
-            var datos = new List<string> { "Sin calificaciones todavía" };
+            var datos = new List<string>();
             if (espacio.GestorDesde.HasValue)
             {
                 datos.Add("en StageUp desde " + espacio.GestorDesde.Value.ToString("MM/yyyy"));
@@ -157,7 +159,41 @@ namespace StageUp.UI.Explorar
                     : espacio.CantidadEspaciosPublicadosGestor + " espacios publicados");
             }
 
-            litReputacionGestor.Text = Server.HtmlEncode(string.Join(" · ", datos));
+            litReputacionGestor.Text = Server.HtmlEncode(
+                datos.Count == 0 ? "Gestor verificado" : string.Join(" · ", datos));
+        }
+
+        private void CargarResenas(int idEspacioArtistico)
+        {
+            ResumenReputacion resumen = _bllCalificacion.ObtenerResumenEspacio(idEspacioArtistico);
+            List<Calificacion> resenas = _bllCalificacion.ListarPorEspacio(idEspacioArtistico);
+
+            bool tieneResenas = resumen.CantidadCalificaciones > 0;
+            pnlResumenResenas.Visible = tieneResenas;
+            pnlSinResenas.Visible = !tieneResenas;
+            rptResenasEspacio.Visible = tieneResenas;
+
+            if (tieneResenas)
+            {
+                litPromedioResenas.Text = resumen.Promedio.ToString("0.0", CultureInfo.CurrentCulture);
+                litEstrellasResenas.Text = ObtenerEstrellas((int)Math.Round(resumen.Promedio));
+                litCantidadResenas.Text = resumen.CantidadCalificaciones == 1
+                    ? "1 reseña verificada"
+                    : resumen.CantidadCalificaciones + " reseñas verificadas";
+                rptResenasEspacio.DataSource = resenas;
+                rptResenasEspacio.DataBind();
+            }
+        }
+
+        protected string ObtenerEstrellas(int puntaje)
+        {
+            int valor = Math.Max(0, Math.Min(5, puntaje));
+            return new string('★', valor) + new string('☆', 5 - valor);
+        }
+
+        protected string ObtenerInicialesResena(string nombre)
+        {
+            return ObtenerIniciales(string.IsNullOrWhiteSpace(nombre) ? "Usuario StageUp" : nombre);
         }
 
         private void CargarFicha(FichaEspacio ficha)

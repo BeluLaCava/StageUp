@@ -10,6 +10,8 @@ namespace StageUp.Seguridad
         private const string ClaveIdUsuario = "StageUp.Sesion.IdUsuarioExterno";
         private const string ClaveNombreCompleto = "StageUp.Sesion.NombreCompleto";
         private const string ClavePerfil = "StageUp.Sesion.PerfilUsuario";
+        private const string ClaveIdIdioma = "StageUp.Sesion.IdIdioma";
+        private const string ClaveCodigoIdioma = "StageUp.Sesion.CodigoIdioma";
 
         private const string ClaveIdUsuarioInterno = "StageUp.Sesion.IdUsuarioInterno";
         private const string ClaveNombreCompletoInterno = "StageUp.Sesion.NombreCompletoInterno";
@@ -56,6 +58,24 @@ namespace StageUp.Seguridad
         public static string ObtenerPerfilActual()
         {
             object valor = HttpContext.Current.Session[ClavePerfil];
+            return valor == null ? null : valor.ToString();
+        }
+
+        public static void EstablecerIdiomaActual(int idIdioma, string codigoIdioma)
+        {
+            HttpContext.Current.Session[ClaveIdIdioma] = idIdioma;
+            HttpContext.Current.Session[ClaveCodigoIdioma] = codigoIdioma;
+        }
+
+        public static int? ObtenerIdIdiomaActual()
+        {
+            object valor = HttpContext.Current.Session[ClaveIdIdioma];
+            return valor == null ? (int?)null : Convert.ToInt32(valor);
+        }
+
+        public static string ObtenerCodigoIdiomaActual()
+        {
+            object valor = HttpContext.Current.Session[ClaveCodigoIdioma];
             return valor == null ? null : valor.ToString();
         }
 

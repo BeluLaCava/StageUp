@@ -46,6 +46,7 @@
     <Compile Include="BLL_RolInternoPermiso.cs" />
     <Compile Include="BLL_Idioma.cs" />
     <Compile Include="BLL_Traduccion.cs" />
+    <Compile Include="BLL_Multidioma.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

@@ -128,7 +128,19 @@ USING
         (N'Idiomas_TextoBase', N'Texto en español', N'Idiomas'),
         (N'Idiomas_TextoTraducido', N'Traducción', N'Idiomas'),
         (N'Idiomas_Pendientes', N'Pendientes', N'Idiomas'),
-        (N'Idiomas_Completadas', N'Completadas', N'Idiomas')
+        (N'Idiomas_Completadas', N'Completadas', N'Idiomas'),
+        (N'General_SaltarContenido', N'Saltar al contenido principal', N'General'),
+        (N'General_AbrirNavegacion', N'Abrir navegación', N'General'),
+        (N'Nav_Ayuda', N'Ayuda', N'Navegación'),
+        (N'Nav_Notificaciones', N'Notificaciones', N'Navegación'),
+        (N'Nav_MiStageUp', N'Mi StageUp', N'Navegación'),
+        (N'Nav_MisActividades', N'Mis actividades', N'Navegación'),
+        (N'Footer_Lema', N'Encontrá tu espacio, potenciá tu arte.', N'Pie de página'),
+        (N'Footer_QuienesSomos', N'Quiénes somos', N'Pie de página'),
+        (N'Footer_Contactenos', N'Contáctenos', N'Pie de página'),
+        (N'Footer_Terminos', N'Términos y condiciones', N'Pie de página'),
+        (N'Footer_Privacidad', N'Política de privacidad', N'Pie de página'),
+        (N'Footer_AccesoInterno', N'Acceso interno', N'Pie de página')
 ) AS origen (claveEtiqueta, textoPredeterminado, modulo)
 ON destino.claveEtiqueta = origen.claveEtiqueta
 WHEN MATCHED THEN
@@ -418,7 +430,9 @@ BEGIN
 
     SELECT
         e.claveEtiqueta,
-        COALESCE(NULLIF(t.textoTraducido, N''), e.textoPredeterminado) AS textoTraducido
+        e.textoPredeterminado,
+        COALESCE(NULLIF(t.textoTraducido, N''), e.textoPredeterminado) AS textoTraducido,
+        e.modulo
     FROM dbo.EtiquetaTraduccion e
     LEFT JOIN dbo.Traduccion t
         ON t.idEtiquetaTraduccion = e.idEtiquetaTraduccion

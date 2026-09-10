@@ -1,7 +1,7 @@
 <%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.Master.cs" Inherits="StageUp.UI.SiteMaster" %>
 
 <!DOCTYPE html>
-<html lang="es">
+<html id="HtmlRoot" runat="server" lang="es">
 <head id="Head1" runat="server">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,7 +12,7 @@
 </head>
 <body>
     <form id="form1" runat="server">
-        <a class="skip-link" href="#main-content">Saltar al contenido principal</a>
+        <a class="skip-link" href="#main-content" data-i18n="General_SaltarContenido">Saltar al contenido principal</a>
 
         <header class="site-header">
             <div class="navbar container-wide">
@@ -22,7 +22,7 @@
                 </a>
 
                 <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="public-navigation" data-nav-toggle>
-                    <span class="sr-only">Abrir navegación</span>
+                    <span class="sr-only" data-i18n="General_AbrirNavegacion">Abrir navegación</span>
                     <span></span>
                     <span></span>
                     <span></span>
@@ -30,22 +30,28 @@
 
                 <div id="public-navigation" class="navbar-panel" data-nav-panel>
                     <nav class="primary-navigation" aria-label="Navegación principal">
-                        <a id="HomeLink" runat="server" class="nav-link" href="~/Default.aspx">Inicio</a>
-                        <a id="ExploreLink" runat="server" class="nav-link" href="~/Explorar/ResultadosBusqueda.aspx">Explorar espacios</a>
-                        <a id="HelpLink" runat="server" class="nav-link" href="~/Ayuda/CentroAyuda.aspx">Ayuda</a>
+                        <a id="HomeLink" runat="server" class="nav-link" href="~/Default.aspx" data-i18n="Nav_Inicio">Inicio</a>
+                        <a id="ExploreLink" runat="server" class="nav-link" href="~/Explorar/ResultadosBusqueda.aspx" data-i18n="Nav_ExplorarEspacios">Explorar espacios</a>
+                        <a id="HelpLink" runat="server" class="nav-link" href="~/Ayuda/CentroAyuda.aspx" data-i18n="Nav_Ayuda">Ayuda</a>
                     </nav>
 
+                    <div id="LanguageSelector" runat="server" class="language-selector">
+                        <label for="<%= ddlIdioma.ClientID %>" data-i18n="General_Idioma">Idioma</label>
+                        <asp:DropDownList ID="ddlIdioma" runat="server" CssClass="language-select" AutoPostBack="true"
+                            DataTextField="NombreIdioma" DataValueField="IdIdioma" aria-label="Seleccionar idioma" />
+                    </div>
+
                     <div id="PublicActions" runat="server" class="public-actions">
-                        <a id="LoginLink" runat="server" class="button button-ghost button-small" href="~/IniciarSesion.aspx">Iniciar sesión</a>
-                        <a id="RegisterLink" runat="server" class="button button-primary button-small" href="~/Registrarse.aspx">Registrarse</a>
+                        <a id="LoginLink" runat="server" class="button button-ghost button-small" href="~/IniciarSesion.aspx" data-i18n="Nav_IniciarSesion">Iniciar sesión</a>
+                        <a id="RegisterLink" runat="server" class="button button-primary button-small" href="~/Registrarse.aspx" data-i18n="Auth_Registrarse">Registrarse</a>
                     </div>
 
                     <div id="AuthenticatedTools" runat="server" class="authenticated-tools">
-                        <span class="auth-tool" aria-disabled="true">Notificaciones</span>
-                        <a id="ProfileHeaderLink" runat="server" class="auth-tool" href="~/MiPerfil.aspx">Mi perfil</a>
+                        <span class="auth-tool" aria-disabled="true" data-i18n="Nav_Notificaciones">Notificaciones</span>
+                        <a id="ProfileHeaderLink" runat="server" class="auth-tool" href="~/MiPerfil.aspx" data-i18n="Nav_MiPerfil">Mi perfil</a>
                         <span id="UserSummary" runat="server" class="user-summary" aria-label="Datos del usuario"></span>
                         <asp:LinkButton ID="lnkCerrarSesion" runat="server" CssClass="auth-tool text-link" CausesValidation="false"
-                            Text="Cerrar sesión" OnClick="lnkCerrarSesion_Click" />
+                            Text="Cerrar sesión" data-i18n="Nav_CerrarSesion" OnClick="lnkCerrarSesion_Click" />
                     </div>
                 </div>
             </div>
@@ -53,12 +59,12 @@
 
         <div class="app-shell">
             <aside id="AuthenticatedSidebar" runat="server" class="app-sidebar" aria-label="Navegación de usuario autenticado">
-                <div class="sidebar-heading">Mi StageUp</div>
+                <div class="sidebar-heading" data-i18n="Nav_MiStageUp">Mi StageUp</div>
                 <nav class="sidebar-navigation">
-                    <a id="MisReservasLink" runat="server" class="sidebar-link" href="~/MisReservas.aspx">Mis reservas</a>
-                    <a id="ProfileSidebarLink" runat="server" class="sidebar-link" href="~/MiPerfil.aspx">Mi perfil</a>
-                    <a id="MisEspaciosLink" runat="server" class="sidebar-link" href="~/MisEspacios.aspx">Mis espacios</a>
-                    <span class="sidebar-link" aria-disabled="true">Mis actividades</span>
+                    <a id="MisReservasLink" runat="server" class="sidebar-link" href="~/MisReservas.aspx" data-i18n="Nav_MisReservas">Mis reservas</a>
+                    <a id="ProfileSidebarLink" runat="server" class="sidebar-link" href="~/MiPerfil.aspx" data-i18n="Nav_MiPerfil">Mi perfil</a>
+                    <a id="MisEspaciosLink" runat="server" class="sidebar-link" href="~/MisEspacios.aspx" data-i18n="Nav_MisEspacios">Mis espacios</a>
+                    <span class="sidebar-link" aria-disabled="true" data-i18n="Nav_MisActividades">Mis actividades</span>
                 </nav>
             </aside>
 
@@ -71,20 +77,22 @@
             <div class="footer-content container-wide">
                 <div class="footer-brand">
                     <span class="footer-brand-name">StageUp</span>
-                    <span class="footer-tagline">Encontrá tu espacio, potenciá tu arte.</span>
+                    <span class="footer-tagline" data-i18n="Footer_Lema">Encontrá tu espacio, potenciá tu arte.</span>
                 </div>
                 <nav class="footer-navigation" aria-label="Información legal">
-                    <a id="AboutLink" runat="server" class="footer-link" href="~/QuienesSomos.aspx">Quiénes somos</a>
-                    <a id="ContactLink" runat="server" class="footer-link" href="~/Contactenos.aspx">Contáctenos</a>
-                    <a id="TermsLink" runat="server" class="footer-link" href="~/TerminosCondiciones.aspx">Términos y condiciones</a>
-                    <a id="PrivacyLink" runat="server" class="footer-link" href="~/PoliticaPrivacidad.aspx">Política de privacidad</a>
-                    <a id="InternalAccessLink" runat="server" class="footer-link footer-link-muted" href="~/Interno/IniciarSesionInterno.aspx">Acceso interno</a>
+                    <a id="AboutLink" runat="server" class="footer-link" href="~/QuienesSomos.aspx" data-i18n="Footer_QuienesSomos">Quiénes somos</a>
+                    <a id="ContactLink" runat="server" class="footer-link" href="~/Contactenos.aspx" data-i18n="Footer_Contactenos">Contáctenos</a>
+                    <a id="TermsLink" runat="server" class="footer-link" href="~/TerminosCondiciones.aspx" data-i18n="Footer_Terminos">Términos y condiciones</a>
+                    <a id="PrivacyLink" runat="server" class="footer-link" href="~/PoliticaPrivacidad.aspx" data-i18n="Footer_Privacidad">Política de privacidad</a>
+                    <a id="InternalAccessLink" runat="server" class="footer-link footer-link-muted" href="~/Interno/IniciarSesionInterno.aspx" data-i18n="Footer_AccesoInterno">Acceso interno</a>
                 </nav>
             </div>
         </footer>
 
+        <asp:HiddenField ID="hdnDiccionarioIdioma" runat="server" ClientIDMode="Static" />
         <asp:ContentPlaceHolder ID="PageScripts" runat="server" />
         <script src="<%= ResolveUrl("~/Scripts/site.js") %>?v=20260906-2"></script>
+        <script src="<%= ResolveUrl("~/Scripts/multidioma.js") %>?v=20260910-1"></script>
     </form>
 </body>
 </html>

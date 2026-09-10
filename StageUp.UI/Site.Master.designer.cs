@@ -2,6 +2,8 @@ namespace StageUp.UI
 {
     public partial class SiteMaster
     {
+        protected global::System.Web.UI.HtmlControls.HtmlElement HtmlRoot;
+
         protected global::System.Web.UI.HtmlControls.HtmlHead Head1;
 
         protected global::System.Web.UI.HtmlControls.HtmlLink SiteStyles;
@@ -21,6 +23,10 @@ namespace StageUp.UI
         protected global::System.Web.UI.HtmlControls.HtmlAnchor ExploreLink;
 
         protected global::System.Web.UI.HtmlControls.HtmlAnchor HelpLink;
+
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl LanguageSelector;
+
+        protected global::System.Web.UI.WebControls.DropDownList ddlIdioma;
 
         protected global::System.Web.UI.HtmlControls.HtmlGenericControl PublicActions;
 
@@ -57,6 +63,8 @@ namespace StageUp.UI
         protected global::System.Web.UI.HtmlControls.HtmlAnchor InternalAccessLink;
 
         protected global::System.Web.UI.WebControls.ContentPlaceHolder PageScripts;
+
+        protected global::System.Web.UI.WebControls.HiddenField hdnDiccionarioIdioma;
 
     }
 }

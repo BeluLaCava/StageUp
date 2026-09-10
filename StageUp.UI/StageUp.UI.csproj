@@ -259,6 +259,7 @@
     <Content Include="Scripts\site.js" />
     <Content Include="Scripts\espacios-ficha.js" />
     <Content Include="Scripts\detalle-espacio.js" />
+    <Content Include="Scripts\multidioma.js" />
     <Content Include="Content\Images\Espacios\sala-principal-ia.png" />
     <Content Include="Content\Images\Espacios\estudio-fotografico-ia.png" />
     <Content Include="Site.Master" />

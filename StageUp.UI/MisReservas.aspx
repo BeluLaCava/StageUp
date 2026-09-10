@@ -27,13 +27,16 @@
                             <div class="space-row-info">
                                 <h3><%# Eval("NombreEspacio") %></h3>
                                 <p>Fecha solicitada: <%# Eval("FechaSolicitada", "{0:dd/MM/yyyy}") %> · Estado: <%# Eval("EstadoReserva") %></p>
+                                <p class="space-row-horario">
+                                    <asp:Literal ID="litHorarioImporte" runat="server"
+                                        Visible='<%# ((StageUp.BE.Entidades.Reserva)Container.DataItem).MinutoDesde.HasValue %>' />
+                                </p>
                                 <p class="space-row-descripcion"><%# Eval("ComentarioSolicitante") %></p>
                                 <asp:Literal ID="litComentarioResolucion" runat="server" Visible='<%# !string.IsNullOrEmpty(Eval("ComentarioResolucion") as string) %>' />
                             </div>
                             <div class="space-row-actions">
                                 <asp:LinkButton ID="lnkCancelar" runat="server" CssClass="text-link" CausesValidation="false"
-                                    CommandName="Cancelar" CommandArgument='<%# Eval("IdReserva") %>' Text="Cancelar"
-                                    OnClientClick="return confirm('¿Seguro que querés cancelar esta solicitud de reserva?');" />
+                                    CommandName="Cancelar" CommandArgument='<%# Eval("IdReserva") %>' Text="Cancelar" />
                             </div>
                         </div>
                     </ItemTemplate>

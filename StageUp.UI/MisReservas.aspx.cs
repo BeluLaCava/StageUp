@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using StageUp.BE.Entidades;
@@ -58,13 +59,63 @@ namespace StageUp.UI
             var reserva = (Reserva)e.Item.DataItem;
 
             var lnkCancelar = (LinkButton)e.Item.FindControl("lnkCancelar");
-            lnkCancelar.Visible = reserva.EstadoReserva == "Pendiente";
+            bool puedeCancelar = reserva.EstadoReserva == "Pendiente" || reserva.EstadoReserva == "Aceptada";
+            lnkCancelar.Visible = puedeCancelar;
+            if (puedeCancelar)
+            {
+                lnkCancelar.Attributes["onclick"] =
+                    "return confirm('" + ObtenerMensajeConfirmacionCancelacion(reserva).Replace("'", "\\'") + "');";
+            }
 
             var litComentarioResolucion = (Literal)e.Item.FindControl("litComentarioResolucion");
             if (litComentarioResolucion != null && !string.IsNullOrEmpty(reserva.ComentarioResolucion))
             {
                 litComentarioResolucion.Text = "Respuesta del gestor: " + Server.HtmlEncode(reserva.ComentarioResolucion);
             }
+
+            var litHorarioImporte = (Literal)e.Item.FindControl("litHorarioImporte");
+            if (litHorarioImporte != null && reserva.MinutoDesde.HasValue && reserva.MinutoHasta.HasValue)
+            {
+                string horario = "Horario: " + FormatearHora(reserva.MinutoDesde.Value) + " a " + FormatearHora(reserva.MinutoHasta.Value);
+                if (reserva.ImporteEstimado.HasValue)
+                {
+                    horario += " · Importe estimado: " +
+                        reserva.ImporteEstimado.Value.ToString("0.##", CultureInfo.InvariantCulture) + " " + (reserva.Moneda ?? "ARS");
+                }
+
+                litHorarioImporte.Text = Server.HtmlEncode(horario);
+            }
+        }
+
+        // Aviso orientativo en el cliente: el cálculo real (y el que manda) se
+        // hace de nuevo en BLL_Reserva.Cancelar al momento de confirmar, por si
+        // pasó tiempo entre que se pintó la página y que el usuario apretó el botón.
+        private static string ObtenerMensajeConfirmacionCancelacion(Reserva reserva)
+        {
+            const string mensajeBase = "¿Seguro que querés cancelar esta solicitud de reserva?";
+            if (reserva.EstadoReserva != "Aceptada" || !reserva.MinutoDesde.HasValue || !reserva.ImporteEstimado.HasValue)
+            {
+                return mensajeBase;
+            }
+
+            DateTime momentoReservado = reserva.FechaSolicitada.Date.AddMinutes(reserva.MinutoDesde.Value);
+            double horasRestantes = (momentoReservado - DateTime.Now).TotalHours;
+            if (horasRestantes >= 24)
+            {
+                return mensajeBase;
+            }
+
+            decimal comision = decimal.Round(reserva.ImporteEstimado.Value * 0.10m, 2);
+            return "Esta reserva ya está aceptada y faltan menos de 24hs para el horario reservado. " +
+                "Si la cancelás ahora se te va a aplicar una comisión de cancelación de " +
+                comision.ToString("0.##", CultureInfo.InvariantCulture) + " " + (reserva.Moneda ?? "ARS") + ". ¿Querés continuar?";
+        }
+
+        private static string FormatearHora(int minutos)
+        {
+            return minutos == 1440
+                ? "24:00"
+                : (minutos / 60).ToString("00", CultureInfo.InvariantCulture) + ":" + (minutos % 60).ToString("00", CultureInfo.InvariantCulture);
         }
 
         private void CargarMisReservas()

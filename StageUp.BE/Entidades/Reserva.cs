@@ -4,8 +4,9 @@ namespace StageUp.BE.Entidades
 {
     /// <summary>
     /// Solicitud de reserva de un espacio artístico hecha por un usuario externo.
-    /// Versión simplificada del core del negocio (CU-001-005): solo fecha solicitada
-    /// y estado, sin franjas horarias, disponibilidad ni pago (queda para el Avance 2).
+    /// Incluye horario y precio pactado (columnas normalizadas desde la tanda del
+    /// 10/09 — antes viajaban embebidos como texto dentro de ComentarioSolicitante).
+    /// Sigue sin pago real ni facturación (eso queda para el Avance 2).
     /// </summary>
     public class Reserva
     {
@@ -19,6 +20,20 @@ namespace StageUp.BE.Entidades
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaResolucion { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
+
+        // Horario y precio pactado (columnas normalizadas, tanda 10/09). Nulos para
+        // reservas viejas hechas antes de que existiera el planificador de horarios.
+        public int? MinutoDesde { get; set; }
+        public int? MinutoHasta { get; set; }
+        public decimal? PrecioHoraPactado { get; set; }
+        public string Moneda { get; set; }
+        public decimal? ImporteEstimado { get; set; }
+
+        // Comisión de cancelación (tanda 5): se completa recién al cancelar una
+        // reserva ya Aceptada con menos de 24hs de anticipación.
+        public bool ComisionAplicada { get; set; }
+        public decimal? ImporteComision { get; set; }
+        public DateTime? FechaCancelacion { get; set; }
 
         // Datos adicionales que traen los SPs de listado (join), para no tener que
         // hacer una consulta extra por cada fila al mostrarlas en la UI.

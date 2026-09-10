@@ -61,6 +61,11 @@
                                         <span class="request-date-icon" aria-hidden="true">▦</span>
                                         <div><small>Fecha solicitada</small><strong><%# Eval("FechaSolicitada", "{0:dddd d 'de' MMMM 'de' yyyy}") %></strong></div>
                                     </div>
+                                    <asp:Panel ID="pnlHorarioSolicitud" runat="server" CssClass="request-horario-block"
+                                        Visible='<%# ((StageUp.BE.Entidades.Reserva)Container.DataItem).MinutoDesde.HasValue %>'>
+                                        <span class="request-date-icon" aria-hidden="true">◴</span>
+                                        <div><small>Horario y precio pactado</small><strong><%#: ObtenerHorarioTexto((StageUp.BE.Entidades.Reserva)Container.DataItem) %></strong></div>
+                                    </asp:Panel>
                                     <div class="request-meta">
                                         <span>Recibida el <%# Eval("FechaCreacion", "{0:dd/MM/yyyy 'a las' HH:mm}") %></span>
                                         <span>Solicitud #<%#: Eval("IdReserva") %></span>

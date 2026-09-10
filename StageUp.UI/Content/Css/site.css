@@ -323,6 +323,40 @@ a.nav-link:focus-visible {
     gap: 0.8rem;
 }
 
+.language-selector {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-left: auto;
+    padding: 0.28rem 0.38rem 0.28rem 0.7rem;
+    color: var(--color-text-muted);
+    background: rgba(255, 252, 250, 0.88);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+}
+
+.language-selector label {
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.language-select {
+    min-width: 7.2rem;
+    height: 2.1rem;
+    padding: 0 1.8rem 0 0.65rem;
+    color: var(--color-primary-dark);
+    background-color: var(--color-nude-light);
+    border: 0;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.language-select:focus-visible {
+    outline-offset: 1px;
+}
+
 .auth-tool,
 .user-summary {
     padding: 0.5rem 0.7rem;
@@ -707,6 +741,17 @@ a.text-link:focus-visible {
     .public-actions,
     .authenticated-tools {
         align-items: stretch;
+    }
+
+    .language-selector {
+        justify-content: space-between;
+        width: 100%;
+        margin-left: 0;
+        border-radius: var(--radius-small);
+    }
+
+    .language-select {
+        min-width: 10rem;
     }
 
     .primary-navigation {
@@ -3213,6 +3258,12 @@ body.overlay-open {
     color: var(--color-text) !important;
 }
 
+.space-row-horario {
+    margin: 0 0 0.25rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
 .space-row-actions {
     display: flex;
     flex-wrap: wrap;
@@ -4715,6 +4766,28 @@ a.sidebar-link:focus-visible {
     font-size: 1.05rem;
 }
 
+.request-horario-block {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-top: 0.85rem;
+}
+
+.request-horario-block small,
+.request-horario-block strong {
+    display: block;
+}
+
+.request-horario-block small {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+}
+
+.request-horario-block strong {
+    color: var(--color-primary-dark);
+    font-size: 1.05rem;
+}
+
 .request-meta {
     display: flex;
     flex-wrap: wrap;
@@ -5524,4 +5597,86 @@ a.sidebar-link:focus-visible {
         align-items: stretch;
         flex-direction: column-reverse;
     }
+}
+
+/* Ítem 3 (varias fotografías, tanda 10/09): galería de fotos del formulario de
+   "Mis espacios" (reemplaza el antiguo preview de una sola foto). */
+.space-photo-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+}
+
+.space-photo-gallery-vacia {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin: 0 0 1rem;
+}
+
+.space-photo-item {
+    position: relative;
+    width: 9.5rem;
+    border: 1px solid var(--color-nude-dark);
+    border-radius: 0.8rem;
+    overflow: hidden;
+    background: var(--color-nude-light);
+}
+
+.space-photo-item img {
+    display: block;
+    width: 100%;
+    height: 6.5rem;
+    object-fit: cover;
+}
+
+.space-photo-badge {
+    position: absolute;
+    top: 0.4rem;
+    left: 0.4rem;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+}
+
+.space-photo-item-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.4rem;
+}
+
+.space-photo-item-actions button {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-nude-dark);
+    background: #fff;
+    color: var(--color-primary-dark);
+    cursor: pointer;
+}
+
+.space-photo-item-actions button:hover {
+    background: var(--color-nude-light);
+}
+
+.space-photo-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    max-width: 26rem;
+}
+
+.space-photo-upload small {
+    color: var(--color-text-muted);
+}
+
+#photo-error {
+    color: var(--color-error, #b3261e);
+    font-size: 0.85rem;
 }

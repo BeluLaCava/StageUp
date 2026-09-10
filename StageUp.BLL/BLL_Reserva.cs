@@ -9,10 +9,13 @@ using StageUp.MPP;
 namespace StageUp.BLL
 {
     /// <summary>
-    /// Core del negocio de StageUp (CU-001-005), versión simplificada para esta entrega:
-    /// un usuario autenticado solicita una fecha para un espacio publicado, y el gestor
-    /// del espacio la acepta o la rechaza. Sin franjas horarias, sin disponibilidad
-    /// configurable y sin pago (esas partes del CU quedan para el Avance 2).
+    /// Core del negocio de StageUp (CU-001-005): un usuario autenticado solicita un
+    /// horario para un espacio publicado, y el gestor del espacio la acepta o la
+    /// rechaza. Horario, precio pactado e importe estimado son columnas normalizadas
+    /// de Reserva (tanda 10/09) — antes viajaban como texto dentro del comentario.
+    /// Incluye validación de solapamiento (ítem 2) y comisión de cancelación del 10%
+    /// si se cancela una reserva ya Aceptada con menos de 24hs de anticipación
+    /// (tanda 5). Sigue sin pago real ni facturación (Avance 2).
     /// </summary>
     public class BLL_Reserva
     {
@@ -23,6 +26,8 @@ namespace StageUp.BLL
 
         private const int LongitudMaximaComentario = 1000;
         private const string TipoEntidadBitacora = "Reserva";
+        private const decimal PorcentajeComisionCancelacion = 0.10m;
+        private const int HorasLimiteSinComision = 24;
 
         public ResultadoOperacion<int> SolicitarReserva(
             int idUsuarioExternoSolicitante, int idEspacioArtistico, DateTime fechaSolicitada, string comentario)
@@ -74,6 +79,11 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error("No podés solicitar una reserva sobre tu propio espacio.");
                 }
 
+                int? minutoHasta = null;
+                decimal? precioHoraPactado = null;
+                string moneda = null;
+                decimal? importeEstimado = null;
+
                 if (minutoDesde.HasValue && duracionMinutos.HasValue)
                 {
                     ResultadoOperacion validacionHorario = ValidarHorarioSolicitado(
@@ -82,14 +92,31 @@ namespace StageUp.BLL
                     {
                         return ResultadoOperacion<int>.Error(validacionHorario.Mensaje);
                     }
+
+                    minutoHasta = minutoDesde.Value + duracionMinutos.Value;
+
+                    // Ítem 2: aviso temprano de solapamiento. Se vuelve a revisar (y
+                    // ahí sí de forma atómica) en el momento de aceptar, porque puede
+                    // haber pasado tiempo entre que se pidió y que el gestor resuelve.
+                    if (_mppReserva.ExisteSolapamiento(idEspacioArtistico, fechaSolicitada.Date, minutoDesde.Value, minutoHasta.Value))
+                    {
+                        return ResultadoOperacion<int>.Error(
+                            "Ese horario ya tiene otra solicitud pendiente o aceptada para este espacio. Elegí otro horario.");
+                    }
+
+                    if (espacio.Ficha != null && espacio.Ficha.PrecioHora.HasValue)
+                    {
+                        precioHoraPactado = espacio.Ficha.PrecioHora.Value;
+                        moneda = espacio.Ficha.Moneda ?? "ARS";
+                        importeEstimado = CalcularImporte(precioHoraPactado.Value, duracionMinutos.Value);
+                    }
                 }
 
-                string comentarioPersistido = ConstruirComentarioSolicitud(
-                    espacio, fechaSolicitada.Date, minutoDesde, duracionMinutos, comentario);
-                if (!string.IsNullOrEmpty(comentarioPersistido) && comentarioPersistido.Length > LongitudMaximaComentario)
+                string comentarioLimpio = string.IsNullOrWhiteSpace(comentario) ? null : comentario.Trim();
+                if (!string.IsNullOrEmpty(comentarioLimpio) && comentarioLimpio.Length > LongitudMaximaComentario)
                 {
                     return ResultadoOperacion<int>.Error(
-                        "El detalle completo de la solicitud no puede superar los " + LongitudMaximaComentario + " caracteres.");
+                        "El comentario no puede superar los " + LongitudMaximaComentario + " caracteres.");
                 }
 
                 var reserva = new Reserva
@@ -97,7 +124,12 @@ namespace StageUp.BLL
                     IdEspacioArtistico = idEspacioArtistico,
                     IdUsuarioExternoSolicitante = idUsuarioExternoSolicitante,
                     FechaSolicitada = fechaSolicitada.Date,
-                    ComentarioSolicitante = comentarioPersistido
+                    ComentarioSolicitante = comentarioLimpio,
+                    MinutoDesde = minutoDesde,
+                    MinutoHasta = minutoHasta,
+                    PrecioHoraPactado = precioHoraPactado,
+                    Moneda = moneda,
+                    ImporteEstimado = importeEstimado
                 };
 
                 int idReserva = _mppReserva.Insertar(reserva);
@@ -106,7 +138,9 @@ namespace StageUp.BLL
                     idUsuarioExternoSolicitante, "ALTA", TipoEntidadBitacora, idReserva,
                     "Solicitud de reserva para el espacio \"" + espacio.NombreEspacio + "\" (" +
                     fechaSolicitada.Date.ToString("dd/MM/yyyy") +
-                    (minutoDesde.HasValue ? " a las " + FormatearHora(minutoDesde.Value) : string.Empty) + ").");
+                    (minutoDesde.HasValue && duracionMinutos.HasValue
+                        ? " a las " + FormatearHora(minutoDesde.Value) + ", " + FormatearDuracion(duracionMinutos.Value)
+                        : string.Empty) + ").");
 
                 return ResultadoOperacion<int>.Ok(idReserva,
                     "Enviamos tu solicitud de reserva. El gestor del espacio la va a revisar y te vamos a avisar cuando la resuelva.");
@@ -149,32 +183,9 @@ namespace StageUp.BLL
                 : ResultadoOperacion.Error("La franja elegida no está dentro de la disponibilidad informada para esa fecha.");
         }
 
-        private static string ConstruirComentarioSolicitud(
-            EspacioArtistico espacio,
-            DateTime fecha,
-            int? minutoDesde,
-            int? duracionMinutos,
-            string comentario)
+        private static decimal CalcularImporte(decimal precioHora, int duracionMinutos)
         {
-            string comentarioLimpio = string.IsNullOrWhiteSpace(comentario) ? null : comentario.Trim();
-            if (!minutoDesde.HasValue || !duracionMinutos.HasValue)
-            {
-                return comentarioLimpio;
-            }
-
-            int minutoHasta = minutoDesde.Value + duracionMinutos.Value;
-            string detalle = "Horario solicitado: " + fecha.ToString("dd/MM/yyyy") + " de " +
-                FormatearHora(minutoDesde.Value) + " a " + FormatearHora(minutoHasta) +
-                " (" + FormatearDuracion(duracionMinutos.Value) + ").";
-
-            if (espacio.Ficha != null && espacio.Ficha.PrecioHora.HasValue)
-            {
-                decimal importe = espacio.Ficha.PrecioHora.Value * duracionMinutos.Value / 60m;
-                detalle += " Importe estimado: " + (espacio.Ficha.Moneda ?? "ARS") + " " +
-                    importe.ToString("N2", CultureInfo.GetCultureInfo("es-AR")) + ".";
-            }
-
-            return comentarioLimpio == null ? detalle : detalle + " Mensaje: " + comentarioLimpio;
+            return decimal.Round(precioHora * duracionMinutos / 60m, 2);
         }
 
         private static string FormatearHora(int minutos)
@@ -284,8 +295,41 @@ namespace StageUp.BLL
 
         public ResultadoOperacion Aceptar(int idReserva, int idUsuarioGestorSolicitante, string comentarioResolucion)
         {
-            return ResolverComoGestor(idReserva, idUsuarioGestorSolicitante, EstadoReserva.Aceptada, comentarioResolucion,
-                "aceptó", "Tu reserva fue aceptada. ¡Ya está confirmada!");
+            return EjecutarProtegido(() =>
+            {
+                if (!string.IsNullOrEmpty(comentarioResolucion) && comentarioResolucion.Trim().Length > LongitudMaximaComentario)
+                {
+                    return ResultadoOperacion.Error(
+                        "El comentario no puede superar los " + LongitudMaximaComentario + " caracteres.");
+                }
+
+                Reserva reserva = _mppReserva.ObtenerPorId(idReserva);
+                ResultadoOperacion validacion = ValidarPropiedadGestor(reserva, idUsuarioGestorSolicitante);
+                if (!validacion.Exitoso)
+                {
+                    return validacion;
+                }
+
+                string comentarioLimpio = string.IsNullOrWhiteSpace(comentarioResolucion) ? null : comentarioResolucion.Trim();
+
+                // Ítem 2: revalidación atómica. Puede haber pasado tiempo desde que se
+                // solicitó, y otra reserva para el mismo horario pudo haberse aceptado
+                // primero, o esta solicitud pudo haber dejado de estar Pendiente
+                // mientras tanto.
+                bool aceptada = _mppReserva.AceptarSiDisponible(idReserva, comentarioLimpio);
+                if (!aceptada)
+                {
+                    return ResultadoOperacion.Error(
+                        "No se pudo aceptar la solicitud: ya no está pendiente o el horario dejó de estar " +
+                        "disponible (es posible que hayas aceptado otra reserva para el mismo horario).");
+                }
+
+                _bitacora.Registrar(
+                    idUsuarioGestorSolicitante, "MODIFICACION", TipoEntidadBitacora, idReserva,
+                    "El gestor aceptó la solicitud de reserva del espacio \"" + reserva.NombreEspacio + "\".");
+
+                return ResultadoOperacion.Ok("Tu reserva fue aceptada. ¡Ya está confirmada!");
+            });
         }
 
         public ResultadoOperacion Rechazar(int idReserva, int idUsuarioGestorSolicitante, string comentarioResolucion)
@@ -339,18 +383,45 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("No tenés permiso para cancelar esta reserva.");
                 }
 
-                if (reserva.EstadoReserva != EstadoReserva.Pendiente.ToString())
+                bool esPendiente = reserva.EstadoReserva == EstadoReserva.Pendiente.ToString();
+                bool esAceptada = reserva.EstadoReserva == EstadoReserva.Aceptada.ToString();
+                if (!esPendiente && !esAceptada)
                 {
                     return ResultadoOperacion.Error("Esta reserva ya fue resuelta y no se puede cancelar.");
                 }
 
-                _mppReserva.Cancelar(idReserva);
+                bool comisionAplicada = false;
+                decimal? importeComision = null;
+
+                // Tanda 5: cancelar una reserva ya Aceptada con menos de 24hs de
+                // anticipación respecto del horario solicitado aplica una comisión
+                // del 10% del importe estimado. Cancelar mientras sigue Pendiente
+                // nunca tiene comisión.
+                if (esAceptada && reserva.MinutoDesde.HasValue && reserva.ImporteEstimado.HasValue)
+                {
+                    DateTime momentoReservado = reserva.FechaSolicitada.Date.AddMinutes(reserva.MinutoDesde.Value);
+                    double horasRestantes = (momentoReservado - DateTime.Now).TotalHours;
+                    if (horasRestantes < HorasLimiteSinComision)
+                    {
+                        comisionAplicada = true;
+                        importeComision = decimal.Round(reserva.ImporteEstimado.Value * PorcentajeComisionCancelacion, 2);
+                    }
+                }
+
+                _mppReserva.Cancelar(idReserva, comisionAplicada, importeComision);
+
+                string mensaje = comisionAplicada
+                    ? "Tu reserva fue cancelada. Como faltaban menos de " + HorasLimiteSinComision +
+                      "hs para el horario reservado, se aplicó una comisión de cancelación de " +
+                      importeComision.Value.ToString("0.##", CultureInfo.InvariantCulture) + " " + (reserva.Moneda ?? "ARS") + "."
+                    : "Tu reserva fue cancelada.";
 
                 _bitacora.Registrar(
                     idUsuarioExternoSolicitante, "MODIFICACION", TipoEntidadBitacora, idReserva,
-                    "El solicitante canceló su reserva del espacio \"" + reserva.NombreEspacio + "\".");
+                    "El solicitante canceló su reserva del espacio \"" + reserva.NombreEspacio + "\"." +
+                    (comisionAplicada ? " Se aplicó comisión de cancelación." : string.Empty));
 
-                return ResultadoOperacion.Ok("Tu reserva fue cancelada.");
+                return ResultadoOperacion.Ok(mensaje);
             });
         }
 

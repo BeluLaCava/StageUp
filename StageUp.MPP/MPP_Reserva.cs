@@ -16,9 +16,45 @@ namespace StageUp.MPP
                 new SqlParameter("@idEspacioArtistico", reserva.IdEspacioArtistico),
                 new SqlParameter("@idUsuarioExternoSolicitante", reserva.IdUsuarioExternoSolicitante),
                 new SqlParameter("@fechaSolicitada", reserva.FechaSolicitada),
-                new SqlParameter("@comentarioSolicitante", (object)reserva.ComentarioSolicitante ?? DBNull.Value));
+                new SqlParameter("@comentarioSolicitante", (object)reserva.ComentarioSolicitante ?? DBNull.Value),
+                new SqlParameter("@minutoDesde", (object)reserva.MinutoDesde ?? DBNull.Value),
+                new SqlParameter("@minutoHasta", (object)reserva.MinutoHasta ?? DBNull.Value),
+                new SqlParameter("@precioHoraPactado", (object)reserva.PrecioHoraPactado ?? DBNull.Value),
+                new SqlParameter("@moneda", (object)reserva.Moneda ?? DBNull.Value),
+                new SqlParameter("@importeEstimado", (object)reserva.ImporteEstimado ?? DBNull.Value));
 
             return Convert.ToInt32(resultado);
+        }
+
+        // Ítem 2: si idReservaAExcluir viene null, se usa al solicitar (aviso
+        // temprano); con el id de la propia reserva, se usa al revalidar en el
+        // momento de aceptar (ver AceptarSiDisponible).
+        public bool ExisteSolapamiento(
+            int idEspacioArtistico, DateTime fechaSolicitada, int minutoDesde, int minutoHasta, int? idReservaAExcluir = null)
+        {
+            object resultado = Conexion.Instance.LeerEscalar(
+                "sp_Reserva_ExisteSolapamiento",
+                new SqlParameter("@idEspacioArtistico", idEspacioArtistico),
+                new SqlParameter("@fechaSolicitada", fechaSolicitada.Date),
+                new SqlParameter("@minutoDesde", minutoDesde),
+                new SqlParameter("@minutoHasta", minutoHasta),
+                new SqlParameter("@idReservaAExcluir", (object)idReservaAExcluir ?? DBNull.Value));
+
+            return Convert.ToBoolean(resultado);
+        }
+
+        // Devuelve true si la aceptación se aplicó de verdad (seguía Pendiente y,
+        // si tenía horario, seguía libre). false significa que había dejado de
+        // estar disponible (otra reserva se aceptó primero para ese horario, o ya
+        // no estaba Pendiente) — la BLL decide qué mensaje mostrar en ese caso.
+        public bool AceptarSiDisponible(int idReserva, string comentarioResolucion)
+        {
+            object resultado = Conexion.Instance.LeerEscalar(
+                "sp_Reserva_AceptarSiDisponible",
+                new SqlParameter("@idReserva", idReserva),
+                new SqlParameter("@comentarioResolucion", (object)comentarioResolucion ?? DBNull.Value));
+
+            return Convert.ToBoolean(resultado);
         }
 
         public List<Reserva> ListarPorSolicitante(int idUsuarioExternoSolicitante)
@@ -52,11 +88,13 @@ namespace StageUp.MPP
                 new SqlParameter("@comentarioResolucion", (object)comentarioResolucion ?? DBNull.Value));
         }
 
-        public void Cancelar(int idReserva)
+        public void Cancelar(int idReserva, bool comisionAplicada, decimal? importeComision)
         {
             Conexion.Instance.Guardar(
                 "sp_Reserva_Cancelar",
-                new SqlParameter("@idReserva", idReserva));
+                new SqlParameter("@idReserva", idReserva),
+                new SqlParameter("@comisionAplicada", comisionAplicada),
+                new SqlParameter("@importeComision", (object)importeComision ?? DBNull.Value));
         }
 
         private static List<Reserva> MapearDesdeTabla(DataTable tabla)
@@ -83,6 +121,14 @@ namespace StageUp.MPP
                 FechaCreacion = Convert.ToDateTime(fila["fechaCreacion"]),
                 FechaResolucion = fila["fechaResolucion"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(fila["fechaResolucion"]),
                 FechaUltimaModificacion = fila["fechaUltimaModificacion"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(fila["fechaUltimaModificacion"]),
+                MinutoDesde = fila.Table.Columns.Contains("minutoDesde") && fila["minutoDesde"] != DBNull.Value ? Convert.ToInt32(fila["minutoDesde"]) : (int?)null,
+                MinutoHasta = fila.Table.Columns.Contains("minutoHasta") && fila["minutoHasta"] != DBNull.Value ? Convert.ToInt32(fila["minutoHasta"]) : (int?)null,
+                PrecioHoraPactado = fila.Table.Columns.Contains("precioHoraPactado") && fila["precioHoraPactado"] != DBNull.Value ? Convert.ToDecimal(fila["precioHoraPactado"]) : (decimal?)null,
+                Moneda = fila.Table.Columns.Contains("moneda") && fila["moneda"] != DBNull.Value ? fila["moneda"].ToString() : null,
+                ImporteEstimado = fila.Table.Columns.Contains("importeEstimado") && fila["importeEstimado"] != DBNull.Value ? Convert.ToDecimal(fila["importeEstimado"]) : (decimal?)null,
+                ComisionAplicada = fila.Table.Columns.Contains("comisionAplicada") && Convert.ToBoolean(fila["comisionAplicada"]),
+                ImporteComision = fila.Table.Columns.Contains("importeComision") && fila["importeComision"] != DBNull.Value ? Convert.ToDecimal(fila["importeComision"]) : (decimal?)null,
+                FechaCancelacion = fila.Table.Columns.Contains("fechaCancelacion") && fila["fechaCancelacion"] != DBNull.Value ? Convert.ToDateTime(fila["fechaCancelacion"]) : (DateTime?)null,
                 NombreEspacio = fila.Table.Columns.Contains("nombreEspacio") && fila["nombreEspacio"] != DBNull.Value ? fila["nombreEspacio"].ToString() : null,
                 IdUsuarioGestor = fila.Table.Columns.Contains("idUsuarioGestor") ? Convert.ToInt32(fila["idUsuarioGestor"]) : 0
             };

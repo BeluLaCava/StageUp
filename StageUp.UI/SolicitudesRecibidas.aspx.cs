@@ -199,6 +199,30 @@ namespace StageUp.UI
             return string.Join(" · ", partes);
         }
 
+        protected string ObtenerHorarioTexto(Reserva reserva)
+        {
+            if (reserva == null || !reserva.MinutoDesde.HasValue || !reserva.MinutoHasta.HasValue)
+            {
+                return string.Empty;
+            }
+
+            string horario = FormatearHora(reserva.MinutoDesde.Value) + " a " + FormatearHora(reserva.MinutoHasta.Value);
+            if (!reserva.ImporteEstimado.HasValue)
+            {
+                return horario;
+            }
+
+            return horario + " · Importe estimado: " +
+                reserva.ImporteEstimado.Value.ToString("0.##", CultureInfo.InvariantCulture) + " " + (reserva.Moneda ?? "ARS");
+        }
+
+        private static string FormatearHora(int minutos)
+        {
+            return minutos == 1440
+                ? "24:00"
+                : (minutos / 60).ToString("00", CultureInfo.InvariantCulture) + ":" + (minutos % 60).ToString("00", CultureInfo.InvariantCulture);
+        }
+
         private bool EsGestorEspacios()
         {
             return GestorDeSesion.ObtenerPerfilActual() == PerfilUsuarioExterno.GestorEspacios.ToString();

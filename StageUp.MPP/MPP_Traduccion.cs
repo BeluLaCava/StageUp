@@ -9,6 +9,28 @@ namespace StageUp.MPP
 {
     public class MPP_Traduccion
     {
+        public List<Traduccion> ListarDiccionario(int idIdioma)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_Traduccion_ListarDiccionario",
+                new SqlParameter("@idIdioma", SqlDbType.Int) { Value = idIdioma });
+
+            var traducciones = new List<Traduccion>();
+            foreach (DataRow fila in tabla.Rows)
+            {
+                traducciones.Add(new Traduccion
+                {
+                    IdIdioma = idIdioma,
+                    ClaveEtiqueta = fila["claveEtiqueta"].ToString(),
+                    TextoPredeterminado = fila["textoPredeterminado"].ToString(),
+                    TextoTraducido = fila["textoTraducido"].ToString(),
+                    Modulo = fila["modulo"].ToString()
+                });
+            }
+
+            return traducciones;
+        }
+
         public List<Traduccion> ListarConfiguracion(int idIdioma)
         {
             DataTable tabla = Conexion.Instance.Leer(

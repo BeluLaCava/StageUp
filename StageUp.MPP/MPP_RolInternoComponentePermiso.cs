@@ -1,20 +1,22 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using StageUp.BE.Entidades;
+using StageUp.BE.Permisos;
 using StageUp.DAL;
 
 namespace StageUp.MPP
 {
     public class MPP_RolInternoComponentePermiso
     {
-        public List<int> ListarIdsPorRol(int idRolInterno)
+        public List<int> ListarIdsPorRol(RolInterno oRolInterno)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_RolInternoComponentePermiso_ListarPorRol",
-                new SqlParameter("@idRolInterno", idRolInterno));
+                new Hashtable { { "@idRolInterno", oRolInterno.IdRolInterno } });
 
-            var ids = new List<int>();
+            List<int> ids = new List<int>();
             foreach (DataRow fila in tabla.Rows)
             {
                 ids.Add(Convert.ToInt32(fila["idComponentePermiso"]));
@@ -22,19 +24,22 @@ namespace StageUp.MPP
             return ids;
         }
 
-        public void EliminarPorRol(int idRolInterno)
+        public void EliminarPorRol(RolInterno oRolInterno)
         {
             Conexion.Instance.Guardar(
                 "sp_RolInternoComponentePermiso_EliminarPorRol",
-                new SqlParameter("@idRolInterno", idRolInterno));
+                new Hashtable { { "@idRolInterno", oRolInterno.IdRolInterno } });
         }
 
-        public void Insertar(int idRolInterno, int idComponentePermiso)
+        public void Insertar(RolInterno oRolInterno, PermisoComponente oComponentePermiso)
         {
             Conexion.Instance.Guardar(
                 "sp_RolInternoComponentePermiso_Insertar",
-                new SqlParameter("@idRolInterno", idRolInterno),
-                new SqlParameter("@idComponentePermiso", idComponentePermiso));
+                new Hashtable
+                {
+                    { "@idRolInterno", oRolInterno.IdRolInterno },
+                    { "@idComponentePermiso", oComponentePermiso.IdComponentePermiso }
+                });
         }
     }
 }

@@ -25,7 +25,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppArea.ObtenerPorId(idAreaInterna);
+                return _mppArea.ObtenerPorId(new AreaInterna { IdAreaInterna = idAreaInterna });
             }
             catch (ErrorAccesoDatosException)
             {

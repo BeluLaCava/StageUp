@@ -1,6 +1,6 @@
 using System;
+using System.Collections;
 using System.Data;
-using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -8,30 +8,33 @@ namespace StageUp.MPP
 {
     public class MPP_CodigoActivacion
     {
-        public int Insertar(CodigoActivacion codigo)
+        public int Insertar(CodigoActivacion oCodigoActivacion)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_CodigoActivacion_Insertar",
-                new SqlParameter("@idUsuarioExterno", codigo.IdUsuarioExterno),
-                new SqlParameter("@codigo", codigo.Codigo),
-                new SqlParameter("@fechaVencimiento", codigo.FechaVencimiento));
+                new Hashtable
+                {
+                    { "@idUsuarioExterno", oCodigoActivacion.IdUsuarioExterno },
+                    { "@codigo", oCodigoActivacion.Codigo },
+                    { "@fechaVencimiento", oCodigoActivacion.FechaVencimiento }
+                });
 
             return Convert.ToInt32(resultado);
         }
 
-        public CodigoActivacion ObtenerVigentePorUsuario(int idUsuarioExterno)
+        public CodigoActivacion ObtenerVigentePorUsuario(UsuarioExterno oUsuarioExterno)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_CodigoActivacion_ObtenerVigentePorUsuario",
-                new SqlParameter("@idUsuarioExterno", idUsuarioExterno));
+                new Hashtable { { "@idUsuarioExterno", oUsuarioExterno.IdUsuarioExterno } });
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
-        public void MarcarUtilizado(int idCodigoActivacion)
+        public void MarcarUtilizado(CodigoActivacion oCodigoActivacion)
         {
             Conexion.Instance.Guardar(
                 "sp_CodigoActivacion_MarcarUtilizado",
-                new SqlParameter("@idCodigoActivacion", idCodigoActivacion));
+                new Hashtable { { "@idCodigoActivacion", oCodigoActivacion.IdCodigoActivacion } });
         }
 
         private static CodigoActivacion MapearDesdeFila(DataRow fila)

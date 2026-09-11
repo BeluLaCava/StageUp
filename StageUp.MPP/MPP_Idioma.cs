@@ -1,7 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -12,7 +12,7 @@ namespace StageUp.MPP
         public List<Idioma> Listar()
         {
             DataTable tabla = Conexion.Instance.Leer("sp_Idioma_Listar");
-            var idiomas = new List<Idioma>();
+            List<Idioma> idiomas = new List<Idioma>();
             foreach (DataRow fila in tabla.Rows)
             {
                 idiomas.Add(Mapear(fila));
@@ -21,41 +21,47 @@ namespace StageUp.MPP
             return idiomas;
         }
 
-        public Idioma ObtenerPorId(int idIdioma)
+        public Idioma ObtenerPorId(Idioma oIdioma)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Idioma_ObtenerPorId",
-                new SqlParameter("@idIdioma", SqlDbType.Int) { Value = idIdioma });
+                new Hashtable { { "@idIdioma", oIdioma.IdIdioma } });
 
             return tabla.Rows.Count == 0 ? null : Mapear(tabla.Rows[0]);
         }
 
-        public int Insertar(Idioma idioma)
+        public int Insertar(Idioma oIdioma)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_Idioma_Insertar",
-                new SqlParameter("@codigoIdioma", SqlDbType.NVarChar, 20) { Value = idioma.CodigoIdioma },
-                new SqlParameter("@nombreIdioma", SqlDbType.NVarChar, 100) { Value = idioma.NombreIdioma },
-                new SqlParameter("@esPredeterminado", SqlDbType.Bit) { Value = idioma.EsPredeterminado });
+                new Hashtable
+                {
+                    { "@codigoIdioma", oIdioma.CodigoIdioma },
+                    { "@nombreIdioma", oIdioma.NombreIdioma },
+                    { "@esPredeterminado", oIdioma.EsPredeterminado }
+                });
 
             return Convert.ToInt32(resultado);
         }
 
-        public void Modificar(Idioma idioma)
+        public void Modificar(Idioma oIdioma)
         {
             Conexion.Instance.Guardar(
                 "sp_Idioma_Modificar",
-                new SqlParameter("@idIdioma", SqlDbType.Int) { Value = idioma.IdIdioma },
-                new SqlParameter("@codigoIdioma", SqlDbType.NVarChar, 20) { Value = idioma.CodigoIdioma },
-                new SqlParameter("@nombreIdioma", SqlDbType.NVarChar, 100) { Value = idioma.NombreIdioma },
-                new SqlParameter("@esPredeterminado", SqlDbType.Bit) { Value = idioma.EsPredeterminado });
+                new Hashtable
+                {
+                    { "@idIdioma", oIdioma.IdIdioma },
+                    { "@codigoIdioma", oIdioma.CodigoIdioma },
+                    { "@nombreIdioma", oIdioma.NombreIdioma },
+                    { "@esPredeterminado", oIdioma.EsPredeterminado }
+                });
         }
 
-        public void DarDeBaja(int idIdioma)
+        public void DarDeBaja(Idioma oIdioma)
         {
             Conexion.Instance.Guardar(
                 "sp_Idioma_DarDeBaja",
-                new SqlParameter("@idIdioma", SqlDbType.Int) { Value = idIdioma });
+                new Hashtable { { "@idIdioma", oIdioma.IdIdioma } });
         }
 
         private static Idioma Mapear(DataRow fila)

@@ -69,7 +69,8 @@ namespace StageUp.BLL
                 }
 
                 correoElectronico = correoElectronico.Trim().ToLowerInvariant();
-                if (_mppUsuario.ObtenerPorCorreo(correoElectronico) != null)
+                if (_mppUsuario.ObtenerPorCorreo(
+                    new UsuarioExterno { CorreoElectronico = correoElectronico }) != null)
                 {
                     return ResultadoOperacion<int>.Error(
                         "Ya existe una cuenta registrada con ese correo electrónico.", "A3");
@@ -108,7 +109,8 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
                 if (usuario == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
@@ -136,7 +138,8 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("Ingresá el código de activación que recibiste por correo.");
                 }
 
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
                 if (usuario == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
@@ -156,7 +159,8 @@ namespace StageUp.BLL
                 }
 
                 _bllCodigoActivacion.MarcarUtilizado(codigo.IdCodigoActivacion);
-                _mppUsuario.ActivarCuenta(usuario.IdUsuarioExterno, EstadoCuentaExterno.Activa.ToString());
+                usuario.EstadoCuenta = EstadoCuentaExterno.Activa.ToString();
+                _mppUsuario.ActivarCuenta(usuario);
 
                 _bitacora.Registrar(
                     usuario.IdUsuarioExterno, "ACTIVACION", "UsuarioExterno", usuario.IdUsuarioExterno,
@@ -185,7 +189,10 @@ namespace StageUp.BLL
                     return ResultadoOperacion<UsuarioExterno>.Error(ObtenerMensajeCaptcha(captcha.Estado));
                 }
 
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim().ToLowerInvariant());
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(new UsuarioExterno
+                {
+                    CorreoElectronico = correoElectronico.Trim().ToLowerInvariant()
+                });
 
                 if (usuario == null || !HashDeContrasenas.Verificar(password, usuario.PasswordHash))
                 {
@@ -229,7 +236,10 @@ namespace StageUp.BLL
                         "El correo electrónico ingresado no tiene un formato válido.", "A2");
                 }
 
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim().ToLowerInvariant());
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(new UsuarioExterno
+                {
+                    CorreoElectronico = correoElectronico.Trim().ToLowerInvariant()
+                });
 
                 if (usuario == null)
                 {
@@ -269,7 +279,10 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("Ingresá el código de recuperación que recibiste por correo.");
                 }
 
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim().ToLowerInvariant());
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(new UsuarioExterno
+                {
+                    CorreoElectronico = correoElectronico.Trim().ToLowerInvariant()
+                });
                 if (usuario == null)
                 {
                     return ResultadoOperacion.Error("El código ingresado no es válido.", "A5");
@@ -303,7 +316,8 @@ namespace StageUp.BLL
                 }
 
                 _bllCodigoRecuperacion.MarcarUtilizado(codigo.IdCodigoRecuperacion);
-                _mppUsuario.ActualizarPassword(usuario.IdUsuarioExterno, HashDeContrasenas.CrearHash(nuevaPassword));
+                usuario.PasswordHash = HashDeContrasenas.CrearHash(nuevaPassword);
+                _mppUsuario.ActualizarPassword(usuario);
 
                 _bitacora.Registrar(
                     usuario.IdUsuarioExterno, "MODIFICACION", "UsuarioExterno", usuario.IdUsuarioExterno,
@@ -319,7 +333,8 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
                 if (usuario == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
@@ -343,7 +358,8 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("La nueva contraseña y su confirmación no coinciden.");
                 }
 
-                _mppUsuario.ActualizarPassword(usuario.IdUsuarioExterno, HashDeContrasenas.CrearHash(nuevaPassword));
+                usuario.PasswordHash = HashDeContrasenas.CrearHash(nuevaPassword);
+                _mppUsuario.ActualizarPassword(usuario);
 
                 _bitacora.Registrar(
                     usuario.IdUsuarioExterno, "MODIFICACION", "UsuarioExterno", usuario.IdUsuarioExterno,
@@ -359,7 +375,8 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
                 if (usuario == null)
                 {
                     return ResultadoOperacion<int>.Error("No se encontró la cuenta indicada.");
@@ -375,7 +392,8 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error("Ya tenés una solicitud de habilitación como gestor pendiente de aprobación.");
                 }
 
-                _mppUsuario.ActualizarPerfil(idUsuarioExterno, PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString());
+                usuario.PerfilUsuario = PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString();
+                _mppUsuario.ActualizarPerfil(usuario);
 
                 _bitacora.Registrar(
                     idUsuarioExterno, "MODIFICACION", "UsuarioExterno", idUsuarioExterno,
@@ -390,7 +408,10 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppUsuario.ListarPorPerfil(PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString());
+                return _mppUsuario.ListarPorPerfil(new UsuarioExterno
+                {
+                    PerfilUsuario = PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString()
+                });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -402,7 +423,8 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
                 if (usuario == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
@@ -413,7 +435,8 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("Esta cuenta no tiene una solicitud de habilitación pendiente.");
                 }
 
-                _mppUsuario.ActualizarPerfil(idUsuarioExterno, PerfilUsuarioExterno.GestorEspacios.ToString());
+                usuario.PerfilUsuario = PerfilUsuarioExterno.GestorEspacios.ToString();
+                _mppUsuario.ActualizarPerfil(usuario);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "APROBACION", "UsuarioExterno", idUsuarioExterno,
@@ -427,7 +450,8 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
                 if (usuario == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
@@ -438,7 +462,8 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("Esta cuenta no tiene una solicitud de habilitación pendiente.");
                 }
 
-                _mppUsuario.ActualizarPerfil(idUsuarioExterno, PerfilUsuarioExterno.ExternoSolicitante.ToString());
+                usuario.PerfilUsuario = PerfilUsuarioExterno.ExternoSolicitante.ToString();
+                _mppUsuario.ActualizarPerfil(usuario);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "RECHAZO", "UsuarioExterno", idUsuarioExterno,
@@ -457,7 +482,10 @@ namespace StageUp.BLL
 
             try
             {
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(correoElectronico.Trim());
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(new UsuarioExterno
+                {
+                    CorreoElectronico = correoElectronico.Trim()
+                });
                 return usuario == null ? (int?)null : usuario.IdUsuarioExterno;
             }
             catch (ErrorAccesoDatosException)
@@ -470,7 +498,8 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                return _mppUsuario.ObtenerPorId(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -482,7 +511,8 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppUsuario.ObtenerPerfilPorId(idUsuarioExterno);
+                return _mppUsuario.ObtenerPerfilPorId(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -533,13 +563,15 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("La edición de datos personales está lista en la interfaz, pero todavía falta habilitar su integración con la base de datos.");
                 }
 
-                UsuarioExterno actual = _mppUsuario.ObtenerPorId(idUsuarioExterno);
+                UsuarioExterno actual = _mppUsuario.ObtenerPorId(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
                 if (actual == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
                 }
 
-                UsuarioExterno usuarioConMismoCorreo = _mppUsuario.ObtenerPorCorreo(correoElectronico);
+                UsuarioExterno usuarioConMismoCorreo = _mppUsuario.ObtenerPorCorreo(
+                    new UsuarioExterno { CorreoElectronico = correoElectronico });
                 if (usuarioConMismoCorreo != null && usuarioConMismoCorreo.IdUsuarioExterno != idUsuarioExterno)
                 {
                     return ResultadoOperacion.Error("Ya existe una cuenta registrada con ese correo electrónico.");

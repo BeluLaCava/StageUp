@@ -18,7 +18,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppTraduccion.ListarConfiguracion(idIdioma);
+                return _mppTraduccion.ListarConfiguracion(new Idioma { IdIdioma = idIdioma });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -34,7 +34,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Idioma idioma = _mppIdioma.ObtenerPorId(idIdioma);
+                Idioma idioma = _mppIdioma.ObtenerPorId(new Idioma { IdIdioma = idIdioma });
                 if (idioma == null || !idioma.Activo)
                 {
                     return ResultadoOperacion.Error("No se encontró el idioma seleccionado.");
@@ -82,13 +82,17 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Idioma idioma = _mppIdioma.ObtenerPorId(idIdioma);
+                Idioma idioma = _mppIdioma.ObtenerPorId(new Idioma { IdIdioma = idIdioma });
                 if (idioma == null || !idioma.Activo)
                 {
                     return ResultadoOperacion.Error("No se encontró el idioma seleccionado.");
                 }
 
-                _mppTraduccion.Eliminar(idIdioma, idEtiquetaTraduccion);
+                _mppTraduccion.Eliminar(new Traduccion
+                {
+                    IdIdioma = idIdioma,
+                    IdEtiquetaTraduccion = idEtiquetaTraduccion
+                });
 
                 BLL_Multidioma.InvalidarCache(idIdioma);
 

@@ -104,7 +104,7 @@ namespace StageUp.BLL
             if (!validacion.Exitoso) return ResultadoOperacion<int>.Error(validacion.Mensaje);
             if (espacio.IdEspacioArtistico != 0)
             {
-                ResultadoOperacion propiedad = ValidarPropiedad(_mppEspacio.ObtenerPorId(espacio.IdEspacioArtistico), idUsuarioGestor);
+                ResultadoOperacion propiedad = ValidarPropiedad(_mppEspacio.ObtenerPorId(espacio), idUsuarioGestor);
                 if (!propiedad.Exitoso) return ResultadoOperacion<int>.Error(propiedad.Mensaje);
             }
             espacio.IdUsuarioGestor = idUsuarioGestor;
@@ -157,7 +157,8 @@ namespace StageUp.BLL
                     return validacion;
                 }
 
-                EspacioArtistico espacioExistente = _mppEspacio.ObtenerPorId(idEspacioArtistico);
+                EspacioArtistico espacioExistente = _mppEspacio.ObtenerPorId(
+                    new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
                 ResultadoOperacion validacionPropiedad = ValidarPropiedad(espacioExistente, idUsuarioGestorSolicitante);
                 if (!validacionPropiedad.Exitoso)
                 {
@@ -186,7 +187,8 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppEspacio.ListarPorUsuarioGestor(idUsuarioGestor);
+                return _mppEspacio.ListarPorUsuarioGestor(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -294,7 +296,8 @@ namespace StageUp.BLL
             EspacioArtistico espacio;
             try
             {
-                espacio = _mppEspacio.ObtenerPorId(idEspacioArtistico);
+                espacio = _mppEspacio.ObtenerPorId(
+                    new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -319,14 +322,15 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                EspacioArtistico espacio = _mppEspacio.ObtenerPorId(idEspacioArtistico);
+                EspacioArtistico espacio = _mppEspacio.ObtenerPorId(
+                    new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
                 ResultadoOperacion validacionPropiedad = ValidarPropiedad(espacio, idUsuarioGestorSolicitante);
                 if (!validacionPropiedad.Exitoso)
                 {
                     return validacionPropiedad;
                 }
 
-                _mppEspacio.Publicar(idEspacioArtistico);
+                _mppEspacio.Publicar(espacio);
 
                 _bitacora.Registrar(
                     idUsuarioGestorSolicitante, "MODIFICACION", TipoEntidadBitacora, idEspacioArtistico,
@@ -340,14 +344,15 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                EspacioArtistico espacio = _mppEspacio.ObtenerPorId(idEspacioArtistico);
+                EspacioArtistico espacio = _mppEspacio.ObtenerPorId(
+                    new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
                 ResultadoOperacion validacionPropiedad = ValidarPropiedad(espacio, idUsuarioGestorSolicitante);
                 if (!validacionPropiedad.Exitoso)
                 {
                     return validacionPropiedad;
                 }
 
-                _mppEspacio.Pausar(idEspacioArtistico);
+                _mppEspacio.Pausar(espacio);
 
                 _bitacora.Registrar(
                     idUsuarioGestorSolicitante, "MODIFICACION", TipoEntidadBitacora, idEspacioArtistico,
@@ -361,14 +366,15 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                EspacioArtistico espacio = _mppEspacio.ObtenerPorId(idEspacioArtistico);
+                EspacioArtistico espacio = _mppEspacio.ObtenerPorId(
+                    new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
                 ResultadoOperacion validacionPropiedad = ValidarPropiedad(espacio, idUsuarioGestorSolicitante);
                 if (!validacionPropiedad.Exitoso)
                 {
                     return validacionPropiedad;
                 }
 
-                _mppEspacio.BajaLogica(idEspacioArtistico);
+                _mppEspacio.BajaLogica(espacio);
 
                 _bitacora.Registrar(
                     idUsuarioGestorSolicitante, "BAJA", TipoEntidadBitacora, idEspacioArtistico,

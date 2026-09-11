@@ -1,7 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -9,18 +9,18 @@ namespace StageUp.MPP
 {
     public class MPP_Traduccion
     {
-        public List<Traduccion> ListarDiccionario(int idIdioma)
+        public List<Traduccion> ListarDiccionario(Idioma oIdioma)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Traduccion_ListarDiccionario",
-                new SqlParameter("@idIdioma", SqlDbType.Int) { Value = idIdioma });
+                new Hashtable { { "@idIdioma", oIdioma.IdIdioma } });
 
-            var traducciones = new List<Traduccion>();
+            List<Traduccion> traducciones = new List<Traduccion>();
             foreach (DataRow fila in tabla.Rows)
             {
                 traducciones.Add(new Traduccion
                 {
-                    IdIdioma = idIdioma,
+                    IdIdioma = oIdioma.IdIdioma,
                     ClaveEtiqueta = fila["claveEtiqueta"].ToString(),
                     TextoPredeterminado = fila["textoPredeterminado"].ToString(),
                     TextoTraducido = fila["textoTraducido"].ToString(),
@@ -31,13 +31,13 @@ namespace StageUp.MPP
             return traducciones;
         }
 
-        public List<Traduccion> ListarConfiguracion(int idIdioma)
+        public List<Traduccion> ListarConfiguracion(Idioma oIdioma)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Traduccion_ListarConfiguracion",
-                new SqlParameter("@idIdioma", SqlDbType.Int) { Value = idIdioma });
+                new Hashtable { { "@idIdioma", oIdioma.IdIdioma } });
 
-            var traducciones = new List<Traduccion>();
+            List<Traduccion> traducciones = new List<Traduccion>();
             foreach (DataRow fila in tabla.Rows)
             {
                 traducciones.Add(new Traduccion
@@ -45,7 +45,7 @@ namespace StageUp.MPP
                     IdTraduccion = fila["idTraduccion"] == DBNull.Value
                         ? (int?)null
                         : Convert.ToInt32(fila["idTraduccion"]),
-                    IdIdioma = idIdioma,
+                    IdIdioma = oIdioma.IdIdioma,
                     IdEtiquetaTraduccion = Convert.ToInt32(fila["idEtiquetaTraduccion"]),
                     ClaveEtiqueta = fila["claveEtiqueta"].ToString(),
                     TextoPredeterminado = fila["textoPredeterminado"].ToString(),
@@ -60,21 +60,27 @@ namespace StageUp.MPP
             return traducciones;
         }
 
-        public void Guardar(Traduccion traduccion)
+        public void Guardar(Traduccion oTraduccion)
         {
             Conexion.Instance.Guardar(
                 "sp_Traduccion_Guardar",
-                new SqlParameter("@idIdioma", SqlDbType.Int) { Value = traduccion.IdIdioma },
-                new SqlParameter("@idEtiquetaTraduccion", SqlDbType.Int) { Value = traduccion.IdEtiquetaTraduccion },
-                new SqlParameter("@textoTraducido", SqlDbType.NVarChar, 2000) { Value = traduccion.TextoTraducido });
+                new Hashtable
+                {
+                    { "@idIdioma", oTraduccion.IdIdioma },
+                    { "@idEtiquetaTraduccion", oTraduccion.IdEtiquetaTraduccion },
+                    { "@textoTraducido", oTraduccion.TextoTraducido }
+                });
         }
 
-        public void Eliminar(int idIdioma, int idEtiquetaTraduccion)
+        public void Eliminar(Traduccion oTraduccion)
         {
             Conexion.Instance.Guardar(
                 "sp_Traduccion_Eliminar",
-                new SqlParameter("@idIdioma", SqlDbType.Int) { Value = idIdioma },
-                new SqlParameter("@idEtiquetaTraduccion", SqlDbType.Int) { Value = idEtiquetaTraduccion });
+                new Hashtable
+                {
+                    { "@idIdioma", oTraduccion.IdIdioma },
+                    { "@idEtiquetaTraduccion", oTraduccion.IdEtiquetaTraduccion }
+                });
         }
     }
 }

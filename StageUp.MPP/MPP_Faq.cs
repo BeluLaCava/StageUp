@@ -12,7 +12,7 @@ namespace StageUp.MPP
         {
             DataTable tabla = Conexion.Instance.Leer("sp_Faq_ListarActivas");
 
-            var lista = new List<Faq>();
+            List<Faq> lista = new List<Faq>();
             foreach (DataRow fila in tabla.Rows)
             {
                 lista.Add(new Faq

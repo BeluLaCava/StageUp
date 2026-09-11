@@ -31,7 +31,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppIdioma.ObtenerPorId(idIdioma);
+                return _mppIdioma.ObtenerPorId(new Idioma { IdIdioma = idIdioma });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -88,7 +88,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Idioma idiomaActual = _mppIdioma.ObtenerPorId(idIdioma);
+                Idioma idiomaActual = _mppIdioma.ObtenerPorId(new Idioma { IdIdioma = idIdioma });
                 if (idiomaActual == null || !idiomaActual.Activo)
                 {
                     return ResultadoOperacion.Error("No se encontró el idioma seleccionado.");
@@ -137,7 +137,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Idioma idioma = _mppIdioma.ObtenerPorId(idIdioma);
+                Idioma idioma = _mppIdioma.ObtenerPorId(new Idioma { IdIdioma = idIdioma });
                 if (idioma == null || !idioma.Activo)
                 {
                     return ResultadoOperacion.Error("No se encontró el idioma seleccionado.");
@@ -149,7 +149,7 @@ namespace StageUp.BLL
                         "No podés dar de baja el idioma predeterminado. Marcá otro idioma como predeterminado primero.");
                 }
 
-                _mppIdioma.DarDeBaja(idIdioma);
+                _mppIdioma.DarDeBaja(idioma);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable,

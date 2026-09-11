@@ -1,7 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -9,40 +9,46 @@ namespace StageUp.MPP
 {
     public class MPP_RolInterno
     {
-        public int Insertar(RolInterno rol)
+        public int Insertar(RolInterno oRolInterno)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_RolInterno_Insertar",
-                new SqlParameter("@idAreaInterna", (object)rol.IdAreaInterna ?? DBNull.Value),
-                new SqlParameter("@nombreRol", rol.NombreRol),
-                new SqlParameter("@descripcion", (object)rol.Descripcion ?? DBNull.Value),
-                new SqlParameter("@estadoRol", rol.EstadoRol));
+                new Hashtable
+                {
+                    { "@idAreaInterna", (object)oRolInterno.IdAreaInterna ?? DBNull.Value },
+                    { "@nombreRol", oRolInterno.NombreRol },
+                    { "@descripcion", (object)oRolInterno.Descripcion ?? DBNull.Value },
+                    { "@estadoRol", oRolInterno.EstadoRol }
+                });
 
             return Convert.ToInt32(resultado);
         }
 
-        public void Modificar(RolInterno rol)
+        public void Modificar(RolInterno oRolInterno)
         {
             Conexion.Instance.Guardar(
                 "sp_RolInterno_Modificar",
-                new SqlParameter("@idRolInterno", rol.IdRolInterno),
-                new SqlParameter("@idAreaInterna", (object)rol.IdAreaInterna ?? DBNull.Value),
-                new SqlParameter("@nombreRol", rol.NombreRol),
-                new SqlParameter("@descripcion", (object)rol.Descripcion ?? DBNull.Value));
+                new Hashtable
+                {
+                    { "@idRolInterno", oRolInterno.IdRolInterno },
+                    { "@idAreaInterna", (object)oRolInterno.IdAreaInterna ?? DBNull.Value },
+                    { "@nombreRol", oRolInterno.NombreRol },
+                    { "@descripcion", (object)oRolInterno.Descripcion ?? DBNull.Value }
+                });
         }
 
-        public RolInterno ObtenerPorId(int idRolInterno)
+        public RolInterno ObtenerPorId(RolInterno oRolInterno)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_RolInterno_ObtenerPorId",
-                new SqlParameter("@idRolInterno", idRolInterno));
+                new Hashtable { { "@idRolInterno", oRolInterno.IdRolInterno } });
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
         public List<RolInterno> Listar()
         {
             DataTable tabla = Conexion.Instance.Leer("sp_RolInterno_Listar");
-            var lista = new List<RolInterno>();
+            List<RolInterno> lista = new List<RolInterno>();
             foreach (DataRow fila in tabla.Rows)
             {
                 lista.Add(MapearDesdeFila(fila));
@@ -50,11 +56,11 @@ namespace StageUp.MPP
             return lista;
         }
 
-        public void Baja(int idRolInterno)
+        public void Baja(RolInterno oRolInterno)
         {
             Conexion.Instance.Guardar(
                 "sp_RolInterno_Baja",
-                new SqlParameter("@idRolInterno", idRolInterno));
+                new Hashtable { { "@idRolInterno", oRolInterno.IdRolInterno } });
         }
 
         private static RolInterno MapearDesdeFila(DataRow fila)

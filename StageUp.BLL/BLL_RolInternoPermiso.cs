@@ -1,3 +1,4 @@
+using StageUp.BE.Entidades;
 using StageUp.MPP;
 
 namespace StageUp.BLL
@@ -8,12 +9,14 @@ namespace StageUp.BLL
 
         public void EliminarPorRol(int idRolInterno)
         {
-            _mppRolPermiso.EliminarPorRol(idRolInterno);
+            _mppRolPermiso.EliminarPorRol(new RolInterno { IdRolInterno = idRolInterno });
         }
 
         public void Insertar(int idRolInterno, int idPermisoInterno)
         {
-            _mppRolPermiso.Insertar(idRolInterno, idPermisoInterno);
+            _mppRolPermiso.Insertar(
+                new RolInterno { IdRolInterno = idRolInterno },
+                new PermisoInterno { IdPermisoInterno = idPermisoInterno });
         }
     }
 }

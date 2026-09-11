@@ -28,7 +28,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppRol.ObtenerPorId(idRolInterno);
+                return _mppRol.ObtenerPorId(new RolInterno { IdRolInterno = idRolInterno });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -110,7 +110,8 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                int cantidadUsuarios = _mppUsuarioInterno.ContarActivosPorRol(idRolInterno);
+                RolInterno rol = new RolInterno { IdRolInterno = idRolInterno };
+                int cantidadUsuarios = _mppUsuarioInterno.ContarActivosPorRol(rol);
                 if (cantidadUsuarios > 0)
                 {
                     return ResultadoOperacion.Error(
@@ -118,7 +119,7 @@ namespace StageUp.BLL
                         " usuario(s) interno(s) asignado(s). Reasigná esos usuarios a otro rol primero.");
                 }
 
-                _mppRol.Baja(idRolInterno);
+                _mppRol.Baja(rol);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "BAJA", "RolInterno", idRolInterno,

@@ -1,8 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
-using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -15,78 +15,90 @@ namespace StageUp.MPP
             get { return string.Equals(ConfigurationManager.AppSettings["PerfilCompletoHabilitado"], "true", StringComparison.OrdinalIgnoreCase); }
         }
 
-        public int Insertar(UsuarioExterno usuario)
+        public int Insertar(UsuarioExterno oUsuarioExterno)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_UsuarioExterno_Insertar",
-                new SqlParameter("@nombre", usuario.Nombre),
-                new SqlParameter("@apellido", usuario.Apellido),
-                new SqlParameter("@correoElectronico", usuario.CorreoElectronico),
-                new SqlParameter("@passwordHash", usuario.PasswordHash),
-                new SqlParameter("@telefono", (object)usuario.Telefono ?? DBNull.Value),
-                new SqlParameter("@estadoCuenta", usuario.EstadoCuenta),
-                new SqlParameter("@perfilUsuario", usuario.PerfilUsuario),
-                new SqlParameter("@aceptaTerminos", usuario.AceptaTerminos),
-                new SqlParameter("@aceptaPoliticaPrivacidad", usuario.AceptaPoliticaPrivacidad),
-                new SqlParameter("@fechaAceptacionTerminos", (object)usuario.FechaAceptacionTerminos ?? DBNull.Value));
+                new Hashtable
+                {
+                    { "@nombre", oUsuarioExterno.Nombre },
+                    { "@apellido", oUsuarioExterno.Apellido },
+                    { "@correoElectronico", oUsuarioExterno.CorreoElectronico },
+                    { "@passwordHash", oUsuarioExterno.PasswordHash },
+                    { "@telefono", (object)oUsuarioExterno.Telefono ?? DBNull.Value },
+                    { "@estadoCuenta", oUsuarioExterno.EstadoCuenta },
+                    { "@perfilUsuario", oUsuarioExterno.PerfilUsuario },
+                    { "@aceptaTerminos", oUsuarioExterno.AceptaTerminos },
+                    { "@aceptaPoliticaPrivacidad", oUsuarioExterno.AceptaPoliticaPrivacidad },
+                    { "@fechaAceptacionTerminos", (object)oUsuarioExterno.FechaAceptacionTerminos ?? DBNull.Value }
+                });
 
             return Convert.ToInt32(resultado);
         }
 
-        public UsuarioExterno ObtenerPorCorreo(string correoElectronico)
+        public UsuarioExterno ObtenerPorCorreo(UsuarioExterno oUsuarioExterno)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_UsuarioExterno_ObtenerPorCorreo",
-                new SqlParameter("@correoElectronico", correoElectronico));
+                new Hashtable { { "@correoElectronico", oUsuarioExterno.CorreoElectronico } });
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
-        public UsuarioExterno ObtenerPorId(int idUsuarioExterno)
+        public UsuarioExterno ObtenerPorId(UsuarioExterno oUsuarioExterno)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_UsuarioExterno_ObtenerPorId",
-                new SqlParameter("@idUsuarioExterno", idUsuarioExterno));
+                new Hashtable { { "@idUsuarioExterno", oUsuarioExterno.IdUsuarioExterno } });
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
-        public UsuarioExterno ObtenerPerfilPorId(int idUsuarioExterno)
+        public UsuarioExterno ObtenerPerfilPorId(UsuarioExterno oUsuarioExterno)
         {
             if (!PerfilCompletoHabilitado)
             {
-                return ObtenerPorId(idUsuarioExterno);
+                return ObtenerPorId(oUsuarioExterno);
             }
 
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_UsuarioExterno_ObtenerPerfilPorIdV2",
-                new SqlParameter("@idUsuarioExterno", idUsuarioExterno));
+                new Hashtable { { "@idUsuarioExterno", oUsuarioExterno.IdUsuarioExterno } });
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
-        public void ActivarCuenta(int idUsuarioExterno, string estadoCuenta)
+        public void ActivarCuenta(UsuarioExterno oUsuarioExterno)
         {
             Conexion.Instance.Guardar(
                 "sp_UsuarioExterno_ActivarCuenta",
-                new SqlParameter("@idUsuarioExterno", idUsuarioExterno),
-                new SqlParameter("@estadoCuenta", estadoCuenta));
+                new Hashtable
+                {
+                    { "@idUsuarioExterno", oUsuarioExterno.IdUsuarioExterno },
+                    { "@estadoCuenta", oUsuarioExterno.EstadoCuenta }
+                });
         }
 
-        public void ActualizarPassword(int idUsuarioExterno, string passwordHash)
+        public void ActualizarPassword(UsuarioExterno oUsuarioExterno)
         {
             Conexion.Instance.Guardar(
                 "sp_UsuarioExterno_ActualizarPassword",
-                new SqlParameter("@idUsuarioExterno", idUsuarioExterno),
-                new SqlParameter("@passwordHash", passwordHash));
+                new Hashtable
+                {
+                    { "@idUsuarioExterno", oUsuarioExterno.IdUsuarioExterno },
+                    { "@passwordHash", oUsuarioExterno.PasswordHash }
+                });
         }
 
-        public void ActualizarPerfil(int idUsuarioExterno, string perfilUsuario)
+        public void ActualizarPerfil(UsuarioExterno oUsuarioExterno)
         {
             Conexion.Instance.Guardar(
                 "sp_UsuarioExterno_ActualizarPerfil",
-                new SqlParameter("@idUsuarioExterno", idUsuarioExterno),
-                new SqlParameter("@perfilUsuario", perfilUsuario));
+                new Hashtable
+                {
+                    { "@idUsuarioExterno", oUsuarioExterno.IdUsuarioExterno },
+                    { "@perfilUsuario", oUsuarioExterno.PerfilUsuario }
+                });
         }
 
-        public void ActualizarDatosPersonales(UsuarioExterno usuario)
+        public void ActualizarDatosPersonales(UsuarioExterno oUsuarioExterno)
         {
             if (!PerfilCompletoHabilitado)
             {
@@ -95,21 +107,24 @@ namespace StageUp.MPP
 
             Conexion.Instance.Guardar(
                 "sp_UsuarioExterno_ActualizarDatosPerfilV2",
-                new SqlParameter("@idUsuarioExterno", usuario.IdUsuarioExterno),
-                new SqlParameter("@nombre", usuario.Nombre),
-                new SqlParameter("@apellido", usuario.Apellido),
-                new SqlParameter("@correoElectronico", usuario.CorreoElectronico),
-                new SqlParameter("@fotoPerfilRuta", (object)usuario.FotoPerfilRuta ?? DBNull.Value),
-                new SqlParameter("@descripcionPerfil", (object)usuario.DescripcionPerfil ?? DBNull.Value));
+                new Hashtable
+                {
+                    { "@idUsuarioExterno", oUsuarioExterno.IdUsuarioExterno },
+                    { "@nombre", oUsuarioExterno.Nombre },
+                    { "@apellido", oUsuarioExterno.Apellido },
+                    { "@correoElectronico", oUsuarioExterno.CorreoElectronico },
+                    { "@fotoPerfilRuta", (object)oUsuarioExterno.FotoPerfilRuta ?? DBNull.Value },
+                    { "@descripcionPerfil", (object)oUsuarioExterno.DescripcionPerfil ?? DBNull.Value }
+                });
         }
 
-        public List<UsuarioExterno> ListarPorPerfil(string perfilUsuario)
+        public List<UsuarioExterno> ListarPorPerfil(UsuarioExterno oUsuarioExterno)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_UsuarioExterno_ListarPorPerfil",
-                new SqlParameter("@perfilUsuario", perfilUsuario));
+                new Hashtable { { "@perfilUsuario", oUsuarioExterno.PerfilUsuario } });
 
-            var lista = new List<UsuarioExterno>();
+            List<UsuarioExterno> lista = new List<UsuarioExterno>();
             foreach (DataRow fila in tabla.Rows)
             {
                 lista.Add(MapearDesdeFila(fila));

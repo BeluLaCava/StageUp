@@ -1,23 +1,27 @@
-using System.Data.SqlClient;
+using System.Collections;
+using StageUp.BE.Entidades;
 using StageUp.DAL;
 
 namespace StageUp.MPP
 {
     public class MPP_RolInternoPermiso
     {
-        public void EliminarPorRol(int idRolInterno)
+        public void EliminarPorRol(RolInterno oRolInterno)
         {
             Conexion.Instance.Guardar(
                 "sp_RolInternoPermiso_EliminarPorRol",
-                new SqlParameter("@idRolInterno", idRolInterno));
+                new Hashtable { { "@idRolInterno", oRolInterno.IdRolInterno } });
         }
 
-        public void Insertar(int idRolInterno, int idPermisoInterno)
+        public void Insertar(RolInterno oRolInterno, PermisoInterno oPermisoInterno)
         {
             Conexion.Instance.Guardar(
                 "sp_RolInternoPermiso_Insertar",
-                new SqlParameter("@idRolInterno", idRolInterno),
-                new SqlParameter("@idPermisoInterno", idPermisoInterno));
+                new Hashtable
+                {
+                    { "@idRolInterno", oRolInterno.IdRolInterno },
+                    { "@idPermisoInterno", oPermisoInterno.IdPermisoInterno }
+                });
         }
     }
 }

@@ -1,7 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -9,85 +9,99 @@ namespace StageUp.MPP
 {
     public class MPP_Reserva
     {
-        public int Insertar(Reserva reserva)
+        public int Insertar(Reserva oReserva)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_Reserva_Insertar",
-                new SqlParameter("@idEspacioArtistico", reserva.IdEspacioArtistico),
-                new SqlParameter("@idUsuarioExternoSolicitante", reserva.IdUsuarioExternoSolicitante),
-                new SqlParameter("@fechaSolicitada", reserva.FechaSolicitada),
-                new SqlParameter("@comentarioSolicitante", (object)reserva.ComentarioSolicitante ?? DBNull.Value),
-                new SqlParameter("@minutoDesde", (object)reserva.MinutoDesde ?? DBNull.Value),
-                new SqlParameter("@minutoHasta", (object)reserva.MinutoHasta ?? DBNull.Value),
-                new SqlParameter("@precioHoraPactado", (object)reserva.PrecioHoraPactado ?? DBNull.Value),
-                new SqlParameter("@moneda", (object)reserva.Moneda ?? DBNull.Value),
-                new SqlParameter("@importeEstimado", (object)reserva.ImporteEstimado ?? DBNull.Value));
+                new Hashtable
+                {
+                    { "@idEspacioArtistico", oReserva.IdEspacioArtistico },
+                    { "@idUsuarioExternoSolicitante", oReserva.IdUsuarioExternoSolicitante },
+                    { "@fechaSolicitada", oReserva.FechaSolicitada },
+                    { "@comentarioSolicitante", (object)oReserva.ComentarioSolicitante ?? DBNull.Value },
+                    { "@minutoDesde", (object)oReserva.MinutoDesde ?? DBNull.Value },
+                    { "@minutoHasta", (object)oReserva.MinutoHasta ?? DBNull.Value },
+                    { "@precioHoraPactado", (object)oReserva.PrecioHoraPactado ?? DBNull.Value },
+                    { "@moneda", (object)oReserva.Moneda ?? DBNull.Value },
+                    { "@importeEstimado", (object)oReserva.ImporteEstimado ?? DBNull.Value }
+                });
 
             return Convert.ToInt32(resultado);
         }
 
-        public bool ExisteSolapamiento(
-            int idEspacioArtistico, DateTime fechaSolicitada, int minutoDesde, int minutoHasta, int? idReservaAExcluir = null)
+        public bool ExisteSolapamiento(Reserva oReserva)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_Reserva_ExisteSolapamiento",
-                new SqlParameter("@idEspacioArtistico", idEspacioArtistico),
-                new SqlParameter("@fechaSolicitada", fechaSolicitada.Date),
-                new SqlParameter("@minutoDesde", minutoDesde),
-                new SqlParameter("@minutoHasta", minutoHasta),
-                new SqlParameter("@idReservaAExcluir", (object)idReservaAExcluir ?? DBNull.Value));
+                new Hashtable
+                {
+                    { "@idEspacioArtistico", oReserva.IdEspacioArtistico },
+                    { "@fechaSolicitada", oReserva.FechaSolicitada.Date },
+                    { "@minutoDesde", (object)oReserva.MinutoDesde ?? DBNull.Value },
+                    { "@minutoHasta", (object)oReserva.MinutoHasta ?? DBNull.Value },
+                    { "@idReservaAExcluir", oReserva.IdReserva > 0 ? (object)oReserva.IdReserva : DBNull.Value }
+                });
 
             return Convert.ToBoolean(resultado);
         }
 
-        public bool AceptarSiDisponible(int idReserva, string comentarioResolucion)
+        public bool AceptarSiDisponible(Reserva oReserva)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_Reserva_AceptarSiDisponible",
-                new SqlParameter("@idReserva", idReserva),
-                new SqlParameter("@comentarioResolucion", (object)comentarioResolucion ?? DBNull.Value));
+                new Hashtable
+                {
+                    { "@idReserva", oReserva.IdReserva },
+                    { "@comentarioResolucion", (object)oReserva.ComentarioResolucion ?? DBNull.Value }
+                });
 
             return Convert.ToBoolean(resultado);
         }
 
-        public List<Reserva> ListarPorSolicitante(int idUsuarioExternoSolicitante)
+        public List<Reserva> ListarPorSolicitante(UsuarioExterno oUsuarioExterno)
         {
             return MapearDesdeTabla(Conexion.Instance.Leer(
                 "sp_Reserva_ListarPorSolicitante",
-                new SqlParameter("@idUsuarioExternoSolicitante", idUsuarioExternoSolicitante)));
+                new Hashtable { { "@idUsuarioExternoSolicitante", oUsuarioExterno.IdUsuarioExterno } }));
         }
 
-        public List<Reserva> ListarPorGestor(int idUsuarioGestor)
+        public List<Reserva> ListarPorGestor(UsuarioExterno oUsuarioExterno)
         {
             return MapearDesdeTabla(Conexion.Instance.Leer(
                 "sp_Reserva_ListarPorGestor",
-                new SqlParameter("@idUsuarioGestor", idUsuarioGestor)));
+                new Hashtable { { "@idUsuarioGestor", oUsuarioExterno.IdUsuarioExterno } }));
         }
 
-        public Reserva ObtenerPorId(int idReserva)
+        public Reserva ObtenerPorId(Reserva oReserva)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Reserva_ObtenerPorId",
-                new SqlParameter("@idReserva", idReserva));
+                new Hashtable { { "@idReserva", oReserva.IdReserva } });
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
-        public void Resolver(int idReserva, string estadoReserva, string comentarioResolucion)
+        public void Resolver(Reserva oReserva)
         {
             Conexion.Instance.Guardar(
                 "sp_Reserva_Resolver",
-                new SqlParameter("@idReserva", idReserva),
-                new SqlParameter("@estadoReserva", estadoReserva),
-                new SqlParameter("@comentarioResolucion", (object)comentarioResolucion ?? DBNull.Value));
+                new Hashtable
+                {
+                    { "@idReserva", oReserva.IdReserva },
+                    { "@estadoReserva", oReserva.EstadoReserva },
+                    { "@comentarioResolucion", (object)oReserva.ComentarioResolucion ?? DBNull.Value }
+                });
         }
 
-        public void Cancelar(int idReserva, bool comisionAplicada, decimal? importeComision)
+        public void Cancelar(Reserva oReserva)
         {
             Conexion.Instance.Guardar(
                 "sp_Reserva_Cancelar",
-                new SqlParameter("@idReserva", idReserva),
-                new SqlParameter("@comisionAplicada", comisionAplicada),
-                new SqlParameter("@importeComision", (object)importeComision ?? DBNull.Value));
+                new Hashtable
+                {
+                    { "@idReserva", oReserva.IdReserva },
+                    { "@comisionAplicada", oReserva.ComisionAplicada },
+                    { "@importeComision", (object)oReserva.ImporteComision ?? DBNull.Value }
+                });
         }
 
         public void FinalizarVencidas()
@@ -97,7 +111,7 @@ namespace StageUp.MPP
 
         private static List<Reserva> MapearDesdeTabla(DataTable tabla)
         {
-            var lista = new List<Reserva>();
+            List<Reserva> lista = new List<Reserva>();
             foreach (DataRow fila in tabla.Rows)
             {
                 lista.Add(MapearDesdeFila(fila));
@@ -107,7 +121,7 @@ namespace StageUp.MPP
 
         private static Reserva MapearDesdeFila(DataRow fila)
         {
-            var reserva = new Reserva
+            Reserva reserva = new Reserva
             {
                 IdReserva = Convert.ToInt32(fila["idReserva"]),
                 IdEspacioArtistico = Convert.ToInt32(fila["idEspacioArtistico"]),

@@ -1,6 +1,6 @@
 using System;
+using System.Collections;
 using System.Data;
-using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -8,30 +8,33 @@ namespace StageUp.MPP
 {
     public class MPP_CodigoRecuperacion
     {
-        public int Insertar(CodigoRecuperacion codigo)
+        public int Insertar(CodigoRecuperacion oCodigoRecuperacion)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_CodigoRecuperacion_Insertar",
-                new SqlParameter("@idUsuarioExterno", codigo.IdUsuarioExterno),
-                new SqlParameter("@codigo", codigo.Codigo),
-                new SqlParameter("@fechaVencimiento", codigo.FechaVencimiento));
+                new Hashtable
+                {
+                    { "@idUsuarioExterno", oCodigoRecuperacion.IdUsuarioExterno },
+                    { "@codigo", oCodigoRecuperacion.Codigo },
+                    { "@fechaVencimiento", oCodigoRecuperacion.FechaVencimiento }
+                });
 
             return Convert.ToInt32(resultado);
         }
 
-        public CodigoRecuperacion ObtenerVigentePorUsuario(int idUsuarioExterno)
+        public CodigoRecuperacion ObtenerVigentePorUsuario(UsuarioExterno oUsuarioExterno)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_CodigoRecuperacion_ObtenerVigentePorUsuario",
-                new SqlParameter("@idUsuarioExterno", idUsuarioExterno));
+                new Hashtable { { "@idUsuarioExterno", oUsuarioExterno.IdUsuarioExterno } });
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
-        public void MarcarUtilizado(int idCodigoRecuperacion)
+        public void MarcarUtilizado(CodigoRecuperacion oCodigoRecuperacion)
         {
             Conexion.Instance.Guardar(
                 "sp_CodigoRecuperacion_MarcarUtilizado",
-                new SqlParameter("@idCodigoRecuperacion", idCodigoRecuperacion));
+                new Hashtable { { "@idCodigoRecuperacion", oCodigoRecuperacion.IdCodigoRecuperacion } });
         }
 
         private static CodigoRecuperacion MapearDesdeFila(DataRow fila)

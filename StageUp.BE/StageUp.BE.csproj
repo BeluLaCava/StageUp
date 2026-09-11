@@ -36,6 +36,7 @@
     <Compile Include="Entidades\CodigoActivacion.cs" />
     <Compile Include="Entidades\CodigoRecuperacion.cs" />
     <Compile Include="Entidades\RegistroActividad.cs" />
+    <Compile Include="Entidades\FiltroRegistroActividad.cs" />
     <Compile Include="Entidades\AreaInterna.cs" />
     <Compile Include="Entidades\RolInterno.cs" />
     <Compile Include="Entidades\PermisoInterno.cs" />

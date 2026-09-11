@@ -68,7 +68,8 @@ namespace StageUp.BLL
                 }
             }
 
-            IList<Traduccion> traducciones = _mppTraduccion.ListarDiccionario(idIdioma);
+            IList<Traduccion> traducciones = _mppTraduccion.ListarDiccionario(
+                new Idioma { IdIdioma = idIdioma });
 
             lock (CacheLock)
             {

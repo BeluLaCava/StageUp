@@ -14,12 +14,14 @@ namespace StageUp.BLL
 
         public CodigoRecuperacion ObtenerVigentePorUsuario(int idUsuarioExterno)
         {
-            return _mppCodigoRecuperacion.ObtenerVigentePorUsuario(idUsuarioExterno);
+            return _mppCodigoRecuperacion.ObtenerVigentePorUsuario(
+                new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
         }
 
         public void MarcarUtilizado(int idCodigoRecuperacion)
         {
-            _mppCodigoRecuperacion.MarcarUtilizado(idCodigoRecuperacion);
+            _mppCodigoRecuperacion.MarcarUtilizado(
+                new CodigoRecuperacion { IdCodigoRecuperacion = idCodigoRecuperacion });
         }
     }
 }

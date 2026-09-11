@@ -1,7 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -9,67 +9,73 @@ namespace StageUp.MPP
 {
     public class MPP_Calificacion
     {
-        public int Insertar(Calificacion calificacion)
+        public int Insertar(Calificacion oCalificacion)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_Calificacion_Insertar",
-                new SqlParameter("@idReserva", calificacion.IdReserva),
-                new SqlParameter("@idUsuarioAutor", calificacion.IdUsuarioAutor),
-                new SqlParameter("@tipoCalificacion", calificacion.TipoCalificacion),
-                new SqlParameter("@puntaje", calificacion.Puntaje),
-                new SqlParameter("@comentario", calificacion.Comentario));
+                new Hashtable
+                {
+                    { "@idReserva", oCalificacion.IdReserva },
+                    { "@idUsuarioAutor", oCalificacion.IdUsuarioAutor },
+                    { "@tipoCalificacion", oCalificacion.TipoCalificacion },
+                    { "@puntaje", oCalificacion.Puntaje },
+                    { "@comentario", oCalificacion.Comentario }
+                });
 
             return Convert.ToInt32(resultado);
         }
 
-        public bool Existe(int idReserva, string tipoCalificacion)
+        public bool Existe(Calificacion oCalificacion)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_Calificacion_Existe",
-                new SqlParameter("@idReserva", idReserva),
-                new SqlParameter("@tipoCalificacion", tipoCalificacion));
+                new Hashtable
+                {
+                    { "@idReserva", oCalificacion.IdReserva },
+                    { "@tipoCalificacion", oCalificacion.TipoCalificacion }
+                });
 
             return Convert.ToBoolean(resultado);
         }
 
-        public List<Calificacion> ListarPorEspacio(int idEspacioArtistico)
+        public List<Calificacion> ListarPorEspacio(EspacioArtistico oEspacioArtistico)
         {
             return MapearLista(Conexion.Instance.Leer(
                 "sp_Calificacion_ListarPorEspacio",
-                new SqlParameter("@idEspacioArtistico", idEspacioArtistico)));
+                new Hashtable { { "@idEspacioArtistico", oEspacioArtistico.IdEspacioArtistico } }));
         }
 
-        public List<Calificacion> ListarRecibidasPorUsuario(int idUsuarioExterno)
+        public List<Calificacion> ListarRecibidasPorUsuario(UsuarioExterno oUsuarioExterno)
         {
             return MapearLista(Conexion.Instance.Leer(
                 "sp_Calificacion_ListarRecibidasPorUsuario",
-                new SqlParameter("@idUsuarioExterno", idUsuarioExterno)));
+                new Hashtable { { "@idUsuarioExterno", oUsuarioExterno.IdUsuarioExterno } }));
         }
 
-        public List<Calificacion> ListarRealizadasPorUsuario(int idUsuarioExterno)
+        public List<Calificacion> ListarRealizadasPorUsuario(UsuarioExterno oUsuarioExterno)
         {
             return MapearLista(Conexion.Instance.Leer(
                 "sp_Calificacion_ListarRealizadasPorUsuario",
-                new SqlParameter("@idUsuarioExterno", idUsuarioExterno)));
+                new Hashtable { { "@idUsuarioExterno", oUsuarioExterno.IdUsuarioExterno } }));
         }
 
-        public ResumenReputacion ObtenerResumenEspacio(int idEspacioArtistico)
+        public ResumenReputacion ObtenerResumenEspacio(EspacioArtistico oEspacioArtistico)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Calificacion_ResumenPorEspacio",
-                new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
+                new Hashtable { { "@idEspacioArtistico", oEspacioArtistico.IdEspacioArtistico } });
             return tabla.Rows.Count == 0
-                ? new ResumenReputacion { IdReferencia = idEspacioArtistico }
+                ? new ResumenReputacion { IdReferencia = oEspacioArtistico.IdEspacioArtistico }
                 : MapearResumen(tabla.Rows[0], "idEspacioArtistico");
         }
 
-        public ResumenReputacion ObtenerResumenUsuario(int idUsuarioExterno)
+        public ResumenReputacion ObtenerResumenUsuario(UsuarioExterno oUsuarioExterno)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Calificacion_ResumenPorUsuario",
-                new SqlParameter("@idUsuarioExterno", idUsuarioExterno));
+                new Hashtable { { "@idUsuarioExterno", oUsuarioExterno.IdUsuarioExterno } });
             return tabla.Rows.Count == 0
-                ? new ResumenReputacion { IdReferencia = idUsuarioExterno }
+                ? new ResumenReputacion { IdReferencia = oUsuarioExterno.IdUsuarioExterno }
                 : MapearResumen(tabla.Rows[0], "idUsuarioExterno");
         }
 
@@ -89,7 +95,7 @@ namespace StageUp.MPP
 
         private static List<Calificacion> MapearLista(DataTable tabla)
         {
-            var lista = new List<Calificacion>();
+            List<Calificacion> lista = new List<Calificacion>();
             foreach (DataRow fila in tabla.Rows)
             {
                 lista.Add(new Calificacion
@@ -116,7 +122,7 @@ namespace StageUp.MPP
 
         private static Dictionary<int, ResumenReputacion> MapearResumenes(DataTable tabla, string columnaId)
         {
-            var resumenes = new Dictionary<int, ResumenReputacion>();
+            Dictionary<int, ResumenReputacion> resumenes = new Dictionary<int, ResumenReputacion>();
             foreach (DataRow fila in tabla.Rows)
             {
                 ResumenReputacion resumen = MapearResumen(fila, columnaId);

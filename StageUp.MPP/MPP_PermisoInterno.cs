@@ -1,7 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -15,17 +15,17 @@ namespace StageUp.MPP
             return MapearLista(tabla);
         }
 
-        public List<PermisoInterno> ListarPorRol(int idRolInterno)
+        public List<PermisoInterno> ListarPorRol(RolInterno oRolInterno)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_PermisoInterno_ListarPorRol",
-                new SqlParameter("@idRolInterno", idRolInterno));
+                new Hashtable { { "@idRolInterno", oRolInterno.IdRolInterno } });
             return MapearLista(tabla);
         }
 
         private static List<PermisoInterno> MapearLista(DataTable tabla)
         {
-            var lista = new List<PermisoInterno>();
+            List<PermisoInterno> lista = new List<PermisoInterno>();
             foreach (DataRow fila in tabla.Rows)
             {
                 lista.Add(new PermisoInterno

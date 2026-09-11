@@ -1,7 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -12,7 +12,7 @@ namespace StageUp.MPP
         public List<AreaInterna> ListarActivas()
         {
             DataTable tabla = Conexion.Instance.Leer("sp_AreaInterna_ListarActivas");
-            var areas = new List<AreaInterna>();
+            List<AreaInterna> areas = new List<AreaInterna>();
 
             foreach (DataRow fila in tabla.Rows)
             {
@@ -22,11 +22,14 @@ namespace StageUp.MPP
             return areas;
         }
 
-        public AreaInterna ObtenerPorId(int idAreaInterna)
+        public AreaInterna ObtenerPorId(AreaInterna oAreaInterna)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_AreaInterna_ObtenerPorId",
-                new SqlParameter("@idAreaInterna", idAreaInterna));
+                new Hashtable
+                {
+                    { "@idAreaInterna", oAreaInterna.IdAreaInterna }
+                });
 
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }

@@ -1,9 +1,9 @@
 using System;
+using System.Collections;
 using System.Configuration;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -16,40 +16,46 @@ namespace StageUp.MPP
             get { return string.Equals(ConfigurationManager.AppSettings["EspaciosFichaCompletaHabilitada"], "true", StringComparison.OrdinalIgnoreCase); }
         }
 
-        public int GuardarFicha(EspacioArtistico espacio)
+        public int GuardarFicha(EspacioArtistico oEspacioArtistico)
         {
             if (!FichaCompletaHabilitada)
                 throw new InvalidOperationException("La ficha completa todavía no está habilitada.");
 
-            int idEspacioArtistico = espacio.IdEspacioArtistico == 0
-                ? Insertar(espacio)
-                : ModificarYDevolverId(espacio);
+            int idEspacioArtistico = oEspacioArtistico.IdEspacioArtistico == 0
+                ? Insertar(oEspacioArtistico)
+                : ModificarYDevolverId(oEspacioArtistico);
 
-            FichaEspacio ficha = espacio.Ficha ?? new FichaEspacio();
+            FichaEspacio ficha = oEspacioArtistico.Ficha ?? new FichaEspacio();
 
             Conexion.Instance.Guardar(
                 "sp_FichaEspacio_EliminarPorEspacio",
-                new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
+                new Hashtable { { "@idEspacioArtistico", idEspacioArtistico } });
 
             Conexion.Instance.Guardar(
                 "sp_FichaEspacio_Insertar",
-                new SqlParameter("@idEspacioArtistico", idEspacioArtistico),
-                new SqlParameter("@fotoRuta", (object)ficha.FotoRuta ?? DBNull.Value),
-                new SqlParameter("@provincia", ficha.Provincia),
-                new SqlParameter("@ciudad", ficha.Ciudad),
-                new SqlParameter("@direccion", ficha.Direccion),
-                new SqlParameter("@capacidadMaxima", ficha.CapacidadMaxima.Value),
-                new SqlParameter("@precioHora", ficha.PrecioHora.Value),
-                new SqlParameter("@moneda", ficha.Moneda),
-                new SqlParameter("@tipoPiso", (object)ficha.TipoPiso ?? DBNull.Value),
-                new SqlParameter("@detalleEquipamiento", (object)ficha.DetalleEquipamiento ?? DBNull.Value));
+                new Hashtable
+                {
+                    { "@idEspacioArtistico", idEspacioArtistico },
+                    { "@fotoRuta", (object)ficha.FotoRuta ?? DBNull.Value },
+                    { "@provincia", ficha.Provincia },
+                    { "@ciudad", ficha.Ciudad },
+                    { "@direccion", ficha.Direccion },
+                    { "@capacidadMaxima", ficha.CapacidadMaxima.Value },
+                    { "@precioHora", ficha.PrecioHora.Value },
+                    { "@moneda", ficha.Moneda },
+                    { "@tipoPiso", (object)ficha.TipoPiso ?? DBNull.Value },
+                    { "@detalleEquipamiento", (object)ficha.DetalleEquipamiento ?? DBNull.Value }
+                });
 
             foreach (string codigo in ficha.Equipamiento ?? new List<string>())
             {
                 Conexion.Instance.Guardar(
                     "sp_FichaEspacioEquipamiento_Insertar",
-                    new SqlParameter("@idEspacioArtistico", idEspacioArtistico),
-                    new SqlParameter("@codigoEquipamiento", codigo));
+                    new Hashtable
+                    {
+                        { "@idEspacioArtistico", idEspacioArtistico },
+                        { "@codigoEquipamiento", codigo }
+                    });
             }
 
             foreach (FranjaEspacio franja in ficha.Disponibilidad ?? new List<FranjaEspacio>())
@@ -57,14 +63,17 @@ namespace StageUp.MPP
                 bool fechaConcreta = !string.IsNullOrEmpty(franja.Fecha);
                 Conexion.Instance.Guardar(
                     "sp_FranjaEspacio_Insertar",
-                    new SqlParameter("@idEspacioArtistico", idEspacioArtistico),
-                    new SqlParameter("@diaSemana", franja.DiaSemana.HasValue ? (object)franja.DiaSemana.Value : DBNull.Value),
-                    new SqlParameter("@fecha", fechaConcreta
-                        ? (object)DateTime.ParseExact(franja.Fecha, "yyyy-MM-dd", CultureInfo.InvariantCulture)
-                        : DBNull.Value),
-                    new SqlParameter("@minutoDesde", franja.MinutoDesde),
-                    new SqlParameter("@minutoHasta", franja.MinutoHasta),
-                    new SqlParameter("@bloqueado", franja.Bloqueado));
+                    new Hashtable
+                    {
+                        { "@idEspacioArtistico", idEspacioArtistico },
+                        { "@diaSemana", franja.DiaSemana.HasValue ? (object)franja.DiaSemana.Value : DBNull.Value },
+                        { "@fecha", fechaConcreta
+                            ? (object)DateTime.ParseExact(franja.Fecha, "yyyy-MM-dd", CultureInfo.InvariantCulture)
+                            : DBNull.Value },
+                        { "@minutoDesde", franja.MinutoDesde },
+                        { "@minutoHasta", franja.MinutoHasta },
+                        { "@bloqueado", franja.Bloqueado }
+                    });
             }
 
             List<string> fotos = ficha.Fotos ?? new List<string>();
@@ -72,49 +81,58 @@ namespace StageUp.MPP
             {
                 Conexion.Instance.Guardar(
                     "sp_EspacioFoto_Insertar",
-                    new SqlParameter("@idEspacioArtistico", idEspacioArtistico),
-                    new SqlParameter("@rutaFoto", fotos[indice]),
-                    new SqlParameter("@orden", indice),
-                    new SqlParameter("@esPrincipal", indice == 0));
+                    new Hashtable
+                    {
+                        { "@idEspacioArtistico", idEspacioArtistico },
+                        { "@rutaFoto", fotos[indice] },
+                        { "@orden", indice },
+                        { "@esPrincipal", indice == 0 }
+                    });
             }
 
             return idEspacioArtistico;
         }
 
-        public int Insertar(EspacioArtistico espacio)
+        public int Insertar(EspacioArtistico oEspacioArtistico)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_EspacioArtistico_Insertar",
-                new SqlParameter("@idUsuarioGestor", espacio.IdUsuarioGestor),
-                new SqlParameter("@nombreEspacio", espacio.NombreEspacio),
-                new SqlParameter("@descripcion", (object)espacio.Descripcion ?? DBNull.Value),
-                new SqlParameter("@tipoEspacio", espacio.TipoEspacio));
+                new Hashtable
+                {
+                    { "@idUsuarioGestor", oEspacioArtistico.IdUsuarioGestor },
+                    { "@nombreEspacio", oEspacioArtistico.NombreEspacio },
+                    { "@descripcion", (object)oEspacioArtistico.Descripcion ?? DBNull.Value },
+                    { "@tipoEspacio", oEspacioArtistico.TipoEspacio }
+                });
 
             return Convert.ToInt32(resultado);
         }
 
-        public void Modificar(EspacioArtistico espacio)
+        public void Modificar(EspacioArtistico oEspacioArtistico)
         {
-            ModificarYDevolverId(espacio);
+            ModificarYDevolverId(oEspacioArtistico);
         }
 
-        private int ModificarYDevolverId(EspacioArtistico espacio)
+        private int ModificarYDevolverId(EspacioArtistico oEspacioArtistico)
         {
             Conexion.Instance.Guardar(
                 "sp_EspacioArtistico_Modificar",
-                new SqlParameter("@idEspacioArtistico", espacio.IdEspacioArtistico),
-                new SqlParameter("@nombreEspacio", espacio.NombreEspacio),
-                new SqlParameter("@descripcion", (object)espacio.Descripcion ?? DBNull.Value),
-                new SqlParameter("@tipoEspacio", espacio.TipoEspacio));
+                new Hashtable
+                {
+                    { "@idEspacioArtistico", oEspacioArtistico.IdEspacioArtistico },
+                    { "@nombreEspacio", oEspacioArtistico.NombreEspacio },
+                    { "@descripcion", (object)oEspacioArtistico.Descripcion ?? DBNull.Value },
+                    { "@tipoEspacio", oEspacioArtistico.TipoEspacio }
+                });
 
-            return espacio.IdEspacioArtistico;
+            return oEspacioArtistico.IdEspacioArtistico;
         }
 
-        public EspacioArtistico ObtenerPorId(int idEspacioArtistico)
+        public EspacioArtistico ObtenerPorId(EspacioArtistico oEspacioArtistico)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 FichaCompletaHabilitada ? "sp_EspacioArtistico_ObtenerPorIdV2" : "sp_EspacioArtistico_ObtenerPorId",
-                new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
+                new Hashtable { { "@idEspacioArtistico", oEspacioArtistico.IdEspacioArtistico } });
 
             if (tabla.Rows.Count == 0)
             {
@@ -128,24 +146,24 @@ namespace StageUp.MPP
                 CompletarDatosHijosDeFicha(
                     new List<EspacioArtistico> { espacio },
                     "sp_FichaEspacioEquipamiento_ListarPorEspacio", "sp_FranjaEspacio_ListarPorEspacio", "sp_EspacioFoto_ListarPorEspacio",
-                    () => new[] { new SqlParameter("@idEspacioArtistico", idEspacioArtistico) });
+                    () => new Hashtable { { "@idEspacioArtistico", oEspacioArtistico.IdEspacioArtistico } });
             }
 
             return espacio;
         }
 
-        public List<EspacioArtistico> ListarPorUsuarioGestor(int idUsuarioGestor)
+        public List<EspacioArtistico> ListarPorUsuarioGestor(UsuarioExterno oUsuarioExterno)
         {
             List<EspacioArtistico> lista = MapearDesdeTabla(Conexion.Instance.Leer(
                 FichaCompletaHabilitada ? "sp_EspacioArtistico_ListarPorUsuarioGestorV2" : "sp_EspacioArtistico_ListarPorUsuarioGestor",
-                new SqlParameter("@idUsuarioGestor", idUsuarioGestor)));
+                new Hashtable { { "@idUsuarioGestor", oUsuarioExterno.IdUsuarioExterno } }));
 
             if (FichaCompletaHabilitada)
             {
                 CompletarDatosHijosDeFicha(
                     lista,
                     "sp_FichaEspacioEquipamiento_ListarPorUsuarioGestor", "sp_FranjaEspacio_ListarPorUsuarioGestor", "sp_EspacioFoto_ListarPorUsuarioGestor",
-                    () => new[] { new SqlParameter("@idUsuarioGestor", idUsuarioGestor) });
+                    () => new Hashtable { { "@idUsuarioGestor", oUsuarioExterno.IdUsuarioExterno } });
             }
 
             return lista;
@@ -161,75 +179,78 @@ namespace StageUp.MPP
                 CompletarDatosHijosDeFicha(
                     lista,
                     "sp_FichaEspacioEquipamiento_ListarPublicados", "sp_FranjaEspacio_ListarPublicados", "sp_EspacioFoto_ListarPublicados",
-                    () => new SqlParameter[0]);
+                    () => null);
             }
 
             return lista;
         }
 
-        public List<EspacioArtistico> BuscarPublicados(FiltroBusquedaEspacios filtro)
+        public List<EspacioArtistico> BuscarPublicados(FiltroBusquedaEspacios oFiltroBusquedaEspacios)
         {
             if (!FichaCompletaHabilitada)
             {
                 throw new InvalidOperationException("La búsqueda avanzada todavía no está habilitada.");
             }
 
-            DateTime? fechaDisponibilidad = string.IsNullOrEmpty(filtro.FechaDisponibilidad)
+            DateTime? fechaDisponibilidad = string.IsNullOrEmpty(oFiltroBusquedaEspacios.FechaDisponibilidad)
                 ? (DateTime?)null
-                : DateTime.ParseExact(filtro.FechaDisponibilidad, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                : DateTime.ParseExact(oFiltroBusquedaEspacios.FechaDisponibilidad, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
-            List<string> equipamiento = filtro.Equipamiento ?? new List<string>();
+            List<string> equipamiento = oFiltroBusquedaEspacios.Equipamiento ?? new List<string>();
 
             List<EspacioArtistico> lista = MapearDesdeTabla(Conexion.Instance.Leer(
                 "sp_EspacioArtistico_BuscarPublicados",
-                new SqlParameter("@textoBusqueda", (object)filtro.TextoBusqueda ?? DBNull.Value),
-                new SqlParameter("@tipoEspacio", (object)filtro.TipoEspacio ?? DBNull.Value),
-                new SqlParameter("@ubicacion", (object)filtro.Ubicacion ?? DBNull.Value),
-                new SqlParameter("@precioMaximo", (object)filtro.PrecioMaximo ?? DBNull.Value),
-                new SqlParameter("@capacidadMinima", (object)filtro.CapacidadMinima ?? DBNull.Value),
-                new SqlParameter("@tipoPiso", (object)filtro.TipoPiso ?? DBNull.Value),
-                new SqlParameter("@fechaDisponibilidad", (object)fechaDisponibilidad ?? DBNull.Value),
-                new SqlParameter("@minutoDesde", (object)filtro.MinutoDesde ?? DBNull.Value),
-                new SqlParameter("@minutoHasta", (object)filtro.MinutoHasta ?? DBNull.Value),
-                new SqlParameter("@reqEspejos", equipamiento.Contains("ESPEJOS")),
-                new SqlParameter("@reqSonido", equipamiento.Contains("SONIDO")),
-                new SqlParameter("@reqInstrumentos", equipamiento.Contains("INSTRUMENTOS")),
-                new SqlParameter("@reqEquipamiento", equipamiento.Contains("EQUIPAMIENTO")),
-                new SqlParameter("@reqEscenario", equipamiento.Contains("ESCENARIO")),
-                new SqlParameter("@reqIluminacion", equipamiento.Contains("ILUMINACION"))));
+                new Hashtable
+                {
+                    { "@textoBusqueda", (object)oFiltroBusquedaEspacios.TextoBusqueda ?? DBNull.Value },
+                    { "@tipoEspacio", (object)oFiltroBusquedaEspacios.TipoEspacio ?? DBNull.Value },
+                    { "@ubicacion", (object)oFiltroBusquedaEspacios.Ubicacion ?? DBNull.Value },
+                    { "@precioMaximo", (object)oFiltroBusquedaEspacios.PrecioMaximo ?? DBNull.Value },
+                    { "@capacidadMinima", (object)oFiltroBusquedaEspacios.CapacidadMinima ?? DBNull.Value },
+                    { "@tipoPiso", (object)oFiltroBusquedaEspacios.TipoPiso ?? DBNull.Value },
+                    { "@fechaDisponibilidad", (object)fechaDisponibilidad ?? DBNull.Value },
+                    { "@minutoDesde", (object)oFiltroBusquedaEspacios.MinutoDesde ?? DBNull.Value },
+                    { "@minutoHasta", (object)oFiltroBusquedaEspacios.MinutoHasta ?? DBNull.Value },
+                    { "@reqEspejos", equipamiento.Contains("ESPEJOS") },
+                    { "@reqSonido", equipamiento.Contains("SONIDO") },
+                    { "@reqInstrumentos", equipamiento.Contains("INSTRUMENTOS") },
+                    { "@reqEquipamiento", equipamiento.Contains("EQUIPAMIENTO") },
+                    { "@reqEscenario", equipamiento.Contains("ESCENARIO") },
+                    { "@reqIluminacion", equipamiento.Contains("ILUMINACION") }
+                }));
 
             CompletarDatosHijosDeFicha(
                 lista,
                 "sp_FichaEspacioEquipamiento_ListarPublicados", "sp_FranjaEspacio_ListarPublicados", "sp_EspacioFoto_ListarPublicados",
-                () => new SqlParameter[0]);
+                () => null);
 
             return lista;
         }
 
-        public void Publicar(int idEspacioArtistico)
+        public void Publicar(EspacioArtistico oEspacioArtistico)
         {
             Conexion.Instance.Guardar(
                 "sp_EspacioArtistico_Publicar",
-                new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
+                new Hashtable { { "@idEspacioArtistico", oEspacioArtistico.IdEspacioArtistico } });
         }
 
-        public void Pausar(int idEspacioArtistico)
+        public void Pausar(EspacioArtistico oEspacioArtistico)
         {
             Conexion.Instance.Guardar(
                 "sp_EspacioArtistico_Pausar",
-                new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
+                new Hashtable { { "@idEspacioArtistico", oEspacioArtistico.IdEspacioArtistico } });
         }
 
-        public void BajaLogica(int idEspacioArtistico)
+        public void BajaLogica(EspacioArtistico oEspacioArtistico)
         {
             Conexion.Instance.Guardar(
                 "sp_EspacioArtistico_BajaLogica",
-                new SqlParameter("@idEspacioArtistico", idEspacioArtistico));
+                new Hashtable { { "@idEspacioArtistico", oEspacioArtistico.IdEspacioArtistico } });
         }
 
         private static List<EspacioArtistico> MapearDesdeTabla(DataTable tabla)
         {
-            var lista = new List<EspacioArtistico>();
+            List<EspacioArtistico> lista = new List<EspacioArtistico>();
             foreach (DataRow fila in tabla.Rows)
             {
                 lista.Add(MapearDesdeFila(fila));
@@ -298,14 +319,14 @@ namespace StageUp.MPP
         }
 
         private static void CompletarDatosHijosDeFicha(
-            List<EspacioArtistico> espacios, string spEquipamiento, string spFranjas, string spFotos, Func<SqlParameter[]> crearParametros)
+            List<EspacioArtistico> espacios, string spEquipamiento, string spFranjas, string spFotos, Func<Hashtable> crearParametros)
         {
             if (espacios.Count == 0)
             {
                 return;
             }
 
-            var porId = new Dictionary<int, EspacioArtistico>();
+            Dictionary<int, EspacioArtistico> porId = new Dictionary<int, EspacioArtistico>();
             foreach (EspacioArtistico espacio in espacios)
             {
                 porId[espacio.IdEspacioArtistico] = espacio;

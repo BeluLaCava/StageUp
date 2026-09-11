@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
@@ -49,28 +50,30 @@ namespace StageUp.DAL
             return new SqlConnection(cadena);
         }
 
-        public DataTable Leer(string nombreSp, params SqlParameter[] parametros)
+        public DataTable Leer(string nombreSp, Hashtable parametros = null)
         {
             try
             {
-                var tabla = new DataTable();
+                DataTable tabla = new DataTable();
 
                 using (SqlConnection conexion = ObtenerConexion())
-                using (var comando = new SqlCommand(nombreSp, conexion))
+                using (SqlCommand comando = new SqlCommand(nombreSp, conexion))
                 {
                     comando.CommandType = CommandType.StoredProcedure;
-                    if (parametros != null)
-                    {
-                        comando.Parameters.AddRange(parametros);
-                    }
+                    AgregarParametros(comando, parametros);
 
-                    using (var adaptador = new SqlDataAdapter(comando))
+                    using (SqlDataAdapter adaptador = new SqlDataAdapter(comando))
                     {
                         adaptador.Fill(tabla);
                     }
                 }
 
                 return tabla;
+            }
+            catch (SqlException ex)
+            {
+                throw new ErrorAccesoDatosException(
+                    nombreSp, "Ocurrió un error SQL al consultar los datos. Probá nuevamente en unos minutos.", ex);
             }
             catch (Exception ex)
             {
@@ -79,22 +82,24 @@ namespace StageUp.DAL
             }
         }
 
-        public object LeerEscalar(string nombreSp, params SqlParameter[] parametros)
+        public object LeerEscalar(string nombreSp, Hashtable parametros = null)
         {
             try
             {
                 using (SqlConnection conexion = ObtenerConexion())
-                using (var comando = new SqlCommand(nombreSp, conexion))
+                using (SqlCommand comando = new SqlCommand(nombreSp, conexion))
                 {
                     comando.CommandType = CommandType.StoredProcedure;
-                    if (parametros != null)
-                    {
-                        comando.Parameters.AddRange(parametros);
-                    }
+                    AgregarParametros(comando, parametros);
 
                     conexion.Open();
                     return comando.ExecuteScalar();
                 }
+            }
+            catch (SqlException ex)
+            {
+                throw new ErrorAccesoDatosException(
+                    nombreSp, "Ocurrió un error SQL al ejecutar la operación. Probá nuevamente en unos minutos.", ex);
             }
             catch (Exception ex)
             {
@@ -103,29 +108,45 @@ namespace StageUp.DAL
             }
         }
 
-        public bool Guardar(string nombreSp, params SqlParameter[] parametros)
+        public bool Guardar(string nombreSp, Hashtable parametros = null)
         {
-
             try
             {
                 using (SqlConnection conexion = ObtenerConexion())
-                using (var comando = new SqlCommand(nombreSp, conexion))
+                using (SqlCommand comando = new SqlCommand(nombreSp, conexion))
                 {
                     comando.CommandType = CommandType.StoredProcedure;
-                    if (parametros != null)
-                    {
-                        comando.Parameters.AddRange(parametros);
-                    }
+                    AgregarParametros(comando, parametros);
 
                     conexion.Open();
                     comando.ExecuteNonQuery();
                     return true;
                 }
             }
+            catch (SqlException ex)
+            {
+                throw new ErrorAccesoDatosException(
+                    nombreSp, "Ocurrió un error SQL al guardar los datos. Probá nuevamente en unos minutos.", ex);
+            }
             catch (Exception ex)
             {
                 throw new ErrorAccesoDatosException(
                     nombreSp, "Ocurrió un error al guardar los datos. Probá nuevamente en unos minutos.", ex);
+            }
+        }
+
+        private static void AgregarParametros(SqlCommand comando, Hashtable parametros)
+        {
+            if (parametros == null)
+            {
+                return;
+            }
+
+            foreach (DictionaryEntry parametro in parametros)
+            {
+                string nombre = Convert.ToString(parametro.Key);
+                object valor = parametro.Value ?? DBNull.Value;
+                comando.Parameters.AddWithValue(nombre, valor);
             }
         }
     }

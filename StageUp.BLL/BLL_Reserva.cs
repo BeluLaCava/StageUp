@@ -60,7 +60,8 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error("Elegí una fecha a partir de hoy.");
                 }
 
-                EspacioArtistico espacio = _mppEspacio.ObtenerPorId(idEspacioArtistico);
+                EspacioArtistico espacio = _mppEspacio.ObtenerPorId(
+                    new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
                 if (espacio == null || !espacio.Activo || !espacio.Publicado)
                 {
                     return ResultadoOperacion<int>.Error("Este espacio no está disponible para reservar.");
@@ -75,6 +76,13 @@ namespace StageUp.BLL
                 decimal? precioHoraPactado = null;
                 string moneda = null;
                 decimal? importeEstimado = null;
+                Reserva reserva = new Reserva
+                {
+                    IdEspacioArtistico = idEspacioArtistico,
+                    IdUsuarioExternoSolicitante = idUsuarioExternoSolicitante,
+                    FechaSolicitada = fechaSolicitada.Date,
+                    MinutoDesde = minutoDesde
+                };
 
                 if (minutoDesde.HasValue && duracionMinutos.HasValue)
                 {
@@ -86,8 +94,9 @@ namespace StageUp.BLL
                     }
 
                     minutoHasta = minutoDesde.Value + duracionMinutos.Value;
+                    reserva.MinutoHasta = minutoHasta;
 
-                    if (_mppReserva.ExisteSolapamiento(idEspacioArtistico, fechaSolicitada.Date, minutoDesde.Value, minutoHasta.Value))
+                    if (_mppReserva.ExisteSolapamiento(reserva))
                     {
                         return ResultadoOperacion<int>.Error(
                             "Ese horario ya tiene otra solicitud pendiente o aceptada para este espacio. Elegí otro horario.");
@@ -108,18 +117,11 @@ namespace StageUp.BLL
                         "El comentario no puede superar los " + LongitudMaximaComentario + " caracteres.");
                 }
 
-                var reserva = new Reserva
-                {
-                    IdEspacioArtistico = idEspacioArtistico,
-                    IdUsuarioExternoSolicitante = idUsuarioExternoSolicitante,
-                    FechaSolicitada = fechaSolicitada.Date,
-                    ComentarioSolicitante = comentarioLimpio,
-                    MinutoDesde = minutoDesde,
-                    MinutoHasta = minutoHasta,
-                    PrecioHoraPactado = precioHoraPactado,
-                    Moneda = moneda,
-                    ImporteEstimado = importeEstimado
-                };
+                reserva.ComentarioSolicitante = comentarioLimpio;
+                reserva.MinutoHasta = minutoHasta;
+                reserva.PrecioHoraPactado = precioHoraPactado;
+                reserva.Moneda = moneda;
+                reserva.ImporteEstimado = importeEstimado;
 
                 int idReserva = _mppReserva.Insertar(reserva);
 
@@ -202,7 +204,8 @@ namespace StageUp.BLL
             try
             {
                 _mppReserva.FinalizarVencidas();
-                return _mppReserva.ListarPorSolicitante(idUsuarioExternoSolicitante);
+                return _mppReserva.ListarPorSolicitante(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExternoSolicitante });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -215,7 +218,8 @@ namespace StageUp.BLL
             try
             {
                 _mppReserva.FinalizarVencidas();
-                List<Reserva> solicitudes = _mppReserva.ListarPorGestor(idUsuarioGestor);
+                List<Reserva> solicitudes = _mppReserva.ListarPorGestor(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor });
                 CompletarReputacionSolicitantes(solicitudes);
                 return solicitudes;
             }
@@ -230,7 +234,8 @@ namespace StageUp.BLL
             try
             {
                 _mppReserva.FinalizarVencidas();
-                List<Reserva> solicitudes = _mppReserva.ListarPorGestor(idUsuarioGestor);
+                List<Reserva> solicitudes = _mppReserva.ListarPorGestor(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor });
                 int cantidadPendientes = 0;
 
                 foreach (Reserva solicitud in solicitudes)
@@ -274,7 +279,8 @@ namespace StageUp.BLL
 
                     try
                     {
-                        usuario = _mppUsuario.ObtenerPorId(idSolicitante);
+                        usuario = _mppUsuario.ObtenerPorId(
+                            new UsuarioExterno { IdUsuarioExterno = idSolicitante });
                     }
                     catch (ErrorAccesoDatosException)
                     {
@@ -282,7 +288,8 @@ namespace StageUp.BLL
 
                     try
                     {
-                        List<Reserva> historial = _mppReserva.ListarPorSolicitante(idSolicitante);
+                        List<Reserva> historial = _mppReserva.ListarPorSolicitante(
+                            new UsuarioExterno { IdUsuarioExterno = idSolicitante });
                         foreach (Reserva reserva in historial)
                         {
                             if (reserva.EstadoReserva == EstadoReserva.Aceptada.ToString() ||
@@ -301,7 +308,8 @@ namespace StageUp.BLL
 
                     try
                     {
-                        List<Calificacion> calificaciones = _mppCalificacion.ListarRecibidasPorUsuario(idSolicitante);
+                        List<Calificacion> calificaciones = _mppCalificacion.ListarRecibidasPorUsuario(
+                            new UsuarioExterno { IdUsuarioExterno = idSolicitante });
                         calificacionesPorUsuario[idSolicitante] = calificaciones.Count <= 3
                             ? calificaciones
                             : calificaciones.GetRange(0, 3);
@@ -348,7 +356,7 @@ namespace StageUp.BLL
                         "El comentario no puede superar los " + LongitudMaximaComentario + " caracteres.");
                 }
 
-                Reserva reserva = _mppReserva.ObtenerPorId(idReserva);
+                Reserva reserva = _mppReserva.ObtenerPorId(new Reserva { IdReserva = idReserva });
                 ResultadoOperacion validacion = ValidarPropiedadGestor(reserva, idUsuarioGestorSolicitante);
                 if (!validacion.Exitoso)
                 {
@@ -362,8 +370,9 @@ namespace StageUp.BLL
                 }
 
                 string comentarioLimpio = string.IsNullOrWhiteSpace(comentarioResolucion) ? null : comentarioResolucion.Trim();
+                reserva.ComentarioResolucion = comentarioLimpio;
 
-                bool aceptada = _mppReserva.AceptarSiDisponible(idReserva, comentarioLimpio);
+                bool aceptada = _mppReserva.AceptarSiDisponible(reserva);
                 if (!aceptada)
                 {
                     return ResultadoOperacion.Error(
@@ -397,15 +406,18 @@ namespace StageUp.BLL
                         "El comentario no puede superar los " + LongitudMaximaComentario + " caracteres.");
                 }
 
-                Reserva reserva = _mppReserva.ObtenerPorId(idReserva);
+                Reserva reserva = _mppReserva.ObtenerPorId(new Reserva { IdReserva = idReserva });
                 ResultadoOperacion validacion = ValidarPropiedadGestor(reserva, idUsuarioGestorSolicitante);
                 if (!validacion.Exitoso)
                 {
                     return validacion;
                 }
 
-                _mppReserva.Resolver(idReserva, nuevoEstado.ToString(),
-                    string.IsNullOrWhiteSpace(comentarioResolucion) ? null : comentarioResolucion.Trim());
+                reserva.EstadoReserva = nuevoEstado.ToString();
+                reserva.ComentarioResolucion = string.IsNullOrWhiteSpace(comentarioResolucion)
+                    ? null
+                    : comentarioResolucion.Trim();
+                _mppReserva.Resolver(reserva);
 
                 _bitacora.Registrar(
                     idUsuarioGestorSolicitante, "MODIFICACION", TipoEntidadBitacora, idReserva,
@@ -420,7 +432,7 @@ namespace StageUp.BLL
             return EjecutarProtegido(() =>
             {
                 _mppReserva.FinalizarVencidas();
-                Reserva reserva = _mppReserva.ObtenerPorId(idReserva);
+                Reserva reserva = _mppReserva.ObtenerPorId(new Reserva { IdReserva = idReserva });
                 if (reserva == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la reserva indicada.");
@@ -452,7 +464,9 @@ namespace StageUp.BLL
                     }
                 }
 
-                _mppReserva.Cancelar(idReserva, comisionAplicada, importeComision);
+                reserva.ComisionAplicada = comisionAplicada;
+                reserva.ImporteComision = importeComision;
+                _mppReserva.Cancelar(reserva);
 
                 string mensaje = comisionAplicada
                     ? "Tu reserva fue cancelada. Como faltaban menos de " + HorasLimiteSinComision +

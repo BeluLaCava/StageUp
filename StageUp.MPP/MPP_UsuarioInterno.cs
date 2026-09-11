@@ -1,7 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -9,41 +9,44 @@ namespace StageUp.MPP
 {
     public class MPP_UsuarioInterno
     {
-        public int Insertar(UsuarioInterno usuario)
+        public int Insertar(UsuarioInterno oUsuarioInterno)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_UsuarioInterno_Insertar",
-                new SqlParameter("@idAreaInterna", usuario.IdAreaInterna),
-                new SqlParameter("@idRolInterno", usuario.IdRolInterno),
-                new SqlParameter("@nombre", usuario.Nombre),
-                new SqlParameter("@apellido", usuario.Apellido),
-                new SqlParameter("@correoElectronico", usuario.CorreoElectronico),
-                new SqlParameter("@passwordHash", usuario.PasswordHash),
-                new SqlParameter("@estadoCuenta", usuario.EstadoCuenta));
+                new Hashtable
+                {
+                    { "@idAreaInterna", oUsuarioInterno.IdAreaInterna },
+                    { "@idRolInterno", oUsuarioInterno.IdRolInterno },
+                    { "@nombre", oUsuarioInterno.Nombre },
+                    { "@apellido", oUsuarioInterno.Apellido },
+                    { "@correoElectronico", oUsuarioInterno.CorreoElectronico },
+                    { "@passwordHash", oUsuarioInterno.PasswordHash },
+                    { "@estadoCuenta", oUsuarioInterno.EstadoCuenta }
+                });
 
             return Convert.ToInt32(resultado);
         }
 
-        public UsuarioInterno ObtenerPorCorreo(string correoElectronico)
+        public UsuarioInterno ObtenerPorCorreo(UsuarioInterno oUsuarioInterno)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_UsuarioInterno_ObtenerPorCorreo",
-                new SqlParameter("@correoElectronico", correoElectronico));
+                new Hashtable { { "@correoElectronico", oUsuarioInterno.CorreoElectronico } });
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
-        public UsuarioInterno ObtenerPorId(int idUsuarioInterno)
+        public UsuarioInterno ObtenerPorId(UsuarioInterno oUsuarioInterno)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_UsuarioInterno_ObtenerPorId",
-                new SqlParameter("@idUsuarioInterno", idUsuarioInterno));
+                new Hashtable { { "@idUsuarioInterno", oUsuarioInterno.IdUsuarioInterno } });
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
         public List<UsuarioInterno> Listar()
         {
             DataTable tabla = Conexion.Instance.Leer("sp_UsuarioInterno_Listar");
-            var usuarios = new List<UsuarioInterno>();
+            List<UsuarioInterno> usuarios = new List<UsuarioInterno>();
 
             foreach (DataRow fila in tabla.Rows)
             {
@@ -53,42 +56,48 @@ namespace StageUp.MPP
             return usuarios;
         }
 
-        public bool ExisteCorreo(string correoElectronico, int? idUsuarioInternoExcluido)
+        public bool ExisteCorreo(UsuarioInterno oUsuarioInterno)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_UsuarioInterno_ExisteCorreo",
-                new SqlParameter("@correoElectronico", correoElectronico),
-                new SqlParameter("@idUsuarioInternoExcluido", (object)idUsuarioInternoExcluido ?? DBNull.Value));
+                new Hashtable
+                {
+                    { "@correoElectronico", oUsuarioInterno.CorreoElectronico },
+                    { "@idUsuarioInternoExcluido", oUsuarioInterno.IdUsuarioInterno > 0 ? (object)oUsuarioInterno.IdUsuarioInterno : DBNull.Value }
+                });
 
             return Convert.ToInt32(resultado) > 0;
         }
 
-        public void Modificar(UsuarioInterno usuario)
+        public void Modificar(UsuarioInterno oUsuarioInterno)
         {
             Conexion.Instance.Guardar(
                 "sp_UsuarioInterno_Modificar",
-                new SqlParameter("@idUsuarioInterno", usuario.IdUsuarioInterno),
-                new SqlParameter("@idAreaInterna", usuario.IdAreaInterna),
-                new SqlParameter("@idRolInterno", usuario.IdRolInterno),
-                new SqlParameter("@nombre", usuario.Nombre),
-                new SqlParameter("@apellido", usuario.Apellido),
-                new SqlParameter("@correoElectronico", usuario.CorreoElectronico),
-                new SqlParameter("@passwordHash", (object)usuario.PasswordHash ?? DBNull.Value),
-                new SqlParameter("@estadoCuenta", usuario.EstadoCuenta));
+                new Hashtable
+                {
+                    { "@idUsuarioInterno", oUsuarioInterno.IdUsuarioInterno },
+                    { "@idAreaInterna", oUsuarioInterno.IdAreaInterna },
+                    { "@idRolInterno", oUsuarioInterno.IdRolInterno },
+                    { "@nombre", oUsuarioInterno.Nombre },
+                    { "@apellido", oUsuarioInterno.Apellido },
+                    { "@correoElectronico", oUsuarioInterno.CorreoElectronico },
+                    { "@passwordHash", (object)oUsuarioInterno.PasswordHash ?? DBNull.Value },
+                    { "@estadoCuenta", oUsuarioInterno.EstadoCuenta }
+                });
         }
 
-        public void DarDeBaja(int idUsuarioInterno)
+        public void DarDeBaja(UsuarioInterno oUsuarioInterno)
         {
             Conexion.Instance.Guardar(
                 "sp_UsuarioInterno_Baja",
-                new SqlParameter("@idUsuarioInterno", idUsuarioInterno));
+                new Hashtable { { "@idUsuarioInterno", oUsuarioInterno.IdUsuarioInterno } });
         }
 
-        public int ContarActivosPorRol(int idRolInterno)
+        public int ContarActivosPorRol(RolInterno oRolInterno)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_UsuarioInterno_ContarActivosPorRol",
-                new SqlParameter("@idRolInterno", idRolInterno));
+                new Hashtable { { "@idRolInterno", oRolInterno.IdRolInterno } });
 
             return Convert.ToInt32(resultado);
         }

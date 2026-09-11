@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using StageUp.BE.Entidades;
 using StageUp.BE.Menu;
 using StageUp.BE.Permisos;
 using StageUp.DAL;
@@ -52,10 +53,11 @@ namespace StageUp.BLL
         {
             GrupoPermisos raiz;
             List<int> idsAsignados;
+            RolInterno rol = new RolInterno { IdRolInterno = idRolInterno };
             try
             {
                 raiz = _mppComponente.ListarArbol();
-                idsAsignados = _mppRolComponente.ListarIdsPorRol(idRolInterno);
+                idsAsignados = _mppRolComponente.ListarIdsPorRol(rol);
             }
             catch (ErrorAccesoDatosException)
             {
@@ -73,16 +75,18 @@ namespace StageUp.BLL
         public ResultadoOperacion AsignarComponentesARol(int idRolInterno, List<int> idsComponentesSeleccionados, int idUsuarioInternoResponsable)
         {
             InvalidarCacheRol(idRolInterno);
+            RolInterno rol = new RolInterno { IdRolInterno = idRolInterno };
 
             try
             {
-                _mppRolComponente.EliminarPorRol(idRolInterno);
+                _mppRolComponente.EliminarPorRol(rol);
 
                 if (idsComponentesSeleccionados != null)
                 {
                     foreach (int idComponentePermiso in idsComponentesSeleccionados)
                     {
-                        _mppRolComponente.Insertar(idRolInterno, idComponentePermiso);
+                        PermisoHoja permiso = new PermisoHoja(idComponentePermiso, null, null, null, null);
+                        _mppRolComponente.Insertar(rol, permiso);
                     }
                 }
 
@@ -113,10 +117,11 @@ namespace StageUp.BLL
 
             GrupoPermisos raiz;
             List<int> idsAsignados;
+            RolInterno rol = new RolInterno { IdRolInterno = idRolInterno };
             try
             {
                 raiz = _mppComponente.ListarArbol();
-                idsAsignados = _mppRolComponente.ListarIdsPorRol(idRolInterno);
+                idsAsignados = _mppRolComponente.ListarIdsPorRol(rol);
             }
             catch (ErrorAccesoDatosException)
             {

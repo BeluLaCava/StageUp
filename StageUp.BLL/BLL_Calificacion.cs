@@ -28,7 +28,8 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppCalificacion.ListarPorEspacio(idEspacioArtistico);
+                return _mppCalificacion.ListarPorEspacio(
+                    new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -40,7 +41,8 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppCalificacion.ListarRecibidasPorUsuario(idUsuarioExterno);
+                return _mppCalificacion.ListarRecibidasPorUsuario(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -52,7 +54,8 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppCalificacion.ListarRealizadasPorUsuario(idUsuarioExterno);
+                return _mppCalificacion.ListarRealizadasPorUsuario(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -64,7 +67,8 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppCalificacion.ObtenerResumenEspacio(idEspacioArtistico);
+                return _mppCalificacion.ObtenerResumenEspacio(
+                    new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -76,7 +80,8 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppCalificacion.ObtenerResumenUsuario(idUsuarioExterno);
+                return _mppCalificacion.ObtenerResumenUsuario(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -147,7 +152,7 @@ namespace StageUp.BLL
                 }
 
                 _mppReserva.FinalizarVencidas();
-                Reserva reserva = _mppReserva.ObtenerPorId(idReserva);
+                Reserva reserva = _mppReserva.ObtenerPorId(new Reserva { IdReserva = idReserva });
                 if (reserva == null)
                 {
                     return ResultadoOperacion<int>.Error("No se encontró la reserva indicada.");
@@ -167,19 +172,21 @@ namespace StageUp.BLL
                 }
 
                 string tipoTexto = tipo.ToString();
-                if (_mppCalificacion.Existe(idReserva, tipoTexto))
-                {
-                    return ResultadoOperacion<int>.Error("Esta calificación ya fue enviada anteriormente.");
-                }
-
-                int idCalificacion = _mppCalificacion.Insertar(new Calificacion
+                Calificacion calificacion = new Calificacion
                 {
                     IdReserva = idReserva,
                     IdUsuarioAutor = idUsuarioAutor,
                     TipoCalificacion = tipoTexto,
                     Puntaje = puntaje,
                     Comentario = comentarioLimpio
-                });
+                };
+
+                if (_mppCalificacion.Existe(calificacion))
+                {
+                    return ResultadoOperacion<int>.Error("Esta calificación ya fue enviada anteriormente.");
+                }
+
+                int idCalificacion = _mppCalificacion.Insertar(calificacion);
 
                 _bitacora.Registrar(
                     idUsuarioAutor,

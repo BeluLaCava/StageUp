@@ -38,7 +38,10 @@ namespace StageUp.BLL
                     return ResultadoOperacion<UsuarioInterno>.Error(ObtenerMensajeCaptcha(captcha.Estado));
                 }
 
-                UsuarioInterno usuario = _mppUsuarioInterno.ObtenerPorCorreo(correoElectronico.Trim().ToLowerInvariant());
+                UsuarioInterno usuario = _mppUsuarioInterno.ObtenerPorCorreo(new UsuarioInterno
+                {
+                    CorreoElectronico = correoElectronico.Trim().ToLowerInvariant()
+                });
 
                 if (usuario == null || !HashDeContrasenas.Verificar(password, usuario.PasswordHash))
                 {
@@ -77,7 +80,8 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppUsuarioInterno.ObtenerPorId(idUsuarioInterno);
+                return _mppUsuarioInterno.ObtenerPorId(
+                    new UsuarioInterno { IdUsuarioInterno = idUsuarioInterno });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -130,7 +134,8 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                UsuarioInterno actual = _mppUsuarioInterno.ObtenerPorId(idUsuarioInterno);
+                UsuarioInterno actual = _mppUsuarioInterno.ObtenerPorId(
+                    new UsuarioInterno { IdUsuarioInterno = idUsuarioInterno });
                 if (actual == null)
                 {
                     return ResultadoOperacion.Error("No se encontró el usuario interno seleccionado.");
@@ -181,7 +186,8 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("No podés dar de baja tu propia cuenta mientras la estás usando.");
                 }
 
-                UsuarioInterno usuario = _mppUsuarioInterno.ObtenerPorId(idUsuarioInterno);
+                UsuarioInterno usuario = _mppUsuarioInterno.ObtenerPorId(
+                    new UsuarioInterno { IdUsuarioInterno = idUsuarioInterno });
                 if (usuario == null)
                 {
                     return ResultadoOperacion.Error("No se encontró el usuario interno seleccionado.");
@@ -192,7 +198,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("El usuario interno ya se encuentra inactivo.");
                 }
 
-                _mppUsuarioInterno.DarDeBaja(idUsuarioInterno);
+                _mppUsuarioInterno.DarDeBaja(usuario);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "BAJA", "UsuarioInterno", idUsuarioInterno,
@@ -224,13 +230,15 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("El correo electrónico ingresado no tiene un formato válido.");
             }
 
-            AreaInterna area = _mppAreaInterna.ObtenerPorId(idAreaInterna);
+            AreaInterna area = _mppAreaInterna.ObtenerPorId(
+                new AreaInterna { IdAreaInterna = idAreaInterna });
             if (area == null || !area.Activo || area.EstadoArea != "Activa")
             {
                 return ResultadoOperacion.Error("Seleccioná un área interna activa.");
             }
 
-            RolInterno rol = _mppRolInterno.ObtenerPorId(idRolInterno);
+            RolInterno rol = _mppRolInterno.ObtenerPorId(
+                new RolInterno { IdRolInterno = idRolInterno });
             if (rol == null || !rol.Activo || rol.EstadoRol != "Activo")
             {
                 return ResultadoOperacion.Error("Seleccioná un rol interno activo.");
@@ -272,7 +280,13 @@ namespace StageUp.BLL
                 }
             }
 
-            if (_mppUsuarioInterno.ExisteCorreo(correoNormalizado, idUsuarioInternoExcluido))
+            UsuarioInterno usuarioBuscado = new UsuarioInterno
+            {
+                IdUsuarioInterno = idUsuarioInternoExcluido ?? 0,
+                CorreoElectronico = correoNormalizado
+            };
+
+            if (_mppUsuarioInterno.ExisteCorreo(usuarioBuscado))
             {
                 return ResultadoOperacion.Error("Ya existe un usuario interno registrado con ese correo electrónico.");
             }

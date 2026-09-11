@@ -12,14 +12,14 @@ namespace StageUp.MPP
         {
             DataTable tabla = Conexion.Instance.Leer("sp_ComponentePermiso_ListarTodos");
 
-            var filas = new List<DataRow>();
+            List<DataRow> filas = new List<DataRow>();
             foreach (DataRow fila in tabla.Rows)
             {
                 filas.Add(fila);
             }
 
-            var raiz = new GrupoPermisos(0, "Permisos");
-            var nodos = new Dictionary<int, PermisoComponente>();
+            GrupoPermisos raiz = new GrupoPermisos(0, "Permisos");
+            Dictionary<int, PermisoComponente> nodos = new Dictionary<int, PermisoComponente>();
 
             foreach (DataRow fila in filas)
             {
@@ -64,7 +64,7 @@ namespace StageUp.MPP
 
                 padre.AgregarHijo(nodo);
 
-                var hoja = nodo as PermisoHoja;
+                PermisoHoja hoja = nodo as PermisoHoja;
                 if (hoja != null)
                 {
                     hoja.NombreGrupo = padre.Nombre;

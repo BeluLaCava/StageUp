@@ -56,7 +56,14 @@ namespace StageUp.BLL
             int? idUsuarioExternoResponsable = null, DateTime? fechaDesde = null, DateTime? fechaHasta = null,
             string tipoOperacion = null, string tipoEntidadAfectada = null)
         {
-            return _mpp.Buscar(idUsuarioExternoResponsable, fechaDesde, fechaHasta, tipoOperacion, tipoEntidadAfectada);
+            return _mpp.Buscar(new FiltroRegistroActividad
+            {
+                IdUsuarioExternoResponsable = idUsuarioExternoResponsable,
+                FechaDesde = fechaDesde,
+                FechaHasta = fechaHasta,
+                TipoOperacion = tipoOperacion,
+                TipoEntidadAfectada = tipoEntidadAfectada
+            });
         }
     }
 }

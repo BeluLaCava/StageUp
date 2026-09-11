@@ -21,7 +21,6 @@ namespace StageUp.MPP
             var raiz = new GrupoPermisos(0, "Permisos");
             var nodos = new Dictionary<int, PermisoComponente>();
 
-            // Primera pasada: crear todos los nodos (sin todavía enlazar padre-hijo).
             foreach (DataRow fila in filas)
             {
                 int idComponentePermiso = Convert.ToInt32(fila["idComponentePermiso"]);
@@ -41,8 +40,6 @@ namespace StageUp.MPP
                 }
             }
 
-            // Segunda pasada: enlazar cada nodo con su padre, respetando el orden devuelto por el SP
-            // (se recorre la lista ordenada, no el diccionario, porque el orden de un Dictionary no está garantizado).
             foreach (DataRow fila in filas)
             {
                 int idComponentePermiso = Convert.ToInt32(fila["idComponentePermiso"]);

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using StageUp.BE.Entidades;
@@ -20,9 +19,6 @@ namespace StageUp.BLL
         private const int MaxFotosPorEspacio = 8;
         private const string TipoEntidadBitacora = "EspacioArtistico";
 
-        // Códigos válidos de equipamiento (ver ValidarFicha) — se reutiliza en
-        // Buscar (ítem 5) para descartar códigos desconocidos que puedan llegar
-        // por querystring antes de pasarlos a la MPP.
         private static readonly HashSet<string> EquipamientoPermitido =
             new HashSet<string> { "ESPEJOS", "SONIDO", "INSTRUMENTOS", "EQUIPAMIENTO", "ESCENARIO", "ILUMINACION" };
 
@@ -52,8 +48,6 @@ namespace StageUp.BLL
             if (!string.IsNullOrEmpty(ficha.FotoRuta) &&
                 !Regex.IsMatch(ficha.FotoRuta, @"^~/Content/Uploads/Espacios/[a-f0-9]{32}\.jpg$"))
                 return ResultadoOperacion.Error("La ruta de la foto no es válida.");
-            // Ítem 3 (varias fotografías): mismo formato de ruta que FotoRuta, hasta
-            // MaxFotosPorEspacio en total.
             if (ficha.Fotos != null)
             {
                 if (ficha.Fotos.Count > MaxFotosPorEspacio)
@@ -117,9 +111,6 @@ namespace StageUp.BLL
             espacio.NombreEspacio = espacio.NombreEspacio.Trim();
             espacio.TipoEspacio = espacio.TipoEspacio.Trim();
             espacio.Descripcion = string.IsNullOrWhiteSpace(espacio.Descripcion) ? null : espacio.Descripcion.Trim();
-            // fotoRuta queda como la principal de Fotos, para que las pantallas viejas
-            // que todavía solo miran fotoRuta (por ejemplo si se deshabilita la ficha
-            // completa) sigan mostrando algo razonable.
             if (espacio.Ficha.Fotos != null && espacio.Ficha.Fotos.Count > 0)
                 espacio.Ficha.FotoRuta = espacio.Ficha.Fotos[0];
             int id = _mppEspacio.GuardarFicha(espacio);
@@ -231,11 +222,6 @@ namespace StageUp.BLL
                 (tipo == null || ContieneTexto(espacio.TipoEspacio, tipo)));
         }
 
-        // Ítem 5 (filtros completos del catálogo): reemplaza el filtrado en
-        // memoria de ListarPublicados por un filtrado en SQL que combina todos
-        // los criterios de la pantalla de resultados. Sin ficha completa
-        // habilitada no hay columnas de ubicación/precio/capacidad/equipamiento
-        // para filtrar, así que se cae al comportamiento anterior (texto + tipo).
         public List<EspacioArtistico> Buscar(FiltroBusquedaEspacios filtro)
         {
             filtro = Sanitizar(filtro ?? new FiltroBusquedaEspacios());
@@ -274,9 +260,6 @@ namespace StageUp.BLL
                 ? fecha
                 : null;
 
-            // El rango horario solo se toma en cuenta si viene la fecha, y solo si
-            // ambos extremos son válidos (mismo criterio de intervalos de 30
-            // minutos que ValidarFicha exige para las franjas).
             if (limpio.FechaDisponibilidad != null &&
                 filtro.MinutoDesde.HasValue && filtro.MinutoHasta.HasValue &&
                 filtro.MinutoDesde.Value >= 0 && filtro.MinutoHasta.Value <= 1440 &&
@@ -440,12 +423,6 @@ namespace StageUp.BLL
             return ResultadoOperacion.Ok();
         }
 
-        /// <summary>
-        /// Ejecuta una operación que toca la base de datos y, si la capa de acceso a
-        /// datos reporta un error (conexión caída, timeout, violación de constraint,
-        /// etc.), lo convierte en un ResultadoOperacion.Error con un mensaje entendible
-        /// para el usuario en vez de dejar explotar la excepción hasta la UI.
-        /// </summary>
         private static ResultadoOperacion EjecutarProtegido(Func<ResultadoOperacion> operacion)
         {
             try

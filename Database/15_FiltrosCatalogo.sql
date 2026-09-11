@@ -7,27 +7,16 @@ GO
 USE StageUp;
 GO
 
--- filtros completos del catálogo
 
 IF OBJECT_ID('dbo.sp_EspacioArtistico_BuscarPublicados', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EspacioArtistico_BuscarPublicados;
 GO
 CREATE PROCEDURE dbo.sp_EspacioArtistico_BuscarPublicados
     @textoBusqueda          NVARCHAR(300)   = NULL,
     @tipoEspacio            NVARCHAR(200)   = NULL,
-    -- Un solo campo de ubicación en la pantalla ("Ciudad o zona"): se busca
-    -- tanto en ciudad como en provincia, no hace falta que el usuario sepa
-    -- distinguir cuál es cuál.
     @ubicacion              NVARCHAR(150)   = NULL,
     @precioMaximo           DECIMAL(18,2)   = NULL,
     @capacidadMinima        INT             = NULL,
     @tipoPiso               NVARCHAR(100)   = NULL,
-    -- Disponibilidad: si se pasa @fechaDisponibilidad, el espacio tiene que
-    -- tener una franja abierta ese día (respetando excepciones puntuales de
-    -- esa fecha por sobre el horario semanal, mismo criterio que ya usa
-    -- BLL_Reserva.ValidarHorarioSolicitado). Si además vienen @minutoDesde y
-    -- @minutoHasta, esa franja tiene que cubrir exactamente ese rango Y no
-    -- puede haber ya otra reserva Pendiente/Aceptada superpuesta (mismo
-    -- criterio que sp_Reserva_ExisteSolapamiento del ítem 2).
     @fechaDisponibilidad    DATE            = NULL,
     @minutoDesde            SMALLINT        = NULL,
     @minutoHasta            SMALLINT        = NULL,
@@ -41,10 +30,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Día de la semana en la misma convención que ya usa el resto del
-    -- proyecto (1 = lunes ... 7 = domingo, ver FranjaEspacio.DiaSemana /
-    -- detalle-espacio.js), independiente de la configuración regional del
-    -- servidor (@@DATEFIRST se cancela en esta fórmula).
     DECLARE @diaSemana TINYINT = NULL;
     IF @fechaDisponibilidad IS NOT NULL
         SET @diaSemana = ((DATEPART(WEEKDAY, @fechaDisponibilidad) + @@DATEFIRST - 2) % 7) + 1;
@@ -89,9 +74,6 @@ BEGIN
                             OR (
                                 fr.fecha IS NULL
                                 AND fr.diaSemana = @diaSemana
-                                -- Si hay alguna franja (bloqueada o no) con fecha exacta para
-                                -- ese día, esa excepción manda y se ignora el horario semanal
-                                -- (mismo criterio que ValidarHorarioSolicitado en la BLL).
                                 AND NOT EXISTS (
                                     SELECT 1 FROM dbo.FranjaEspacio ex
                                     WHERE ex.idEspacioArtistico = e.idEspacioArtistico

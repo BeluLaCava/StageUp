@@ -105,10 +105,7 @@ namespace StageUp.DAL
 
         public bool Guardar(string nombreSp, params SqlParameter[] parametros)
         {
-            // Nota: a propósito, este método NO maneja transacciones (SqlTransaction /
-            // TransactionScope) en esta capa. Es una corrección explícita de la cátedra
-            // (entrega 08/09): hay que dejar que los errores se "burbujeen" hasta donde
-            // corresponda manejarlos, en vez de controlar la transacción acá.
+
             try
             {
                 using (SqlConnection conexion = ObtenerConexion())

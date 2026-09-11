@@ -90,10 +90,6 @@
     }
     price.addEventListener("input", showPrice);
     currency.addEventListener("change", showPrice);
-    // Ítem 3 (varias fotografías): galería de fotos ya guardadas, con "Quitar" y
-    // "Usar como portada" por foto (mismo patrón que la lista de horarios de más
-    // arriba: un array en memoria que se mantiene sincronizado con un hidden field
-    // en cada cambio, para que sobreviva al postback del formulario).
     var fotosHidden = document.getElementById("hdnFotosActuales");
     if (fotosHidden) {
         var fotos = [];

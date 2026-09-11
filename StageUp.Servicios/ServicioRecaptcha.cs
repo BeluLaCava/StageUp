@@ -57,6 +57,8 @@ namespace StageUp.Servicios
 
             try
             {
+                ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+
                 byte[] contenido = Encoding.UTF8.GetBytes(
                     "secret=" + Uri.EscapeDataString(claveSecreta) +
                     "&response=" + Uri.EscapeDataString(respuestaCaptcha));
@@ -67,6 +69,8 @@ namespace StageUp.Servicios
                 solicitud.ContentLength = contenido.Length;
                 solicitud.Timeout = TiempoEsperaMilisegundos;
                 solicitud.ReadWriteTimeout = TiempoEsperaMilisegundos;
+                solicitud.KeepAlive = false;
+                solicitud.UserAgent = "StageUp/1.0";
 
                 using (Stream cuerpoSolicitud = solicitud.GetRequestStream())
                 {
@@ -84,10 +88,17 @@ namespace StageUp.Servicios
                     var serializador = new DataContractJsonSerializer(typeof(RespuestaGoogleRecaptcha));
                     var resultadoGoogle = serializador.ReadObject(cuerpoRespuesta) as RespuestaGoogleRecaptcha;
 
-                    return ResultadoValidacionRecaptcha.Crear(
-                        resultadoGoogle != null && resultadoGoogle.Exitoso
-                            ? EstadoValidacionRecaptcha.Valido
-                            : EstadoValidacionRecaptcha.RespuestaInvalida);
+                    if (resultadoGoogle != null && resultadoGoogle.Exitoso)
+                    {
+                        return ResultadoValidacionRecaptcha.Crear(EstadoValidacionRecaptcha.Valido);
+                    }
+
+                    if (resultadoGoogle != null && resultadoGoogle.TieneErrorConfiguracion())
+                    {
+                        return ResultadoValidacionRecaptcha.Crear(EstadoValidacionRecaptcha.ConfiguracionIncompleta);
+                    }
+
+                    return ResultadoValidacionRecaptcha.Crear(EstadoValidacionRecaptcha.RespuestaInvalida);
                 }
             }
             catch (WebException)
@@ -121,6 +132,28 @@ namespace StageUp.Servicios
         {
             [DataMember(Name = "success")]
             public bool Exitoso { get; set; }
+
+            [DataMember(Name = "error-codes")]
+            public string[] CodigosError { get; set; }
+
+            public bool TieneErrorConfiguracion()
+            {
+                if (CodigosError == null)
+                {
+                    return false;
+                }
+
+                foreach (string codigo in CodigosError)
+                {
+                    if (string.Equals(codigo, "missing-input-secret", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(codigo, "invalid-input-secret", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
     }
 }

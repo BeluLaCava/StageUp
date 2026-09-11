@@ -7,7 +7,6 @@ GO
 USE StageUp;
 GO
 
--- fotoRuta
 
 IF OBJECT_ID('dbo.EspacioFoto', 'U') IS NOT NULL DROP TABLE dbo.EspacioFoto;
 GO

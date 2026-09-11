@@ -8,6 +8,10 @@ namespace StageUp.BLL
 {
     public class BLL_PermisoInterno
     {
+        private static readonly object CacheLock = new object();
+        private static readonly Dictionary<int, List<PermisoHoja>> CachePermisosPorRol =
+            new Dictionary<int, List<PermisoHoja>>();
+
         private readonly MPP_ComponentePermiso _mppComponente = new MPP_ComponentePermiso();
         private readonly MPP_RolInternoComponentePermiso _mppRolComponente = new MPP_RolInternoComponentePermiso();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
@@ -68,6 +72,8 @@ namespace StageUp.BLL
 
         public ResultadoOperacion AsignarComponentesARol(int idRolInterno, List<int> idsComponentesSeleccionados, int idUsuarioInternoResponsable)
         {
+            InvalidarCacheRol(idRolInterno);
+
             try
             {
                 _mppRolComponente.EliminarPorRol(idRolInterno);
@@ -94,6 +100,15 @@ namespace StageUp.BLL
 
         private List<PermisoHoja> ObtenerHojasAsignadas(int idRolInterno)
         {
+            lock (CacheLock)
+            {
+                List<PermisoHoja> hojasCacheadas;
+                if (CachePermisosPorRol.TryGetValue(idRolInterno, out hojasCacheadas))
+                {
+                    return new List<PermisoHoja>(hojasCacheadas);
+                }
+            }
+
             var hojasAsignadas = new List<PermisoHoja>();
 
             GrupoPermisos raiz;
@@ -116,7 +131,20 @@ namespace StageUp.BLL
                 }
             }
 
-            return hojasAsignadas;
+            lock (CacheLock)
+            {
+                CachePermisosPorRol[idRolInterno] = new List<PermisoHoja>(hojasAsignadas);
+            }
+
+            return new List<PermisoHoja>(hojasAsignadas);
+        }
+
+        private static void InvalidarCacheRol(int idRolInterno)
+        {
+            lock (CacheLock)
+            {
+                CachePermisosPorRol.Remove(idRolInterno);
+            }
         }
     }
 }

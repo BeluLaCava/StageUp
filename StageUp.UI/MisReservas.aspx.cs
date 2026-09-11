@@ -9,12 +9,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    /// <summary>
-    /// Historial de reservas del usuario autenticado, sin importar su perfil: para un
-    /// gestor son las reservas que hizo sobre espacios de otros, y para un solicitante
-    /// (como Ana, que todavía no es gestora) es directamente su "Mis espacios" hasta que
-    /// solicite y le aprueben la habilitación como gestora.
-    /// </summary>
     public partial class MisReservas : Page
     {
         private readonly BLL_Reserva _bllReserva = new BLL_Reserva();
@@ -152,9 +146,6 @@ namespace StageUp.UI
             txtComentarioCalificacionEspacio.Text = string.Empty;
         }
 
-        // Aviso orientativo en el cliente: el cálculo real (y el que manda) se
-        // hace de nuevo en BLL_Reserva.Cancelar al momento de confirmar, por si
-        // pasó tiempo entre que se pintó la página y que el usuario apretó el botón.
         private static string ObtenerMensajeConfirmacionCancelacion(Reserva reserva)
         {
             const string mensajeBase = "¿Seguro que querés cancelar esta solicitud de reserva?";

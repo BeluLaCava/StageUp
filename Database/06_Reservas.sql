@@ -7,10 +7,6 @@ GO
 USE StageUp;
 GO
 
--- Core del negocio (CU-001-005), versión simplificada para esta entrega: un usuario
--- autenticado solicita una fecha para un espacio publicado, el gestor del espacio la
--- acepta o la rechaza. Sin franjas horarias, sin disponibilidad configurable y sin pago
--- (queda para el Avance 2, junto con las calificaciones que dependen de la reserva).
 IF OBJECT_ID('dbo.Reserva', 'U') IS NOT NULL DROP TABLE dbo.Reserva;
 GO
 CREATE TABLE dbo.Reserva

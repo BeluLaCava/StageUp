@@ -14,13 +14,6 @@
                 <asp:Literal ID="litMensaje" runat="server" />
             </asp:Panel>
 
-            <!--
-                Acceso a "Mis espacios" según el perfil del usuario autenticado:
-                - GestorEspacios: ABM completo (pnlPanelGestor).
-                - PendienteHabilitacionGestor: solicitó ser gestor, todavía no fue aprobado (pnlPendienteGestor).
-                - ExternoSolicitante: nunca solicitó ser gestor (pnlNoGestor), puede solicitarlo desde acá.
-                La pantalla de aprobación por parte de un administrador queda pendiente para el Avance 2.
-            -->
             <asp:Panel ID="pnlPendienteGestor" runat="server" Visible="false" CssClass="auth-card">
                 <div class="auth-card-header">
                     <h2>Tu solicitud está pendiente de aprobación</h2>

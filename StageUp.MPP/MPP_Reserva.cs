@@ -26,9 +26,6 @@ namespace StageUp.MPP
             return Convert.ToInt32(resultado);
         }
 
-        // Ítem 2: si idReservaAExcluir viene null, se usa al solicitar (aviso
-        // temprano); con el id de la propia reserva, se usa al revalidar en el
-        // momento de aceptar (ver AceptarSiDisponible).
         public bool ExisteSolapamiento(
             int idEspacioArtistico, DateTime fechaSolicitada, int minutoDesde, int minutoHasta, int? idReservaAExcluir = null)
         {
@@ -43,10 +40,6 @@ namespace StageUp.MPP
             return Convert.ToBoolean(resultado);
         }
 
-        // Devuelve true si la aceptación se aplicó de verdad (seguía Pendiente y,
-        // si tenía horario, seguía libre). false significa que había dejado de
-        // estar disponible (otra reserva se aceptó primero para ese horario, o ya
-        // no estaba Pendiente) — la BLL decide qué mensaje mostrar en ese caso.
         public bool AceptarSiDisponible(int idReserva, string comentarioResolucion)
         {
             object resultado = Conexion.Instance.LeerEscalar(

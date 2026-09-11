@@ -8,6 +8,10 @@ namespace StageUp.BLL
 {
     public class BLL_Multidioma : IObservableIdioma
     {
+        private static readonly object CacheLock = new object();
+        private static readonly Dictionary<int, IList<Traduccion>> CacheTraducciones =
+            new Dictionary<int, IList<Traduccion>>();
+
         private readonly MPP_Traduccion _mppTraduccion = new MPP_Traduccion();
         private readonly List<IObservadorIdioma> _observadores = new List<IObservadorIdioma>();
 
@@ -32,7 +36,7 @@ namespace StageUp.BLL
             IList<Traduccion> traducciones;
             try
             {
-                traducciones = _mppTraduccion.ListarDiccionario(idioma.IdIdioma);
+                traducciones = ObtenerDiccionario(idioma.IdIdioma);
             }
             catch (ErrorAccesoDatosException)
             {
@@ -42,6 +46,40 @@ namespace StageUp.BLL
             foreach (IObservadorIdioma observador in _observadores.ToArray())
             {
                 observador.ActualizarIdioma(idioma, traducciones);
+            }
+        }
+
+        public static void InvalidarCache(int idIdioma)
+        {
+            lock (CacheLock)
+            {
+                CacheTraducciones.Remove(idIdioma);
+            }
+        }
+
+        private IList<Traduccion> ObtenerDiccionario(int idIdioma)
+        {
+            lock (CacheLock)
+            {
+                IList<Traduccion> traduccionesCacheadas;
+                if (CacheTraducciones.TryGetValue(idIdioma, out traduccionesCacheadas))
+                {
+                    return traduccionesCacheadas;
+                }
+            }
+
+            IList<Traduccion> traducciones = _mppTraduccion.ListarDiccionario(idIdioma);
+
+            lock (CacheLock)
+            {
+                IList<Traduccion> traduccionesCacheadas;
+                if (CacheTraducciones.TryGetValue(idIdioma, out traduccionesCacheadas))
+                {
+                    return traduccionesCacheadas;
+                }
+
+                CacheTraducciones[idIdioma] = traducciones;
+                return traducciones;
             }
         }
     }

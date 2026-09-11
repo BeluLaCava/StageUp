@@ -8,15 +8,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    /// <summary>
-    /// Core del negocio de StageUp (CU-001-005): un usuario autenticado solicita un
-    /// horario para un espacio publicado, y el gestor del espacio la acepta o la
-    /// rechaza. Horario, precio pactado e importe estimado son columnas normalizadas
-    /// de Reserva (tanda 10/09) — antes viajaban como texto dentro del comentario.
-    /// Incluye validación de solapamiento (ítem 2) y comisión de cancelación del 10%
-    /// si se cancela una reserva ya Aceptada con menos de 24hs de anticipación
-    /// (tanda 5). Sigue sin pago real ni facturación (Avance 2).
-    /// </summary>
     public class BLL_Reserva
     {
         private readonly MPP_Reserva _mppReserva = new MPP_Reserva();
@@ -96,9 +87,6 @@ namespace StageUp.BLL
 
                     minutoHasta = minutoDesde.Value + duracionMinutos.Value;
 
-                    // Ítem 2: aviso temprano de solapamiento. Se vuelve a revisar (y
-                    // ahí sí de forma atómica) en el momento de aceptar, porque puede
-                    // haber pasado tiempo entre que se pidió y que el gestor resuelve.
                     if (_mppReserva.ExisteSolapamiento(idEspacioArtistico, fechaSolicitada.Date, minutoDesde.Value, minutoHasta.Value))
                     {
                         return ResultadoOperacion<int>.Error(
@@ -237,6 +225,30 @@ namespace StageUp.BLL
             }
         }
 
+        public int ContarSolicitudesPendientes(int idUsuarioGestor)
+        {
+            try
+            {
+                _mppReserva.FinalizarVencidas();
+                List<Reserva> solicitudes = _mppReserva.ListarPorGestor(idUsuarioGestor);
+                int cantidadPendientes = 0;
+
+                foreach (Reserva solicitud in solicitudes)
+                {
+                    if (solicitud.EstadoReserva == EstadoReserva.Pendiente.ToString())
+                    {
+                        cantidadPendientes++;
+                    }
+                }
+
+                return cantidadPendientes;
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return 0;
+            }
+        }
+
         private void CompletarReputacionSolicitantes(List<Reserva> solicitudes)
         {
             var usuarios = new Dictionary<int, UsuarioExterno>();
@@ -351,10 +363,6 @@ namespace StageUp.BLL
 
                 string comentarioLimpio = string.IsNullOrWhiteSpace(comentarioResolucion) ? null : comentarioResolucion.Trim();
 
-                // Ítem 2: revalidación atómica. Puede haber pasado tiempo desde que se
-                // solicitó, y otra reserva para el mismo horario pudo haberse aceptado
-                // primero, o esta solicitud pudo haber dejado de estar Pendiente
-                // mientras tanto.
                 bool aceptada = _mppReserva.AceptarSiDisponible(idReserva, comentarioLimpio);
                 if (!aceptada)
                 {
@@ -433,10 +441,6 @@ namespace StageUp.BLL
                 bool comisionAplicada = false;
                 decimal? importeComision = null;
 
-                // Tanda 5: cancelar una reserva ya Aceptada con menos de 24hs de
-                // anticipación respecto del horario solicitado aplica una comisión
-                // del 10% del importe estimado. Cancelar mientras sigue Pendiente
-                // nunca tiene comisión.
                 if (esAceptada && reserva.MinutoDesde.HasValue && reserva.ImporteEstimado.HasValue)
                 {
                     DateTime momentoReservado = reserva.FechaSolicitada.Date.AddMinutes(reserva.MinutoDesde.Value);

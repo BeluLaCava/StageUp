@@ -3262,6 +3262,570 @@ body.overlay-open {
 }
 
 
++.institutional-page {
+    position: relative;
+    overflow: hidden;
+    padding-top: 0;
+}
+
+.institutional-page::before {
+    position: absolute;
+    z-index: -1;
+    top: -11rem;
+    right: -10rem;
+    width: 30rem;
+    height: 30rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(230, 200, 182, 0.52) 0, rgba(230, 200, 182, 0) 70%);
+    content: "";
+    pointer-events: none;
+}
+
+.institutional-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.75fr);
+    align-items: center;
+    gap: clamp(2rem, 6vw, 6rem);
+    min-height: 31rem;
+    padding-top: clamp(4rem, 8vw, 7rem);
+    padding-bottom: clamp(3rem, 7vw, 5.5rem);
+}
+
+.institutional-hero-copy {
+    max-width: 49rem;
+}
+
+.institutional-hero h1 {
+    max-width: 15ch;
+    margin: 0.65rem 0 1.25rem;
+    color: var(--color-primary);
+    font-family: var(--font-display);
+    font-size: clamp(2.6rem, 5.5vw, 5rem);
+    font-weight: 500;
+    letter-spacing: -0.045em;
+    line-height: 0.98;
+}
+
+.institutional-lead {
+    max-width: 45rem;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+    line-height: 1.75;
+}
+
+.institutional-updated {
+    display: inline-flex;
+    margin-top: 1.5rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-text-muted);
+    background: rgba(255, 252, 250, 0.72);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.institutional-hero-card {
+    position: relative;
+    padding: clamp(1.75rem, 4vw, 2.6rem);
+    overflow: hidden;
+    border: 1px solid rgba(109, 16, 33, 0.12);
+    border-radius: var(--radius-large);
+    background: linear-gradient(145deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    box-shadow: 0 1.8rem 4rem rgba(77, 11, 23, 0.2);
+    color: #fff;
+}
+
+.institutional-hero-card::after {
+    position: absolute;
+    right: -4rem;
+    bottom: -5rem;
+    width: 12rem;
+    height: 12rem;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 50%;
+    content: "";
+}
+
+.institutional-hero-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.institutional-card-kicker,
+.institutional-eyebrow {
+    display: block;
+    color: var(--color-primary-soft);
+    font-size: 0.73rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.institutional-hero-card .institutional-card-kicker {
+    color: var(--color-nude-dark);
+}
+
+.institutional-hero-card > p {
+    margin: 0.7rem 0 2rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.45rem, 2.5vw, 2rem);
+    line-height: 1.25;
+}
+
+.institutional-signature {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.institutional-signature-mark {
+    display: grid;
+    width: 2.8rem;
+    height: 2.8rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 0.8rem;
+    color: var(--color-primary);
+    background: var(--color-nude-light);
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.institutional-signature strong,
+.institutional-signature small {
+    display: block;
+}
+
+.institutional-signature small {
+    margin-top: 0.1rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.78rem;
+}
+
+.institutional-layout {
+    display: grid;
+    grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(2.5rem, 7vw, 7rem);
+    padding-top: clamp(3rem, 6vw, 5rem);
+    border-top: 1px solid var(--color-border);
+}
+
+.institutional-index {
+    position: sticky;
+    top: calc(var(--navbar-height) + 2rem);
+    padding: 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    background: rgba(255, 252, 250, 0.8);
+}
+
+.institutional-index > span {
+    display: block;
+    margin-bottom: 0.85rem;
+    color: var(--color-text-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.institutional-index nav {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.institutional-index a {
+    padding: 0.55rem 0.65rem;
+    border-radius: 0.55rem;
+    color: var(--color-text-muted);
+    font-size: 0.86rem;
+    font-weight: 650;
+    line-height: 1.35;
+    text-decoration: none;
+    transition: color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+}
+
+.institutional-index a:hover,
+.institutional-index a:focus-visible {
+    color: var(--color-primary);
+    background: var(--color-nude);
+    transform: translateX(0.18rem);
+}
+
+.institutional-content {
+    min-width: 0;
+}
+
+.institutional-section {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: clamp(1rem, 3vw, 2rem);
+    margin-bottom: clamp(4rem, 8vw, 7rem);
+    scroll-margin-top: calc(var(--navbar-height) + 2rem);
+}
+
+.institutional-section-number {
+    color: var(--color-brown-soft);
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    line-height: 1.1;
+}
+
+.institutional-section h2,
+.legal-section h2 {
+    margin: 0.45rem 0 1rem;
+    color: var(--color-primary-dark);
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+}
+
+.institutional-section p,
+.legal-section p {
+    max-width: 49rem;
+    margin: 0 0 1rem;
+    color: var(--color-text);
+    font-size: 1rem;
+    line-height: 1.78;
+}
+
+.institutional-step-grid,
+.institutional-value-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.institutional-step-card,
+.institutional-value-grid article {
+    min-height: 13.5rem;
+    padding: 1.4rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-medium);
+    background: var(--color-surface);
+    box-shadow: 0 0.7rem 2rem rgba(77, 11, 23, 0.055);
+}
+
+.institutional-step-card > span:first-child {
+    display: grid;
+    width: 2.35rem;
+    height: 2.35rem;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--color-primary);
+    background: var(--color-nude);
+    font-weight: 800;
+}
+
+.institutional-step-card h3,
+.institutional-value-grid h3 {
+    margin: 1.35rem 0 0.55rem;
+    color: var(--color-primary-dark);
+    font-size: 1rem;
+}
+
+.institutional-step-card p,
+.institutional-value-grid p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+    line-height: 1.6;
+}
+
+.institutional-value-icon {
+    color: var(--color-primary-soft);
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+}
+
+.institutional-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: clamp(1.8rem, 4vw, 3rem);
+    border-radius: var(--radius-large);
+    background: var(--color-nude);
+}
+
+.institutional-cta h2 {
+    max-width: 20ch;
+    margin: 0.35rem 0 0;
+    color: var(--color-primary);
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 3vw, 2.35rem);
+    font-weight: 500;
+    line-height: 1.15;
+}
+
+.institutional-cta .button {
+    flex: 0 0 auto;
+}
+
+.institutional-contact .institutional-hero {
+    min-height: 28rem;
+}
+
+.contact-availability-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.contact-availability-card > div {
+    position: relative;
+    z-index: 1;
+}
+
+.contact-availability-card p {
+    margin-bottom: 0.75rem;
+    font-family: var(--font-interface);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.contact-availability-card small {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.78rem;
+}
+
+.contact-status-dot {
+    position: relative;
+    z-index: 1;
+    width: 0.72rem;
+    height: 0.72rem;
+    flex: 0 0 auto;
+    margin-top: 0.2rem;
+    border: 3px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    background: #7fd4a5;
+    box-sizing: content-box;
+}
+
+.institutional-contact-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-bottom: clamp(4rem, 8vw, 7rem);
+}
+
+.contact-channel-card {
+    display: flex;
+    min-height: 24rem;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: clamp(1.5rem, 3vw, 2.2rem);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-large);
+    background: var(--color-surface);
+    box-shadow: 0 1rem 2.5rem rgba(77, 11, 23, 0.06);
+}
+
+.contact-channel-featured {
+    border-color: var(--color-primary);
+    background: linear-gradient(180deg, #fff 0%, #fcf0e9 100%);
+}
+
+.contact-channel-icon {
+    display: grid;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 2rem;
+    place-items: center;
+    border-radius: 0.9rem;
+    color: var(--color-primary);
+    background: var(--color-nude);
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.contact-channel-card h2 {
+    margin: 0.6rem 0 0.8rem;
+    color: var(--color-primary-dark);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.contact-channel-card p {
+    margin: 0 0 1.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.92rem;
+    line-height: 1.65;
+}
+
+.contact-channel-link,
+.contact-channel-card .button {
+    margin-top: auto;
+}
+
+.contact-channel-link {
+    overflow-wrap: anywhere;
+    font-size: 0.9rem;
+}
+
+.institutional-summary-card ul {
+    display: grid;
+    gap: 1rem;
+    margin: 1.2rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.institutional-summary-card li {
+    position: relative;
+    padding-left: 1.6rem;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+.institutional-summary-card li::before {
+    position: absolute;
+    top: 0.5rem;
+    left: 0;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--color-nude-dark);
+    content: "";
+}
+
+.institutional-legal-content {
+    border-top: 1px solid var(--color-border);
+}
+
+.legal-section {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: clamp(1rem, 3vw, 2rem);
+    padding: clamp(2rem, 5vw, 3.6rem) 0;
+    border-bottom: 1px solid var(--color-border);
+    scroll-margin-top: calc(var(--navbar-height) + 2rem);
+}
+
+.legal-section-number {
+    display: grid;
+    width: 2.6rem;
+    height: 2.6rem;
+    place-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    color: var(--color-primary-soft);
+    background: var(--color-surface);
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.legal-section h2 {
+    margin-top: 0.15rem;
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+}
+
+.legal-section .button {
+    margin-top: 0.65rem;
+}
+
+.institutional-footer-nav {
+    margin-top: clamp(4rem, 8vw, 7rem);
+}
+
+@media (max-width: 58rem) {
+    .institutional-hero {
+        grid-template-columns: 1fr;
+        min-height: 0;
+    }
+
+    .institutional-hero-card {
+        max-width: 38rem;
+    }
+
+    .institutional-layout {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+
+    .institutional-index {
+        position: static;
+    }
+
+    .institutional-index nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .institutional-contact-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .contact-channel-card:last-child {
+        grid-column: 1 / -1;
+        min-height: 18rem;
+    }
+}
+
+@media (max-width: 44rem) {
+    .institutional-page::before {
+        right: -17rem;
+    }
+
+    .institutional-hero h1 {
+        font-size: clamp(2.45rem, 12vw, 3.7rem);
+    }
+
+    .institutional-step-grid,
+    .institutional-value-grid,
+    .institutional-contact-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-channel-card:last-child {
+        grid-column: auto;
+    }
+
+    .institutional-section,
+    .legal-section {
+        grid-template-columns: 1fr;
+    }
+
+    .institutional-section-number {
+        padding-bottom: 0.65rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .institutional-cta {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .institutional-index nav {
+        grid-template-columns: 1fr;
+    }
+
+    .institutional-step-card,
+    .institutional-value-grid article,
+    .contact-channel-card {
+        min-height: 0;
+    }
+}
+
+/* =====================================================================
+   Mis espacios (ABMC de EspacioArtistico).
+   ===================================================================== */
+
+
+
 .form-actions {
     display: flex;
     align-items: center;
@@ -3310,9 +3874,6 @@ body.overlay-open {
     flex-shrink: 0;
 }
 
-/* Sub-navegación entre las pantallas de gestor de espacios (administrar
-   espacios vs. solicitudes de reserva recibidas), al estilo de las secciones
-   separadas de "Mis publicaciones" / "Preguntas" de Mercado Libre. */
 .gestor-subnav {
     display: flex;
     flex-wrap: wrap;
@@ -5646,8 +6207,6 @@ a.sidebar-link:focus-visible {
     }
 }
 
-/* Ítem 3 (varias fotografías, tanda 10/09): galería de fotos del formulario de
-   "Mis espacios" (reemplaza el antiguo preview de una sola foto). */
 .space-photo-gallery {
     display: flex;
     flex-wrap: wrap;

@@ -62,6 +62,8 @@ namespace StageUp.BLL
                     TextoTraducido = textoNormalizado
                 });
 
+                BLL_Multidioma.InvalidarCache(idIdioma);
+
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable,
                     "MODIFICACION",
@@ -87,6 +89,8 @@ namespace StageUp.BLL
                 }
 
                 _mppTraduccion.Eliminar(idIdioma, idEtiquetaTraduccion);
+
+                BLL_Multidioma.InvalidarCache(idIdioma);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable,

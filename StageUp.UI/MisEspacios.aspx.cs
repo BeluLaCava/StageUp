@@ -23,13 +23,8 @@ namespace StageUp.UI
 
         protected bool FichaCompletaActiva { get { return _bllEspacio.FichaCompletaHabilitada; } }
 
-        // Cantidad de solicitudes de reserva pendientes de resolver, para el badge
-        // de la sub-navegación hacia SolicitudesRecibidas.aspx (esa pantalla es la
-        // que administra el detalle; acá solo se muestra un contador).
         protected int CantidadSolicitudesPendientes { get; private set; }
 
-        // Mismo tope que BLL_EspacioArtistico.ValidarFicha (MaxFotosPorEspacio): se
-        // repite acá para poder avisar antes de escribir ningún archivo a disco.
         private const int MaxFotosPorEspacio = 8;
 
         private int? IdEspacioEnEdicion
@@ -79,8 +74,6 @@ namespace StageUp.UI
                 return;
             }
 
-            // La solicitud quedó registrada: refrescamos la sesión para que el perfil
-            // actualizado (PendienteHabilitacionGestor) se refleje sin pedir un nuevo login.
             GestorDeSesion.ActualizarPerfilEnSesion(PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString());
 
             pnlNoGestor.Visible = false;
@@ -223,17 +216,7 @@ namespace StageUp.UI
         private int ContarSolicitudesPendientes()
         {
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
-            List<Reserva> solicitudes = _bllReserva.ListarSolicitudesRecibidas(idUsuarioGestor);
-
-            int pendientes = 0;
-            foreach (Reserva solicitud in solicitudes)
-            {
-                if (solicitud.EstadoReserva == "Pendiente")
-                {
-                    pendientes++;
-                }
-            }
-            return pendientes;
+            return _bllReserva.ContarSolicitudesPendientes(idUsuarioGestor);
         }
 
         private void CargarEspacioEnFormulario(int idEspacioArtistico)
@@ -282,10 +265,6 @@ namespace StageUp.UI
             pnlMensaje.Visible = !string.IsNullOrEmpty(mensaje);
         }
 
-        // Chequeo explícito de perfil para las acciones de gestor: no alcanza con ocultar
-        // el panel correspondiente (pnlPanelGestor), porque un perfil podría cambiar en la
-        // base de datos sin que la sesión actual se actualice. Cada acción que modifica un
-        // espacio o una solicitud recibida valida esto antes de ejecutar nada.
         private bool EsGestorEspacios()
         {
             return GestorDeSesion.ObtenerPerfilActual() == PerfilUsuarioExterno.GestorEspacios.ToString();
@@ -302,8 +281,6 @@ namespace StageUp.UI
         {
             FichaEspacio ficha = espacio.Ficha ?? new FichaEspacio();
 
-            // Fuente de verdad: Fotos. Si viene vacía (espacio cargado antes de esta
-            // tanda, con una sola foto), se muestra FotoRuta como única foto inicial.
             List<string> fotos = ficha.Fotos != null && ficha.Fotos.Count > 0
                 ? ficha.Fotos
                 : (!string.IsNullOrEmpty(ficha.FotoRuta) ? new List<string> { ficha.FotoRuta } : new List<string>());
@@ -350,9 +327,6 @@ namespace StageUp.UI
                     fotos = new List<string>();
                 }
 
-                // Chequeo temprano del tope de fotos (antes de escribir nada a disco):
-                // hdnFotosActuales.Value ya refleja las fotos existentes que el usuario
-                // no quitó del lado del cliente (ver espacios-ficha.js).
                 int cantidadNuevas = archivoFoto.HasFiles ? archivoFoto.PostedFiles.Count : 0;
                 if (fotos.Count + cantidadNuevas > MaxFotosPorEspacio)
                 {
@@ -384,9 +358,6 @@ namespace StageUp.UI
                 foreach (ListItem item in cblEquipamiento.Items)
                     if (item.Selected) espacio.Ficha.Equipamiento.Add(item.Value);
 
-                // Las fotos nuevas se procesan (y se validan como imagen de verdad) acá,
-                // después de las validaciones baratas de arriba, para no escribir
-                // archivos a disco si el resto del formulario todavía tiene errores.
                 if (archivoFoto.HasFiles)
                 {
                     foreach (HttpPostedFile archivo in archivoFoto.PostedFiles)
@@ -429,10 +400,6 @@ namespace StageUp.UI
             }
         }
 
-        // Valida, redimensiona (máximo 1600px de lado mayor) y guarda una foto
-        // subida. Recibe el HttpPostedFile en vez de leer directo del control
-        // archivoFoto para poder reutilizarse con cada archivo de PostedFiles
-        // cuando se suben varios a la vez.
         private string GuardarFoto(HttpPostedFile archivo)
         {
             string extension = Path.GetExtension(archivo.FileName).ToLowerInvariant();

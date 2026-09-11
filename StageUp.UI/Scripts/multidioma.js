@@ -13,6 +13,8 @@
         return;
     }
 
+    campo.disabled = true;
+
     var porClave = configuracion.porClave || {};
     var porTextoNormalizado = {};
     var plantillas = [];

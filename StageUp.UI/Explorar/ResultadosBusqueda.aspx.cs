@@ -61,11 +61,6 @@ namespace StageUp.UI.Explorar
             }
         }
 
-        // Ítem 5 (filtros completos del catálogo): junta todos los parámetros que
-        // puede mandar el drawer de "Más filtros" (ver site.js, setupFilters/
-        // data-apply-filters). La sanitización real (formatos, rangos, códigos de
-        // equipamiento válidos) la hace BLL_EspacioArtistico.Buscar — acá solo se
-        // leen los valores tal cual llegan por querystring.
         private static FiltroBusquedaEspacios ArmarFiltroDesdeQueryString(string textoBusqueda, string tipoEspacio)
         {
             var filtro = new FiltroBusquedaEspacios
@@ -116,9 +111,6 @@ namespace StageUp.UI.Explorar
 
         protected string ObtenerFoto(EspacioArtistico espacio)
         {
-            // Ítem 3 (varias fotografías): la portada del catálogo es la primera de
-            // Fotos; si el espacio todavía no tiene ninguna cargada con el formulario
-            // nuevo, se cae a FotoRuta (compatibilidad con espacios viejos).
             string ruta = espacio.Ficha != null && espacio.Ficha.Fotos != null && espacio.Ficha.Fotos.Count > 0
                 ? espacio.Ficha.Fotos[0]
                 : (espacio.Ficha == null ? null : espacio.Ficha.FotoRuta);

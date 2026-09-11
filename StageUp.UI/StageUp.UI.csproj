@@ -220,7 +220,9 @@
     <Compile Include="Interno\PermisosDelRol.aspx.designer.cs">
       <DependentUpon>PermisosDelRol.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Infraestructura\MasterPageMultidioma.cs" />
+    <Compile Include="Infraestructura\MasterPageMultidioma.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Interno\GestionIdiomas.aspx.cs">
       <DependentUpon>GestionIdiomas.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -273,6 +275,7 @@
     <Content Include="Content\Images\Espacios\estudio-fotografico-ia.png" />
     <Content Include="Site.Master" />
     <Content Include="Web.config" />
+    <Content Include="AppSettings.private.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

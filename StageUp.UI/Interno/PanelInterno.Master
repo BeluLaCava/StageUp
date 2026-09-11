@@ -44,7 +44,7 @@
             <asp:ContentPlaceHolder ID="MainContent" runat="server" />
         </main>
 
-        <asp:HiddenField ID="hdnDiccionarioIdioma" runat="server" ClientIDMode="Static" />
+        <asp:HiddenField ID="hdnDiccionarioIdioma" runat="server" ClientIDMode="Static" EnableViewState="false" />
         <script src="<%= ResolveUrl("~/Scripts/multidioma.js") %>?v=20260910-2"></script>
     </form>
 </body>

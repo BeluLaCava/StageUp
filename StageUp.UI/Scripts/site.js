@@ -97,11 +97,6 @@
             resultsPage.classList.add("has-search-query");
         }
 
-        // Ítem 5 (filtros completos del catálogo): repone en el drawer de "Más
-        // filtros" los criterios que ya vinieron por querystring (por ejemplo al
-        // recargar la página, o al llegar desde un link compartido con filtros),
-        // para que "Filtros seleccionados" y el formulario reflejen la búsqueda
-        // que realmente se aplicó.
         var camposTexto = [
             { param: "ubicacion", id: "filter-location" },
             { param: "capacidadMin", id: "filter-capacity" },
@@ -302,10 +297,6 @@
                         nextParams.set("tipo", typeField.value);
                     }
 
-                    // Ítem 5: el resto de los filtros del drawer ("Más filtros") ahora
-                    // también se mandan por querystring, para que ResultadosBusqueda.aspx.cs
-                    // los pase a BLL_EspacioArtistico.Buscar en vez de quedar solo
-                    // "visuales" como hasta ahora.
                     var camposTexto = [
                         { id: "filter-location", param: "ubicacion" },
                         { id: "filter-capacity", param: "capacidadMin" },

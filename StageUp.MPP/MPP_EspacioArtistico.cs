@@ -16,12 +16,6 @@ namespace StageUp.MPP
             get { return string.Equals(ConfigurationManager.AppSettings["EspaciosFichaCompletaHabilitada"], "true", StringComparison.OrdinalIgnoreCase); }
         }
 
-        // La ficha completa (foto, ubicación, precio, equipamiento y disponibilidad
-        // semanal) se guarda con columnas y tablas normales: FichaEspacio (1 a 1 con
-        // EspacioArtistico), FichaEspacioEquipamiento y FranjaEspacio (1 a N cada una).
-        // El formulario de "Mis espacios" siempre manda la ficha completa, así que en
-        // vez de un UPDATE fila por fila se borra todo lo anterior y se reinserta de
-        // cero — mismo patrón que ya usa RolInternoPermiso para reasignar permisos.
         public int GuardarFicha(EspacioArtistico espacio)
         {
             if (!FichaCompletaHabilitada)
@@ -73,10 +67,6 @@ namespace StageUp.MPP
                     new SqlParameter("@bloqueado", franja.Bloqueado));
             }
 
-            // Ítem 3 (varias fotografías): mismo patrón que equipamiento/franjas — no
-            // hace falta un DELETE aparte para EspacioFoto, porque sp_FichaEspacio_EliminarPorEspacio
-            // ya vació la FichaEspacio anterior y el ON DELETE CASCADE se llevó sus fotos.
-            // El orden de la lista define "orden"; la primera es la principal/portada.
             List<string> fotos = ficha.Fotos ?? new List<string>();
             for (int indice = 0; indice < fotos.Count; indice++)
             {
@@ -177,11 +167,6 @@ namespace StageUp.MPP
             return lista;
         }
 
-        // Ítem 5 (filtros completos del catálogo): el filtrado por ubicación,
-        // precio, capacidad, tipo de piso, equipamiento y disponibilidad se
-        // resuelve en SQL (sp_EspacioArtistico_BuscarPublicados) en vez de traer
-        // todo y filtrar en memoria. Solo tiene sentido con la ficha completa
-        // habilitada (sin ella no existen las columnas para filtrar).
         public List<EspacioArtistico> BuscarPublicados(FiltroBusquedaEspacios filtro)
         {
             if (!FichaCompletaHabilitada)
@@ -213,10 +198,6 @@ namespace StageUp.MPP
                 new SqlParameter("@reqEscenario", equipamiento.Contains("ESCENARIO")),
                 new SqlParameter("@reqIluminacion", equipamiento.Contains("ILUMINACION"))));
 
-            // Mismo patrón que ListarPublicados: las tres consultas hijas traen
-            // equipamiento/franjas/fotos de TODOS los espacios publicados, pero
-            // CompletarDatosHijosDeFicha solo les presta atención a los que están
-            // en el diccionario armado a partir de "lista" (ya filtrada por SQL).
             CompletarDatosHijosDeFicha(
                 lista,
                 "sp_FichaEspacioEquipamiento_ListarPublicados", "sp_FranjaEspacio_ListarPublicados", "sp_EspacioFoto_ListarPublicados",
@@ -286,10 +267,6 @@ namespace StageUp.MPP
             };
         }
 
-        // "Reputación" liviana del gestor (tanda 4): en vez de un sistema de
-        // calificaciones (que todavía no existe — queda para el Avance 2), se muestra
-        // hace cuánto es gestor en la plataforma y cuántos espacios tiene publicados.
-        // Preferimos fechaActivacion (cuenta ya activa) y si no vino, fechaAlta.
         private static DateTime? LeerGestorDesde(DataRow fila)
         {
             if (fila.Table.Columns.Contains("gestorFechaActivacion") && fila["gestorFechaActivacion"] != DBNull.Value)
@@ -299,11 +276,6 @@ namespace StageUp.MPP
             return null;
         }
 
-        // Lee las columnas de FichaEspacio si vinieron en la fila (LEFT JOIN de las
-        // V2) y el espacio ya tiene una ficha cargada; devuelve una ficha vacía si la
-        // ficha completa no está habilitada o el espacio todavía no tiene ficha.
-        // Equipamiento, Disponibilidad y Fotos se completan aparte, con
-        // CompletarDatosHijosDeFicha, porque son listas 1 a N.
         private static FichaEspacio LeerFicha(DataRow fila)
         {
             if (!FichaCompletaHabilitada || !fila.Table.Columns.Contains("provincia") || fila["provincia"] == DBNull.Value)
@@ -325,10 +297,6 @@ namespace StageUp.MPP
             };
         }
 
-        // Completa Equipamiento, Disponibilidad y Fotos de una lista de espacios ya
-        // mapeados, con tres consultas (una por tabla hija) en vez de una por espacio.
-        // Cada consulta se arma con crearParametros() por separado: los SqlParameter
-        // no se pueden reutilizar entre dos comandos distintos.
         private static void CompletarDatosHijosDeFicha(
             List<EspacioArtistico> espacios, string spEquipamiento, string spFranjas, string spFotos, Func<SqlParameter[]> crearParametros)
         {
@@ -370,8 +338,6 @@ namespace StageUp.MPP
                 }
             }
 
-            // Ítem 3: las fotos ya vienen ordenadas por "orden" desde el SP, así que
-            // alcanza con agregarlas en el orden en que llegan (fotos[0] = principal).
             DataTable fotos = Conexion.Instance.Leer(spFotos, crearParametros());
             foreach (DataRow fila in fotos.Rows)
             {

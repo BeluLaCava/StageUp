@@ -10,7 +10,6 @@ BEGIN
 END
 GO
 
--- Composite de permisos: árbol de componentes (grupos y hojas).
 
 IF OBJECT_ID(N'dbo.ComponentePermiso', N'U') IS NULL
 BEGIN
@@ -57,11 +56,7 @@ BEGIN
 END
 GO
 
--- ============================================================================
--- Migración de datos existentes: PermisoInterno -> ComponentePermiso
--- ============================================================================
 
--- Paso 1: un grupo (nodo raíz de primer nivel) por cada módulo existente.
 INSERT INTO dbo.ComponentePermiso (idComponentePadre, tipoComponente, codigoPermiso, nombre, descripcion, urlAsociada, orden, activo)
 SELECT NULL, N'Grupo', NULL, modulos.modulo, NULL, NULL, modulos.ordenModulo, 1
 FROM (
@@ -76,7 +71,6 @@ WHERE NOT EXISTS (
 );
 GO
 
--- Paso 2: una hoja por cada permiso existente, colgada del grupo de su módulo.
 INSERT INTO dbo.ComponentePermiso (idComponentePadre, tipoComponente, codigoPermiso, nombre, descripcion, urlAsociada, orden, activo)
 SELECT grp.idComponentePermiso, N'Permiso', p.codigoPermiso, p.nombrePermiso, p.descripcion, p.urlAsociada,
        ROW_NUMBER() OVER (PARTITION BY p.modulo ORDER BY p.nombrePermiso), 1
@@ -87,7 +81,6 @@ WHERE p.activo = 1
   AND NOT EXISTS (SELECT 1 FROM dbo.ComponentePermiso cp WHERE cp.codigoPermiso = p.codigoPermiso);
 GO
 
--- Paso 3: migrar las asignaciones rol-permiso existentes hacia la tabla nueva.
 INSERT INTO dbo.RolInternoComponentePermiso (idRolInterno, idComponentePermiso, fechaAsignacion, activo)
 SELECT rp.idRolInterno, cp.idComponentePermiso, rp.fechaAsignacion, 1
 FROM dbo.RolInternoPermiso rp
@@ -101,9 +94,6 @@ WHERE rp.activo = 1
   );
 GO
 
--- ============================================================================
--- Procedimientos almacenados
--- ============================================================================
 
 IF OBJECT_ID(N'dbo.sp_ComponentePermiso_ListarTodos', N'P') IS NOT NULL DROP PROCEDURE dbo.sp_ComponentePermiso_ListarTodos;
 GO

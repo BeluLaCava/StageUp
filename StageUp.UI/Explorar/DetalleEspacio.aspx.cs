@@ -395,9 +395,6 @@ namespace StageUp.UI.Explorar
         {
             var fotos = new List<string>();
 
-            // Ítem 3 (varias fotografías): Ficha.Fotos es la fuente de verdad para
-            // espacios guardados con el formulario nuevo. Si viene vacía (espacio
-            // cargado antes de esta tanda, con una sola foto), se cae a FotoRuta.
             List<string> fotosFicha = espacio.Ficha == null ? null : espacio.Ficha.Fotos;
             if (fotosFicha != null)
             {

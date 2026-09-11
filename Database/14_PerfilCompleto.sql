@@ -7,23 +7,19 @@ GO
 USE StageUp;
 GO
 
--- Perfil completo
 
 IF COL_LENGTH('dbo.UsuarioExterno', 'fotoPerfilRuta') IS NULL
 BEGIN
-    -- 500 para que alcance el máximo que ya valida BLL_UsuarioExterno.ActualizarDatosPersonales.
     ALTER TABLE dbo.UsuarioExterno ADD fotoPerfilRuta NVARCHAR(500) NULL;
 END
 GO
 
 IF COL_LENGTH('dbo.UsuarioExterno', 'descripcionPerfil') IS NULL
 BEGIN
-    -- 1200 para que alcance el máximo que ya valida BLL_UsuarioExterno.ActualizarDatosPersonales.
     ALTER TABLE dbo.UsuarioExterno ADD descripcionPerfil NVARCHAR(1200) NULL;
 END
 GO
 
--- sp_UsuarioExterno_ObtenerPorId ya hace SELECT 
 
 IF OBJECT_ID('dbo.sp_UsuarioExterno_ObtenerPerfilPorIdV2', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_ObtenerPerfilPorIdV2;
 GO

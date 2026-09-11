@@ -7,7 +7,6 @@ GO
 USE StageUp;
 GO
 
--- (comisión de cancelación)
 
 IF COL_LENGTH('dbo.Reserva', 'minutoDesde') IS NULL
 BEGIN
@@ -57,9 +56,6 @@ BEGIN
 END
 GO
 
--- Restricciones de coherencia: si hay minutoDesde tiene que haber minutoHasta
--- (y viceversa), y minutoHasta tiene que ser posterior a minutoDesde. Igual
--- criterio que ya usan FranjaEspacio y BLL_Reserva.ValidarHorarioSolicitado.
 IF OBJECT_ID('dbo.CK_Reserva_horario', 'C') IS NULL
 BEGIN
     ALTER TABLE dbo.Reserva ADD CONSTRAINT CK_Reserva_horario CHECK (
@@ -170,7 +166,6 @@ BEGIN
 END
 GO
 
---(ValidarFicha, ValidarHorarioSolicitado).
 
 IF OBJECT_ID('dbo.sp_Reserva_Cancelar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_Cancelar;
 GO
@@ -197,7 +192,6 @@ BEGIN
 END
 GO
 
--- (evitar reservas superpuestas)
 
 IF OBJECT_ID('dbo.sp_Reserva_ExisteSolapamiento', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_ExisteSolapamiento;
 GO
@@ -228,8 +222,6 @@ BEGIN
 END
 GO
 
--- Acepta una solicitud solo si sigue Pendiente y, si tiene horario cargado,
--- solo si ese horario sigue libre en este mismo momento 
 
 IF OBJECT_ID('dbo.sp_Reserva_AceptarSiDisponible', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_AceptarSiDisponible;
 GO

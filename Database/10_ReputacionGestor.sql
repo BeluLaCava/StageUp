@@ -7,20 +7,6 @@ GO
 USE StageUp;
 GO
 
--- Tanda 4: mostrar nombre del gestor y una "reputación" liviana en el catálogo
--- público y en el detalle del espacio. Todavía no existe ningún sistema de
--- calificaciones/reseñas (queda para el Avance 2, CU-001-006), así que en vez de
--- inventar un promedio de estrellas se muestra información que ya existe: desde
--- cuándo es gestor en la plataforma (fechaActivacion de UsuarioExterno, o
--- fechaAlta si todavía no se activó) y cuántos espacios propios tiene publicados
--- ahora mismo. No se crea ninguna tabla nueva ni se migra nada.
---
--- Este script solo reemplaza dos procedimientos ya creados por
--- Database/09_FichaEspacio.sql (sp_EspacioArtistico_ObtenerPorIdV2 y
--- sp_EspacioArtistico_ListarPublicadosV2), agregando un JOIN a UsuarioExterno y
--- una subconsulta de conteo. Hay que haber corrido 09_FichaEspacio.sql antes.
--- sp_EspacioArtistico_ListarPorUsuarioGestorV2 (la de "Mis espacios") no se toca:
--- ahí el gestor ya sabe que es el dueño, no hace falta mostrárselo.
 
 IF OBJECT_ID('dbo.sp_EspacioArtistico_ObtenerPorIdV2', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EspacioArtistico_ObtenerPorIdV2;
 GO

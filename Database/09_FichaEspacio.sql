@@ -7,28 +7,7 @@ GO
 USE StageUp;
 GO
 
--- Reemplazo del modelo "ficha completa" del espacio artístico (foto, ubicación,
--- capacidad, precio por hora, piso, equipamiento y disponibilidad semanal), que
--- María había implementado guardando todo como un único JSON en una columna
--- fichaJson (con SPs "V2" creados a mano en la base, nunca commiteados como
--- script). Se rehace acá con columnas y tablas normales, en 1 a 1 y 1 a N con
--- dbo.EspacioArtistico, para que quede alineado al diccionario de datos.
---
--- FichaEspacio: 1 a 1 con EspacioArtistico (misma PK, también FK).
--- FichaEspacioEquipamiento: 1 a N, un renglón por característica marcada.
--- FranjaEspacio: 1 a N, un renglón por horario semanal o excepción de fecha.
---
--- El guardado sigue el mismo patrón "borrar todo y volver a insertar" que ya
--- se usa para RolInternoPermiso (ver 06_Reservas.sql / BLL_PermisoInterno): el
--- formulario de "Mis espacios" siempre manda la ficha completa, así que no hace
--- falta un UPDATE fila por fila. Los DELETE de FichaEspacio se propagan por
--- ON DELETE CASCADE a sus dos tablas hijas, así que no hace falta un
--- procedimiento aparte para vaciarlas antes de reinsertar.
 
--- Limpieza: sp_EspacioArtistico_GuardarFichaV2 era el procedimiento "todo en
--- uno" que guardaba directo contra fichaJson. Ya no lo llama nadie (GuardarFicha
--- ahora hace INSERT/UPDATE del espacio base y después guarda la ficha aparte),
--- así que si existe en la base de alguien que lo haya probado suelto, se saca.
 IF OBJECT_ID('dbo.sp_EspacioArtistico_GuardarFichaV2', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EspacioArtistico_GuardarFichaV2;
 GO
 
@@ -83,9 +62,6 @@ CREATE TABLE dbo.FranjaEspacio
     CONSTRAINT PK_FranjaEspacio PRIMARY KEY CLUSTERED (idFranjaEspacio ASC),
     CONSTRAINT FK_FranjaEspacio_FichaEspacio FOREIGN KEY (idEspacioArtistico)
         REFERENCES dbo.FichaEspacio (idEspacioArtistico) ON DELETE CASCADE,
-    -- Cada franja es o bien semanal (diaSemana) o bien una excepción de una fecha
-    -- concreta (fecha), nunca las dos cosas ni ninguna. Mismo criterio que ya
-    -- valida BLL_EspacioArtistico.ValidarFicha en el lado de la aplicación.
     CONSTRAINT CK_FranjaEspacio_diaOFecha CHECK (
     (fecha IS NULL AND diaSemana IS NOT NULL) OR (fecha IS NOT NULL AND diaSemana IS NULL)
 ),
@@ -94,7 +70,6 @@ CREATE TABLE dbo.FranjaEspacio
 );
 GO
 
--- ==================== FichaEspacio ====================
 
 IF OBJECT_ID('dbo.sp_FichaEspacio_EliminarPorEspacio', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_FichaEspacio_EliminarPorEspacio;
 GO
@@ -104,8 +79,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
-        -- El DELETE se propaga por ON DELETE CASCADE a FichaEspacioEquipamiento
-        -- y FranjaEspacio: no hace falta vaciarlas aparte antes de este paso.
         DELETE FROM dbo.FichaEspacio WHERE idEspacioArtistico = @idEspacioArtistico;
     END TRY
     BEGIN CATCH
@@ -144,7 +117,6 @@ BEGIN
 END
 GO
 
--- ==================== FichaEspacioEquipamiento ====================
 
 IF OBJECT_ID('dbo.sp_FichaEspacioEquipamiento_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_FichaEspacioEquipamiento_Insertar;
 GO
@@ -206,7 +178,6 @@ BEGIN
 END
 GO
 
--- ==================== FranjaEspacio ====================
 
 IF OBJECT_ID('dbo.sp_FranjaEspacio_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_FranjaEspacio_Insertar;
 GO
@@ -272,11 +243,6 @@ BEGIN
 END
 GO
 
--- ==================== EspacioArtistico + FichaEspacio (lectura combinada) ====================
--- Reemplazan a las V2 que María había creado a mano en la base (nunca
--- commiteadas): misma idea (LEFT JOIN con la ficha, para que un espacio sin
--- ficha completa cargada todavía se pueda seguir leyendo), pero contra las
--- columnas normales en vez de fichaJson.
 
 IF OBJECT_ID('dbo.sp_EspacioArtistico_ObtenerPorIdV2', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EspacioArtistico_ObtenerPorIdV2;
 GO

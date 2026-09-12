@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Data;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
+using StageUp.Seguridad;
 
 namespace StageUp.MPP
 {
@@ -25,7 +26,7 @@ namespace StageUp.MPP
                     { "@apellido", oUsuarioExterno.Apellido },
                     { "@correoElectronico", oUsuarioExterno.CorreoElectronico },
                     { "@passwordHash", oUsuarioExterno.PasswordHash },
-                    { "@telefono", (object)oUsuarioExterno.Telefono ?? DBNull.Value },
+                    { "@telefono", EncriptarTelefono(oUsuarioExterno.Telefono) },
                     { "@estadoCuenta", oUsuarioExterno.EstadoCuenta },
                     { "@perfilUsuario", oUsuarioExterno.PerfilUsuario },
                     { "@aceptaTerminos", oUsuarioExterno.AceptaTerminos },
@@ -113,6 +114,7 @@ namespace StageUp.MPP
                     { "@nombre", oUsuarioExterno.Nombre },
                     { "@apellido", oUsuarioExterno.Apellido },
                     { "@correoElectronico", oUsuarioExterno.CorreoElectronico },
+                    { "@telefono", EncriptarTelefono(oUsuarioExterno.Telefono) },
                     { "@fotoPerfilRuta", (object)oUsuarioExterno.FotoPerfilRuta ?? DBNull.Value },
                     { "@descripcionPerfil", (object)oUsuarioExterno.DescripcionPerfil ?? DBNull.Value }
                 });
@@ -141,7 +143,7 @@ namespace StageUp.MPP
                 Apellido = fila["apellido"].ToString(),
                 CorreoElectronico = fila["correoElectronico"].ToString(),
                 PasswordHash = fila["passwordHash"].ToString(),
-                Telefono = fila["telefono"] == DBNull.Value ? null : fila["telefono"].ToString(),
+                Telefono = fila["telefono"] == DBNull.Value ? null : EncriptadorSimetrico.DesencriptarOMantener(fila["telefono"].ToString()),
                 EstadoCuenta = fila["estadoCuenta"].ToString(),
                 PerfilUsuario = fila["perfilUsuario"].ToString(),
                 FotoPerfilRuta = LeerTextoOpcional(fila, "fotoPerfilRuta"),
@@ -166,6 +168,13 @@ namespace StageUp.MPP
             return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value
                 ? fila[columna].ToString()
                 : null;
+        }
+
+        private static object EncriptarTelefono(string telefono)
+        {
+            return string.IsNullOrEmpty(telefono)
+                ? (object)DBNull.Value
+                : EncriptadorSimetrico.Encriptar(telefono);
         }
     }
 }

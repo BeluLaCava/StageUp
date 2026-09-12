@@ -15,6 +15,9 @@ namespace StageUp.BLL
         private static readonly Regex PatronCorreo = new Regex(
             @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled);
 
+        private static readonly Regex PatronTelefono = new Regex(
+            @"^[0-9+()\-\s]{6,30}$", RegexOptions.Compiled);
+
         private readonly MPP_UsuarioExterno _mppUsuario = new MPP_UsuarioExterno();
         private readonly BLL_CodigoActivacion _bllCodigoActivacion = new BLL_CodigoActivacion();
         private readonly BLL_CodigoRecuperacion _bllCodigoRecuperacion = new BLL_CodigoRecuperacion();
@@ -30,7 +33,8 @@ namespace StageUp.BLL
         public ResultadoOperacion<int> Registrar(
             string nombre, string apellido, string correoElectronico,
             string password, string confirmacionPassword,
-            bool aceptaTerminos, bool aceptaPoliticaPrivacidad)
+            bool aceptaTerminos, bool aceptaPoliticaPrivacidad,
+            string telefono = null)
         {
             return EjecutarProtegido(() =>
             {
@@ -68,6 +72,13 @@ namespace StageUp.BLL
                             ConfiguracionSeguridad.LongitudMinimaPassword));
                 }
 
+                telefono = string.IsNullOrWhiteSpace(telefono) ? null : telefono.Trim();
+                if (telefono != null && !PatronTelefono.IsMatch(telefono))
+                {
+                    return ResultadoOperacion<int>.Error(
+                        "El teléfono ingresado no es válido. Usá solo números, espacios y los símbolos + - ( ).", "A6");
+                }
+
                 correoElectronico = correoElectronico.Trim().ToLowerInvariant();
                 if (_mppUsuario.ObtenerPorCorreo(
                     new UsuarioExterno { CorreoElectronico = correoElectronico }) != null)
@@ -82,6 +93,7 @@ namespace StageUp.BLL
                     Apellido = apellido.Trim(),
                     CorreoElectronico = correoElectronico,
                     PasswordHash = HashDeContrasenas.CrearHash(password),
+                    Telefono = telefono,
                     EstadoCuenta = EstadoCuentaExterno.PendienteActivacion.ToString(),
                     PerfilUsuario = PerfilUsuarioExterno.ExternoSolicitante.ToString(),
                     AceptaTerminos = true,
@@ -522,7 +534,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion ActualizarDatosPersonales(
             int idUsuarioExterno, string nombre, string apellido, string correoElectronico,
-            string fotoPerfilRuta, string descripcionPerfil)
+            string telefono, string fotoPerfilRuta, string descripcionPerfil)
         {
             return EjecutarProtegido(() =>
             {
@@ -537,6 +549,7 @@ namespace StageUp.BLL
                 correoElectronico = correoElectronico.Trim().ToLowerInvariant();
                 descripcionPerfil = string.IsNullOrWhiteSpace(descripcionPerfil) ? null : descripcionPerfil.Trim();
                 fotoPerfilRuta = string.IsNullOrWhiteSpace(fotoPerfilRuta) ? null : fotoPerfilRuta.Trim();
+                telefono = string.IsNullOrWhiteSpace(telefono) ? null : telefono.Trim();
 
                 if (nombre.Length > 100 || apellido.Length > 100)
                 {
@@ -546,6 +559,11 @@ namespace StageUp.BLL
                 if (correoElectronico.Length > 300 || !PatronCorreo.IsMatch(correoElectronico))
                 {
                     return ResultadoOperacion.Error("El correo electrónico ingresado no tiene un formato válido.");
+                }
+
+                if (telefono != null && !PatronTelefono.IsMatch(telefono))
+                {
+                    return ResultadoOperacion.Error("El teléfono ingresado no es válido. Usá solo números, espacios y los símbolos + - ( ).");
                 }
 
                 if (descripcionPerfil != null && descripcionPerfil.Length > 1200)
@@ -583,6 +601,7 @@ namespace StageUp.BLL
                     Nombre = nombre,
                     Apellido = apellido,
                     CorreoElectronico = correoElectronico,
+                    Telefono = telefono,
                     FotoPerfilRuta = fotoPerfilRuta,
                     DescripcionPerfil = descripcionPerfil
                 };

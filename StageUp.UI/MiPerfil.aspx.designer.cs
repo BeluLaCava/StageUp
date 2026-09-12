@@ -18,6 +18,7 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Literal litNombre;
         protected global::System.Web.UI.WebControls.Literal litApellido;
         protected global::System.Web.UI.WebControls.Literal litCorreo;
+        protected global::System.Web.UI.WebControls.Literal litTelefono;
         protected global::System.Web.UI.WebControls.Literal litFechaAlta;
         protected global::System.Web.UI.WebControls.Literal litDescripcion;
         protected global::System.Web.UI.WebControls.Panel pnlEditarDatos;
@@ -30,6 +31,8 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.TextBox txtCorreo;
         protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvCorreo;
         protected global::System.Web.UI.WebControls.RegularExpressionValidator revCorreo;
+        protected global::System.Web.UI.WebControls.TextBox txtTelefono;
+        protected global::System.Web.UI.WebControls.RegularExpressionValidator revTelefono;
         protected global::System.Web.UI.WebControls.TextBox txtDescripcion;
         protected global::System.Web.UI.WebControls.Button btnGuardarDatos;
         protected global::System.Web.UI.WebControls.LinkButton lnkCancelarEdicion;

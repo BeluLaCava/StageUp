@@ -33,7 +33,8 @@ namespace StageUp.UI
                 txtPassword.Text,
                 txtConfirmarPassword.Text,
                 chkAceptaTerminos.Checked,
-                chkAceptaPoliticaPrivacidad.Checked);
+                chkAceptaPoliticaPrivacidad.Checked,
+                txtTelefono.Text);
 
             if (!resultado.Exitoso)
             {

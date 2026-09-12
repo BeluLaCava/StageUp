@@ -17,6 +17,9 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvEmail;
         protected global::System.Web.UI.WebControls.RegularExpressionValidator revEmail;
 
+        protected global::System.Web.UI.WebControls.TextBox txtTelefono;
+        protected global::System.Web.UI.WebControls.RegularExpressionValidator revTelefono;
+
         protected global::System.Web.UI.WebControls.TextBox txtPassword;
         protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvPassword;
 

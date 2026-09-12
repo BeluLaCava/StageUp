@@ -73,7 +73,7 @@ namespace StageUp.UI
                 }
 
                 ResultadoOperacion resultado = _bllUsuario.ActualizarDatosPersonales(
-                    idUsuario, txtNombre.Text, txtApellido.Text, txtCorreo.Text,
+                    idUsuario, txtNombre.Text, txtApellido.Text, txtCorreo.Text, txtTelefono.Text,
                     nuevaFotoRuta, txtDescripcion.Text);
 
                 if (!resultado.Exitoso)
@@ -171,6 +171,7 @@ namespace StageUp.UI
             litNombre.Text = usuario.Nombre;
             litApellido.Text = usuario.Apellido;
             litCorreo.Text = usuario.CorreoElectronico;
+            litTelefono.Text = string.IsNullOrWhiteSpace(usuario.Telefono) ? "No informado" : usuario.Telefono;
             litFechaAlta.Text = usuario.FechaAlta == DateTime.MinValue
                 ? "No disponible"
                 : usuario.FechaAlta.ToString("Y", CultureInfo.CurrentCulture);
@@ -181,6 +182,7 @@ namespace StageUp.UI
             txtNombre.Text = usuario.Nombre;
             txtApellido.Text = usuario.Apellido;
             txtCorreo.Text = usuario.CorreoElectronico;
+            txtTelefono.Text = usuario.Telefono;
             txtDescripcion.Text = usuario.DescripcionPerfil;
 
             bool tieneFoto = !string.IsNullOrWhiteSpace(usuario.FotoPerfilRuta);

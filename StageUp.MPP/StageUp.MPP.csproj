@@ -62,6 +62,10 @@
       <Project>{6B0D2A15-B3CC-4A30-9202-48E4CB6F2105}</Project>
       <Name>StageUp.DAL</Name>
     </ProjectReference>
+    <ProjectReference Include="..\StageUp.Seguridad\StageUp.Seguridad.csproj">
+      <Project>{7CE5B876-7A8F-46DD-B09E-59172E392106}</Project>
+      <Name>StageUp.Seguridad</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

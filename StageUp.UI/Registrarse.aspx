@@ -45,6 +45,14 @@
                         ValidationExpression="^[^@\s]+@[^@\s]+\.[^@\s]+$" ValidationGroup="Registro" />
                 </div>
 
+                <div class="form-field">
+                    <label for="<%= txtTelefono.ClientID %>">Teléfono <span class="field-help">(opcional)</span></label>
+                    <asp:TextBox ID="txtTelefono" runat="server" TextMode="SingleLine" autocomplete="tel" placeholder="Ej: +54 11 5555-5555" MaxLength="30" />
+                    <asp:RegularExpressionValidator ID="revTelefono" runat="server" ControlToValidate="txtTelefono"
+                        Display="Dynamic" CssClass="field-error-text" ErrorMessage="El teléfono ingresado no es válido."
+                        ValidationExpression="^[0-9+()\-\s]{6,30}$" ValidationGroup="Registro" />
+                </div>
+
                 <div class="form-grid form-grid-two-columns">
                     <div class="form-field">
                         <label for="<%= txtPassword.ClientID %>">Contraseña</label>

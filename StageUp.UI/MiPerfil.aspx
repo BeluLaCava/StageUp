@@ -60,6 +60,10 @@
                                     <dd><asp:Literal ID="litCorreo" runat="server" Mode="Encode" /></dd>
                                 </div>
                                 <div>
+                                    <dt>Teléfono</dt>
+                                    <dd><asp:Literal ID="litTelefono" runat="server" Mode="Encode" /></dd>
+                                </div>
+                                <div>
                                     <dt>Miembro desde</dt>
                                     <dd><asp:Literal ID="litFechaAlta" runat="server" Mode="Encode" /></dd>
                                 </div>
@@ -101,6 +105,12 @@
                                 <asp:TextBox ID="txtCorreo" runat="server" TextMode="Email" MaxLength="300" autocomplete="email" />
                                 <asp:RequiredFieldValidator ID="rfvCorreo" runat="server" ControlToValidate="txtCorreo" Display="Dynamic" CssClass="field-error-text" ErrorMessage="Ingresá tu correo electrónico." ValidationGroup="Perfil" />
                                 <asp:RegularExpressionValidator ID="revCorreo" runat="server" ControlToValidate="txtCorreo" Display="Dynamic" CssClass="field-error-text" ValidationExpression="^[^@\s]+@[^@\s]+\.[^@\s]+$" ErrorMessage="Ingresá un correo electrónico válido." ValidationGroup="Perfil" />
+                            </div>
+
+                            <div class="form-field">
+                                <label for="<%= txtTelefono.ClientID %>">Teléfono <span class="field-help">(opcional)</span></label>
+                                <asp:TextBox ID="txtTelefono" runat="server" MaxLength="30" autocomplete="tel" placeholder="Ej: +54 11 5555-5555" />
+                                <asp:RegularExpressionValidator ID="revTelefono" runat="server" ControlToValidate="txtTelefono" Display="Dynamic" CssClass="field-error-text" ValidationExpression="^[0-9+()\-\s]{6,30}$" ErrorMessage="El teléfono ingresado no es válido." ValidationGroup="Perfil" />
                             </div>
 
                             <div class="form-field">

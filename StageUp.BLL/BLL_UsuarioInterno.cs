@@ -106,7 +106,7 @@ namespace StageUp.BLL
                 }
 
                 string correoNormalizado = correoElectronico.Trim().ToLowerInvariant();
-                var usuario = new UsuarioInterno
+                UsuarioInterno usuario = new UsuarioInterno
                 {
                     IdAreaInterna = idAreaInterna,
                     IdRolInterno = idRolInterno,

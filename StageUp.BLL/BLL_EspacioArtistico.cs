@@ -61,7 +61,7 @@ namespace StageUp.BLL
             HashSet<string> permitidos = EquipamientoPermitido;
             if (ficha.Equipamiento == null || ficha.Equipamiento.Count > permitidos.Count)
                 return ResultadoOperacion.Error("Revisá las características seleccionadas.");
-            var seleccionados = new HashSet<string>();
+            HashSet<string> seleccionados = new HashSet<string>();
             foreach (string codigo in ficha.Equipamiento)
                 if (!permitidos.Contains(codigo) || !seleccionados.Add(codigo))
                     return ResultadoOperacion.Error("Hay características no válidas o repetidas.");
@@ -129,7 +129,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error(validacion.Mensaje, validacion.CodigoAlternativo);
                 }
 
-                var espacio = new EspacioArtistico
+                EspacioArtistico espacio = new EspacioArtistico
                 {
                     IdUsuarioGestor = idUsuarioGestor,
                     NombreEspacio = nombreEspacio.Trim(),
@@ -165,7 +165,7 @@ namespace StageUp.BLL
                     return validacionPropiedad;
                 }
 
-                var espacio = new EspacioArtistico
+                EspacioArtistico espacio = new EspacioArtistico
                 {
                     IdEspacioArtistico = idEspacioArtistico,
                     NombreEspacio = nombreEspacio.Trim(),
@@ -245,7 +245,7 @@ namespace StageUp.BLL
 
         private static FiltroBusquedaEspacios Sanitizar(FiltroBusquedaEspacios filtro)
         {
-            var limpio = new FiltroBusquedaEspacios
+            FiltroBusquedaEspacios limpio = new FiltroBusquedaEspacios
             {
                 TextoBusqueda = NormalizarTexto(filtro.TextoBusqueda),
                 TipoEspacio = NormalizarTexto(filtro.TipoEspacio),

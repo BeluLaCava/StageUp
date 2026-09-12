@@ -19,7 +19,7 @@ namespace StageUp.BLL
 
         public List<string> ListarCodigosPermisosDeRol(int idRolInterno)
         {
-            var codigos = new List<string>();
+            List<string> codigos = new List<string>();
             foreach (PermisoHoja hoja in ObtenerHojasAsignadas(idRolInterno))
             {
                 codigos.Add(hoja.CodigoPermiso);
@@ -29,7 +29,7 @@ namespace StageUp.BLL
 
         public GrupoMenu ConstruirMenuParaRol(int idRolInterno)
         {
-            var raiz = new GrupoMenu("Menú");
+            GrupoMenu raiz = new GrupoMenu("Menú");
             GrupoMenu grupoActual = null;
             string nombreGrupoActual = null;
 
@@ -113,7 +113,7 @@ namespace StageUp.BLL
                 }
             }
 
-            var hojasAsignadas = new List<PermisoHoja>();
+            List<PermisoHoja> hojasAsignadas = new List<PermisoHoja>();
 
             GrupoPermisos raiz;
             List<int> idsAsignados;

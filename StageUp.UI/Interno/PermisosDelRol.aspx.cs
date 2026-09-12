@@ -63,12 +63,12 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-            var idsSeleccionados = new List<int>();
+            List<int> idsSeleccionados = new List<int>();
 
             foreach (RepeaterItem item in rptPermisos.Items)
             {
-                var chkPermiso = (CheckBox)item.FindControl("chkPermiso");
-                var hdnIdComponente = (HiddenField)item.FindControl("hdnIdComponente");
+                CheckBox chkPermiso = (CheckBox)item.FindControl("chkPermiso");
+                HiddenField hdnIdComponente = (HiddenField)item.FindControl("hdnIdComponente");
 
                 if (chkPermiso.Checked)
                 {

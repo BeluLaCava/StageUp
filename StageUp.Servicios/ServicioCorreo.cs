@@ -66,7 +66,7 @@ namespace StageUp.Servicios
                 string correoRemitente = ConfigurationManager.AppSettings["CorreoRemitente"];
                 string nombreRemitente = ConfigurationManager.AppSettings["NombreRemitente"];
 
-                using (var mensaje = new MailMessage())
+                using (MailMessage mensaje = new MailMessage())
                 {
                     mensaje.From = new MailAddress(correoRemitente, nombreRemitente);
                     mensaje.To.Add(destinatario);
@@ -74,7 +74,7 @@ namespace StageUp.Servicios
                     mensaje.Body = cuerpoHtml;
                     mensaje.IsBodyHtml = true;
 
-                    using (var cliente = new SmtpClient(host, puerto))
+                    using (SmtpClient cliente = new SmtpClient(host, puerto))
                     {
                         cliente.EnableSsl = usarSsl;
                         cliente.Credentials = new NetworkCredential(usuario, password);

@@ -21,7 +21,7 @@ namespace StageUp.UI.Explorar
             }
 
             List<int> idsSolicitados = ParsearIds(Request.QueryString["ids"]);
-            var espacios = new List<EspacioArtistico>();
+            List<EspacioArtistico> espacios = new List<EspacioArtistico>();
             int noEncontrados = 0;
 
             foreach (int id in idsSolicitados)
@@ -53,7 +53,7 @@ namespace StageUp.UI.Explorar
 
         private static List<int> ParsearIds(string valorQueryString)
         {
-            var ids = new List<int>();
+            List<int> ids = new List<int>();
             if (string.IsNullOrWhiteSpace(valorQueryString))
             {
                 return ids;
@@ -104,7 +104,7 @@ namespace StageUp.UI.Explorar
 
         private string ArmarTablaComparacion(List<EspacioArtistico> espacios)
         {
-            var html = new StringBuilder();
+            StringBuilder html = new StringBuilder();
             html.Append("<table class=\"comparison-table\">");
 
             html.Append("<thead><tr><th scope=\"col\" class=\"comparison-row-label\">&nbsp;</th>");

@@ -87,7 +87,7 @@ namespace StageUp.BLL
                         "Ya existe una cuenta registrada con ese correo electrónico.", "A3");
                 }
 
-                var nuevoUsuario = new UsuarioExterno
+                UsuarioExterno nuevoUsuario = new UsuarioExterno
                 {
                     Nombre = nombre.Trim(),
                     Apellido = apellido.Trim(),
@@ -595,7 +595,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("Ya existe una cuenta registrada con ese correo electrónico.");
                 }
 
-                var perfil = new UsuarioExterno
+                UsuarioExterno perfil = new UsuarioExterno
                 {
                     IdUsuarioExterno = idUsuarioExterno,
                     Nombre = nombre,

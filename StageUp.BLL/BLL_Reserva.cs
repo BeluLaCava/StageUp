@@ -256,9 +256,9 @@ namespace StageUp.BLL
 
         private void CompletarReputacionSolicitantes(List<Reserva> solicitudes)
         {
-            var usuarios = new Dictionary<int, UsuarioExterno>();
-            var reservasAceptadas = new Dictionary<int, int>();
-            var calificacionesPorUsuario = new Dictionary<int, List<Calificacion>>();
+            Dictionary<int, UsuarioExterno> usuarios = new Dictionary<int, UsuarioExterno>();
+            Dictionary<int, int> reservasAceptadas = new Dictionary<int, int>();
+            Dictionary<int, List<Calificacion>> calificacionesPorUsuario = new Dictionary<int, List<Calificacion>>();
             Dictionary<int, ResumenReputacion> resumenes = new Dictionary<int, ResumenReputacion>();
 
             try

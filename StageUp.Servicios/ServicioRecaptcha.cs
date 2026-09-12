@@ -63,7 +63,7 @@ namespace StageUp.Servicios
                     "secret=" + Uri.EscapeDataString(claveSecreta) +
                     "&response=" + Uri.EscapeDataString(respuestaCaptcha));
 
-                var solicitud = (HttpWebRequest)WebRequest.Create(UrlVerificacion);
+                HttpWebRequest solicitud = (HttpWebRequest)WebRequest.Create(UrlVerificacion);
                 solicitud.Method = "POST";
                 solicitud.ContentType = "application/x-www-form-urlencoded";
                 solicitud.ContentLength = contenido.Length;
@@ -77,7 +77,7 @@ namespace StageUp.Servicios
                     cuerpoSolicitud.Write(contenido, 0, contenido.Length);
                 }
 
-                using (var respuesta = (HttpWebResponse)solicitud.GetResponse())
+                using (HttpWebResponse respuesta = (HttpWebResponse)solicitud.GetResponse())
                 using (Stream cuerpoRespuesta = respuesta.GetResponseStream())
                 {
                     if (cuerpoRespuesta == null)
@@ -85,8 +85,8 @@ namespace StageUp.Servicios
                         return ResultadoValidacionRecaptcha.Crear(EstadoValidacionRecaptcha.ServicioNoDisponible);
                     }
 
-                    var serializador = new DataContractJsonSerializer(typeof(RespuestaGoogleRecaptcha));
-                    var resultadoGoogle = serializador.ReadObject(cuerpoRespuesta) as RespuestaGoogleRecaptcha;
+                    DataContractJsonSerializer serializador = new DataContractJsonSerializer(typeof(RespuestaGoogleRecaptcha));
+                    RespuestaGoogleRecaptcha resultadoGoogle = serializador.ReadObject(cuerpoRespuesta) as RespuestaGoogleRecaptcha;
 
                     if (resultadoGoogle != null && resultadoGoogle.Exitoso)
                     {

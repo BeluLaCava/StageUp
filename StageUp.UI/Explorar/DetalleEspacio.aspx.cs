@@ -146,7 +146,7 @@ namespace StageUp.UI.Explorar
             litNombreGestor.Text = Server.HtmlEncode(nombre);
             litInicialesGestor.Text = Server.HtmlEncode(ObtenerIniciales(nombre));
 
-            var datos = new List<string>();
+            List<string> datos = new List<string>();
             if (espacio.GestorDesde.HasValue)
             {
                 datos.Add("en StageUp desde " + espacio.GestorDesde.Value.ToString("MM/yyyy"));
@@ -213,7 +213,7 @@ namespace StageUp.UI.Explorar
             litTipoPiso.Text = Server.HtmlEncode(string.IsNullOrWhiteSpace(ficha.TipoPiso) ? "No informado" : ficha.TipoPiso);
             litPrecioHora.Text = ficha.PrecioHora.HasValue ? FormatearPrecio(ficha) : "A consultar";
 
-            var equipamiento = new List<string>();
+            List<string> equipamiento = new List<string>();
             foreach (string codigo in ficha.Equipamiento ?? new List<string>())
             {
                 equipamiento.Add(ObtenerNombreEquipamiento(codigo));
@@ -287,7 +287,7 @@ namespace StageUp.UI.Explorar
 
         private static string ObtenerDireccion(FichaEspacio ficha)
         {
-            var partes = new List<string>();
+            List<string> partes = new List<string>();
             if (!string.IsNullOrWhiteSpace(ficha.Direccion))
             {
                 partes.Add(ficha.Direccion);
@@ -314,7 +314,7 @@ namespace StageUp.UI.Explorar
 
         private static List<string> FormatearDisponibilidad(List<FranjaEspacio> franjas)
         {
-            var resultado = new List<string>();
+            List<string> resultado = new List<string>();
             foreach (FranjaEspacio franja in franjas ?? new List<FranjaEspacio>())
             {
                 if (franja == null)
@@ -393,7 +393,7 @@ namespace StageUp.UI.Explorar
 
         private static List<string> ObtenerFotos(EspacioArtistico espacio)
         {
-            var fotos = new List<string>();
+            List<string> fotos = new List<string>();
 
             List<string> fotosFicha = espacio.Ficha == null ? null : espacio.Ficha.Fotos;
             if (fotosFicha != null)

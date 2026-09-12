@@ -67,11 +67,11 @@ namespace StageUp.UI
                 return;
             }
 
-            var reserva = (Reserva)e.Item.DataItem;
+            Reserva reserva = (Reserva)e.Item.DataItem;
 
-            var lnkCancelar = (LinkButton)e.Item.FindControl("lnkCancelar");
-            var lnkCalificarEspacio = (LinkButton)e.Item.FindControl("lnkCalificarEspacio");
-            var pnlCalificacionRealizada = (Panel)e.Item.FindControl("pnlCalificacionEspacioRealizada");
+            LinkButton lnkCancelar = (LinkButton)e.Item.FindControl("lnkCancelar");
+            LinkButton lnkCalificarEspacio = (LinkButton)e.Item.FindControl("lnkCalificarEspacio");
+            Panel pnlCalificacionRealizada = (Panel)e.Item.FindControl("pnlCalificacionEspacioRealizada");
             bool puedeCancelar = reserva.EstadoReserva == "Pendiente" || reserva.EstadoReserva == "Aceptada";
             lnkCancelar.Visible = puedeCancelar;
             if (puedeCancelar)
@@ -84,13 +84,13 @@ namespace StageUp.UI
             lnkCalificarEspacio.Visible = finalizada && !reserva.CalificacionEspacioRealizada;
             pnlCalificacionRealizada.Visible = finalizada && reserva.CalificacionEspacioRealizada;
 
-            var litComentarioResolucion = (Literal)e.Item.FindControl("litComentarioResolucion");
+            Literal litComentarioResolucion = (Literal)e.Item.FindControl("litComentarioResolucion");
             if (litComentarioResolucion != null && !string.IsNullOrEmpty(reserva.ComentarioResolucion))
             {
                 litComentarioResolucion.Text = "Respuesta del gestor: " + Server.HtmlEncode(reserva.ComentarioResolucion);
             }
 
-            var litHorarioImporte = (Literal)e.Item.FindControl("litHorarioImporte");
+            Literal litHorarioImporte = (Literal)e.Item.FindControl("litHorarioImporte");
             if (litHorarioImporte != null && reserva.MinutoDesde.HasValue && reserva.MinutoHasta.HasValue)
             {
                 string horario = "Horario: " + FormatearHora(reserva.MinutoDesde.Value) + " a " + FormatearHora(reserva.MinutoHasta.Value);

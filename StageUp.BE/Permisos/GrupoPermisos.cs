@@ -29,7 +29,7 @@ namespace StageUp.BE.Permisos
 
         public override List<PermisoHoja> Listar()
         {
-            var hojas = new List<PermisoHoja>();
+            List<PermisoHoja> hojas = new List<PermisoHoja>();
             foreach (PermisoComponente hijo in _hijos)
             {
                 hojas.AddRange(hijo.Listar());

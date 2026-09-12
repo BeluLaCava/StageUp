@@ -29,7 +29,7 @@ namespace StageUp.UI.Explorar
             string tipoEspacio = Request.QueryString["tipo"];
             FiltroBusquedaEspacios filtro = ArmarFiltroDesdeQueryString(textoBusqueda, tipoEspacio);
 
-            var espacios = _bllEspacio.Buscar(filtro);
+            List<EspacioArtistico> espacios = _bllEspacio.Buscar(filtro);
             _bllCalificacion.CompletarReputacionesEspacios(espacios);
 
             rptEspaciosPublicados.DataSource = espacios;
@@ -63,7 +63,7 @@ namespace StageUp.UI.Explorar
 
         private static FiltroBusquedaEspacios ArmarFiltroDesdeQueryString(string textoBusqueda, string tipoEspacio)
         {
-            var filtro = new FiltroBusquedaEspacios
+            FiltroBusquedaEspacios filtro = new FiltroBusquedaEspacios
             {
                 TextoBusqueda = textoBusqueda,
                 TipoEspacio = tipoEspacio,
@@ -176,7 +176,7 @@ namespace StageUp.UI.Explorar
 
         protected string ObtenerInfoGestor(object dataItem)
         {
-            var espacio = dataItem as EspacioArtistico;
+            EspacioArtistico espacio = dataItem as EspacioArtistico;
             if (espacio == null || string.IsNullOrWhiteSpace(espacio.NombreCompletoGestor))
             {
                 return string.Empty;

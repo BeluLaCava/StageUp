@@ -70,7 +70,7 @@ namespace StageUp.UI.Interno
 
             if (e.CommandName == "Guardar")
             {
-                var texto = (TextBox)e.Item.FindControl("txtTextoTraducido");
+                TextBox texto = (TextBox)e.Item.FindControl("txtTextoTraducido");
                 resultado = _bllTraduccion.Guardar(
                     IdIdiomaConfigurado.Value,
                     idEtiqueta,
@@ -115,7 +115,7 @@ namespace StageUp.UI.Interno
         private void CargarModulos()
         {
             List<Traduccion> traducciones = _bllTraduccion.ListarConfiguracion(IdIdiomaConfigurado.Value);
-            var modulos = new List<string>();
+            List<string> modulos = new List<string>();
             foreach (Traduccion traduccion in traducciones)
             {
                 if (!modulos.Contains(traduccion.Modulo))
@@ -162,7 +162,7 @@ namespace StageUp.UI.Interno
 
             string busqueda = string.IsNullOrWhiteSpace(txtBuscar.Text) ? null : txtBuscar.Text.Trim();
             string modulo = ddlModulo.SelectedValue;
-            var filtradas = new List<Traduccion>();
+            List<Traduccion> filtradas = new List<Traduccion>();
 
             foreach (Traduccion traduccion in todas)
             {

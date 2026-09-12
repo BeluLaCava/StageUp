@@ -17,7 +17,7 @@ namespace StageUp.Seguridad
             }
 
             byte[] sal = new byte[TamanioSalBytes];
-            using (var rng = new RNGCryptoServiceProvider())
+            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
             {
                 rng.GetBytes(sal);
             }
@@ -55,7 +55,7 @@ namespace StageUp.Seguridad
 
         private static byte[] CalcularHash(string passwordEnClaro, byte[] sal, int iteraciones, int tamanioSalida)
         {
-            using (var derivador = new Rfc2898DeriveBytes(passwordEnClaro, sal, iteraciones))
+            using (Rfc2898DeriveBytes derivador = new Rfc2898DeriveBytes(passwordEnClaro, sal, iteraciones))
             {
                 return derivador.GetBytes(tamanioSalida);
             }

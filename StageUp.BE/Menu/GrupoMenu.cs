@@ -23,7 +23,7 @@ namespace StageUp.BE.Menu
 
         public override List<ItemMenu> ObtenerItems()
         {
-            var items = new List<ItemMenu>();
+            List<ItemMenu> items = new List<ItemMenu>();
             foreach (ComponenteMenu hijo in _hijos)
             {
                 items.AddRange(hijo.ObtenerItems());

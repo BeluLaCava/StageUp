@@ -8,10 +8,10 @@ namespace StageUp.Seguridad
     {
         public static string GenerarCodigoNumerico(int longitud = ConfiguracionSeguridad.LongitudCodigo)
         {
-            var builder = new StringBuilder(longitud);
+            StringBuilder builder = new StringBuilder(longitud);
             byte[] buffer = new byte[4];
 
-            using (var rng = new RNGCryptoServiceProvider())
+            using (RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider())
             {
                 for (int i = 0; i < longitud; i++)
                 {

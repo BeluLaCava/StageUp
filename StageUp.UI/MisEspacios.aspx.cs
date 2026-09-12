@@ -194,9 +194,9 @@ namespace StageUp.UI
                 return;
             }
 
-            var espacio = (EspacioArtistico)e.Item.DataItem;
-            var lnkPublicar = (LinkButton)e.Item.FindControl("lnkPublicar");
-            var lnkPausar = (LinkButton)e.Item.FindControl("lnkPausar");
+            EspacioArtistico espacio = (EspacioArtistico)e.Item.DataItem;
+            LinkButton lnkPublicar = (LinkButton)e.Item.FindControl("lnkPublicar");
+            LinkButton lnkPausar = (LinkButton)e.Item.FindControl("lnkPausar");
 
             lnkPublicar.Visible = !espacio.Publicado;
             lnkPausar.Visible = espacio.Publicado;
@@ -334,7 +334,7 @@ namespace StageUp.UI
                     return;
                 }
 
-                var espacio = new EspacioArtistico
+                EspacioArtistico espacio = new EspacioArtistico
                 {
                     IdEspacioArtistico = IdEspacioEnEdicion ?? 0,
                     NombreEspacio = txtNombreEspacio.Text,
@@ -413,7 +413,7 @@ namespace StageUp.UI
                     (long)original.Width * original.Height > 20000000)
                     throw new ArgumentException("Imagen no válida o demasiado grande.");
                 double escala = Math.Min(1.0, 1600.0 / Math.Max(original.Width, original.Height));
-                using (var imagen = new System.Drawing.Bitmap(Math.Max(1, (int)(original.Width * escala)), Math.Max(1, (int)(original.Height * escala))))
+                using (System.Drawing.Bitmap imagen = new System.Drawing.Bitmap(Math.Max(1, (int)(original.Width * escala)), Math.Max(1, (int)(original.Height * escala))))
                 {
                     using (System.Drawing.Graphics dibujo = System.Drawing.Graphics.FromImage(imagen))
                     {
@@ -459,7 +459,7 @@ namespace StageUp.UI
         {
             FichaEspacio ficha = espacio.Ficha;
             if (ficha == null) return "";
-            var partes = new List<string>();
+            List<string> partes = new List<string>();
             if (!string.IsNullOrWhiteSpace(ficha.Ciudad)) partes.Add(ficha.Ciudad);
             if (ficha.CapacidadMaxima.HasValue) partes.Add("Hasta " + ficha.CapacidadMaxima + " personas");
             if (ficha.PrecioHora.HasValue) partes.Add(ficha.Moneda + " " + ficha.PrecioHora.Value.ToString("N2", CultureInfo.CurrentCulture) + " / hora");

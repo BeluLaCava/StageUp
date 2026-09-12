@@ -87,13 +87,13 @@ namespace StageUp.UI
                 return;
             }
 
-            var reserva = (Reserva)e.Item.DataItem;
-            var lnkAceptar = (LinkButton)e.Item.FindControl("lnkAceptar");
-            var lnkRechazar = (LinkButton)e.Item.FindControl("lnkRechazar");
-            var pnlAcciones = (Panel)e.Item.FindControl("pnlAcciones");
-            var pnlAccionesCalificacion = (Panel)e.Item.FindControl("pnlAccionesCalificacion");
-            var lnkCalificarSolicitante = (LinkButton)e.Item.FindControl("lnkCalificarSolicitante");
-            var pnlCalificacionRealizada = (Panel)e.Item.FindControl("pnlCalificacionSolicitanteRealizada");
+            Reserva reserva = (Reserva)e.Item.DataItem;
+            LinkButton lnkAceptar = (LinkButton)e.Item.FindControl("lnkAceptar");
+            LinkButton lnkRechazar = (LinkButton)e.Item.FindControl("lnkRechazar");
+            Panel pnlAcciones = (Panel)e.Item.FindControl("pnlAcciones");
+            Panel pnlAccionesCalificacion = (Panel)e.Item.FindControl("pnlAccionesCalificacion");
+            LinkButton lnkCalificarSolicitante = (LinkButton)e.Item.FindControl("lnkCalificarSolicitante");
+            Panel pnlCalificacionRealizada = (Panel)e.Item.FindControl("pnlCalificacionSolicitanteRealizada");
 
             bool esPendiente = reserva.EstadoReserva == "Pendiente";
             lnkAceptar.Visible = esPendiente;
@@ -227,7 +227,7 @@ namespace StageUp.UI
             }
 
             string[] partes = nombre.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            var iniciales = new StringBuilder();
+            StringBuilder iniciales = new StringBuilder();
             iniciales.Append(char.ToUpper(partes[0][0], CultureInfo.CurrentCulture));
             if (partes.Length > 1)
             {
@@ -244,7 +244,7 @@ namespace StageUp.UI
                 return "Todavía no hay actividad para mostrar.";
             }
 
-            var partes = new List<string>();
+            List<string> partes = new List<string>();
             if (reserva.SolicitanteDesde.HasValue)
             {
                 partes.Add("Miembro desde " + reserva.SolicitanteDesde.Value.ToString("Y", CultureInfo.CurrentCulture));

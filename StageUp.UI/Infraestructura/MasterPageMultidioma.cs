@@ -40,8 +40,8 @@ namespace StageUp.UI.Infraestructura
 
         public void ActualizarIdioma(Idioma idioma, IList<Traduccion> traducciones)
         {
-            var porClave = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            var porTexto = new Dictionary<string, string>(StringComparer.Ordinal);
+            Dictionary<string, string> porClave = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, string> porTexto = new Dictionary<string, string>(StringComparer.Ordinal);
 
             foreach (Traduccion traduccion in traducciones)
             {
@@ -57,11 +57,11 @@ namespace StageUp.UI.Infraestructura
                 }
             }
 
-            var configuracion = new
+            ConfiguracionDiccionarioIdioma configuracion = new ConfiguracionDiccionarioIdioma
             {
                 codigoIdioma = idioma.CodigoIdioma,
-                porClave,
-                porTexto
+                porClave = porClave,
+                porTexto = porTexto
             };
 
             _diccionarioIdioma.Value = new JavaScriptSerializer().Serialize(configuracion);
@@ -173,6 +173,16 @@ namespace StageUp.UI.Infraestructura
 
             int separador = codigoIdioma.IndexOf('-');
             return separador > 0 ? codigoIdioma.Substring(0, separador) : codigoIdioma;
+        }
+
+        // Reemplaza al tipo anónimo que se usaba antes: los nombres de propiedad quedan
+        // en minúscula a propósito porque JavaScriptSerializer los serializa tal cual están
+        // declarados, y multidioma.js los lee como "codigoIdioma"/"porClave"/"porTexto".
+        private sealed class ConfiguracionDiccionarioIdioma
+        {
+            public string codigoIdioma { get; set; }
+            public Dictionary<string, string> porClave { get; set; }
+            public Dictionary<string, string> porTexto { get; set; }
         }
     }
 }

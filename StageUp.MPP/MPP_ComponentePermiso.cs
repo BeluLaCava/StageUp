@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using StageUp.BE.Permisos;
@@ -8,6 +9,36 @@ namespace StageUp.MPP
 {
     public class MPP_ComponentePermiso
     {
+        public int InsertarGrupo(GrupoPermisos oGrupo, PermisoComponente oPadre)
+        {
+            object resultado = Conexion.Instance.LeerEscalar(
+                "sp_ComponentePermiso_InsertarGrupo",
+                new Hashtable
+                {
+                    { "@idComponentePadre", oPadre == null ? (object)DBNull.Value : oPadre.IdComponentePermiso },
+                    { "@nombre", oGrupo.Nombre }
+                });
+            return Convert.ToInt32(resultado);
+        }
+
+        public void MoverComponente(PermisoComponente oComponente, PermisoComponente oNuevoPadre)
+        {
+            Conexion.Instance.Guardar(
+                "sp_ComponentePermiso_MoverComponente",
+                new Hashtable
+                {
+                    { "@idComponentePermiso", oComponente.IdComponentePermiso },
+                    { "@idNuevoComponentePadre", oNuevoPadre == null ? (object)DBNull.Value : oNuevoPadre.IdComponentePermiso }
+                });
+        }
+
+        public void EliminarGrupo(PermisoComponente oGrupo)
+        {
+            Conexion.Instance.Guardar(
+                "sp_ComponentePermiso_EliminarGrupo",
+                new Hashtable { { "@idComponentePermiso", oGrupo.IdComponentePermiso } });
+        }
+
         public GrupoPermisos ListarArbol()
         {
             DataTable tabla = Conexion.Instance.Leer("sp_ComponentePermiso_ListarTodos");

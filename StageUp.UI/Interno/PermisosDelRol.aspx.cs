@@ -64,16 +64,9 @@ namespace StageUp.UI.Interno
             }
 
             List<int> idsSeleccionados = new List<int>();
-
-            foreach (RepeaterItem item in rptPermisos.Items)
+            foreach (TreeNode nodo in tvPermisos.CheckedNodes)
             {
-                CheckBox chkPermiso = (CheckBox)item.FindControl("chkPermiso");
-                HiddenField hdnIdComponente = (HiddenField)item.FindControl("hdnIdComponente");
-
-                if (chkPermiso.Checked)
-                {
-                    idsSeleccionados.Add(Convert.ToInt32(hdnIdComponente.Value));
-                }
+                idsSeleccionados.Add(Convert.ToInt32(nodo.Value));
             }
 
             int idUsuarioInternoResponsable = GestorDeSesion.ObtenerIdUsuarioInternoActual().Value;
@@ -86,9 +79,40 @@ namespace StageUp.UI.Interno
 
         private void CargarPermisos(int idRolInterno)
         {
-            List<PermisoHoja> permisos = _bllPermiso.ListarComponentesRaizConAsignacion(idRolInterno).Listar();
-            rptPermisos.DataSource = permisos;
-            rptPermisos.DataBind();
+            GrupoPermisos raiz = _bllPermiso.ListarComponentesRaizConAsignacion(idRolInterno);
+
+            tvPermisos.Nodes.Clear();
+            foreach (PermisoComponente hijo in raiz.Hijos)
+            {
+                tvPermisos.Nodes.Add(ConstruirNodo(hijo));
+            }
+            tvPermisos.ExpandAll();
+        }
+
+        private static TreeNode ConstruirNodo(PermisoComponente componente)
+        {
+            TreeNode nodo = new TreeNode(componente.Nombre, componente.IdComponentePermiso.ToString())
+            {
+                Checked = componente.Asignado,
+                SelectAction = TreeNodeSelectAction.None
+            };
+
+            PermisoHoja hoja = componente as PermisoHoja;
+            if (hoja != null && !string.IsNullOrWhiteSpace(hoja.Descripcion))
+            {
+                nodo.ToolTip = hoja.Descripcion;
+            }
+
+            GrupoPermisos grupo = componente as GrupoPermisos;
+            if (grupo != null)
+            {
+                foreach (PermisoComponente hijo in grupo.Hijos)
+                {
+                    nodo.ChildNodes.Add(ConstruirNodo(hijo));
+                }
+            }
+
+            return nodo;
         }
 
         private void MostrarRolNoEncontrado()

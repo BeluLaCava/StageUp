@@ -220,6 +220,13 @@
     <Compile Include="Interno\PermisosDelRol.aspx.designer.cs">
       <DependentUpon>PermisosDelRol.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Interno\GestionGruposPermisos.aspx.cs">
+      <DependentUpon>GestionGruposPermisos.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\GestionGruposPermisos.aspx.designer.cs">
+      <DependentUpon>GestionGruposPermisos.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Infraestructura\MasterPageMultidioma.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
@@ -265,6 +272,7 @@
     <Content Include="Interno\GestionRoles.aspx" />
     <Content Include="Interno\GestionUsuariosInternos.aspx" />
     <Content Include="Interno\PermisosDelRol.aspx" />
+    <Content Include="Interno\GestionGruposPermisos.aspx" />
     <Content Include="Interno\GestionIdiomas.aspx" />
     <Content Include="Interno\ConfigurarIdioma.aspx" />
     <Content Include="Scripts\site.js" />

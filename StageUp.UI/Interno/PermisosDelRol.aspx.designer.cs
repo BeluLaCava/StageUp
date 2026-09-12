@@ -7,7 +7,7 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.Literal litMensaje;
         protected global::System.Web.UI.WebControls.Panel pnlSinRol;
         protected global::System.Web.UI.WebControls.Panel pnlFormularioPermisos;
-        protected global::System.Web.UI.WebControls.Repeater rptPermisos;
+        protected global::System.Web.UI.WebControls.TreeView tvPermisos;
         protected global::System.Web.UI.WebControls.Button btnGuardarPermisos;
     }
 }

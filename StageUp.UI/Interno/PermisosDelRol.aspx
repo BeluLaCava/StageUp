@@ -27,26 +27,22 @@
                     <span class="admin-workspace-hint" data-i18n="AdminUI_ActivarDesactivar">Podés activar o desactivar cada permiso.</span>
                 </div>
 
-                <div class="permission-grid">
-                <asp:Repeater ID="rptPermisos" runat="server">
-                    <ItemTemplate>
-                        <label class="checkbox-field permission-card">
-                            <asp:CheckBox ID="chkPermiso" runat="server" Checked='<%# Eval("Asignado") %>' />
-                            <span class="permission-card-copy">
-                                <strong><%# Eval("Nombre") %></strong>
-                                <span class="permission-modulo"><%# Eval("NombreGrupo") %></span>
-                                <asp:HiddenField ID="hdnIdComponente" runat="server" Value='<%# Eval("IdComponentePermiso") %>' />
-                                <span class="permission-description"><%# Eval("Descripcion") %></span>
-                            </span>
-                        </label>
-                    </ItemTemplate>
-                </asp:Repeater>
+                <p class="admin-workspace-hint">Tildá un grupo entero para habilitar todo lo que tiene adentro (incluido lo que se agregue después) o tildá permisos sueltos uno por uno.</p>
+
+                <div class="permission-tree-wrapper">
+                    <asp:TreeView ID="tvPermisos" runat="server" ShowCheckBoxes="All" ShowLines="true" CssClass="permission-tree">
+                        <NodeStyle Font-Size="0.9rem" ForeColor="#3E2925" NodeSpacing="4px" VerticalPadding="4px" />
+                        <ParentNodeStyle Font-Bold="true" ForeColor="#4D0B17" />
+                        <SelectedNodeStyle BackColor="#FCF7F3" />
+                        <HoverNodeStyle ForeColor="#6D1021" />
+                    </asp:TreeView>
                 </div>
 
                 <div class="form-actions permission-actions">
                     <asp:Button ID="btnGuardarPermisos" runat="server" CssClass="button button-primary" Text="Guardar permisos"
                         CausesValidation="false" OnClick="btnGuardarPermisos_Click" />
                     <a class="text-link" href="~/Interno/GestionRoles.aspx" runat="server">Volver a roles</a>
+                    <a class="text-link" href="~/Interno/GestionGruposPermisos.aspx" runat="server">Organizar grupos de permisos</a>
                 </div>
             </asp:Panel>
         </div>

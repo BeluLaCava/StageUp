@@ -20,13 +20,6 @@
                         <small>Panel administrativo</small>
                     </span>
                 </a>
-                <nav class="internal-nav" aria-label="Navegación del panel administrativo">
-                    <asp:Repeater ID="rptMenu" runat="server">
-                        <ItemTemplate>
-                            <a href='<%# ResolveUrl(Eval("Url").ToString()) %>'><%# Eval("Nombre") %></a>
-                        </ItemTemplate>
-                    </asp:Repeater>
-                </nav>
                 <div class="internal-session">
                     <div id="LanguageSelector" runat="server" class="language-selector internal-language-selector">
                         <label for="<%= ddlIdioma.ClientID %>" data-i18n="General_Idioma">Idioma</label>
@@ -40,9 +33,19 @@
             </div>
         </header>
 
-        <main class="internal-content container-wide">
-            <asp:ContentPlaceHolder ID="MainContent" runat="server" />
-        </main>
+        <div class="internal-shell container-wide">
+            <nav class="internal-nav" aria-label="Navegación del panel administrativo">
+                <asp:Repeater ID="rptMenu" runat="server">
+                    <ItemTemplate>
+                        <a href='<%# ResolveUrl(Eval("Url").ToString()) %>'><%# Eval("Nombre") %></a>
+                    </ItemTemplate>
+                </asp:Repeater>
+            </nav>
+
+            <main class="internal-content">
+                <asp:ContentPlaceHolder ID="MainContent" runat="server" />
+            </main>
+        </div>
 
         <asp:HiddenField ID="hdnDiccionarioIdioma" runat="server" ClientIDMode="Static" EnableViewState="false" />
         <script src="<%= ResolveUrl("~/Scripts/multidioma.js") %>?v=20260910-2"></script>

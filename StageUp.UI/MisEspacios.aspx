@@ -146,7 +146,7 @@
                         <p>Agregá uno o varios horarios. Las excepciones reemplazan el horario habitual de esa fecha. Las reservas y actividades ocupadas se controlarán por separado.</p>
                         <asp:HiddenField ID="hdnDisponibilidad" runat="server" ClientIDMode="Static" Value="[]" />
                         <div class="space-fields-grid">
-                            <div class="form-field"><label for="schedule-mode">¿Cuándo se repite?</label><select id="schedule-mode"><option value="weekly">Todas las semanas</option><option value="date">Una fecha concreta</option><option value="closed">Cerrar una fecha completa</option></select></div>
+                            <div class="form-field"><label for="schedule-mode">¿Cuándo se repite?</label><select id="schedule-mode"><option value="weekly">Todas las semanas</option><option value="date">Una fecha concreta</option><option value="closed">Cerrar el día completo</option></select></div>
                             <div class="form-field" id="schedule-date-wrap" hidden><label for="schedule-date">Fecha</label><input id="schedule-date" type="date" /></div>
                         </div>
                         <div id="schedule-days" class="space-days" role="group" aria-label="Días de la semana">
@@ -156,6 +156,7 @@
                             <div class="form-field"><label for="schedule-from">Desde</label><input id="schedule-from" type="time" step="1800" value="09:00" /></div>
                             <div class="form-field"><label for="schedule-to">Hasta</label><input id="schedule-to" type="time" step="1800" value="18:00" /><small>00:00 como fin indica el cierre del día.</small></div>
                         </div>
+                        <label class="checkbox-field" id="schedule-blocked-wrap"><input type="checkbox" id="schedule-blocked" /> Bloquear este horario (no ofrecerlo para reservas — p. ej. una clase fija tuya)</label>
                         <button type="button" class="button button-secondary button-small" id="schedule-add">＋ Agregar horario</button>
                         <p id="schedule-error" role="alert"></p>
                         <ul id="schedule-list" class="space-schedule-list"></ul>

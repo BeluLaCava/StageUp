@@ -43,7 +43,7 @@ namespace StageUp.BLL
                     CorreoElectronico = correoElectronico.Trim().ToLowerInvariant()
                 });
 
-                if (usuario == null || !HashDeContrasenas.Verificar(password, usuario.PasswordHash))
+                if (usuario == null || !ProtectorDeCredenciales.VerificarPassword(usuario, password))
                 {
                     return ResultadoOperacion<UsuarioInterno>.Error("El correo electrónico o la contraseña son incorrectos.");
                 }
@@ -113,9 +113,12 @@ namespace StageUp.BLL
                     Nombre = nombre.Trim(),
                     Apellido = apellido.Trim(),
                     CorreoElectronico = correoNormalizado,
-                    PasswordHash = HashDeContrasenas.CrearHash(password),
                     EstadoCuenta = estadoCuenta
                 };
+
+                // La contraseña pasa por Seguridad como objeto completo, tanto acá
+                // (alta) como en el cambio de contraseña de Modificar más abajo.
+                ProtectorDeCredenciales.ProtegerPassword(usuario, password);
 
                 int idUsuarioInterno = _mppUsuarioInterno.Insertar(usuario);
 
@@ -156,7 +159,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("No podés cambiar tu propio rol mientras tu sesión está iniciada.");
                 }
 
-                _mppUsuarioInterno.Modificar(new UsuarioInterno
+                UsuarioInterno usuarioModificado = new UsuarioInterno
                 {
                     IdUsuarioInterno = idUsuarioInterno,
                     IdAreaInterna = idAreaInterna,
@@ -164,10 +167,15 @@ namespace StageUp.BLL
                     Nombre = nombre.Trim(),
                     Apellido = apellido.Trim(),
                     CorreoElectronico = correoElectronico.Trim().ToLowerInvariant(),
-                    PasswordHash = string.IsNullOrWhiteSpace(password)
-                        ? null : HashDeContrasenas.CrearHash(password),
                     EstadoCuenta = estadoCuenta
-                });
+                };
+
+                if (!string.IsNullOrWhiteSpace(password))
+                {
+                    ProtectorDeCredenciales.ProtegerPassword(usuarioModificado, password);
+                }
+
+                _mppUsuarioInterno.Modificar(usuarioModificado);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "MODIFICACION", "UsuarioInterno", idUsuarioInterno,

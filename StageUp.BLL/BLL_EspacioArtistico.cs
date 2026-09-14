@@ -78,8 +78,14 @@ namespace StageUp.BLL
                     (fechaConcreta && !DateTime.TryParseExact(franja.Fecha, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out fecha)) ||
                     (!fechaConcreta && (franja.DiaSemana < 1 || franja.DiaSemana > 7)))
                     return ResultadoOperacion.Error("Cada horario debe indicar un día de la semana o una fecha válida.");
-                if (franja.Bloqueado && (!fechaConcreta || franja.MinutoDesde != 0 || franja.MinutoHasta != 1440))
-                    return ResultadoOperacion.Error("El cierre debe corresponder a una fecha completa.");
+                // Antes acá se exigía que todo bloqueo (Bloqueado = true) cubriera el día
+                // completo (0 a 1440) y tuviera una fecha puntual. Eso impedía cargar un
+                // bloqueo manual de gestor para una franja horaria específica (p. ej. "todos
+                // los lunes de 17 a 18hs tengo una clase fija"), que es justo el caso que
+                // pidió el profesor. Ahora un bloqueo puede ser tanto un día completo como
+                // una franja parcial, y tanto recurrente (día de la semana) como puntual
+                // (fecha concreta) — las validaciones de abajo (horario válido en intervalos
+                // de 30 minutos, sin superposición) ya alcanzan para que quede consistente.
                 if (franja.MinutoDesde < 0 || franja.MinutoHasta > 1440 || franja.MinutoHasta <= franja.MinutoDesde ||
                     franja.MinutoDesde % 30 != 0 || franja.MinutoHasta % 30 != 0)
                     return ResultadoOperacion.Error("Usá horarios en intervalos de 30 minutos, con fin posterior al inicio.");

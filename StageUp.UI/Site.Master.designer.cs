@@ -60,8 +60,6 @@ namespace StageUp.UI
 
         protected global::System.Web.UI.HtmlControls.HtmlAnchor PrivacyLink;
 
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor InternalAccessLink;
-
         protected global::System.Web.UI.WebControls.ContentPlaceHolder PageScripts;
 
         protected global::System.Web.UI.WebControls.HiddenField hdnDiccionarioIdioma;

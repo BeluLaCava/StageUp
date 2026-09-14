@@ -60,22 +60,25 @@
                     <span class="admin-workspace-hint" data-i18n="AdminUI_ActividadReciente">Actividad ordenada desde la más reciente.</span>
                 </div>
 
-                <div class="activity-list">
-                <asp:Repeater ID="rptRegistros" runat="server">
-                    <ItemTemplate>
-                        <div class="space-row activity-row">
-                            <span class="activity-marker" aria-hidden="true"></span>
-                            <div class="space-row-info">
-                                <h3><%# Eval("TipoOperacion") %> · <%# Eval("TipoEntidadAfectada") %></h3>
-                                <p>
-                                    <%# ObtenerNombreMostrado(Eval("NombreResponsable") as string) %>
-                                    · <%# Eval("FechaOperacion", "{0:dd/MM/yyyy HH:mm}") %>
-                                </p>
-                                <p class="space-row-descripcion"><%# Eval("DescripcionOperacion") %></p>
+                <div class="activity-table" role="table" aria-label="Registros de actividad">
+                    <div class="activity-table-head" role="row">
+                        <span role="columnheader">Operación</span>
+                        <span role="columnheader">Entidad</span>
+                        <span role="columnheader">Responsable</span>
+                        <span role="columnheader">Fecha</span>
+                        <span role="columnheader">Descripción</span>
+                    </div>
+                    <asp:Repeater ID="rptRegistros" runat="server">
+                        <ItemTemplate>
+                            <div class="activity-table-row" role="row">
+                                <span role="cell" data-label="Operación" class="activity-col-operacion"><%# Eval("TipoOperacion") %></span>
+                                <span role="cell" data-label="Entidad" class="activity-col-entidad"><%# Eval("TipoEntidadAfectada") %></span>
+                                <span role="cell" data-label="Responsable" class="activity-col-responsable"><%# ObtenerNombreMostrado(Eval("NombreResponsable") as string) %></span>
+                                <span role="cell" data-label="Fecha" class="activity-col-fecha"><%# Eval("FechaOperacion", "{0:dd/MM/yyyy HH:mm}") %></span>
+                                <span role="cell" data-label="Descripción" class="activity-col-descripcion" title='<%# Eval("DescripcionOperacion") %>'><%# Eval("DescripcionOperacion") %></span>
                             </div>
-                        </div>
-                    </ItemTemplate>
-                </asp:Repeater>
+                        </ItemTemplate>
+                    </asp:Repeater>
                 </div>
 
                 <asp:Panel ID="pnlSinResultados" runat="server" CssClass="empty-state" Visible="false">

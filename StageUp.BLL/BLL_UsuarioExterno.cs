@@ -92,7 +92,6 @@ namespace StageUp.BLL
                     Nombre = nombre.Trim(),
                     Apellido = apellido.Trim(),
                     CorreoElectronico = correoElectronico,
-                    PasswordHash = HashDeContrasenas.CrearHash(password),
                     Telefono = telefono,
                     EstadoCuenta = EstadoCuentaExterno.PendienteActivacion.ToString(),
                     PerfilUsuario = PerfilUsuarioExterno.ExternoSolicitante.ToString(),
@@ -100,6 +99,10 @@ namespace StageUp.BLL
                     AceptaPoliticaPrivacidad = true,
                     FechaAceptacionTerminos = DateTime.Now
                 };
+
+                // La contraseña pasa por Seguridad como objeto completo: BLL no vuelve
+                // a tocar el algoritmo de cifrado, solo pide que se proteja.
+                ProtectorDeCredenciales.ProtegerPassword(nuevoUsuario, password);
 
                 int idUsuarioExterno = _mppUsuario.Insertar(nuevoUsuario);
 
@@ -206,7 +209,7 @@ namespace StageUp.BLL
                     CorreoElectronico = correoElectronico.Trim().ToLowerInvariant()
                 });
 
-                if (usuario == null || !HashDeContrasenas.Verificar(password, usuario.PasswordHash))
+                if (usuario == null || !ProtectorDeCredenciales.VerificarPassword(usuario, password))
                 {
                     return ResultadoOperacion<UsuarioExterno>.Error("El correo electrónico o la contraseña son incorrectos.");
                 }
@@ -328,7 +331,7 @@ namespace StageUp.BLL
                 }
 
                 _bllCodigoRecuperacion.MarcarUtilizado(codigo.IdCodigoRecuperacion);
-                usuario.PasswordHash = HashDeContrasenas.CrearHash(nuevaPassword);
+                ProtectorDeCredenciales.ProtegerPassword(usuario, nuevaPassword);
                 _mppUsuario.ActualizarPassword(usuario);
 
                 _bitacora.Registrar(
@@ -352,7 +355,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
                 }
 
-                if (string.IsNullOrWhiteSpace(passwordActual) || !HashDeContrasenas.Verificar(passwordActual, usuario.PasswordHash))
+                if (string.IsNullOrWhiteSpace(passwordActual) || !ProtectorDeCredenciales.VerificarPassword(usuario, passwordActual))
                 {
                     return ResultadoOperacion.Error("La contraseña actual ingresada es incorrecta.");
                 }
@@ -370,7 +373,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("La nueva contraseña y su confirmación no coinciden.");
                 }
 
-                usuario.PasswordHash = HashDeContrasenas.CrearHash(nuevaPassword);
+                ProtectorDeCredenciales.ProtegerPassword(usuario, nuevaPassword);
                 _mppUsuario.ActualizarPassword(usuario);
 
                 _bitacora.Registrar(

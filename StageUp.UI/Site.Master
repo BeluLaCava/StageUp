@@ -84,7 +84,6 @@
                     <a id="ContactLink" runat="server" class="footer-link" href="~/Contactenos.aspx" data-i18n="Footer_Contactenos">Contáctenos</a>
                     <a id="TermsLink" runat="server" class="footer-link" href="~/TerminosCondiciones.aspx" data-i18n="Footer_Terminos">Términos y condiciones</a>
                     <a id="PrivacyLink" runat="server" class="footer-link" href="~/PoliticaPrivacidad.aspx" data-i18n="Footer_Privacidad">Política de privacidad</a>
-                    <a id="InternalAccessLink" runat="server" class="footer-link footer-link-muted" href="~/Interno/IniciarSesionInterno.aspx" data-i18n="Footer_AccesoInterno">Acceso interno</a>
                 </nav>
             </div>
         </footer>

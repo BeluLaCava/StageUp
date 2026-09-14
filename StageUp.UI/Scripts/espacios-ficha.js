@@ -18,7 +18,11 @@
             var item = document.createElement("li");
             var label = document.createElement("span");
             var day = row.Fecha ? row.Fecha.split("-").reverse().join("/") : days[row.DiaSemana];
-            label.textContent = day + (row.Bloqueado ? " · Cerrado" : " · " + time(row.MinutoDesde) + " a " + time(row.MinutoHasta));
+            var esDiaCompleto = row.MinutoDesde === 0 && row.MinutoHasta === 1440;
+            var descripcionHorario = row.Bloqueado
+                ? (esDiaCompleto ? " · Cerrado (día completo)" : " · Bloqueado " + time(row.MinutoDesde) + " a " + time(row.MinutoHasta))
+                : " · " + time(row.MinutoDesde) + " a " + time(row.MinutoHasta);
+            label.textContent = day + descripcionHorario;
             var remove = document.createElement("button");
             remove.type = "button";
             remove.textContent = "Quitar";
@@ -29,10 +33,18 @@
             list.appendChild(item);
         });
     }
+    var blockedWrap = document.getElementById("schedule-blocked-wrap");
+    var blockedCheckbox = document.getElementById("schedule-blocked");
     mode.addEventListener("change", function () {
         document.getElementById("schedule-days").hidden = mode.value !== "weekly";
         document.getElementById("schedule-date-wrap").hidden = mode.value === "weekly";
         document.getElementById("schedule-times").hidden = mode.value === "closed";
+        if (blockedWrap) {
+            blockedWrap.hidden = mode.value === "closed";
+        }
+        if (mode.value === "closed" && blockedCheckbox) {
+            blockedCheckbox.checked = false;
+        }
     });
     function minutes(value) {
         if (!/^\d{2}:\d{2}$/.test(value)) return NaN;
@@ -42,6 +54,7 @@
     document.getElementById("schedule-add").addEventListener("click", function () {
         error.textContent = "";
         var closed = mode.value === "closed";
+        var bloqueado = closed || (blockedCheckbox && blockedCheckbox.checked);
         var from = closed ? 0 : minutes(document.getElementById("schedule-from").value);
         var to = closed ? 1440 : minutes(document.getElementById("schedule-to").value);
         if (to === 0) to = 1440;
@@ -61,7 +74,7 @@
             return;
         }
         var additions = selected.map(function (day) {
-            return { DiaSemana: day, Fecha: date, MinutoDesde: from, MinutoHasta: to, Bloqueado: closed };
+            return { DiaSemana: day, Fecha: date, MinutoDesde: from, MinutoHasta: to, Bloqueado: bloqueado };
         });
         var overlaps = additions.some(function (next) {
             return rows.some(function (row) {

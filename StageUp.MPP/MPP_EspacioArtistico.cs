@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 
@@ -219,10 +220,22 @@ namespace StageUp.MPP
                     { "@reqIluminacion", equipamiento.Contains("ILUMINACION") }
                 }));
 
-            CompletarDatosHijosDeFicha(
-                lista,
-                "sp_FichaEspacioEquipamiento_ListarPublicados", "sp_FranjaEspacio_ListarPublicados", "sp_EspacioFoto_ListarPublicados",
-                () => null);
+            // A diferencia de ListarPublicados() (que muestra el catalogo completo y
+            // necesita los datos hijos de todos los espacios publicados), aca "lista" ya
+            // viene acotada a los espacios que matchearon el filtro. Antes se reusaban los
+            // mismos SP "_ListarPublicados" sin filtro (traían las franjas/equipamiento/
+            // fotos de TODOS los espacios publicados del sistema y se descartaba en memoria
+            // lo que no hacia falta), lo cual escala mal si hay muchos espacios publicados
+            // y la busqueda devuelve pocos resultados. Usamos la variante "_PorIds" para
+            // traer unicamente los datos hijos de los espacios que ya matchearon.
+            if (lista.Count > 0)
+            {
+                string idsEspacios = string.Join(",", lista.Select(e => e.IdEspacioArtistico));
+                CompletarDatosHijosDeFicha(
+                    lista,
+                    "sp_FichaEspacioEquipamiento_ListarPublicadosPorIds", "sp_FranjaEspacio_ListarPublicadosPorIds", "sp_EspacioFoto_ListarPublicadosPorIds",
+                    () => new Hashtable { { "@idsEspacios", idsEspacios } });
+            }
 
             return lista;
         }

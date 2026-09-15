@@ -45,6 +45,7 @@
                 <div class="auth-card-header">
                     <span class="admin-card-eyebrow" data-i18n="AdminUI_Directorio">Directorio</span>
                     <h2>Roles existentes</h2>
+                    <p><a class="text-link" href="~/Interno/GestionGruposPermisos.aspx" runat="server">Organizar grupos de permisos</a></p>
                 </div>
 
                 <asp:Literal ID="litSinRoles" runat="server" Visible="false" Text="Todavía no hay roles cargados." />

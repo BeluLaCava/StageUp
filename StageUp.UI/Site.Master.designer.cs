@@ -36,6 +36,12 @@ namespace StageUp.UI
 
         protected global::System.Web.UI.HtmlControls.HtmlGenericControl AuthenticatedTools;
 
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor NotificationRequestLink;
+
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor NotificationActivitiesLink;
+
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor NotificationProfileLink;
+
         protected global::System.Web.UI.HtmlControls.HtmlAnchor ProfileHeaderLink;
 
         protected global::System.Web.UI.HtmlControls.HtmlGenericControl UserSummary;
@@ -49,6 +55,8 @@ namespace StageUp.UI
         protected global::System.Web.UI.HtmlControls.HtmlAnchor ProfileSidebarLink;
 
         protected global::System.Web.UI.HtmlControls.HtmlAnchor MisEspaciosLink;
+
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor MisActividadesLink;
 
         protected global::System.Web.UI.WebControls.ContentPlaceHolder MainContent;
 

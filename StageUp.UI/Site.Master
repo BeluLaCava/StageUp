@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><asp:ContentPlaceHolder ID="TitleContent" runat="server">StageUp</asp:ContentPlaceHolder></title>
     <link rel="icon" type="image/png" href="<%= ResolveUrl("~/Content/Images/favicon.png") %>" />
-    <link id="SiteStyles" href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20260910-2" rel="stylesheet" />
+    <link id="SiteStyles" href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20260915-10" rel="stylesheet" />
     <asp:ContentPlaceHolder ID="HeadContent" runat="server" />
 </head>
 <body>
@@ -47,7 +47,50 @@
                     </div>
 
                     <div id="AuthenticatedTools" runat="server" class="authenticated-tools">
-                        <span class="auth-tool" aria-disabled="true" data-i18n="Nav_Notificaciones">Notificaciones</span>
+                        <div class="notifications-menu" data-notifications-menu>
+                            <button type="button" class="auth-tool notifications-trigger" aria-expanded="false" aria-controls="notifications-panel" data-notifications-trigger>
+                                <span data-i18n="Nav_Notificaciones">Notificaciones</span>
+                                <span class="notifications-count" aria-label="2 notificaciones sin leer">2</span>
+                            </button>
+                            <section id="notifications-panel" class="notifications-panel" hidden data-notifications-panel aria-label="Notificaciones">
+                                <header class="notifications-header">
+                                    <div>
+                                        <strong>Notificaciones</strong>
+                                        <span>Actividad reciente de StageUp</span>
+                                    </div>
+                                    <button type="button" class="notifications-mark-all" data-notifications-read>Marcar leídas</button>
+                                </header>
+                                <div class="notifications-list">
+                                    <a id="NotificationRequestLink" href="~/SolicitudesRecibidas.aspx" runat="server" class="notification-item is-unread" data-notification-id="solicitud-reserva">
+                                        <span class="notification-state" aria-label="No leída"></span>
+                                        <span class="notification-copy">
+                                            <strong>Nueva solicitud de reserva</strong>
+                                            <span>Recibiste una solicitud para Sala Principal StageUp.</span>
+                                            <small>Hace 12 minutos</small>
+                                        </span>
+                                    </a>
+                                    <a id="NotificationActivitiesLink" href="~/MisActividades.aspx" runat="server" class="notification-item is-unread" data-notification-id="actividad-pendiente">
+                                        <span class="notification-state" aria-label="No leída"></span>
+                                        <span class="notification-copy">
+                                            <strong>Actividad interna pendiente</strong>
+                                            <span>Revisá el cupo de Ballet principiantes para esta semana.</span>
+                                            <small>Hoy</small>
+                                        </span>
+                                    </a>
+                                    <a id="NotificationProfileLink" href="~/MiPerfil.aspx" runat="server" class="notification-item is-read" data-notification-id="perfil-actualizado">
+                                        <span class="notification-state" aria-label="Leída"></span>
+                                        <span class="notification-copy">
+                                            <strong>Perfil actualizado</strong>
+                                            <span>Los datos de tu cuenta se guardaron correctamente.</span>
+                                            <small>Ayer</small>
+                                        </span>
+                                    </a>
+                                </div>
+                                <footer class="notifications-footer">
+                                    <a href="#" onclick="return false;">Ver todas</a>
+                                </footer>
+                            </section>
+                        </div>
                         <a id="ProfileHeaderLink" runat="server" class="auth-tool" href="~/MiPerfil.aspx" data-i18n="Nav_MiPerfil">Mi perfil</a>
                         <span id="UserSummary" runat="server" class="user-summary" aria-label="Datos del usuario"></span>
                         <asp:LinkButton ID="lnkCerrarSesion" runat="server" CssClass="auth-tool text-link" CausesValidation="false"
@@ -64,7 +107,7 @@
                     <a id="MisReservasLink" runat="server" class="sidebar-link" href="~/MisReservas.aspx" data-i18n="Nav_MisReservas">Mis reservas</a>
                     <a id="ProfileSidebarLink" runat="server" class="sidebar-link" href="~/MiPerfil.aspx" data-i18n="Nav_MiPerfil">Mi perfil</a>
                     <a id="MisEspaciosLink" runat="server" class="sidebar-link" href="~/MisEspacios.aspx" data-i18n="Nav_MisEspacios">Mis espacios</a>
-                    <span class="sidebar-link" aria-disabled="true" data-i18n="Nav_MisActividades">Mis actividades</span>
+                    <a id="MisActividadesLink" runat="server" class="sidebar-link" href="~/MisActividades.aspx" data-i18n="Nav_MisActividades">Mis actividades</a>
                 </nav>
             </aside>
 
@@ -90,7 +133,7 @@
 
         <asp:HiddenField ID="hdnDiccionarioIdioma" runat="server" ClientIDMode="Static" EnableViewState="false" />
         <asp:ContentPlaceHolder ID="PageScripts" runat="server" />
-        <script src="<%= ResolveUrl("~/Scripts/site.js") %>?v=20260906-2"></script>
+        <script src="<%= ResolveUrl("~/Scripts/site.js") %>?v=20260915-3"></script>
         <script src="<%= ResolveUrl("~/Scripts/multidioma.js") %>?v=20260910-2"></script>
     </form>
 </body>

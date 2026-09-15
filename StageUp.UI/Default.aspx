@@ -25,11 +25,6 @@
                     </button>
                     <a class="button button-secondary search-filters-link" href="Explorar/ResultadosBusqueda.aspx#filtros">Filtros</a>
                 </div>
-
-                <div class="hero-actions">
-                    <a class="button button-primary" href="Explorar/ResultadosBusqueda.aspx">Explorar espacios</a>
-                    <a class="button button-secondary" href="Registrarse.aspx">Registrarse</a>
-                </div>
             </div>
 
             <div class="hero-visual">

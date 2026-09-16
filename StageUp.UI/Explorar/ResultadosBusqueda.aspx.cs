@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.UI;
@@ -12,6 +13,7 @@ namespace StageUp.UI.Explorar
     public partial class ResultadosBusqueda : Page
     {
         private const int LongitudMaximaResumen = 160;
+        private static readonly List<string> CategoriasServicio = new List<string> { "Estudio", "Sala", "Teatro" };
         private readonly BLL_EspacioArtistico _bllEspacio = new BLL_EspacioArtistico();
         private readonly BLL_Calificacion _bllCalificacion = new BLL_Calificacion();
 
@@ -31,6 +33,8 @@ namespace StageUp.UI.Explorar
 
             List<EspacioArtistico> espacios = _bllEspacio.Buscar(filtro);
             _bllCalificacion.CompletarReputacionesEspacios(espacios);
+
+            CargarTiposServicio();
 
             rptEspaciosPublicados.DataSource = espacios;
             rptEspaciosPublicados.DataBind();
@@ -59,6 +63,28 @@ namespace StageUp.UI.Explorar
 
                 litDescripcionSinResultados.Text = "Probá con otra palabra clave o revisá los filtros.";
             }
+        }
+
+        private void CargarTiposServicio()
+        {
+            List<EspacioArtistico> espaciosPublicados = _bllEspacio.Buscar(new FiltroBusquedaEspacios());
+            List<string> categoriasDisponibles = CategoriasServicio
+                .Where(categoria => espaciosPublicados.Any(espacio => PerteneceACategoriaServicio(espacio, categoria)))
+                .ToList();
+
+            pnlComparacionServicios.Visible = categoriasDisponibles.Count >= 2;
+            rptTiposServicio.DataSource = categoriasDisponibles;
+            rptTiposServicio.DataBind();
+        }
+
+        private static bool PerteneceACategoriaServicio(EspacioArtistico espacio, string categoria)
+        {
+            if (espacio == null || string.IsNullOrWhiteSpace(espacio.TipoEspacio))
+            {
+                return false;
+            }
+
+            return espacio.TipoEspacio.IndexOf(categoria, StringComparison.CurrentCultureIgnoreCase) >= 0;
         }
 
         private static FiltroBusquedaEspacios ArmarFiltroDesdeQueryString(string textoBusqueda, string tipoEspacio)

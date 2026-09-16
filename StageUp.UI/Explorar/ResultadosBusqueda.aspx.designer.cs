@@ -4,6 +4,9 @@ namespace StageUp.UI.Explorar
     {
         protected global::System.Web.UI.WebControls.Repeater rptEspaciosPublicados;
 
+        protected global::System.Web.UI.WebControls.Panel pnlComparacionServicios;
+        protected global::System.Web.UI.WebControls.Repeater rptTiposServicio;
+
         protected global::System.Web.UI.WebControls.Panel pnlSinResultados;
         protected global::System.Web.UI.WebControls.Literal litTituloSinResultados;
         protected global::System.Web.UI.WebControls.Literal litDescripcionSinResultados;

@@ -82,6 +82,13 @@
     <Compile Include="Explorar\CompararEspacios.aspx.designer.cs">
       <DependentUpon>CompararEspacios.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Explorar\CompararServicios.aspx.cs">
+      <DependentUpon>CompararServicios.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Explorar\CompararServicios.aspx.designer.cs">
+      <DependentUpon>CompararServicios.aspx</DependentUpon>
+    </Compile>
     <Compile Include="IniciarSesion.aspx.cs">
       <DependentUpon>IniciarSesion.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -145,6 +152,13 @@
     </Compile>
     <Compile Include="MisEspacios.aspx.designer.cs">
       <DependentUpon>MisEspacios.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="MisActividades.aspx.cs">
+      <DependentUpon>MisActividades.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="MisActividades.aspx.designer.cs">
+      <DependentUpon>MisActividades.aspx</DependentUpon>
     </Compile>
     <Compile Include="MisReservas.aspx.cs">
       <DependentUpon>MisReservas.aspx</DependentUpon>
@@ -252,6 +266,7 @@
     <Content Include="Default.aspx" />
     <Content Include="Explorar\DetalleEspacio.aspx" />
     <Content Include="Explorar\CompararEspacios.aspx" />
+    <Content Include="Explorar\CompararServicios.aspx" />
     <Content Include="Explorar\ResultadosBusqueda.aspx" />
     <Content Include="IniciarSesion.aspx" />
     <Content Include="MiPerfil.aspx" />
@@ -261,6 +276,7 @@
     <Content Include="TerminosCondiciones.aspx" />
     <Content Include="PoliticaPrivacidad.aspx" />
     <Content Include="MisEspacios.aspx" />
+    <Content Include="MisActividades.aspx" />
     <Content Include="MisReservas.aspx" />
     <Content Include="SolicitudesRecibidas.aspx" />
     <Content Include="Servicios\ServicioEspacios.asmx" />

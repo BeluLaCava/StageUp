@@ -5,9 +5,8 @@
         <header class="explore-header">
             <div class="explore-container explore-page-container">
                 <div class="explore-heading">
-                    <span class="section-label">Explorar espacios</span>
-                    <h1>Encontrá el escenario para tu próxima creación</h1>
-                    <p>Buscá por palabras clave o combiná características para descubrir espacios alineados con tu actividad artística.</p>
+                    <h1>Encontrá el espacio para tu próxima creación</h1>
+                    <p>Buscá por palabra clave y afiná por tipo, ubicación o precio.</p>
                 </div>
                 <div class="explore-search-stage">
                     <div class="marketplace-search" role="search" aria-label="Buscar espacios" data-search-box>
@@ -38,6 +37,28 @@
                     <div class="active-filter-list" data-active-filter-list aria-live="polite"></div>
                 </div>
             </section>
+
+            <asp:Panel ID="pnlComparacionServicios" runat="server" CssClass="service-compare-panel" aria-labelledby="service-compare-title">
+                <div class="service-compare-heading">
+                    <span class="eyebrow">Catálogo de servicios</span>
+                    <h2 id="service-compare-title">Compará servicios</h2>
+                    <p>Seleccioná hasta 3 categorías generales para comparar promedios y rangos del catálogo publicado.</p>
+                </div>
+                <div class="service-compare-actions">
+                    <div class="service-type-options" aria-label="Tipos de servicio disponibles">
+                        <asp:Repeater ID="rptTiposServicio" runat="server">
+                            <ItemTemplate>
+                                <label class="service-type-option">
+                                    <input type="checkbox" data-service-compare-checkbox value='<%#: Container.DataItem %>' />
+                                    <span><%#: Container.DataItem %></span>
+                                </label>
+                            </ItemTemplate>
+                        </asp:Repeater>
+                    </div>
+                    <button class="button button-secondary button-small" type="button" data-service-compare-go disabled>Comparar servicios</button>
+                </div>
+                <span class="service-compare-status" data-service-compare-status aria-live="polite">Elegí al menos 2 servicios para comparar</span>
+            </asp:Panel>
 
             <section class="results-section" aria-labelledby="results-title">
                 <div class="results-surface">
@@ -110,7 +131,7 @@
             <section class="filter-group" aria-labelledby="general-filters-title">
                 <div class="filter-group-heading"><h3 id="general-filters-title">Filtros generales</h3><p>Definí las condiciones básicas de tu búsqueda.</p></div>
                 <div class="filter-form-grid">
-                    <div class="form-field"><label for="filter-type">Tipo de espacio</label><select id="filter-type"><option value="">Seleccionar tipo</option><option value="Teatro">Teatro</option><option value="Salón de danza">Salón de danza</option><option value="Estudio">Estudio</option><option value="Sala de ensayo">Sala de ensayo</option></select></div>
+                    <div class="form-field"><label for="filter-type">Tipo de espacio</label><select id="filter-type"><option value="">Seleccionar tipo</option><option value="Estudio">Estudio</option><option value="Sala">Sala</option><option value="Teatro">Teatro</option><option value="Salón de danza">Salón de danza</option></select></div>
                     <div class="form-field"><label for="filter-location">Ubicación</label><input id="filter-location" type="text" placeholder="Ciudad o zona" /></div>
                     <div class="form-field"><label for="filter-capacity">Capacidad mínima</label><input id="filter-capacity" type="number" min="1" placeholder="Cantidad de personas" /></div>
                     <div class="form-field"><label for="filter-price">Valor máximo de referencia</label><input id="filter-price" type="number" min="0" placeholder="Ingresar valor" /></div>

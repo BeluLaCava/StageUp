@@ -410,6 +410,69 @@
         actualizar();
     }
 
+    function setupServiceComparison() {
+        var checkboxes = Array.from(document.querySelectorAll("[data-service-compare-checkbox]"));
+        var goButton = document.querySelector("[data-service-compare-go]");
+        var status = document.querySelector("[data-service-compare-status]");
+
+        if (checkboxes.length === 0 || !goButton) {
+            return;
+        }
+
+        var CANTIDAD_MAXIMA = 3;
+
+        function elegidos() {
+            return checkboxes.filter(function (checkbox) {
+                return checkbox.checked;
+            });
+        }
+
+        function actualizar() {
+            var seleccion = elegidos();
+
+            if (goButton) {
+                goButton.disabled = seleccion.length < 2;
+            }
+
+            if (status) {
+                if (seleccion.length === 0) {
+                    status.textContent = "Elegí al menos 2 servicios para comparar";
+                } else if (seleccion.length === 1) {
+                    status.textContent = "1 servicio seleccionado (elegí uno más)";
+                } else {
+                    status.textContent = seleccion.length + " servicios seleccionados";
+                }
+            }
+
+            checkboxes.forEach(function (checkbox) {
+                var option = checkbox.closest(".service-type-option");
+                if (!checkbox.checked) {
+                    checkbox.disabled = seleccion.length >= CANTIDAD_MAXIMA;
+                }
+                if (option) {
+                    option.classList.toggle("is-selected", checkbox.checked);
+                    option.classList.toggle("is-disabled", checkbox.disabled && !checkbox.checked);
+                }
+            });
+        }
+
+        checkboxes.forEach(function (checkbox) {
+            checkbox.addEventListener("change", actualizar);
+        });
+
+        goButton.addEventListener("click", function () {
+            var tipos = elegidos().map(function (checkbox) {
+                return encodeURIComponent(checkbox.value);
+            });
+
+            if (tipos.length >= 2) {
+                window.location.href = "CompararServicios.aspx?tipos=" + tipos.join(",");
+            }
+        });
+
+        actualizar();
+    }
+
     function setupAssistantModal() {
         var modal = document.querySelector("[data-assistant-modal]");
         var backdrop = document.querySelector("[data-assistant-backdrop]");
@@ -474,6 +537,138 @@
         });
     }
 
+    function setupNotificationsMenu() {
+        var menu = document.querySelector("[data-notifications-menu]");
+        if (!menu) {
+            return;
+        }
+
+        var trigger = menu.querySelector("[data-notifications-trigger]");
+        var panel = menu.querySelector("[data-notifications-panel]");
+        var markRead = menu.querySelector("[data-notifications-read]");
+        var count = menu.querySelector(".notifications-count");
+        var storageKey = "stageup.notifications.read";
+
+        if (!trigger || !panel) {
+            return;
+        }
+
+        function loadReadIds() {
+            try {
+                return JSON.parse(window.localStorage.getItem(storageKey) || "[]");
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function saveReadIds(ids) {
+            try {
+                window.localStorage.setItem(storageKey, JSON.stringify(ids));
+            } catch (error) {
+                return;
+            }
+        }
+
+        function markItemRead(item) {
+            if (!item) {
+                return;
+            }
+
+            item.classList.remove("is-unread");
+            item.classList.add("is-read");
+
+            var state = item.querySelector(".notification-state");
+            if (state) {
+                state.setAttribute("aria-label", "Leída");
+            }
+        }
+
+        function updateUnreadCount() {
+            var unreadItems = menu.querySelectorAll(".notification-item.is-unread");
+            if (!count) {
+                return;
+            }
+
+            if (!unreadItems.length) {
+                count.hidden = true;
+                return;
+            }
+
+            count.hidden = false;
+            count.textContent = String(unreadItems.length);
+            count.setAttribute("aria-label", unreadItems.length === 1 ? "1 notificación sin leer" : unreadItems.length + " notificaciones sin leer");
+        }
+
+        function persistItemRead(item) {
+            var id = item.getAttribute("data-notification-id");
+            if (!id) {
+                return;
+            }
+
+            var readIds = loadReadIds();
+            if (readIds.indexOf(id) === -1) {
+                readIds.push(id);
+                saveReadIds(readIds);
+            }
+        }
+
+        var readIds = loadReadIds();
+        menu.querySelectorAll(".notification-item[data-notification-id]").forEach(function (item) {
+            if (readIds.indexOf(item.getAttribute("data-notification-id")) !== -1) {
+                markItemRead(item);
+            }
+        });
+        updateUnreadCount();
+
+        function openMenu() {
+            panel.hidden = false;
+            trigger.setAttribute("aria-expanded", "true");
+        }
+
+        function closeMenu() {
+            panel.hidden = true;
+            trigger.setAttribute("aria-expanded", "false");
+        }
+
+        trigger.addEventListener("click", function (event) {
+            event.stopPropagation();
+            if (panel.hidden) {
+                openMenu();
+            } else {
+                closeMenu();
+            }
+        });
+
+        panel.addEventListener("click", function (event) {
+            event.stopPropagation();
+        });
+
+        if (markRead) {
+            markRead.addEventListener("click", function () {
+                menu.querySelectorAll(".notification-item.is-unread").forEach(function (item) {
+                    markItemRead(item);
+                    persistItemRead(item);
+                });
+                updateUnreadCount();
+            });
+        }
+
+        menu.querySelectorAll(".notification-item[data-notification-id]").forEach(function (item) {
+            item.addEventListener("click", function () {
+                markItemRead(item);
+                persistItemRead(item);
+                updateUnreadCount();
+            });
+        });
+
+        document.addEventListener("click", closeMenu);
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                closeMenu();
+            }
+        });
+    }
+
     function setupAccordions() {
         var triggers = document.querySelectorAll("[data-accordion-trigger]");
 
@@ -501,6 +696,8 @@
     setupResultsSearchState();
     setupSearchRedirects();
     setupComparisonBar();
+    setupServiceComparison();
     setupAssistantModal();
+    setupNotificationsMenu();
     setupAccordions();
 }());

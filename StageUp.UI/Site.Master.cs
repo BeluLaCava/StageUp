@@ -1,4 +1,5 @@
 using System;
+using StageUp.BE.Enumerados;
 using StageUp.Seguridad;
 using StageUp.UI.Infraestructura;
 
@@ -23,6 +24,14 @@ namespace StageUp.UI
             if (autenticado)
             {
                 UserSummary.InnerText = GestorDeSesion.ObtenerNombreCompletoActual();
+
+                // "Mis actividades" es exclusivo de gestores de espacios: a diferencia
+                // de "Mis espacios" (que se muestra siempre y es la propia pantalla la
+                // que le explica al solicitante que todavía no es gestor), acá el pedido
+                // puntual fue que el botón ni aparezca para el perfil ExternoSolicitante.
+                bool esGestorEspacios = GestorDeSesion.ObtenerPerfilActual() == PerfilUsuarioExterno.GestorEspacios.ToString();
+                MisActividadesLink.Visible = esGestorEspacios;
+                NotificationActivitiesLink.Visible = esGestorEspacios;
             }
         }
 

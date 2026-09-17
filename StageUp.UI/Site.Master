@@ -50,7 +50,7 @@
                         <div class="notifications-menu" data-notifications-menu>
                             <button type="button" class="auth-tool notifications-trigger" aria-expanded="false" aria-controls="notifications-panel" data-notifications-trigger>
                                 <span data-i18n="Nav_Notificaciones">Notificaciones</span>
-                                <span class="notifications-count" aria-label="2 notificaciones sin leer">2</span>
+                                <asp:Literal ID="litNotificacionesCount" runat="server" />
                             </button>
                             <section id="notifications-panel" class="notifications-panel" hidden data-notifications-panel aria-label="Notificaciones">
                                 <header class="notifications-header">
@@ -58,33 +58,25 @@
                                         <strong>Notificaciones</strong>
                                         <span>Actividad reciente de StageUp</span>
                                     </div>
-                                    <button type="button" class="notifications-mark-all" data-notifications-read>Marcar leídas</button>
+                                    <asp:LinkButton ID="lnkMarcarTodasLeidas" runat="server" CssClass="notifications-mark-all" CausesValidation="false"
+                                        Text="Marcar leídas" OnClick="lnkMarcarTodasLeidas_Click" />
                                 </header>
                                 <div class="notifications-list">
-                                    <a id="NotificationRequestLink" href="~/SolicitudesRecibidas.aspx" runat="server" class="notification-item is-unread" data-notification-id="solicitud-reserva">
-                                        <span class="notification-state" aria-label="No leída"></span>
-                                        <span class="notification-copy">
-                                            <strong>Nueva solicitud de reserva</strong>
-                                            <span>Recibiste una solicitud para Sala Principal StageUp.</span>
-                                            <small>Hace 12 minutos</small>
-                                        </span>
-                                    </a>
-                                    <a id="NotificationActivitiesLink" href="~/MisActividades.aspx" runat="server" class="notification-item is-unread" data-notification-id="actividad-pendiente">
-                                        <span class="notification-state" aria-label="No leída"></span>
-                                        <span class="notification-copy">
-                                            <strong>Actividad interna pendiente</strong>
-                                            <span>Revisá el cupo de Ballet principiantes para esta semana.</span>
-                                            <small>Hoy</small>
-                                        </span>
-                                    </a>
-                                    <a id="NotificationProfileLink" href="~/MiPerfil.aspx" runat="server" class="notification-item is-read" data-notification-id="perfil-actualizado">
-                                        <span class="notification-state" aria-label="Leída"></span>
-                                        <span class="notification-copy">
-                                            <strong>Perfil actualizado</strong>
-                                            <span>Los datos de tu cuenta se guardaron correctamente.</span>
-                                            <small>Ayer</small>
-                                        </span>
-                                    </a>
+                                    <asp:Repeater ID="rptNotificaciones" runat="server" OnItemCommand="rptNotificaciones_ItemCommand">
+                                        <ItemTemplate>
+                                            <asp:LinkButton runat="server" CssClass='<%# "notification-item " + (Eval("Leida").Equals(true) ? "is-read" : "is-unread") %>'
+                                                CausesValidation="false" CommandName="Ir" CommandArgument='<%# Eval("IdNotificacion") + "|" + Eval("UrlDestino") %>'>
+                                                <span class="notification-state" aria-label='<%#: Eval("Leida").Equals(true) ? "Leída" : "No leída" %>'></span>
+                                                <span class="notification-copy">
+                                                    <strong><%#: Eval("Mensaje") %></strong>
+                                                    <small><%#: FormatearFechaNotificacion((DateTime)Eval("FechaCreacion")) %></small>
+                                                </span>
+                                            </asp:LinkButton>
+                                        </ItemTemplate>
+                                    </asp:Repeater>
+                                    <asp:Panel ID="pnlSinNotificaciones" runat="server" Visible="false" CssClass="notification-empty" style="padding: 18px; text-align: center; color: var(--color-text-muted);">
+                                        <span>Todavía no tenés notificaciones.</span>
+                                    </asp:Panel>
                                 </div>
                                 <footer class="notifications-footer">
                                     <a href="#" onclick="return false;">Ver todas</a>

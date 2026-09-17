@@ -67,7 +67,7 @@
                             <header class="activities-board-header">
                                 <div>
                                     <h2 id="activities-board-title">Programación cargada</h2>
-                                    <p>Vista preparada para conectar con la gestión real de actividades internas.</p>
+                                    <p>Actividades activas y el horario que bloquean para reservas externas.</p>
                                 </div>
                                 <div class="activities-board-filter" aria-label="Filtros visuales">
                                     <span>Todo</span>
@@ -90,7 +90,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <asp:Repeater ID="rptActividades" runat="server">
+                                        <asp:Repeater ID="rptActividades" runat="server" OnItemCommand="rptActividades_ItemCommand">
                                             <ItemTemplate>
                                                 <tr>
                                                     <td>
@@ -105,7 +105,9 @@
                                                     <td class="activities-row-actions">
                                                         <a class="text-link" href="#" onclick="return false;">Ver</a>
                                                         <a class="text-link" href="#" onclick="return false;">Editar</a>
-                                                        <a class="text-link text-link-danger" href="#" onclick="return false;">Dar de baja</a>
+                                                        <asp:LinkButton runat="server" CssClass="text-link text-link-danger" CausesValidation="false"
+                                                            CommandName="Baja" CommandArgument='<%# Eval("IdActividad") %>' Text="Dar de baja"
+                                                            OnClientClick="return confirm('¿Seguro que querés dar de baja esta actividad? Se libera el horario que tenía bloqueado.');" />
                                                     </td>
                                                 </tr>
                                             </ItemTemplate>
@@ -145,7 +147,7 @@
                             <header class="activities-board-header">
                                 <div>
                                     <h2 id="participants-board-title">Listado de participantes</h2>
-                                    <p>Vista preparada para alta, modificación, baja lógica y asociación a actividades.</p>
+                                    <p>Alta, baja y asociación a tus actividades internas.</p>
                                 </div>
                                 <div class="participants-search-preview">
                                     <span aria-hidden="true">⌕</span>
@@ -165,7 +167,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <asp:Repeater ID="rptParticipantes" runat="server">
+                                        <asp:Repeater ID="rptParticipantes" runat="server" OnItemCommand="rptParticipantes_ItemCommand">
                                             <ItemTemplate>
                                                 <tr>
                                                     <td>
@@ -178,7 +180,9 @@
                                                     <td class="activities-row-actions">
                                                         <a class="text-link" href="#" onclick="return false;">Ver</a>
                                                         <a class="text-link" href="#" onclick="return false;">Editar</a>
-                                                        <a class="text-link text-link-danger" href="#" onclick="return false;">Dar de baja</a>
+                                                        <asp:LinkButton runat="server" CssClass="text-link text-link-danger" CausesValidation="false"
+                                                            CommandName="Baja" CommandArgument='<%# Eval("IdParticipante") %>' Text="Dar de baja"
+                                                            OnClientClick="return confirm('¿Seguro que querés dar de baja este participante?');" />
                                                     </td>
                                                 </tr>
                                             </ItemTemplate>
@@ -309,15 +313,16 @@
                             <div class="participant-picker" data-participant-picker>
                                 <input id="participant-search" type="search" autocomplete="off" placeholder="Buscar por nombre, apellido o DNI" data-participant-search />
                                 <div class="participant-suggestions" data-participant-suggestions aria-label="Sugerencias de participantes">
-                                    <button type="button" data-participant-id="101" data-participant-name="Juana López">Juana López <span>DNI 42111222</span></button>
-                                    <button type="button" data-participant-id="102" data-participant-name="Lucía Fernández">Lucía Fernández <span>DNI 39888777</span></button>
-                                    <button type="button" data-participant-id="103" data-participant-name="Martín Álvarez">Martín Álvarez <span>DNI 40555111</span></button>
-                                    <button type="button" data-participant-id="104" data-participant-name="Camila Ruiz">Camila Ruiz <span>DNI 44777222</span></button>
+                                    <asp:Repeater ID="rptSugerenciasParticipantes" runat="server">
+                                        <ItemTemplate>
+                                            <button type="button" data-participant-id='<%#: Eval("IdParticipante") %>' data-participant-name='<%#: Eval("NombreCompleto") %>'><%#: Eval("NombreCompleto") %> <span>DNI <%#: Eval("Dni") %></span></button>
+                                        </ItemTemplate>
+                                    </asp:Repeater>
                                 </div>
                                 <div class="participant-chip-list" data-participant-chips aria-live="polite"></div>
                                 <asp:HiddenField ID="hdnParticipantesActividad" runat="server" ClientIDMode="Static" Value="" />
                             </div>
-                            <small>El buscador simula la selección múltiple. Después se podrá conectar al listado real de participantes del gestor.</small>
+                            <small>Elegí de tu listado de participantes. Si todavía no cargaste a alguien, hacelo primero desde la pestaña "Participantes".</small>
                         </div>
 
                         <div class="form-field activity-field-wide">
@@ -327,7 +332,7 @@
                     </div>
 
                     <div class="activity-editor-note">
-                        <strong>Impacto esperado:</strong> al conectar el back, esta actividad bloqueará automáticamente ese espacio en los días y horarios indicados.
+                        <strong>Importante:</strong> al guardar, esta actividad bloquea automáticamente ese espacio en los días y horarios indicados para que no se pueda reservar por encima.
                     </div>
 
                     <div class="form-actions activity-editor-actions">
@@ -373,9 +378,6 @@
                             <label for="<%= ddlActividadParticipante.ClientID %>">Asociar a actividad</label>
                             <asp:DropDownList ID="ddlActividadParticipante" runat="server">
                                 <asp:ListItem Value="">Sin asociar por ahora</asp:ListItem>
-                                <asp:ListItem Value="Ballet principiantes">Ballet principiantes</asp:ListItem>
-                                <asp:ListItem Value="Ensayo compañía estable">Ensayo compañía estable</asp:ListItem>
-                                <asp:ListItem Value="Taller de montaje escénico">Taller de montaje escénico</asp:ListItem>
                             </asp:DropDownList>
                         </div>
 
@@ -386,7 +388,7 @@
                     </div>
 
                     <div class="activity-editor-note">
-                        <strong>Alcance UI:</strong> el DNI y el cupo se validarán al conectar la lógica de participantes.
+                        <strong>Nota:</strong> no podés repetir el mismo DNI entre tus participantes.
                     </div>
 
                     <div class="form-actions activity-editor-actions">

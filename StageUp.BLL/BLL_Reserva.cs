@@ -15,6 +15,7 @@ namespace StageUp.BLL
         private readonly MPP_UsuarioExterno _mppUsuario = new MPP_UsuarioExterno();
         private readonly MPP_Calificacion _mppCalificacion = new MPP_Calificacion();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
+        private readonly BLL_Notificacion _notificacion = new BLL_Notificacion();
 
         private const int LongitudMaximaComentario = 1000;
         private const string TipoEntidadBitacora = "Reserva";
@@ -132,6 +133,11 @@ namespace StageUp.BLL
                     (minutoDesde.HasValue && duracionMinutos.HasValue
                         ? " a las " + FormatearHora(minutoDesde.Value) + ", " + FormatearDuracion(duracionMinutos.Value)
                         : string.Empty) + ").");
+
+                _notificacion.Notificar(
+                    espacio.IdUsuarioGestor, TipoNotificacion.SolicitudReserva,
+                    "Recibiste una nueva solicitud de reserva para \"" + espacio.NombreEspacio + "\".",
+                    "~/SolicitudesRecibidas.aspx");
 
                 return ResultadoOperacion<int>.Ok(idReserva,
                     "Enviamos tu solicitud de reserva. El gestor del espacio la va a revisar y te vamos a avisar cuando la resuelva.");
@@ -384,6 +390,11 @@ namespace StageUp.BLL
                     idUsuarioGestorSolicitante, "MODIFICACION", TipoEntidadBitacora, idReserva,
                     "El gestor aceptó la solicitud de reserva del espacio \"" + reserva.NombreEspacio + "\".");
 
+                _notificacion.Notificar(
+                    reserva.IdUsuarioExternoSolicitante, TipoNotificacion.ReservaAceptada,
+                    "Tu reserva para \"" + reserva.NombreEspacio + "\" fue aceptada.",
+                    "~/MisReservas.aspx");
+
                 return ResultadoOperacion.Ok("Tu reserva fue aceptada. ¡Ya está confirmada!");
             });
         }
@@ -422,6 +433,14 @@ namespace StageUp.BLL
                 _bitacora.Registrar(
                     idUsuarioGestorSolicitante, "MODIFICACION", TipoEntidadBitacora, idReserva,
                     "El gestor " + verboBitacora + " la solicitud de reserva del espacio \"" + reserva.NombreEspacio + "\".");
+
+                if (nuevoEstado == EstadoReserva.Rechazada)
+                {
+                    _notificacion.Notificar(
+                        reserva.IdUsuarioExternoSolicitante, TipoNotificacion.ReservaRechazada,
+                        "Tu reserva para \"" + reserva.NombreEspacio + "\" fue rechazada.",
+                        "~/MisReservas.aspx");
+                }
 
                 return ResultadoOperacion.Ok(mensajeExito);
             });

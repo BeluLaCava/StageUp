@@ -156,7 +156,7 @@
                             <div class="form-field"><label for="schedule-from">Desde</label><input id="schedule-from" type="time" step="1800" value="09:00" /></div>
                             <div class="form-field"><label for="schedule-to">Hasta</label><input id="schedule-to" type="time" step="1800" value="18:00" /><small>00:00 como fin indica el cierre del día.</small></div>
                         </div>
-                        <label class="checkbox-field" id="schedule-blocked-wrap"><input type="checkbox" id="schedule-blocked" /> Bloquear este horario (no ofrecerlo para reservas — p. ej. una clase fija tuya)</label>
+                        <small>Para bloquear un horario fijo (una clase, taller o ensayo tuyo), cargalo desde <a href="~/MisActividades.aspx" runat="server">Mis actividades</a>: ese horario se bloquea solo, de forma automática.</small>
                         <button type="button" class="button button-secondary button-small" id="schedule-add">＋ Agregar horario</button>
                         <p id="schedule-error" role="alert"></p>
                         <ul id="schedule-list" class="space-schedule-list"></ul>

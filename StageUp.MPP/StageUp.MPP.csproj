@@ -34,6 +34,9 @@
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MPP_Actividad.cs" />
+    <Compile Include="MPP_Notificacion.cs" />
+    <Compile Include="MPP_Participante.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MPP_UsuarioExterno.cs" />
     <Compile Include="MPP_CodigoActivacion.cs" />

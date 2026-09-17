@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Web.Script.Serialization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using StageUp.BE.Entidades;
@@ -14,6 +16,27 @@ namespace StageUp.UI
     {
         private readonly BLL_EspacioArtistico _bllEspacio = new BLL_EspacioArtistico();
         private readonly BLL_UsuarioExterno _bllUsuario = new BLL_UsuarioExterno();
+        private readonly BLL_Actividad _bllActividad = new BLL_Actividad();
+        private readonly BLL_Participante _bllParticipante = new BLL_Participante();
+
+        // Misma convención que FranjaEspacio.DiaSemana / BLL_Reserva: 1 = lunes ... 7 = domingo.
+        private static readonly Dictionary<string, int> DiaCodigoANumero = new Dictionary<string, int>
+        {
+            { "Lun", 1 }, { "Mar", 2 }, { "Mié", 3 }, { "Jue", 4 }, { "Vie", 5 }, { "Sáb", 6 }, { "Dom", 7 }
+        };
+
+        private static readonly Dictionary<int, string> NumeroADiaCodigo =
+            DiaCodigoANumero.ToDictionary(par => par.Value, par => par.Key);
+
+        private static readonly Dictionary<string, int> SemanaDelMesCodigoANumero = new Dictionary<string, int>
+        {
+            { "first", 1 }, { "second", 2 }, { "third", 3 }, { "fourth", 4 }, { "last", 5 }
+        };
+
+        private static readonly Dictionary<int, string> SemanaDelMesTexto = new Dictionary<int, string>
+        {
+            { 1, "1ra" }, { 2, "2da" }, { 3, "3ra" }, { 4, "4ta" }, { 5, "última" }
+        };
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -30,7 +53,7 @@ namespace StageUp.UI
             pnlPanelGestor.Visible = perfil == PerfilUsuarioExterno.GestorEspacios.ToString();
             lnkNuevaActividad.Visible = pnlPanelGestor.Visible;
 
-            if (pnlPanelGestor.Visible)
+            if (pnlPanelGestor.Visible && !IsPostBack)
             {
                 CargarPantallaGestor();
             }
@@ -64,6 +87,7 @@ namespace StageUp.UI
             }
 
             CargarEspaciosEnSelector();
+            CargarSugerenciasParticipantes();
             LimpiarFormulario();
             pnlMensaje.Visible = false;
             pnlFormularioActividad.Visible = true;
@@ -82,8 +106,94 @@ namespace StageUp.UI
                 return;
             }
 
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            ProgramacionActividadDto programacion = ObtenerProgramacion();
+
+            if (programacion == null || string.IsNullOrEmpty(programacion.Modo))
+            {
+                MostrarMensaje("Definí la programación de la actividad (cuándo se repite y el horario).", esError: true);
+                pnlFormularioActividad.Visible = true;
+                return;
+            }
+
+            Actividad actividad = new Actividad
+            {
+                IdEspacioArtistico = ConvertirEntero(ddlEspacio.SelectedValue),
+                Nombre = txtNombreActividad.Text.Trim(),
+                Tipo = string.IsNullOrWhiteSpace(txtTipoActividad.Text) ? null : txtTipoActividad.Text.Trim(),
+                MinutoDesde = ConvertirHoraAMinutos(txtHoraInicio.Text),
+                MinutoHasta = ConvertirHoraAMinutos(txtHoraFin.Text),
+                CupoMaximo = ConvertirEntero(txtCupoMaximo.Text),
+                ParticipantesEstimados = string.IsNullOrWhiteSpace(txtParticipantes.Text) ? (int?)null : ConvertirEntero(txtParticipantes.Text),
+                Notas = string.IsNullOrWhiteSpace(txtDescripcionActividad.Text) ? null : txtDescripcionActividad.Text.Trim()
+            };
+
+            if (programacion.Modo == "weekly")
+            {
+                actividad.ModoRecurrencia = ModoRecurrenciaActividad.Semanal.ToString();
+                actividad.DiasSemana = cblDias.Items.Cast<ListItem>()
+                    .Where(item => item.Selected && DiaCodigoANumero.ContainsKey(item.Value))
+                    .Select(item => DiaCodigoANumero[item.Value])
+                    .ToList();
+            }
+            else if (programacion.Modo == "monthly")
+            {
+                actividad.ModoRecurrencia = ModoRecurrenciaActividad.Mensual.ToString();
+                actividad.SemanaDelMes = programacion.SemanaDelMes != null && SemanaDelMesCodigoANumero.ContainsKey(programacion.SemanaDelMes)
+                    ? SemanaDelMesCodigoANumero[programacion.SemanaDelMes]
+                    : (int?)null;
+                actividad.DiaSemanaMensual = programacion.DiaDelMes != null && DiaCodigoANumero.ContainsKey(programacion.DiaDelMes)
+                    ? DiaCodigoANumero[programacion.DiaDelMes]
+                    : (int?)null;
+            }
+            else if (programacion.Modo == "date")
+            {
+                actividad.ModoRecurrencia = ModoRecurrenciaActividad.Fecha.ToString();
+                actividad.Fecha = programacion.Fecha;
+            }
+            else
+            {
+                MostrarMensaje("El modo de recurrencia indicado no es válido.", esError: true);
+                pnlFormularioActividad.Visible = true;
+                return;
+            }
+
+            ResultadoOperacion<int> resultado = _bllActividad.Guardar(actividad, idUsuarioGestor);
+            if (!resultado.Exitoso)
+            {
+                MostrarMensaje(resultado.Mensaje, esError: true);
+                pnlFormularioActividad.Visible = true;
+                return;
+            }
+
+            foreach (string idTexto in (hdnParticipantesActividad.Value ?? string.Empty)
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                int idParticipante;
+                if (int.TryParse(idTexto, out idParticipante))
+                {
+                    _bllActividad.AsociarParticipante(resultado.Valor, idParticipante, idUsuarioGestor);
+                }
+            }
+
             pnlFormularioActividad.Visible = false;
-            MostrarMensaje("La pantalla de alta de actividad quedó preparada. El guardado se integrará cuando esté disponible la lógica de actividades internas.", esError: false);
+            CargarPantallaGestor();
+            MostrarMensaje("Actividad guardada. El horario indicado ya bloquea ese espacio para reservas externas.", esError: false);
+        }
+
+        protected void rptActividades_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            if (e.CommandName != "Baja")
+            {
+                return;
+            }
+
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            int idActividad = ConvertirEntero((string)e.CommandArgument);
+            ResultadoOperacion resultado = _bllActividad.DarDeBaja(idActividad, idUsuarioGestor);
+
+            CargarPantallaGestor();
+            MostrarMensaje(resultado.Mensaje ?? "Actividad dada de baja.", esError: !resultado.Exitoso);
         }
 
         protected void lnkNuevoParticipante_Click(object sender, EventArgs e)
@@ -94,6 +204,7 @@ namespace StageUp.UI
                 return;
             }
 
+            CargarActividadesEnSelector();
             LimpiarFormularioParticipante();
             pnlMensaje.Visible = false;
             pnlFormularioParticipante.Visible = true;
@@ -112,31 +223,75 @@ namespace StageUp.UI
                 return;
             }
 
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            Participante participante = new Participante
+            {
+                Nombre = txtNombreParticipante.Text.Trim(),
+                Apellido = txtApellidoParticipante.Text.Trim(),
+                Dni = txtDniParticipante.Text.Trim(),
+                Notas = string.IsNullOrWhiteSpace(txtNotasParticipante.Text) ? null : txtNotasParticipante.Text.Trim()
+            };
+
+            ResultadoOperacion<int> resultado = _bllParticipante.Guardar(participante, idUsuarioGestor);
+            if (!resultado.Exitoso)
+            {
+                MostrarMensaje(resultado.Mensaje, esError: true);
+                pnlFormularioParticipante.Visible = true;
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(ddlActividadParticipante.SelectedValue))
+            {
+                int idActividadSeleccionada = ConvertirEntero(ddlActividadParticipante.SelectedValue);
+                _bllActividad.AsociarParticipante(idActividadSeleccionada, resultado.Valor, idUsuarioGestor);
+            }
+
             pnlFormularioParticipante.Visible = false;
-            MostrarMensaje("La pantalla de participantes quedó preparada. El alta, modificación, baja lógica y asociación se integrarán con la lógica real.", esError: false);
+            CargarPantallaGestor();
+            MostrarMensaje("Participante guardado correctamente.", esError: false);
+        }
+
+        protected void rptParticipantes_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            if (e.CommandName != "Baja")
+            {
+                return;
+            }
+
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            int idParticipante = ConvertirEntero((string)e.CommandArgument);
+            ResultadoOperacion resultado = _bllParticipante.DarDeBaja(idParticipante, idUsuarioGestor);
+
+            CargarPantallaGestor();
+            MostrarMensaje(resultado.Exitoso ? "Participante dado de baja." : resultado.Mensaje, esError: !resultado.Exitoso);
         }
 
         private void CargarPantallaGestor()
         {
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
             List<EspacioArtistico> espacios = _bllEspacio.ListarMisEspacios(idUsuarioGestor);
-            List<ActividadInternaVista> actividades = CrearActividadesDeMuestra(espacios);
-            List<ParticipanteVista> participantes = CrearParticipantesDeMuestra();
+            List<Actividad> actividades = _bllActividad.ListarPorUsuarioGestor(idUsuarioGestor);
+            List<Participante> participantes = _bllParticipante.ListarPorUsuarioGestor(idUsuarioGestor);
 
             pnlSinEspacios.Visible = espacios.Count == 0;
             pnlActividades.Visible = espacios.Count > 0;
             lnkNuevaActividad.Visible = espacios.Count > 0;
 
-            litActividadesActivas.Text = actividades.Count(a => a.Estado == "Activa").ToString();
-            litHorasBloqueadas.Text = CalcularHorasBloqueadas(actividades);
-            litEspaciosProgramados.Text = actividades.Select(a => a.Espacio).Distinct().Count().ToString();
-            litParticipantesActivos.Text = participantes.Count(p => p.Estado == "Activo").ToString();
-            litParticipantesAsignados.Text = participantes.Count(p => p.Actividades != "Sin asignar").ToString();
-            litParticipantesSinAsignar.Text = participantes.Count(p => p.Actividades == "Sin asignar").ToString();
+            List<ActividadInternaVista> vistaActividades = actividades.Select(CrearVistaActividad).ToList();
+            List<ParticipanteVista> vistaParticipantes = participantes
+                .Select(participante => CrearVistaParticipante(participante, actividades))
+                .ToList();
 
-            rptActividades.DataSource = actividades;
+            litActividadesActivas.Text = vistaActividades.Count.ToString();
+            litHorasBloqueadas.Text = CalcularHorasBloqueadas(actividades) + " h";
+            litEspaciosProgramados.Text = actividades.Select(a => a.IdEspacioArtistico).Distinct().Count().ToString();
+            litParticipantesActivos.Text = vistaParticipantes.Count.ToString();
+            litParticipantesAsignados.Text = vistaParticipantes.Count(p => p.Actividades != "Sin asignar").ToString();
+            litParticipantesSinAsignar.Text = vistaParticipantes.Count(p => p.Actividades == "Sin asignar").ToString();
+
+            rptActividades.DataSource = vistaActividades;
             rptActividades.DataBind();
-            rptParticipantes.DataSource = participantes;
+            rptParticipantes.DataSource = vistaParticipantes;
             rptParticipantes.DataBind();
         }
 
@@ -154,108 +309,149 @@ namespace StageUp.UI
             }
         }
 
-        private List<ActividadInternaVista> CrearActividadesDeMuestra(List<EspacioArtistico> espacios)
+        private void CargarActividadesEnSelector()
         {
-            List<ActividadInternaVista> actividades = new List<ActividadInternaVista>();
-            if (espacios.Count == 0)
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            List<Actividad> actividades = _bllActividad.ListarPorUsuarioGestor(idUsuarioGestor);
+
+            ddlActividadParticipante.Items.Clear();
+            ddlActividadParticipante.Items.Add(new ListItem("Sin asociar por ahora", string.Empty));
+
+            foreach (Actividad actividad in actividades)
             {
-                return actividades;
+                ddlActividadParticipante.Items.Add(new ListItem(actividad.Nombre, actividad.IdActividad.ToString()));
             }
-
-            actividades.Add(new ActividadInternaVista
-            {
-                Nombre = "Ballet principiantes",
-                Tipo = "Clase regular",
-                Espacio = espacios[0].NombreEspacio,
-                Dias = "Lun y Mié",
-                Horario = "17:00 a 19:00",
-                Cupo = "18 participantes",
-                Estado = "Activa",
-                ClaseEstado = "activities-status activities-status-active",
-                HorasSemanales = 4
-            });
-
-            EspacioArtistico segundoEspacio = espacios.Count > 1 ? espacios[1] : espacios[0];
-            actividades.Add(new ActividadInternaVista
-            {
-                Nombre = "Ensayo compañía estable",
-                Tipo = "Ensayo fijo",
-                Espacio = segundoEspacio.NombreEspacio,
-                Dias = "Mar y Jue",
-                Horario = "20:00 a 22:00",
-                Cupo = "12 participantes",
-                Estado = "Activa",
-                ClaseEstado = "activities-status activities-status-active",
-                HorasSemanales = 4
-            });
-
-            EspacioArtistico tercerEspacio = espacios.Count > 2 ? espacios[2] : espacios[0];
-            actividades.Add(new ActividadInternaVista
-            {
-                Nombre = "Taller de montaje escénico",
-                Tipo = "Taller interno",
-                Espacio = tercerEspacio.NombreEspacio,
-                Dias = "Sáb",
-                Horario = "10:00 a 13:00",
-                Cupo = "20 participantes",
-                Estado = "Borrador",
-                ClaseEstado = "activities-status activities-status-draft",
-                HorasSemanales = 3
-            });
-
-            return actividades;
         }
 
-        private List<ParticipanteVista> CrearParticipantesDeMuestra()
+        private void CargarSugerenciasParticipantes()
         {
-            return new List<ParticipanteVista>
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            rptSugerenciasParticipantes.DataSource = _bllParticipante.ListarPorUsuarioGestor(idUsuarioGestor);
+            rptSugerenciasParticipantes.DataBind();
+        }
+
+        private static ActividadInternaVista CrearVistaActividad(Actividad actividad)
+        {
+            return new ActividadInternaVista
             {
-                new ParticipanteVista
-                {
-                    NombreCompleto = "Juana López",
-                    Iniciales = "JL",
-                    Dni = "42111222",
-                    Actividades = "Ballet principiantes",
-                    Estado = "Activo",
-                    ClaseEstado = "activities-status activities-status-active"
-                },
-                new ParticipanteVista
-                {
-                    NombreCompleto = "Lucía Fernández",
-                    Iniciales = "LF",
-                    Dni = "39888777",
-                    Actividades = "Ballet principiantes, Taller de montaje escénico",
-                    Estado = "Activo",
-                    ClaseEstado = "activities-status activities-status-active"
-                },
-                new ParticipanteVista
-                {
-                    NombreCompleto = "Martín Álvarez",
-                    Iniciales = "MA",
-                    Dni = "40555111",
-                    Actividades = "Ensayo compañía estable",
-                    Estado = "Activo",
-                    ClaseEstado = "activities-status activities-status-active"
-                },
-                new ParticipanteVista
-                {
-                    NombreCompleto = "Camila Ruiz",
-                    Iniciales = "CR",
-                    Dni = "44777222",
-                    Actividades = "Sin asignar",
-                    Estado = "Activo",
-                    ClaseEstado = "activities-status activities-status-active"
-                }
+                IdActividad = actividad.IdActividad,
+                Nombre = actividad.Nombre,
+                Tipo = string.IsNullOrEmpty(actividad.Tipo) ? "-" : actividad.Tipo,
+                Espacio = actividad.NombreEspacio,
+                Dias = FormatearDias(actividad),
+                Horario = FormatearHorario(actividad.MinutoDesde, actividad.MinutoHasta),
+                Cupo = actividad.CupoMaximo + " participantes",
+                Estado = "Activa",
+                ClaseEstado = "activities-status activities-status-active"
             };
         }
 
-        private string CalcularHorasBloqueadas(List<ActividadInternaVista> actividades)
+        private static ParticipanteVista CrearVistaParticipante(Participante participante, List<Actividad> actividades)
         {
-            int horas = actividades
-                .Where(a => a.Estado == "Activa")
-                .Sum(a => a.HorasSemanales);
+            List<string> nombresActividades = actividades
+                .Where(actividad => actividad.Participantes.Any(p => p.IdParticipante == participante.IdParticipante))
+                .Select(actividad => actividad.Nombre)
+                .ToList();
 
-            return horas.ToString() + " h";
+            return new ParticipanteVista
+            {
+                IdParticipante = participante.IdParticipante,
+                NombreCompleto = participante.NombreCompleto,
+                Iniciales = ObtenerIniciales(participante.Nombre, participante.Apellido),
+                Dni = participante.Dni,
+                Actividades = nombresActividades.Count == 0 ? "Sin asignar" : string.Join(", ", nombresActividades),
+                Estado = "Activo",
+                ClaseEstado = "activities-status activities-status-active"
+            };
+        }
+
+        private static string FormatearDias(Actividad actividad)
+        {
+            if (actividad.ModoRecurrencia == ModoRecurrenciaActividad.Semanal.ToString())
+            {
+                List<string> dias = actividad.DiasSemana
+                    .OrderBy(d => d)
+                    .Where(d => NumeroADiaCodigo.ContainsKey(d))
+                    .Select(d => NumeroADiaCodigo[d])
+                    .ToList();
+                return dias.Count > 0 ? string.Join(" y ", dias) : "-";
+            }
+
+            if (actividad.ModoRecurrencia == ModoRecurrenciaActividad.Mensual.ToString())
+            {
+                string semana = actividad.SemanaDelMes.HasValue && SemanaDelMesTexto.ContainsKey(actividad.SemanaDelMes.Value)
+                    ? SemanaDelMesTexto[actividad.SemanaDelMes.Value]
+                    : "?";
+                string dia = actividad.DiaSemanaMensual.HasValue && NumeroADiaCodigo.ContainsKey(actividad.DiaSemanaMensual.Value)
+                    ? NumeroADiaCodigo[actividad.DiaSemanaMensual.Value]
+                    : "?";
+                return semana + " semana, " + dia + " de cada mes";
+            }
+
+            if (actividad.ModoRecurrencia == ModoRecurrenciaActividad.Fecha.ToString() && !string.IsNullOrEmpty(actividad.Fecha))
+            {
+                DateTime fecha;
+                return DateTime.TryParseExact(actividad.Fecha, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out fecha)
+                    ? fecha.ToString("dd/MM/yyyy") + " (única vez)"
+                    : actividad.Fecha;
+            }
+
+            return "-";
+        }
+
+        private static string FormatearHorario(int minutoDesde, int minutoHasta)
+        {
+            return FormatearHora(minutoDesde) + " a " + FormatearHora(minutoHasta);
+        }
+
+        private static string FormatearHora(int minutos)
+        {
+            return (minutos / 60).ToString("00") + ":" + (minutos % 60).ToString("00");
+        }
+
+        private static string CalcularHorasBloqueadas(List<Actividad> actividades)
+        {
+            double minutosSemanales = actividades
+                .Where(a => a.ModoRecurrencia == ModoRecurrenciaActividad.Semanal.ToString())
+                .Sum(a => (a.MinutoHasta - a.MinutoDesde) * (double)Math.Max(a.DiasSemana.Count, 1));
+
+            return Math.Round(minutosSemanales / 60.0, 1).ToString(CultureInfo.InvariantCulture);
+        }
+
+        private static string ObtenerIniciales(string nombre, string apellido)
+        {
+            string inicialNombre = string.IsNullOrEmpty(nombre) ? string.Empty : nombre.Substring(0, 1).ToUpperInvariant();
+            string inicialApellido = string.IsNullOrEmpty(apellido) ? string.Empty : apellido.Substring(0, 1).ToUpperInvariant();
+            return inicialNombre + inicialApellido;
+        }
+
+        private ProgramacionActividadDto ObtenerProgramacion()
+        {
+            if (string.IsNullOrWhiteSpace(hdnProgramacionActividad.Value))
+            {
+                return null;
+            }
+
+            try
+            {
+                return new JavaScriptSerializer().Deserialize<ProgramacionActividadDto>(hdnProgramacionActividad.Value);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private static int ConvertirHoraAMinutos(string hora)
+        {
+            TimeSpan valor;
+            return TimeSpan.TryParse(hora, CultureInfo.InvariantCulture, out valor) ? (int)valor.TotalMinutes : 0;
+        }
+
+        private static int ConvertirEntero(string valor)
+        {
+            int resultado;
+            return int.TryParse(valor, out resultado) ? resultado : 0;
         }
 
         private void LimpiarFormulario()
@@ -299,6 +495,7 @@ namespace StageUp.UI
 
         private class ActividadInternaVista
         {
+            public int IdActividad { get; set; }
             public string Nombre { get; set; }
             public string Tipo { get; set; }
             public string Espacio { get; set; }
@@ -307,17 +504,28 @@ namespace StageUp.UI
             public string Cupo { get; set; }
             public string Estado { get; set; }
             public string ClaseEstado { get; set; }
-            public int HorasSemanales { get; set; }
         }
 
         private class ParticipanteVista
         {
+            public int IdParticipante { get; set; }
             public string NombreCompleto { get; set; }
             public string Iniciales { get; set; }
             public string Dni { get; set; }
             public string Actividades { get; set; }
             public string Estado { get; set; }
             public string ClaseEstado { get; set; }
+        }
+
+        private class ProgramacionActividadDto
+        {
+            public string Modo { get; set; }
+            public List<string> Dias { get; set; }
+            public string Fecha { get; set; }
+            public string SemanaDelMes { get; set; }
+            public string DiaDelMes { get; set; }
+            public string Desde { get; set; }
+            public string Hasta { get; set; }
         }
     }
 }

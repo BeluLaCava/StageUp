@@ -33,18 +33,10 @@
             list.appendChild(item);
         });
     }
-    var blockedWrap = document.getElementById("schedule-blocked-wrap");
-    var blockedCheckbox = document.getElementById("schedule-blocked");
     mode.addEventListener("change", function () {
         document.getElementById("schedule-days").hidden = mode.value !== "weekly";
         document.getElementById("schedule-date-wrap").hidden = mode.value === "weekly";
         document.getElementById("schedule-times").hidden = mode.value === "closed";
-        if (blockedWrap) {
-            blockedWrap.hidden = mode.value === "closed";
-        }
-        if (mode.value === "closed" && blockedCheckbox) {
-            blockedCheckbox.checked = false;
-        }
     });
     function minutes(value) {
         if (!/^\d{2}:\d{2}$/.test(value)) return NaN;
@@ -54,7 +46,7 @@
     document.getElementById("schedule-add").addEventListener("click", function () {
         error.textContent = "";
         var closed = mode.value === "closed";
-        var bloqueado = closed || (blockedCheckbox && blockedCheckbox.checked);
+        var bloqueado = closed;
         var from = closed ? 0 : minutes(document.getElementById("schedule-from").value);
         var to = closed ? 1440 : minutes(document.getElementById("schedule-to").value);
         if (to === 0) to = 1440;

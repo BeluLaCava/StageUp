@@ -12,6 +12,9 @@ namespace StageUp.BLL
     public class BLL_Participante
     {
         private readonly MPP_Participante _mppParticipante = new MPP_Participante();
+        private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
+
+        private const string TipoEntidadBitacora = "Participante";
 
         public ResultadoOperacion<int> Guardar(Participante participante, int idUsuarioGestor)
         {
@@ -36,9 +39,14 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error("Ya tenés cargado un participante con ese DNI.");
                 }
 
-                int idParticipante = participante.IdParticipante == 0
+                bool esNuevo = participante.IdParticipante == 0;
+                int idParticipante = esNuevo
                     ? _mppParticipante.Insertar(participante)
                     : ModificarYDevolverId(participante);
+
+                _bitacora.Registrar(
+                    idUsuarioGestor, esNuevo ? "ALTA" : "MODIFICACION", TipoEntidadBitacora, idParticipante,
+                    (esNuevo ? "Alta del participante " : "Modificación del participante ") + participante.NombreCompleto + ".");
 
                 return ResultadoOperacion<int>.Ok(idParticipante, "Participante guardado correctamente.");
             });
@@ -61,6 +69,11 @@ namespace StageUp.BLL
                 }
 
                 _mppParticipante.DarDeBaja(idParticipante);
+
+                _bitacora.Registrar(
+                    idUsuarioGestor, "BAJA", TipoEntidadBitacora, idParticipante,
+                    "Baja del participante " + participante.NombreCompleto + ".");
+
                 return ResultadoOperacion.Ok();
             });
         }

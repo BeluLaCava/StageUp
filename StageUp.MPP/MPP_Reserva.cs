@@ -109,6 +109,17 @@ namespace StageUp.MPP
             Conexion.Instance.Guardar("sp_Reserva_FinalizarVencidas");
         }
 
+        // Reservas Pendientes o Aceptadas, desde hoy en adelante, para un
+        // espacio puntual. Usado por BLL_Actividad para validar que el
+        // horario de una actividad (al crearla, modificarla o darla de baja)
+        // no coincida con una reserva ya existente sobre ese espacio.
+        public List<Reserva> ListarActivasPorEspacio(int idEspacioArtistico)
+        {
+            return MapearDesdeTabla(Conexion.Instance.Leer(
+                "sp_Reserva_ListarActivasPorEspacio",
+                new Hashtable { { "@idEspacioArtistico", idEspacioArtistico } }));
+        }
+
         private static List<Reserva> MapearDesdeTabla(DataTable tabla)
         {
             List<Reserva> lista = new List<Reserva>();

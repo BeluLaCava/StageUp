@@ -7,6 +7,7 @@ namespace StageUp.BE.Enumerados
     {
         SolicitudReserva,
         ReservaAceptada,
-        ReservaRechazada
+        ReservaRechazada,
+        ReservaCancelada
     }
 }

@@ -25,6 +25,10 @@ namespace StageUp.BLL
         private readonly MPP_Actividad _mppActividad = new MPP_Actividad();
         private readonly MPP_EspacioArtistico _mppEspacio = new MPP_EspacioArtistico();
         private readonly MPP_Participante _mppParticipante = new MPP_Participante();
+        private readonly MPP_Reserva _mppReserva = new MPP_Reserva();
+        private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
+
+        private const string TipoEntidadBitacora = "Actividad";
 
         // Horizonte hacia adelante para materializar fechas concretas de la
         // recurrencia "Mensual" (no representable como día de semana fijo en
@@ -42,7 +46,15 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error(validacion.Mensaje);
                 }
 
-                int idActividad = actividad.IdActividad == 0
+                if (ExisteConflictoConReservas(actividad))
+                {
+                    return ResultadoOperacion<int>.Error(
+                        "El horario elegido coincide con una reserva ya aceptada o una solicitud pendiente " +
+                        "para este espacio. Elegí otro horario para la actividad.");
+                }
+
+                bool esNueva = actividad.IdActividad == 0;
+                int idActividad = esNueva
                     ? _mppActividad.Insertar(actividad)
                     : ModificarYDevolverId(actividad);
 
@@ -56,6 +68,10 @@ namespace StageUp.BLL
                 }
 
                 RegenerarFranjasBloqueadas(idActividad, actividad);
+
+                _bitacora.Registrar(
+                    idUsuarioGestor, esNueva ? "ALTA" : "MODIFICACION", TipoEntidadBitacora, idActividad,
+                    (esNueva ? "Alta de la actividad \"" : "Modificación de la actividad \"") + actividad.Nombre + "\".");
 
                 return ResultadoOperacion<int>.Ok(idActividad, "Actividad guardada correctamente.");
             });
@@ -78,8 +94,25 @@ namespace StageUp.BLL
                     return validacion;
                 }
 
+                // Chequeo defensivo pedido por el Word (CU-001-009, alternativo A10):
+                // en la práctica esto ya no debería encontrar conflictos, porque
+                // mientras la actividad está activa bloquea el horario en
+                // FranjaEspacio y una reserva nueva no puede crearse ahí. Se deja
+                // igual para cubrir el caso de una reserva ya existente antes de
+                // que se cargara la actividad.
+                if (ExisteConflictoConReservas(actividad))
+                {
+                    return ResultadoOperacion.Error(
+                        "No se puede dar de baja: hay una reserva ya aceptada o una solicitud pendiente " +
+                        "para el horario de esta actividad.");
+                }
+
                 _mppActividad.DarDeBaja(idActividad);
                 _mppActividad.EliminarFranjasPorActividad(idActividad);
+
+                _bitacora.Registrar(
+                    idUsuarioGestor, "BAJA", TipoEntidadBitacora, idActividad,
+                    "Baja de la actividad \"" + actividad.Nombre + "\".");
 
                 return ResultadoOperacion.Ok("La actividad fue dada de baja y se liberó el horario que tenía bloqueado.");
             });
@@ -132,7 +165,21 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("El participante indicado no existe o no te pertenece.");
                 }
 
+                List<Participante> participantesActuales = _mppActividad.ListarParticipantesDeActividad(idActividad);
+                bool yaAsociado = participantesActuales.Exists(p => p.IdParticipante == idParticipante);
+                if (!yaAsociado && participantesActuales.Count >= actividad.CupoMaximo)
+                {
+                    return ResultadoOperacion.Error(
+                        "No es posible asociar más participantes a la actividad seleccionada: se alcanzó el cupo máximo (" +
+                        actividad.CupoMaximo + ").");
+                }
+
                 _mppActividad.AsociarParticipante(idActividad, idParticipante);
+
+                _bitacora.Registrar(
+                    idUsuarioGestor, "ASOCIACION", TipoEntidadBitacora, idActividad,
+                    "Se asoció a " + participante.NombreCompleto + " a la actividad \"" + actividad.Nombre + "\".");
+
                 return ResultadoOperacion.Ok();
             });
         }
@@ -148,7 +195,15 @@ namespace StageUp.BLL
                     return validacion;
                 }
 
+                Participante participante = _mppParticipante.ObtenerPorId(idParticipante);
+
                 _mppActividad.DesasociarParticipante(idActividad, idParticipante);
+
+                _bitacora.Registrar(
+                    idUsuarioGestor, "DESVINCULACION", TipoEntidadBitacora, idActividad,
+                    "Se desvinculó a " + (participante != null ? participante.NombreCompleto : "un participante") +
+                    " de la actividad \"" + actividad.Nombre + "\".");
+
                 return ResultadoOperacion.Ok();
             });
         }
@@ -225,6 +280,74 @@ namespace StageUp.BLL
             EspacioArtistico espacio = _mppEspacio.ObtenerPorId(
                 new EspacioArtistico { IdEspacioArtistico = actividad.IdEspacioArtistico });
             return espacio != null && espacio.IdUsuarioGestor == idUsuarioGestor;
+        }
+
+        // ---- Validación contra reservas existentes ----
+
+        // El Word (CU-001-009, alternativos A5/A8/A10) exige que no se pueda
+        // crear, modificar ni dar de baja una actividad si su horario
+        // coincide con una reserva ya aceptada o una solicitud pendiente
+        // para el mismo espacio. El sentido inverso (una reserva nueva
+        // contra un horario ya bloqueado por una actividad) ya está cubierto
+        // en BLL_Reserva.ValidarHorarioSolicitado, que sólo permite reservar
+        // franjas no bloqueadas; este chequeo cubre el caso contrario: que
+        // ya exista una reserva para ese horario antes de crear/modificar la
+        // actividad.
+        private bool ExisteConflictoConReservas(Actividad actividad)
+        {
+            List<Reserva> reservasActivas = _mppReserva.ListarActivasPorEspacio(actividad.IdEspacioArtistico);
+            if (reservasActivas.Count == 0)
+            {
+                return false;
+            }
+
+            List<DateTime> fechasMensuales = actividad.ModoRecurrencia == ModoRecurrenciaActividad.Mensual.ToString()
+                ? CalcularFechasMensuales(
+                    actividad.SemanaDelMes.Value, actividad.DiaSemanaMensual.Value,
+                    DateTime.Now.Date, HorizonteMesesRecurrenciaMensual)
+                : null;
+
+            DateTime? fechaPuntual = actividad.ModoRecurrencia == ModoRecurrenciaActividad.Fecha.ToString()
+                ? DateTime.ParseExact(actividad.Fecha, "yyyy-MM-dd", CultureInfo.InvariantCulture)
+                : (DateTime?)null;
+
+            foreach (Reserva reserva in reservasActivas)
+            {
+                if (!reserva.MinutoDesde.HasValue || !reserva.MinutoHasta.HasValue)
+                {
+                    continue;
+                }
+
+                bool seSuperponenHorarios = actividad.MinutoDesde < reserva.MinutoHasta.Value
+                    && reserva.MinutoDesde.Value < actividad.MinutoHasta;
+                if (!seSuperponenHorarios)
+                {
+                    continue;
+                }
+
+                bool coincideFecha;
+                if (actividad.ModoRecurrencia == ModoRecurrenciaActividad.Semanal.ToString())
+                {
+                    int diaSemanaReserva = reserva.FechaSolicitada.DayOfWeek == DayOfWeek.Sunday
+                        ? 7 : (int)reserva.FechaSolicitada.DayOfWeek;
+                    coincideFecha = actividad.DiasSemana.Contains(diaSemanaReserva);
+                }
+                else if (actividad.ModoRecurrencia == ModoRecurrenciaActividad.Mensual.ToString())
+                {
+                    coincideFecha = fechasMensuales.Exists(fecha => fecha.Date == reserva.FechaSolicitada.Date);
+                }
+                else
+                {
+                    coincideFecha = fechaPuntual.HasValue && fechaPuntual.Value.Date == reserva.FechaSolicitada.Date;
+                }
+
+                if (coincideFecha)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // ---- Cálculo y regeneración de las franjas bloqueadas ----

@@ -498,6 +498,11 @@ namespace StageUp.BLL
                     "El solicitante canceló su reserva del espacio \"" + reserva.NombreEspacio + "\"." +
                     (comisionAplicada ? " Se aplicó comisión de cancelación." : string.Empty));
 
+                _notificacion.Notificar(
+                    reserva.IdUsuarioGestor, TipoNotificacion.ReservaCancelada,
+                    "El solicitante canceló su reserva para \"" + reserva.NombreEspacio + "\".",
+                    "~/SolicitudesRecibidas.aspx");
+
                 return ResultadoOperacion.Ok(mensaje);
             });
         }

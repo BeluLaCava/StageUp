@@ -10,6 +10,7 @@ namespace StageUp.UI
     public partial class SiteMaster : MasterPageMultidioma
     {
         private readonly BLL_Notificacion _bllNotificacion = new BLL_Notificacion();
+        private readonly BLL_Reserva _bllReserva = new BLL_Reserva();
 
         protected override void OnInit(EventArgs e)
         {
@@ -35,6 +36,12 @@ namespace StageUp.UI
                 // puntual fue que el botón ni aparezca para el perfil ExternoSolicitante.
                 bool esGestorEspacios = GestorDeSesion.ObtenerPerfilActual() == PerfilUsuarioExterno.GestorEspacios.ToString();
                 MisActividadesLink.Visible = esGestorEspacios;
+
+                // No hay SQL Server Agent en la edición Express para un job
+                // programado, así que el chequeo de recordatorios se
+                // aprovecha de cualquier pageview autenticado (ver el
+                // throttle en BLL_Reserva, que hace que esto sea barato).
+                _bllReserva.GenerarRecordatorios24hsSiCorresponde();
 
                 CargarNotificaciones();
             }

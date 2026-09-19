@@ -22,6 +22,16 @@ namespace StageUp.BLL
         private const decimal PorcentajeComisionCancelacion = 0.10m;
         private const int HorasLimiteSinComision = 24;
 
+        // Throttle en memoria para GenerarRecordatorios24hsSiCorresponde: no
+        // hay SQL Server Agent disponible en la edición Express, así que en
+        // vez de un job programado, el chequeo se dispara oportunísticamente
+        // desde Site.Master en cada pageview autenticado, pero solo hace el
+        // trabajo real (la consulta a la base) una vez cada
+        // IntervaloMinutosRecordatorios minutos por proceso.
+        private static DateTime? _ultimaGeneracionRecordatorios;
+        private static readonly object _lockRecordatorios = new object();
+        private const int IntervaloMinutosRecordatorios = 15;
+
         public ResultadoOperacion<int> SolicitarReserva(
             int idUsuarioExternoSolicitante, int idEspacioArtistico, DateTime fechaSolicitada, string comentario)
         {
@@ -505,6 +515,59 @@ namespace StageUp.BLL
 
                 return ResultadoOperacion.Ok(mensaje);
             });
+        }
+
+        // Genera la notificación de "recordatorio 24hs antes" para las
+        // reservas Aceptadas que entraron en esa ventana y todavía no la
+        // tienen. Pensado para dispararse desde Site.Master en cualquier
+        // pageview autenticado (ver comentario del throttle más arriba): la
+        // llamada es barata cuando no corresponde volver a chequear, así que
+        // no hace falta que el llamador se preocupe por eso.
+        public void GenerarRecordatorios24hsSiCorresponde()
+        {
+            lock (_lockRecordatorios)
+            {
+                if (_ultimaGeneracionRecordatorios.HasValue &&
+                    (DateTime.Now - _ultimaGeneracionRecordatorios.Value).TotalMinutes < IntervaloMinutosRecordatorios)
+                {
+                    return;
+                }
+
+                _ultimaGeneracionRecordatorios = DateTime.Now;
+            }
+
+            try
+            {
+                List<Reserva> pendientes = _mppReserva.ListarPendientesDeRecordatorio();
+                foreach (Reserva reserva in pendientes)
+                {
+                    try
+                    {
+                        string momento = reserva.MinutoDesde.HasValue
+                            ? reserva.FechaSolicitada.Date.ToString("dd/MM/yyyy") + " a las " + FormatearHora(reserva.MinutoDesde.Value)
+                            : reserva.FechaSolicitada.Date.ToString("dd/MM/yyyy");
+
+                        _notificacion.Notificar(
+                            reserva.IdUsuarioExternoSolicitante, TipoNotificacion.RecordatorioReserva,
+                            "Recordatorio: tu reserva para \"" + reserva.NombreEspacio + "\" es el " + momento + ".",
+                            "~/MisReservas.aspx");
+
+                        _mppReserva.MarcarRecordatorioEnviado(reserva.IdReserva);
+                    }
+                    catch (ErrorAccesoDatosException)
+                    {
+                        // Si falla un recordatorio puntual seguimos con el resto;
+                        // como no se marcó como enviado, se reintenta solo en la
+                        // próxima corrida.
+                    }
+                }
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                // Nadie está mirando esto en vivo (se dispara de fondo desde
+                // Site.Master): si falla, no tiene que romper la página que
+                // lo disparó.
+            }
         }
 
         private static ResultadoOperacion ValidarPropiedadGestor(Reserva reserva, int idUsuarioGestorSolicitante)

@@ -120,6 +120,21 @@ namespace StageUp.MPP
                 new Hashtable { { "@idEspacioArtistico", idEspacioArtistico } }));
         }
 
+        // Reservas Aceptadas cuyo horario empieza dentro de las próximas 24hs
+        // y todavía no tienen el recordatorio generado. Usado por
+        // BLL_Reserva.GenerarRecordatorios24hsSiCorresponde.
+        public List<Reserva> ListarPendientesDeRecordatorio()
+        {
+            return MapearDesdeTabla(Conexion.Instance.Leer("sp_Reserva_ListarPendientesDeRecordatorio"));
+        }
+
+        public void MarcarRecordatorioEnviado(int idReserva)
+        {
+            Conexion.Instance.Guardar(
+                "sp_Reserva_MarcarRecordatorioEnviado",
+                new Hashtable { { "@idReserva", idReserva } });
+        }
+
         private static List<Reserva> MapearDesdeTabla(DataTable tabla)
         {
             List<Reserva> lista = new List<Reserva>();
@@ -154,6 +169,7 @@ namespace StageUp.MPP
                 ComisionAplicada = fila.Table.Columns.Contains("comisionAplicada") && Convert.ToBoolean(fila["comisionAplicada"]),
                 ImporteComision = fila.Table.Columns.Contains("importeComision") && fila["importeComision"] != DBNull.Value ? Convert.ToDecimal(fila["importeComision"]) : (decimal?)null,
                 FechaCancelacion = fila.Table.Columns.Contains("fechaCancelacion") && fila["fechaCancelacion"] != DBNull.Value ? Convert.ToDateTime(fila["fechaCancelacion"]) : (DateTime?)null,
+                RecordatorioEnviado = fila.Table.Columns.Contains("recordatorioEnviado") && Convert.ToBoolean(fila["recordatorioEnviado"]),
                 NombreEspacio = fila.Table.Columns.Contains("nombreEspacio") && fila["nombreEspacio"] != DBNull.Value ? fila["nombreEspacio"].ToString() : null,
                 IdUsuarioGestor = fila.Table.Columns.Contains("idUsuarioGestor") ? Convert.ToInt32(fila["idUsuarioGestor"]) : 0,
                 PromedioCalificacionSolicitante = fila.Table.Columns.Contains("promedioCalificacionSolicitante") && fila["promedioCalificacionSolicitante"] != DBNull.Value

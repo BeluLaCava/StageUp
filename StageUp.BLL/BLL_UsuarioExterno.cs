@@ -22,6 +22,7 @@ namespace StageUp.BLL
         private readonly BLL_CodigoActivacion _bllCodigoActivacion = new BLL_CodigoActivacion();
         private readonly BLL_CodigoRecuperacion _bllCodigoRecuperacion = new BLL_CodigoRecuperacion();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
+        private readonly BLL_Notificacion _notificacion = new BLL_Notificacion();
         private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
         private readonly ServicioRecaptcha _servicioRecaptcha = new ServicioRecaptcha();
 
@@ -457,6 +458,11 @@ namespace StageUp.BLL
                     idUsuarioInternoResponsable, "APROBACION", "UsuarioExterno", idUsuarioExterno,
                     "Aprobación de solicitud de habilitación como gestor de espacios.");
 
+                _notificacion.Notificar(
+                    idUsuarioExterno, TipoNotificacion.HabilitacionGestorAprobada,
+                    "Tu cuenta fue habilitada como gestor de espacios. ¡Ya podés publicar tus espacios artísticos!",
+                    "~/MisEspacios.aspx");
+
                 return ResultadoOperacion.Ok("La cuenta fue habilitada como gestora de espacios.");
             });
         }
@@ -483,6 +489,11 @@ namespace StageUp.BLL
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "RECHAZO", "UsuarioExterno", idUsuarioExterno,
                     "Rechazo de solicitud de habilitación como gestor de espacios.");
+
+                _notificacion.Notificar(
+                    idUsuarioExterno, TipoNotificacion.HabilitacionGestorRechazada,
+                    "Tu solicitud para ser gestor de espacios fue rechazada.",
+                    "~/MisEspacios.aspx");
 
                 return ResultadoOperacion.Ok("La solicitud fue rechazada.");
             });

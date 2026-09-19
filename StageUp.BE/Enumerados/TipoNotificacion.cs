@@ -8,6 +8,9 @@ namespace StageUp.BE.Enumerados
         SolicitudReserva,
         ReservaAceptada,
         ReservaRechazada,
-        ReservaCancelada
+        ReservaCancelada,
+        RecordatorioReserva,
+        HabilitacionGestorAprobada,
+        HabilitacionGestorRechazada
     }
 }

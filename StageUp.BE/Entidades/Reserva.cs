@@ -26,6 +26,7 @@ namespace StageUp.BE.Entidades
         public bool ComisionAplicada { get; set; }
         public decimal? ImporteComision { get; set; }
         public DateTime? FechaCancelacion { get; set; }
+        public bool RecordatorioEnviado { get; set; }
 
         public string NombreEspacio { get; set; }
         public int IdUsuarioGestor { get; set; }

@@ -255,6 +255,13 @@
     <Compile Include="Interno\GestionFaq.aspx.designer.cs">
       <DependentUpon>GestionFaq.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Novedades.aspx.cs">
+      <DependentUpon>Novedades.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Novedades.aspx.designer.cs">
+      <DependentUpon>Novedades.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Infraestructura\MasterPageMultidioma.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
@@ -285,6 +292,7 @@
     <Content Include="IniciarSesion.aspx" />
     <Content Include="MiPerfil.aspx" />
     <Content Include="Registrarse.aspx" />
+    <Content Include="Novedades.aspx" />
     <Content Include="QuienesSomos.aspx" />
     <Content Include="Contactenos.aspx" />
     <Content Include="TerminosCondiciones.aspx" />

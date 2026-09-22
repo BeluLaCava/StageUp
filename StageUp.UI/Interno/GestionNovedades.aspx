@@ -106,7 +106,7 @@
                     </div>
 
                     <div class="form-actions">
-                        <asp:Button ID="btnGuardarBorrador" runat="server" CssClass="button button-secondary" Text="Guardar borrador" CausesValidation="false" />
+                        <asp:Button ID="btnGuardarBorrador" runat="server" CssClass="button button-secondary" Text="Borrador" CausesValidation="false" />
                         <asp:Button ID="btnPublicar" runat="server" CssClass="button button-primary" Text="Publicar" CausesValidation="false" />
                         <asp:Button ID="btnEnviarPrueba" runat="server" CssClass="button button-secondary" Text="Enviar prueba" CausesValidation="false" />
                     </div>

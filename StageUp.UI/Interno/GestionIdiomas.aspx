@@ -1,8 +1,8 @@
 <%@ Page Title="Gestión de idiomas | StageUp" Language="C#" MasterPageFile="~/Interno/PanelInterno.Master" AutoEventWireup="true" CodeBehind="GestionIdiomas.aspx.cs" Inherits="StageUp.UI.Interno.GestionIdiomas" %>
 
 <asp:Content ID="GestionIdiomasContent" ContentPlaceHolderID="MainContent" runat="server">
-    <section class="language-admin-page">
-        <header class="language-admin-header">
+    <section class="static-page internal-page internal-management-page language-admin-page">
+        <header class="static-page-header internal-page-hero language-admin-header">
             <div>
                 <span class="section-label">Administración</span>
                 <h1>Gestión de idiomas</h1>

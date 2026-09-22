@@ -72,8 +72,8 @@
                     </div>
 
                     <div class="form-actions">
-                        <asp:Button ID="btnGuardarFaq" runat="server" CssClass="button button-primary" Text="Guardar pregunta" CausesValidation="false" />
-                        <asp:Button ID="btnGuardarBorradorFaq" runat="server" CssClass="button button-secondary" Text="Guardar como borrador" CausesValidation="false" />
+                        <asp:Button ID="btnGuardarFaq" runat="server" CssClass="button button-primary" Text="Guardar" CausesValidation="false" />
+                        <asp:Button ID="btnGuardarBorradorFaq" runat="server" CssClass="button button-secondary" Text="Borrador" CausesValidation="false" />
                         <asp:LinkButton ID="lnkCancelarFaq" runat="server" CssClass="text-link" Text="Cancelar edición" CausesValidation="false" />
                     </div>
                 </asp:Panel>

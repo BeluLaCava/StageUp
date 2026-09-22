@@ -27,7 +27,6 @@ namespace StageUp.UI.Interno
                 GrupoMenu menu = _bllPermiso.ConstruirMenuParaRol(idRolInterno);
                 List<ItemMenu> accesos = menu.ObtenerItems();
                 AgregarAccesoNewsletterSiFalta(accesos);
-                AgregarAccesoFaqSiFalta(accesos);
 
                 pnlSinAccesos.Visible = accesos.Count == 0;
                 rptAccesos.DataSource = accesos;
@@ -54,27 +53,6 @@ namespace StageUp.UI.Interno
                 "Novedades y newsletter",
                 "~/Interno/GestionNovedades.aspx",
                 "Crear noticias públicas y preparar envíos por correo a usuarios de StageUp."));
-        }
-
-        private static void AgregarAccesoFaqSiFalta(List<ItemMenu> accesos)
-        {
-            if (!DebeMostrarPrototipoAdministrativo())
-            {
-                return;
-            }
-
-            foreach (ItemMenu acceso in accesos)
-            {
-                if (string.Equals(acceso.Url, "~/Interno/GestionFaq.aspx", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-            }
-
-            accesos.Add(new ItemMenu(
-                "Preguntas frecuentes",
-                "~/Interno/GestionFaq.aspx",
-                "Crear y mantener respuestas visibles en el centro de ayuda."));
         }
 
         private static bool DebeMostrarPrototipoNewsletter()

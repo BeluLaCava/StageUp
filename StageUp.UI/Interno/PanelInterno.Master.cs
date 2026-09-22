@@ -42,7 +42,6 @@ namespace StageUp.UI.Interno
             List<ItemMenu> items = raiz.ObtenerItems();
 
             AgregarAccesoNewsletterSiFalta(items);
-            AgregarAccesoFaqSiFalta(items);
 
             rptMenu.DataSource = items;
             rptMenu.DataBind();
@@ -67,27 +66,6 @@ namespace StageUp.UI.Interno
                 "Novedades",
                 "~/Interno/GestionNovedades.aspx",
                 "Administrar novedades públicas y envíos de newsletter."));
-        }
-
-        private static void AgregarAccesoFaqSiFalta(List<ItemMenu> items)
-        {
-            if (!DebeMostrarPrototipoAdministrativo())
-            {
-                return;
-            }
-
-            foreach (ItemMenu item in items)
-            {
-                if (string.Equals(item.Url, "~/Interno/GestionFaq.aspx", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-            }
-
-            items.Add(new ItemMenu(
-                "FAQ",
-                "~/Interno/GestionFaq.aspx",
-                "Administrar preguntas frecuentes del centro de ayuda."));
         }
 
         private static bool DebeMostrarPrototipoNewsletter()

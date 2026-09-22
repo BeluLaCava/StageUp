@@ -118,6 +118,61 @@
         rows = [];
     }
 
+    // Ítems 24/25: reservas ya Pendientes o Aceptadas para este espacio,
+    // para descontarlas de la disponibilidad publicada y que el
+    // planificador no ofrezca como libre un horario que al confirmar la
+    // solicitud va a ser rechazado por BLL_Reserva.ExisteSolapamiento.
+    var occupiedRows = [];
+    var occupiedField = document.getElementById("hdnReservasOcupadasDetalle");
+    if (occupiedField) {
+        try {
+            occupiedRows = JSON.parse(occupiedField.value || "[]") || [];
+        } catch (error) {
+            occupiedRows = [];
+        }
+    }
+
+    function restarOcupados(ranges, dateValue) {
+        var ocupadosDelDia = occupiedRows.filter(function (occupied) {
+            return occupied.Fecha === dateValue;
+        });
+
+        if (!ocupadosDelDia.length) {
+            return ranges;
+        }
+
+        var libres = [];
+        ranges.forEach(function (range) {
+            var segmentos = [{ MinutoDesde: range.MinutoDesde, MinutoHasta: range.MinutoHasta }];
+            ocupadosDelDia.forEach(function (ocupado) {
+                var siguientes = [];
+                segmentos.forEach(function (segmento) {
+                    if (ocupado.MinutoHasta <= segmento.MinutoDesde || ocupado.MinutoDesde >= segmento.MinutoHasta) {
+                        siguientes.push(segmento);
+                        return;
+                    }
+
+                    if (ocupado.MinutoDesde > segmento.MinutoDesde) {
+                        siguientes.push({ MinutoDesde: segmento.MinutoDesde, MinutoHasta: ocupado.MinutoDesde });
+                    }
+
+                    if (ocupado.MinutoHasta < segmento.MinutoHasta) {
+                        siguientes.push({ MinutoDesde: ocupado.MinutoHasta, MinutoHasta: segmento.MinutoHasta });
+                    }
+                });
+                segmentos = siguientes;
+            });
+
+            segmentos.forEach(function (segmento) {
+                if (segmento.MinutoHasta > segmento.MinutoDesde) {
+                    libres.push(segmento);
+                }
+            });
+        });
+
+        return libres;
+    }
+
     var savedStart = startHidden.value;
     var savedDuration = durationHidden.value;
     var now = new Date();
@@ -140,17 +195,20 @@
             return row.Fecha === dateValue;
         });
 
+        var disponibles;
         if (exact.length) {
-            return exact.filter(function (row) {
+            disponibles = exact.filter(function (row) {
                 return !row.Bloqueado;
+            });
+        } else {
+            var date = new Date(dateValue + "T12:00:00");
+            var weekday = date.getDay() === 0 ? 7 : date.getDay();
+            disponibles = rows.filter(function (row) {
+                return !row.Fecha && row.DiaSemana === weekday && !row.Bloqueado;
             });
         }
 
-        var date = new Date(dateValue + "T12:00:00");
-        var weekday = date.getDay() === 0 ? 7 : date.getDay();
-        return rows.filter(function (row) {
-            return !row.Fecha && row.DiaSemana === weekday && !row.Bloqueado;
-        });
+        return restarOcupados(disponibles, dateValue);
     }
 
     function durationLabel(minutes) {

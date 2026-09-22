@@ -241,6 +241,25 @@ namespace StageUp.BLL
             return resto == 0 ? texto : texto + " y " + resto + " minutos";
         }
 
+        // Reservas Pendientes o Aceptadas, desde hoy en adelante, para un
+        // espacio puntual. Pensado para que la UI pública (el planificador
+        // de DetalleEspacio) pueda descontar visualmente estos horarios de
+        // la disponibilidad publicada por el gestor (ítems 24/25 del
+        // checklist de correcciones) — reutiliza la misma consulta que ya
+        // usa BLL_Actividad.ExisteConflictoConReservas.
+        public List<Reserva> ListarOcupacionVigente(int idEspacioArtistico)
+        {
+            try
+            {
+                return _mppReserva.ListarActivasPorEspacio(
+                    new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return new List<Reserva>();
+            }
+        }
+
         public List<Reserva> ListarMisReservas(int idUsuarioExternoSolicitante)
         {
             try

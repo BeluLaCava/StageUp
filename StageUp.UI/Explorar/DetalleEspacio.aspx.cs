@@ -268,6 +268,8 @@ namespace StageUp.UI.Explorar
             pnlPlanificadorNoDisponible.Visible = !puedePlanificar;
             litPrecioReserva.Text = ficha.PrecioHora.HasValue ? FormatearPrecio(ficha) : "Valor a consultar";
             hdnDisponibilidadDetalle.Value = new JavaScriptSerializer().Serialize(disponibilidad);
+            hdnReservasOcupadasDetalle.Value = new JavaScriptSerializer().Serialize(
+                ObtenerHorariosOcupados(espacio.IdEspacioArtistico));
             hdnPrecioHoraDetalle.Value = ficha.PrecioHora.HasValue
                 ? ficha.PrecioHora.Value.ToString("0.00", CultureInfo.InvariantCulture)
                 : string.Empty;
@@ -282,6 +284,37 @@ namespace StageUp.UI.Explorar
             pnlReservarInvitado.Visible = !idUsuarioActual.HasValue;
             pnlReservarPropio.Visible = esPropio;
             pnlReservarFormulario.Visible = idUsuarioActual.HasValue && !esPropio && puedePlanificar;
+        }
+
+        // Ítems 24/25 del checklist de correcciones: el planificador solo
+        // mostraba la disponibilidad publicada por el gestor, sin descontar
+        // las reservas ya Pendientes o Aceptadas para este espacio. El
+        // chequeo que evita guardar una reserva solapada
+        // (BLL_Reserva.ExisteSolapamiento, disparado al confirmar) ya
+        // existía, pero el calendario visual podía mostrar como libre un
+        // horario que al confirmar iba a ser rechazado. Acá se arma una
+        // proyección mínima (fecha + horario, sin datos del solicitante)
+        // para que el planificador la descuente al calcular los horarios de
+        // inicio disponibles.
+        private List<object> ObtenerHorariosOcupados(int idEspacioArtistico)
+        {
+            List<object> ocupados = new List<object>();
+            foreach (Reserva reserva in _bllReserva.ListarOcupacionVigente(idEspacioArtistico))
+            {
+                if (!reserva.MinutoDesde.HasValue || !reserva.MinutoHasta.HasValue)
+                {
+                    continue;
+                }
+
+                ocupados.Add(new
+                {
+                    Fecha = reserva.FechaSolicitada.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                    MinutoDesde = reserva.MinutoDesde.Value,
+                    MinutoHasta = reserva.MinutoHasta.Value
+                });
+            }
+
+            return ocupados;
         }
 
         private static bool TieneFicha(FichaEspacio ficha)

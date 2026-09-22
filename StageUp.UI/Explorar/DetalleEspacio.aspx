@@ -162,6 +162,7 @@
                         </asp:Panel>
 
                         <asp:HiddenField ID="hdnDisponibilidadDetalle" runat="server" ClientIDMode="Static" Value="[]" />
+                        <asp:HiddenField ID="hdnReservasOcupadasDetalle" runat="server" ClientIDMode="Static" Value="[]" />
                         <asp:HiddenField ID="hdnPrecioHoraDetalle" runat="server" ClientIDMode="Static" />
                         <asp:HiddenField ID="hdnMonedaDetalle" runat="server" ClientIDMode="Static" Value="ARS" />
                         <asp:HiddenField ID="hdnMinutoDesdeReserva" runat="server" ClientIDMode="Static" />
@@ -223,5 +224,5 @@
 </asp:Content>
 
 <asp:Content ID="SpaceDetailScripts" ContentPlaceHolderID="PageScripts" runat="server">
-    <script src="<%= ResolveUrl("~/Scripts/detalle-espacio.js") %>?v=20260909-1"></script>
+    <script src="<%= ResolveUrl("~/Scripts/detalle-espacio.js") %>?v=20260922-1"></script>
 </asp:Content>

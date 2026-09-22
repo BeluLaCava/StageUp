@@ -35,8 +35,3 @@ BEGIN
     (N'¿Para qué sirve una cuenta?', N'La cuenta permitirá acceder a funciones que requieren identificación, como solicitar reservas, gestionar operaciones y registrar solicitudes de soporte.', 5, 1);
 END
 GO
-
-
-SELECT session_id, blocking_session_id, wait_type, wait_time, status, command
-FROM sys.dm_exec_requests
-WHERE blocking_session_id <> 0;

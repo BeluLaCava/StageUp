@@ -49,6 +49,7 @@ namespace StageUp.UI.Explorar
         protected global::System.Web.UI.WebControls.Panel pnlReservarMensaje;
         protected global::System.Web.UI.WebControls.Literal litReservarMensaje;
         protected global::System.Web.UI.WebControls.HiddenField hdnDisponibilidadDetalle;
+        protected global::System.Web.UI.WebControls.HiddenField hdnReservasOcupadasDetalle;
         protected global::System.Web.UI.WebControls.HiddenField hdnPrecioHoraDetalle;
         protected global::System.Web.UI.WebControls.HiddenField hdnMonedaDetalle;
         protected global::System.Web.UI.WebControls.HiddenField hdnMinutoDesdeReserva;

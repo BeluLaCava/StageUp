@@ -129,15 +129,15 @@ namespace StageUp.UI.Explorar
             pnlResumenPrecio.Visible = ficha.PrecioHora.HasValue;
             litResumenPrecio.Text = ficha.PrecioHora.HasValue ? FormatearPrecio(ficha) : string.Empty;
 
-            CargarGestor(espacio);
             CargarFicha(ficha);
-            CargarResenas(espacio.IdEspacioArtistico);
+            ResumenReputacion resumenEspacio = CargarResenas(espacio.IdEspacioArtistico);
+            CargarGestor(espacio, resumenEspacio);
             CargarReserva(espacio, ficha);
 
             Title = espacio.NombreEspacio + " | StageUp";
         }
 
-        private void CargarGestor(EspacioArtistico espacio)
+        private void CargarGestor(EspacioArtistico espacio, ResumenReputacion resumenEspacio)
         {
             string nombre = string.IsNullOrWhiteSpace(espacio.NombreCompletoGestor)
                 ? "Gestor del espacio"
@@ -159,11 +159,33 @@ namespace StageUp.UI.Explorar
                     : espacio.CantidadEspaciosPublicadosGestor + " espacios publicados");
             }
 
-            litReputacionGestor.Text = Server.HtmlEncode(
+            litDatosGestor.Text = Server.HtmlEncode(
                 datos.Count == 0 ? "Gestor verificado" : string.Join(" · ", datos));
+
+            int cantidadCalificaciones = resumenEspacio == null
+                ? espacio.CantidadCalificaciones
+                : resumenEspacio.CantidadCalificaciones;
+            decimal promedio = resumenEspacio == null || resumenEspacio.CantidadCalificaciones == 0
+                ? espacio.PromedioCalificacion
+                : resumenEspacio.Promedio;
+
+            if (cantidadCalificaciones > 0)
+            {
+                litEstrellasEspacioResumen.Text = ObtenerEstrellas((int)Math.Round(promedio));
+                litResumenReputacionEspacio.Text = Server.HtmlEncode(promedio.ToString("0.0", CultureInfo.CurrentCulture));
+                litTextoReputacionEspacio.Text = Server.HtmlEncode(
+                    cantidadCalificaciones == 1
+                        ? "1 reseña verificada de este espacio."
+                        : cantidadCalificaciones + " reseñas verificadas de este espacio.");
+                return;
+            }
+
+            litEstrellasEspacioResumen.Text = "☆☆☆☆☆";
+            litResumenReputacionEspacio.Text = "Sin reseñas todavía";
+            litTextoReputacionEspacio.Text = "La reputación se construye con reservas finalizadas de este espacio.";
         }
 
-        private void CargarResenas(int idEspacioArtistico)
+        private ResumenReputacion CargarResenas(int idEspacioArtistico)
         {
             ResumenReputacion resumen = _bllCalificacion.ObtenerResumenEspacio(idEspacioArtistico);
             List<Calificacion> resenas = _bllCalificacion.ListarPorEspacio(idEspacioArtistico);
@@ -183,6 +205,8 @@ namespace StageUp.UI.Explorar
                 rptResenasEspacio.DataSource = resenas;
                 rptResenasEspacio.DataBind();
             }
+
+            return resumen;
         }
 
         protected string ObtenerEstrellas(int puntaje)

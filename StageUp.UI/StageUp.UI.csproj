@@ -241,6 +241,20 @@
     <Compile Include="Interno\GestionGruposPermisos.aspx.designer.cs">
       <DependentUpon>GestionGruposPermisos.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Interno\GestionNovedades.aspx.cs">
+      <DependentUpon>GestionNovedades.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\GestionNovedades.aspx.designer.cs">
+      <DependentUpon>GestionNovedades.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\GestionFaq.aspx.cs">
+      <DependentUpon>GestionFaq.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\GestionFaq.aspx.designer.cs">
+      <DependentUpon>GestionFaq.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Infraestructura\MasterPageMultidioma.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
@@ -289,6 +303,8 @@
     <Content Include="Interno\GestionUsuariosInternos.aspx" />
     <Content Include="Interno\PermisosDelRol.aspx" />
     <Content Include="Interno\GestionGruposPermisos.aspx" />
+    <Content Include="Interno\GestionNovedades.aspx" />
+    <Content Include="Interno\GestionFaq.aspx" />
     <Content Include="Interno\GestionIdiomas.aspx" />
     <Content Include="Interno\ConfigurarIdioma.aspx" />
     <Content Include="Scripts\site.js" />

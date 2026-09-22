@@ -20,7 +20,10 @@ namespace StageUp.UI.Explorar
         protected global::System.Web.UI.WebControls.Literal litResumenPrecio;
         protected global::System.Web.UI.WebControls.Literal litInicialesGestor;
         protected global::System.Web.UI.WebControls.Literal litNombreGestor;
-        protected global::System.Web.UI.WebControls.Literal litReputacionGestor;
+        protected global::System.Web.UI.WebControls.Literal litDatosGestor;
+        protected global::System.Web.UI.WebControls.Literal litEstrellasEspacioResumen;
+        protected global::System.Web.UI.WebControls.Literal litResumenReputacionEspacio;
+        protected global::System.Web.UI.WebControls.Literal litTextoReputacionEspacio;
         protected global::System.Web.UI.WebControls.Literal litDescripcion;
         protected global::System.Web.UI.WebControls.Panel pnlFicha;
         protected global::System.Web.UI.WebControls.Literal litDireccion;

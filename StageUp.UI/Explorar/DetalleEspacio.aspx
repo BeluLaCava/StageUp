@@ -59,12 +59,17 @@
 
                         <section class="space-host-card" aria-labelledby="space-host-title">
                             <div class="space-host-avatar" aria-hidden="true"><asp:Literal ID="litInicialesGestor" runat="server" /></div>
-                            <div>
+                            <div class="space-host-main">
                                 <span class="eyebrow">Gestionado por</span>
                                 <h2 id="space-host-title"><asp:Literal ID="litNombreGestor" runat="server" /></h2>
-                                <div class="space-host-rating"><span aria-hidden="true">☆☆☆☆☆</span> <asp:Literal ID="litReputacionGestor" runat="server" /></div>
+                                <p class="space-host-meta"><asp:Literal ID="litDatosGestor" runat="server" /></p>
                             </div>
-                            <span class="space-host-badge">Gestor verificado</span>
+                            <div class="space-host-space-rating" aria-label="Reputación del espacio">
+                                <span class="eyebrow">Reputación del espacio</span>
+                                <strong><span aria-hidden="true"><asp:Literal ID="litEstrellasEspacioResumen" runat="server" /></span> <asp:Literal ID="litResumenReputacionEspacio" runat="server" /></strong>
+                                <small><asp:Literal ID="litTextoReputacionEspacio" runat="server" /></small>
+                                <a class="text-link space-host-reviews-link" href="#space-reviews-title">Ver reseñas</a>
+                            </div>
                         </section>
 
                         <section class="space-detail-section" aria-labelledby="space-description-title">

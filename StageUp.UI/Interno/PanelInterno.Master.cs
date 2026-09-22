@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using StageUp.BE.Menu;
 using StageUp.BLL;
 using StageUp.Seguridad;
@@ -38,9 +39,67 @@ namespace StageUp.UI.Interno
         {
             int idRolInterno = GestorDeSesion.ObtenerIdRolInternoActual().Value;
             GrupoMenu raiz = _bllPermiso.ConstruirMenuParaRol(idRolInterno);
+            List<ItemMenu> items = raiz.ObtenerItems();
 
-            rptMenu.DataSource = raiz.ObtenerItems();
+            AgregarAccesoNewsletterSiFalta(items);
+            AgregarAccesoFaqSiFalta(items);
+
+            rptMenu.DataSource = items;
             rptMenu.DataBind();
+        }
+
+        private static void AgregarAccesoNewsletterSiFalta(List<ItemMenu> items)
+        {
+            if (!DebeMostrarPrototipoNewsletter())
+            {
+                return;
+            }
+
+            foreach (ItemMenu item in items)
+            {
+                if (string.Equals(item.Url, "~/Interno/GestionNovedades.aspx", StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+            }
+
+            items.Add(new ItemMenu(
+                "Novedades",
+                "~/Interno/GestionNovedades.aspx",
+                "Administrar novedades públicas y envíos de newsletter."));
+        }
+
+        private static void AgregarAccesoFaqSiFalta(List<ItemMenu> items)
+        {
+            if (!DebeMostrarPrototipoAdministrativo())
+            {
+                return;
+            }
+
+            foreach (ItemMenu item in items)
+            {
+                if (string.Equals(item.Url, "~/Interno/GestionFaq.aspx", StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+            }
+
+            items.Add(new ItemMenu(
+                "FAQ",
+                "~/Interno/GestionFaq.aspx",
+                "Administrar preguntas frecuentes del centro de ayuda."));
+        }
+
+        private static bool DebeMostrarPrototipoNewsletter()
+        {
+            return DebeMostrarPrototipoAdministrativo();
+        }
+
+        private static bool DebeMostrarPrototipoAdministrativo()
+        {
+            return GestorDeSesion.TienePermisoInterno("GESTIONAR_ROLES") ||
+                GestorDeSesion.TienePermisoInterno("GESTIONAR_IDIOMAS") ||
+                GestorDeSesion.TienePermisoInterno("GESTIONAR_USUARIOS_INTERNOS");
         }
     }
 }

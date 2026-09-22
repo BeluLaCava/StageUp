@@ -176,18 +176,44 @@ namespace StageUp.BLL
                 franja != null && string.Equals(franja.Fecha, fechaTexto, StringComparison.Ordinal));
             int diaSemana = fecha.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)fecha.DayOfWeek;
 
+            // Misma regla para decidir qué franjas aplican a esta fecha
+            // (si hay una franja de fecha puntual para ese día, manda por
+            // sobre la recurrencia semanal) — se usa tanto para ver si hay
+            // disponibilidad como para ver si hay un bloqueo, así las dos
+            // lecturas quedan consistentes entre sí.
+            Func<FranjaEspacio, bool> aplicaAEstaFecha = franja =>
+                tieneExcepcionParaFecha
+                    ? string.Equals(franja.Fecha, fechaTexto, StringComparison.Ordinal)
+                    : string.IsNullOrEmpty(franja.Fecha) && franja.DiaSemana == diaSemana;
+
             bool estaDisponible = franjas.Exists(franja =>
                 franja != null &&
                 !franja.Bloqueado &&
-                (tieneExcepcionParaFecha
-                    ? string.Equals(franja.Fecha, fechaTexto, StringComparison.Ordinal)
-                    : string.IsNullOrEmpty(franja.Fecha) && franja.DiaSemana == diaSemana) &&
+                aplicaAEstaFecha(franja) &&
                 minutoDesde >= franja.MinutoDesde &&
                 minutoHasta <= franja.MinutoHasta);
 
-            return estaDisponible
-                ? ResultadoOperacion.Ok()
-                : ResultadoOperacion.Error("La franja elegida no está dentro de la disponibilidad informada para esa fecha.");
+            if (!estaDisponible)
+            {
+                return ResultadoOperacion.Error("La franja elegida no está dentro de la disponibilidad informada para esa fecha.");
+            }
+
+            // Ítem 27 del checklist de correcciones: no alcanza con que el
+            // horario esté contenido en una franja disponible más amplia
+            // (ej. disponible miércoles 9 a 22) — también hay que rechazar
+            // si se superpone con una franja bloqueada por una actividad
+            // dentro de esa misma ventana (ej. actividad miércoles 10 a
+            // 12), que antes se podía pisar igual (reservando 10 a 11).
+            bool existeBloqueoSuperpuesto = franjas.Exists(franja =>
+                franja != null &&
+                franja.Bloqueado &&
+                aplicaAEstaFecha(franja) &&
+                minutoDesde < franja.MinutoHasta &&
+                franja.MinutoDesde < minutoHasta);
+
+            return existeBloqueoSuperpuesto
+                ? ResultadoOperacion.Error("Ese horario ya está bloqueado por una actividad de este espacio. Elegí otro horario.")
+                : ResultadoOperacion.Ok();
         }
 
         private static decimal CalcularImporte(decimal precioHora, int duracionMinutos)

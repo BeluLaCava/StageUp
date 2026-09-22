@@ -352,6 +352,24 @@ namespace StageUp.BLL
 
         // ---- Cálculo y regeneración de las franjas bloqueadas ----
 
+        // FranjaEspacio depende de FichaEspacio con ON DELETE CASCADE, y
+        // BLL_EspacioArtistico.GuardarFicha borra y reinserta la ficha
+        // completa cada vez que el gestor guarda los datos de su espacio
+        // (ítem 26 del checklist de correcciones). Eso se lleva puestas,
+        // por cascada, las franjas bloqueadas de cualquier actividad que
+        // ya existiera sobre ese espacio. Este método se llama desde ahí
+        // mismo, inmediatamente después de guardar la ficha, para
+        // regenerar esas franjas a partir de las actividades activas que
+        // ya existan — sin tocar el esquema ni la cascada.
+        public void RegenerarFranjasBloqueadasDelEspacio(int idEspacioArtistico)
+        {
+            List<Actividad> actividadesActivas = _mppActividad.ListarPorEspacio(idEspacioArtistico);
+            foreach (Actividad actividad in actividadesActivas)
+            {
+                RegenerarFranjasBloqueadas(actividad.IdActividad, actividad);
+            }
+        }
+
         private void RegenerarFranjasBloqueadas(int idActividad, Actividad actividad)
         {
             _mppActividad.EliminarFranjasPorActividad(idActividad);

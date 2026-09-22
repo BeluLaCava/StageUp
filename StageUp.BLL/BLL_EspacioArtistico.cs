@@ -12,6 +12,7 @@ namespace StageUp.BLL
     {
         private readonly MPP_EspacioArtistico _mppEspacio = new MPP_EspacioArtistico();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
+        private readonly BLL_Actividad _bllActividad = new BLL_Actividad();
 
         private const int LongitudMaximaNombre = 300;
         private const int LongitudMaximaDescripcion = 2000;
@@ -120,6 +121,13 @@ namespace StageUp.BLL
             if (espacio.Ficha.Fotos != null && espacio.Ficha.Fotos.Count > 0)
                 espacio.Ficha.FotoRuta = espacio.Ficha.Fotos[0];
             int id = _mppEspacio.GuardarFicha(espacio);
+            // Guardar la ficha borra y reinserta FranjaEspacio por completo
+            // (ON DELETE CASCADE contra FichaEspacio), así que hay que
+            // regenerar acá mismo los bloqueos de las actividades que ya
+            // existan sobre este espacio (ítem 26 del checklist de
+            // correcciones) — si no, quedan disponibles para reservar hasta
+            // que alguien vuelva a guardar/modificar esa actividad.
+            _bllActividad.RegenerarFranjasBloqueadasDelEspacio(id);
             _bitacora.Registrar(idUsuarioGestor, espacio.IdEspacioArtistico == 0 ? "ALTA" : "MODIFICACION",
                 TipoEntidadBitacora, id, "Guardado de ficha completa del espacio artístico.");
             return ResultadoOperacion<int>.Ok(id, "El espacio se guardó correctamente.");

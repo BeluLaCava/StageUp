@@ -578,7 +578,7 @@ namespace StageUp.BLL
                             "Recordatorio: tu reserva para \"" + reserva.NombreEspacio + "\" es el " + momento + ".",
                             "~/MisReservas.aspx");
 
-                        _mppReserva.MarcarRecordatorioEnviado(reserva.IdReserva);
+                        _mppReserva.MarcarRecordatorioEnviado(reserva);
                     }
                     catch (ErrorAccesoDatosException)
                     {

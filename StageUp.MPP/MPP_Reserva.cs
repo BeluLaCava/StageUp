@@ -113,11 +113,11 @@ namespace StageUp.MPP
         // espacio puntual. Usado por BLL_Actividad para validar que el
         // horario de una actividad (al crearla, modificarla o darla de baja)
         // no coincida con una reserva ya existente sobre ese espacio.
-        public List<Reserva> ListarActivasPorEspacio(int idEspacioArtistico)
+        public List<Reserva> ListarActivasPorEspacio(EspacioArtistico espacio)
         {
             return MapearDesdeTabla(Conexion.Instance.Leer(
                 "sp_Reserva_ListarActivasPorEspacio",
-                new Hashtable { { "@idEspacioArtistico", idEspacioArtistico } }));
+                new Hashtable { { "@idEspacioArtistico", espacio.IdEspacioArtistico } }));
         }
 
         // Reservas Aceptadas cuyo horario empieza dentro de las próximas 24hs
@@ -128,11 +128,11 @@ namespace StageUp.MPP
             return MapearDesdeTabla(Conexion.Instance.Leer("sp_Reserva_ListarPendientesDeRecordatorio"));
         }
 
-        public void MarcarRecordatorioEnviado(int idReserva)
+        public void MarcarRecordatorioEnviado(Reserva reserva)
         {
             Conexion.Instance.Guardar(
                 "sp_Reserva_MarcarRecordatorioEnviado",
-                new Hashtable { { "@idReserva", idReserva } });
+                new Hashtable { { "@idReserva", reserva.IdReserva } });
         }
 
         private static List<Reserva> MapearDesdeTabla(DataTable tabla)

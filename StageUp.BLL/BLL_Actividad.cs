@@ -57,17 +57,18 @@ namespace StageUp.BLL
                 int idActividad = esNueva
                     ? _mppActividad.Insertar(actividad)
                     : ModificarYDevolverId(actividad);
+                actividad.IdActividad = idActividad;
 
-                _mppActividad.EliminarDiasSemana(idActividad);
+                _mppActividad.EliminarDiasSemana(actividad);
                 if (actividad.ModoRecurrencia == ModoRecurrenciaActividad.Semanal.ToString())
                 {
                     foreach (int dia in actividad.DiasSemana.Distinct())
                     {
-                        _mppActividad.InsertarDiaSemana(idActividad, dia);
+                        _mppActividad.InsertarDiaSemana(actividad, dia);
                     }
                 }
 
-                RegenerarFranjasBloqueadas(idActividad, actividad);
+                RegenerarFranjasBloqueadas(actividad);
 
                 _bitacora.Registrar(
                     idUsuarioGestor, esNueva ? "ALTA" : "MODIFICACION", TipoEntidadBitacora, idActividad,
@@ -87,7 +88,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Actividad actividad = _mppActividad.ObtenerPorId(idActividad);
+                Actividad actividad = _mppActividad.ObtenerPorId(new Actividad { IdActividad = idActividad });
                 ResultadoOperacion validacion = ValidarPertenencia(actividad, idUsuarioGestor);
                 if (!validacion.Exitoso)
                 {
@@ -107,8 +108,8 @@ namespace StageUp.BLL
                         "para el horario de esta actividad.");
                 }
 
-                _mppActividad.DarDeBaja(idActividad);
-                _mppActividad.EliminarFranjasPorActividad(idActividad);
+                _mppActividad.DarDeBaja(actividad);
+                _mppActividad.EliminarFranjasPorActividad(actividad);
 
                 _bitacora.Registrar(
                     idUsuarioGestor, "BAJA", TipoEntidadBitacora, idActividad,
@@ -122,10 +123,10 @@ namespace StageUp.BLL
         {
             try
             {
-                List<Actividad> actividades = _mppActividad.ListarPorUsuarioGestor(idUsuarioGestor);
+                List<Actividad> actividades = _mppActividad.ListarPorUsuarioGestor(new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor });
                 foreach (Actividad actividad in actividades)
                 {
-                    actividad.Participantes = _mppActividad.ListarParticipantesDeActividad(actividad.IdActividad);
+                    actividad.Participantes = _mppActividad.ListarParticipantesDeActividad(actividad);
                 }
 
                 return actividades;
@@ -138,13 +139,13 @@ namespace StageUp.BLL
 
         public Actividad ObtenerParaEditar(int idActividad, int idUsuarioGestor)
         {
-            Actividad actividad = _mppActividad.ObtenerPorId(idActividad);
+            Actividad actividad = _mppActividad.ObtenerPorId(new Actividad { IdActividad = idActividad });
             if (actividad == null || !EsDelGestor(actividad, idUsuarioGestor))
             {
                 return null;
             }
 
-            actividad.Participantes = _mppActividad.ListarParticipantesDeActividad(idActividad);
+            actividad.Participantes = _mppActividad.ListarParticipantesDeActividad(actividad);
             return actividad;
         }
 
@@ -152,20 +153,20 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Actividad actividad = _mppActividad.ObtenerPorId(idActividad);
+                Actividad actividad = _mppActividad.ObtenerPorId(new Actividad { IdActividad = idActividad });
                 ResultadoOperacion validacionActividad = ValidarPertenencia(actividad, idUsuarioGestor);
                 if (!validacionActividad.Exitoso)
                 {
                     return validacionActividad;
                 }
 
-                Participante participante = _mppParticipante.ObtenerPorId(idParticipante);
+                Participante participante = _mppParticipante.ObtenerPorId(new Participante { IdParticipante = idParticipante });
                 if (participante == null || participante.IdUsuarioGestor != idUsuarioGestor)
                 {
                     return ResultadoOperacion.Error("El participante indicado no existe o no te pertenece.");
                 }
 
-                List<Participante> participantesActuales = _mppActividad.ListarParticipantesDeActividad(idActividad);
+                List<Participante> participantesActuales = _mppActividad.ListarParticipantesDeActividad(actividad);
                 bool yaAsociado = participantesActuales.Exists(p => p.IdParticipante == idParticipante);
                 if (!yaAsociado && participantesActuales.Count >= actividad.CupoMaximo)
                 {
@@ -174,7 +175,7 @@ namespace StageUp.BLL
                         actividad.CupoMaximo + ").");
                 }
 
-                _mppActividad.AsociarParticipante(idActividad, idParticipante);
+                _mppActividad.AsociarParticipante(actividad, participante);
 
                 _bitacora.Registrar(
                     idUsuarioGestor, "ASOCIACION", TipoEntidadBitacora, idActividad,
@@ -188,16 +189,16 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Actividad actividad = _mppActividad.ObtenerPorId(idActividad);
+                Actividad actividad = _mppActividad.ObtenerPorId(new Actividad { IdActividad = idActividad });
                 ResultadoOperacion validacion = ValidarPertenencia(actividad, idUsuarioGestor);
                 if (!validacion.Exitoso)
                 {
                     return validacion;
                 }
 
-                Participante participante = _mppParticipante.ObtenerPorId(idParticipante);
+                Participante participante = _mppParticipante.ObtenerPorId(new Participante { IdParticipante = idParticipante });
 
-                _mppActividad.DesasociarParticipante(idActividad, idParticipante);
+                _mppActividad.DesasociarParticipante(actividad, new Participante { IdParticipante = idParticipante });
 
                 _bitacora.Registrar(
                     idUsuarioGestor, "DESVINCULACION", TipoEntidadBitacora, idActividad,
@@ -295,7 +296,8 @@ namespace StageUp.BLL
         // actividad.
         private bool ExisteConflictoConReservas(Actividad actividad)
         {
-            List<Reserva> reservasActivas = _mppReserva.ListarActivasPorEspacio(actividad.IdEspacioArtistico);
+            List<Reserva> reservasActivas = _mppReserva.ListarActivasPorEspacio(
+                new EspacioArtistico { IdEspacioArtistico = actividad.IdEspacioArtistico });
             if (reservasActivas.Count == 0)
             {
                 return false;
@@ -363,31 +365,32 @@ namespace StageUp.BLL
         // ya existan — sin tocar el esquema ni la cascada.
         public void RegenerarFranjasBloqueadasDelEspacio(int idEspacioArtistico)
         {
-            List<Actividad> actividadesActivas = _mppActividad.ListarPorEspacio(idEspacioArtistico);
+            List<Actividad> actividadesActivas = _mppActividad.ListarPorEspacio(
+                new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
             foreach (Actividad actividad in actividadesActivas)
             {
-                RegenerarFranjasBloqueadas(actividad.IdActividad, actividad);
+                RegenerarFranjasBloqueadas(actividad);
             }
         }
 
-        private void RegenerarFranjasBloqueadas(int idActividad, Actividad actividad)
+        private void RegenerarFranjasBloqueadas(Actividad actividad)
         {
-            _mppActividad.EliminarFranjasPorActividad(idActividad);
+            _mppActividad.EliminarFranjasPorActividad(actividad);
 
             if (actividad.ModoRecurrencia == ModoRecurrenciaActividad.Semanal.ToString())
             {
                 foreach (int dia in actividad.DiasSemana.Distinct())
                 {
                     _mppActividad.InsertarFranjaDesdeActividad(
-                        actividad.IdEspacioArtistico, idActividad, dia, null,
-                        actividad.MinutoDesde, actividad.MinutoHasta);
+                        actividad,
+                        new FranjaEspacio { DiaSemana = dia, Fecha = null, MinutoDesde = actividad.MinutoDesde, MinutoHasta = actividad.MinutoHasta });
                 }
             }
             else if (actividad.ModoRecurrencia == ModoRecurrenciaActividad.Fecha.ToString())
             {
                 _mppActividad.InsertarFranjaDesdeActividad(
-                    actividad.IdEspacioArtistico, idActividad, null, actividad.Fecha,
-                    actividad.MinutoDesde, actividad.MinutoHasta);
+                    actividad,
+                    new FranjaEspacio { DiaSemana = null, Fecha = actividad.Fecha, MinutoDesde = actividad.MinutoDesde, MinutoHasta = actividad.MinutoHasta });
             }
             else if (actividad.ModoRecurrencia == ModoRecurrenciaActividad.Mensual.ToString())
             {
@@ -396,9 +399,14 @@ namespace StageUp.BLL
                     DateTime.Now.Date, HorizonteMesesRecurrenciaMensual))
                 {
                     _mppActividad.InsertarFranjaDesdeActividad(
-                        actividad.IdEspacioArtistico, idActividad, null,
-                        fecha.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-                        actividad.MinutoDesde, actividad.MinutoHasta);
+                        actividad,
+                        new FranjaEspacio
+                        {
+                            DiaSemana = null,
+                            Fecha = fecha.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                            MinutoDesde = actividad.MinutoDesde,
+                            MinutoHasta = actividad.MinutoHasta
+                        });
                 }
             }
         }

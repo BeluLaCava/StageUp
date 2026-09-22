@@ -22,11 +22,11 @@ namespace StageUp.MPP
                 });
         }
 
-        public List<Notificacion> ListarPorUsuario(int idUsuarioExterno, int cantidad)
+        public List<Notificacion> ListarPorUsuario(UsuarioExterno usuarioExterno, int cantidad)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Notificacion_ListarPorUsuario",
-                new Hashtable { { "@idUsuarioExterno", idUsuarioExterno }, { "@cantidad", cantidad } });
+                new Hashtable { { "@idUsuarioExterno", usuarioExterno.IdUsuarioExterno }, { "@cantidad", cantidad } });
 
             List<Notificacion> notificaciones = new List<Notificacion>();
             foreach (DataRow fila in tabla.Rows)
@@ -46,25 +46,25 @@ namespace StageUp.MPP
             return notificaciones;
         }
 
-        public void MarcarLeida(int idNotificacion)
+        public void MarcarLeida(Notificacion notificacion)
         {
             Conexion.Instance.Guardar(
                 "sp_Notificacion_MarcarLeida",
-                new Hashtable { { "@idNotificacion", idNotificacion } });
+                new Hashtable { { "@idNotificacion", notificacion.IdNotificacion } });
         }
 
-        public void MarcarTodasLeidas(int idUsuarioExterno)
+        public void MarcarTodasLeidas(UsuarioExterno usuarioExterno)
         {
             Conexion.Instance.Guardar(
                 "sp_Notificacion_MarcarTodasLeidas",
-                new Hashtable { { "@idUsuarioExterno", idUsuarioExterno } });
+                new Hashtable { { "@idUsuarioExterno", usuarioExterno.IdUsuarioExterno } });
         }
 
-        public int ContarNoLeidas(int idUsuarioExterno)
+        public int ContarNoLeidas(UsuarioExterno usuarioExterno)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_Notificacion_ContarNoLeidas",
-                new Hashtable { { "@idUsuarioExterno", idUsuarioExterno } });
+                new Hashtable { { "@idUsuarioExterno", usuarioExterno.IdUsuarioExterno } });
 
             return resultado == null || resultado == DBNull.Value ? 0 : Convert.ToInt32(resultado);
         }

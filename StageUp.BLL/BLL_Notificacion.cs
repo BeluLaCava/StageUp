@@ -45,7 +45,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppNotificacion.ListarPorUsuario(idUsuarioExterno, cantidad);
+                return _mppNotificacion.ListarPorUsuario(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno }, cantidad);
             }
             catch (ErrorAccesoDatosException)
             {
@@ -57,7 +57,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppNotificacion.ContarNoLeidas(idUsuarioExterno);
+                return _mppNotificacion.ContarNoLeidas(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -69,11 +69,12 @@ namespace StageUp.BLL
         {
             try
             {
-                bool esDelUsuario = _mppNotificacion.ListarPorUsuario(idUsuarioExterno, int.MaxValue)
+                bool esDelUsuario = _mppNotificacion
+                    .ListarPorUsuario(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno }, int.MaxValue)
                     .Any(notificacion => notificacion.IdNotificacion == idNotificacion);
                 if (esDelUsuario)
                 {
-                    _mppNotificacion.MarcarLeida(idNotificacion);
+                    _mppNotificacion.MarcarLeida(new Notificacion { IdNotificacion = idNotificacion });
                 }
             }
             catch (ErrorAccesoDatosException)
@@ -85,7 +86,7 @@ namespace StageUp.BLL
         {
             try
             {
-                _mppNotificacion.MarcarTodasLeidas(idUsuarioExterno);
+                _mppNotificacion.MarcarTodasLeidas(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
             }
             catch (ErrorAccesoDatosException)
             {

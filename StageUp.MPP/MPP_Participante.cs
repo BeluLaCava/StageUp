@@ -39,27 +39,27 @@ namespace StageUp.MPP
                 });
         }
 
-        public void DarDeBaja(int idParticipante)
+        public void DarDeBaja(Participante participante)
         {
             Conexion.Instance.Guardar(
                 "sp_Participante_DarDeBaja",
-                new Hashtable { { "@idParticipante", idParticipante } });
+                new Hashtable { { "@idParticipante", participante.IdParticipante } });
         }
 
-        public Participante ObtenerPorId(int idParticipante)
+        public Participante ObtenerPorId(Participante participante)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Participante_ObtenerPorId",
-                new Hashtable { { "@idParticipante", idParticipante } });
+                new Hashtable { { "@idParticipante", participante.IdParticipante } });
 
             return tabla.Rows.Count == 0 ? null : MapearFila(tabla.Rows[0]);
         }
 
-        public List<Participante> ListarPorUsuarioGestor(int idUsuarioGestor)
+        public List<Participante> ListarPorUsuarioGestor(UsuarioExterno usuarioGestor)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Participante_ListarPorUsuarioGestor",
-                new Hashtable { { "@idUsuarioGestor", idUsuarioGestor } });
+                new Hashtable { { "@idUsuarioGestor", usuarioGestor.IdUsuarioExterno } });
 
             List<Participante> participantes = new List<Participante>();
             foreach (DataRow fila in tabla.Rows)

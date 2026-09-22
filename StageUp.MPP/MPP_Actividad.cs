@@ -53,43 +53,43 @@ namespace StageUp.MPP
                 });
         }
 
-        public void DarDeBaja(int idActividad)
+        public void DarDeBaja(Actividad actividad)
         {
             Conexion.Instance.Guardar(
                 "sp_Actividad_DarDeBaja",
-                new Hashtable { { "@idActividad", idActividad } });
+                new Hashtable { { "@idActividad", actividad.IdActividad } });
         }
 
-        public Actividad ObtenerPorId(int idActividad)
+        public Actividad ObtenerPorId(Actividad actividad)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Actividad_ObtenerPorId",
-                new Hashtable { { "@idActividad", idActividad } });
+                new Hashtable { { "@idActividad", actividad.IdActividad } });
 
             if (tabla.Rows.Count == 0)
             {
                 return null;
             }
 
-            Actividad actividad = MapearFila(tabla.Rows[0]);
-            actividad.DiasSemana = ListarDiasSemana(actividad.IdActividad);
-            return actividad;
+            Actividad encontrada = MapearFila(tabla.Rows[0]);
+            encontrada.DiasSemana = ListarDiasSemana(encontrada);
+            return encontrada;
         }
 
-        public List<Actividad> ListarPorEspacio(int idEspacioArtistico)
+        public List<Actividad> ListarPorEspacio(EspacioArtistico espacio)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Actividad_ListarPorEspacio",
-                new Hashtable { { "@idEspacioArtistico", idEspacioArtistico } });
+                new Hashtable { { "@idEspacioArtistico", espacio.IdEspacioArtistico } });
 
             return MapearFilas(tabla);
         }
 
-        public List<Actividad> ListarPorUsuarioGestor(int idUsuarioGestor)
+        public List<Actividad> ListarPorUsuarioGestor(UsuarioExterno usuarioGestor)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Actividad_ListarPorUsuarioGestor",
-                new Hashtable { { "@idUsuarioGestor", idUsuarioGestor } });
+                new Hashtable { { "@idUsuarioGestor", usuarioGestor.IdUsuarioExterno } });
 
             return MapearFilas(tabla);
         }
@@ -100,7 +100,7 @@ namespace StageUp.MPP
             foreach (DataRow fila in tabla.Rows)
             {
                 Actividad actividad = MapearFila(fila);
-                actividad.DiasSemana = ListarDiasSemana(actividad.IdActividad);
+                actividad.DiasSemana = ListarDiasSemana(actividad);
                 actividades.Add(actividad);
             }
 
@@ -142,25 +142,25 @@ namespace StageUp.MPP
 
         // ---- Días de semana (recurrencia "Semanal") ----
 
-        public void InsertarDiaSemana(int idActividad, int diaSemana)
+        public void InsertarDiaSemana(Actividad actividad, int diaSemana)
         {
             Conexion.Instance.Guardar(
                 "sp_ActividadDiaSemana_Insertar",
-                new Hashtable { { "@idActividad", idActividad }, { "@diaSemana", diaSemana } });
+                new Hashtable { { "@idActividad", actividad.IdActividad }, { "@diaSemana", diaSemana } });
         }
 
-        public void EliminarDiasSemana(int idActividad)
+        public void EliminarDiasSemana(Actividad actividad)
         {
             Conexion.Instance.Guardar(
                 "sp_ActividadDiaSemana_EliminarPorActividad",
-                new Hashtable { { "@idActividad", idActividad } });
+                new Hashtable { { "@idActividad", actividad.IdActividad } });
         }
 
-        public List<int> ListarDiasSemana(int idActividad)
+        public List<int> ListarDiasSemana(Actividad actividad)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_ActividadDiaSemana_ListarPorActividad",
-                new Hashtable { { "@idActividad", idActividad } });
+                new Hashtable { { "@idActividad", actividad.IdActividad } });
 
             List<int> dias = new List<int>();
             foreach (DataRow fila in tabla.Rows)
@@ -173,50 +173,49 @@ namespace StageUp.MPP
 
         // ---- Franjas bloqueadas generadas por la actividad ----
 
-        public void InsertarFranjaDesdeActividad(
-            int idEspacioArtistico, int idActividad, int? diaSemana, string fecha, int minutoDesde, int minutoHasta)
+        public void InsertarFranjaDesdeActividad(Actividad actividad, FranjaEspacio franja)
         {
             Conexion.Instance.Guardar(
                 "sp_FranjaEspacio_InsertarDesdeActividad",
                 new Hashtable
                 {
-                    { "@idEspacioArtistico", idEspacioArtistico },
-                    { "@idActividad", idActividad },
-                    { "@diaSemana", (object)diaSemana ?? DBNull.Value },
-                    { "@fecha", ParsearFecha(fecha) },
-                    { "@minutoDesde", minutoDesde },
-                    { "@minutoHasta", minutoHasta }
+                    { "@idEspacioArtistico", actividad.IdEspacioArtistico },
+                    { "@idActividad", actividad.IdActividad },
+                    { "@diaSemana", (object)franja.DiaSemana ?? DBNull.Value },
+                    { "@fecha", ParsearFecha(franja.Fecha) },
+                    { "@minutoDesde", franja.MinutoDesde },
+                    { "@minutoHasta", franja.MinutoHasta }
                 });
         }
 
-        public void EliminarFranjasPorActividad(int idActividad)
+        public void EliminarFranjasPorActividad(Actividad actividad)
         {
             Conexion.Instance.Guardar(
                 "sp_FranjaEspacio_EliminarPorActividad",
-                new Hashtable { { "@idActividad", idActividad } });
+                new Hashtable { { "@idActividad", actividad.IdActividad } });
         }
 
         // ---- Participantes asociados a la actividad ----
 
-        public void AsociarParticipante(int idActividad, int idParticipante)
+        public void AsociarParticipante(Actividad actividad, Participante participante)
         {
             Conexion.Instance.Guardar(
                 "sp_ActividadParticipante_Insertar",
-                new Hashtable { { "@idActividad", idActividad }, { "@idParticipante", idParticipante } });
+                new Hashtable { { "@idActividad", actividad.IdActividad }, { "@idParticipante", participante.IdParticipante } });
         }
 
-        public void DesasociarParticipante(int idActividad, int idParticipante)
+        public void DesasociarParticipante(Actividad actividad, Participante participante)
         {
             Conexion.Instance.Guardar(
                 "sp_ActividadParticipante_Eliminar",
-                new Hashtable { { "@idActividad", idActividad }, { "@idParticipante", idParticipante } });
+                new Hashtable { { "@idActividad", actividad.IdActividad }, { "@idParticipante", participante.IdParticipante } });
         }
 
-        public List<Participante> ListarParticipantesDeActividad(int idActividad)
+        public List<Participante> ListarParticipantesDeActividad(Actividad actividad)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_ActividadParticipante_ListarPorActividad",
-                new Hashtable { { "@idActividad", idActividad } });
+                new Hashtable { { "@idActividad", actividad.IdActividad } });
 
             List<Participante> participantes = new List<Participante>();
             foreach (DataRow fila in tabla.Rows)

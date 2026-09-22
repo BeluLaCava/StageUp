@@ -32,7 +32,7 @@ namespace StageUp.BLL
 
                 participante.IdUsuarioGestor = idUsuarioGestor;
 
-                bool yaExiste = _mppParticipante.ListarPorUsuarioGestor(idUsuarioGestor)
+                bool yaExiste = _mppParticipante.ListarPorUsuarioGestor(new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor })
                     .Any(existente => existente.Dni == participante.Dni && existente.IdParticipante != participante.IdParticipante);
                 if (yaExiste)
                 {
@@ -62,13 +62,13 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Participante participante = _mppParticipante.ObtenerPorId(idParticipante);
+                Participante participante = _mppParticipante.ObtenerPorId(new Participante { IdParticipante = idParticipante });
                 if (participante == null || participante.IdUsuarioGestor != idUsuarioGestor)
                 {
                     return ResultadoOperacion.Error("El participante indicado no existe o no te pertenece.");
                 }
 
-                _mppParticipante.DarDeBaja(idParticipante);
+                _mppParticipante.DarDeBaja(participante);
 
                 _bitacora.Registrar(
                     idUsuarioGestor, "BAJA", TipoEntidadBitacora, idParticipante,
@@ -82,7 +82,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mppParticipante.ListarPorUsuarioGestor(idUsuarioGestor);
+                return _mppParticipante.ListarPorUsuarioGestor(new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -92,7 +92,7 @@ namespace StageUp.BLL
 
         public Participante ObtenerParaEditar(int idParticipante, int idUsuarioGestor)
         {
-            Participante participante = _mppParticipante.ObtenerPorId(idParticipante);
+            Participante participante = _mppParticipante.ObtenerPorId(new Participante { IdParticipante = idParticipante });
             return participante != null && participante.IdUsuarioGestor == idUsuarioGestor ? participante : null;
         }
 

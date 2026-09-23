@@ -8,50 +8,56 @@
             <p>Administrá noticias públicas de StageUp y prepará envíos por correo para usuarios activos.</p>
         </div>
 
+        <asp:Panel ID="pnlMensaje" runat="server" Visible="false" CssClass="form-message">
+            <asp:Literal ID="litMensaje" runat="server" />
+        </asp:Panel>
+
         <div class="static-page-body internal-admin-stack">
             <div class="newsletter-dashboard-strip" aria-label="Resumen de newsletters">
                 <article>
                     <span>Borradores</span>
-                    <strong>2</strong>
+                    <strong><asp:Literal ID="litCantidadBorradores" runat="server" /></strong>
                 </article>
                 <article>
                     <span>Publicadas</span>
-                    <strong>4</strong>
-                </article>
-                <article>
-                    <span>Envíos programados</span>
-                    <strong>1</strong>
+                    <strong><asp:Literal ID="litCantidadPublicadas" runat="server" /></strong>
                 </article>
                 <article>
                     <span>Último envío</span>
-                    <strong>18/09</strong>
+                    <strong><asp:Literal ID="litUltimoEnvio" runat="server" /></strong>
                 </article>
             </div>
 
             <div class="newsletter-admin-layout">
-                <asp:Panel ID="pnlFormularioNewsletter" runat="server" CssClass="auth-card admin-editor-card newsletter-editor-card">
+                <asp:Panel ID="pnlFormularioNovedad" runat="server" CssClass="auth-card admin-editor-card newsletter-editor-card">
                     <div class="auth-card-header">
                         <span class="admin-card-eyebrow">Contenido</span>
-                        <h2>Nueva novedad</h2>
-                        <p>Vista preparada para conectar con el ABM real de novedades y newsletter.</p>
+                        <h2><asp:Literal ID="litTituloFormulario" runat="server" Text="Nueva novedad" /></h2>
+                        <p>Se publica en la página de novedades y, si lo tildás, también se envía por correo.</p>
                     </div>
 
                     <div class="form-field">
                         <label for="<%= txtTitulo.ClientID %>">Título *</label>
                         <asp:TextBox ID="txtTitulo" runat="server" TextMode="SingleLine" MaxLength="180"
-                            Text="Nuevos espacios para crear esta temporada" />
+                            placeholder="Ej: Nuevos espacios para crear esta temporada" />
+                        <asp:RequiredFieldValidator ID="rfvTitulo" runat="server" ControlToValidate="txtTitulo"
+                            ValidationGroup="Novedad" Display="Dynamic" CssClass="field-error-text" ErrorMessage="Ingresá el título." />
                     </div>
 
                     <div class="form-field">
                         <label for="<%= txtResumen.ClientID %>">Resumen para listado y correo *</label>
                         <asp:TextBox ID="txtResumen" runat="server" TextMode="MultiLine" Rows="3" MaxLength="300"
-                            Text="Sumamos salas, estudios y teatros con disponibilidad actualizada para que cada artista encuentre un lugar acorde a su actividad." />
+                            placeholder="Un párrafo breve: es lo que se ve en el listado y en el cuerpo del mail." />
+                        <asp:RequiredFieldValidator ID="rfvResumen" runat="server" ControlToValidate="txtResumen"
+                            ValidationGroup="Novedad" Display="Dynamic" CssClass="field-error-text" ErrorMessage="Ingresá el resumen." />
                     </div>
 
                     <div class="form-field">
                         <label for="<%= txtContenido.ClientID %>">Contenido de la novedad *</label>
                         <asp:TextBox ID="txtContenido" runat="server" TextMode="MultiLine" Rows="8"
-                            Text="Durante septiembre incorporamos nuevos espacios publicados por gestores verificados. La actualización incluye salas para ensayos, estudios fotográficos y teatros de distintos formatos." />
+                            placeholder="El texto completo que se muestra en la página pública de novedades." />
+                        <asp:RequiredFieldValidator ID="rfvContenido" runat="server" ControlToValidate="txtContenido"
+                            ValidationGroup="Novedad" Display="Dynamic" CssClass="field-error-text" ErrorMessage="Ingresá el contenido." />
                     </div>
 
                     <div class="newsletter-form-grid">
@@ -68,6 +74,7 @@
                         <div class="form-field">
                             <label for="<%= txtFechaPublicacion.ClientID %>">Fecha de publicación</label>
                             <asp:TextBox ID="txtFechaPublicacion" runat="server" TextMode="Date" />
+                            <small class="field-help">Si la dejás vacía y publicás, se usa la fecha de hoy.</small>
                         </div>
                     </div>
 
@@ -79,18 +86,10 @@
 
                     <div class="newsletter-options">
                         <label class="newsletter-check-option">
-                            <asp:CheckBox ID="chkPublicar" runat="server" Checked="true" />
+                            <asp:CheckBox ID="chkEnviarMail" runat="server" />
                             <span>
-                                <strong>Publicar en página de novedades</strong>
-                                <small>La noticia queda visible para usuarios y visitantes.</small>
-                            </span>
-                        </label>
-
-                        <label class="newsletter-check-option">
-                            <asp:CheckBox ID="chkEnviarMail" runat="server" Checked="true" />
-                            <span>
-                                <strong>Enviar también por mail</strong>
-                                <small>Usa la plantilla StageUp preparada en ServicioCorreo.</small>
+                                <strong>Enviar también por mail al publicar</strong>
+                                <small>Usa la plantilla StageUp y la categoría de destinatarios elegida abajo. Solo se envía una vez por novedad.</small>
                             </span>
                         </label>
                     </div>
@@ -106,9 +105,14 @@
                     </div>
 
                     <div class="form-actions">
-                        <asp:Button ID="btnGuardarBorrador" runat="server" CssClass="button button-secondary" Text="Borrador" CausesValidation="false" />
-                        <asp:Button ID="btnPublicar" runat="server" CssClass="button button-primary" Text="Publicar" CausesValidation="false" />
-                        <asp:Button ID="btnEnviarPrueba" runat="server" CssClass="button button-secondary" Text="Enviar prueba" CausesValidation="false" />
+                        <asp:Button ID="btnGuardarBorrador" runat="server" CssClass="button button-secondary" Text="Guardar como borrador"
+                            ValidationGroup="Novedad" OnClick="btnGuardarBorrador_Click" />
+                        <asp:Button ID="btnPublicar" runat="server" CssClass="button button-primary" Text="Guardar y publicar"
+                            ValidationGroup="Novedad" OnClick="btnPublicar_Click" />
+                        <asp:Button ID="btnEnviarPrueba" runat="server" CssClass="button button-secondary" Text="Enviar prueba"
+                            ValidationGroup="Novedad" OnClick="btnEnviarPrueba_Click" />
+                        <asp:LinkButton ID="lnkCancelarNovedad" runat="server" CssClass="text-link" Text="Cancelar edición"
+                            CausesValidation="false" Visible="false" OnClick="lnkCancelarNovedad_Click" />
                     </div>
                 </asp:Panel>
 
@@ -127,14 +131,13 @@
                                 <span class="newsletter-mail-logo" aria-hidden="true">S</span>
                                 <div>
                                     <strong>StageUp</strong>
-                                    <small>Novedades StageUp</small>
+                                    <small><asp:Literal ID="litPreviewCategoria" runat="server" Text="Novedades StageUp" /></small>
                                 </div>
                             </div>
                             <div class="newsletter-mail-body">
-                                <span class="newsletter-mail-tag">Nuevos espacios</span>
-                                <h3>Nuevos espacios para crear esta temporada</h3>
+                                <h3><asp:Literal ID="litPreviewTitulo" runat="server" Text="Así se va a ver el correo" /></h3>
                                 <p>Hola artista,</p>
-                                <p>Sumamos salas, estudios y teatros con disponibilidad actualizada para que cada artista encuentre un lugar acorde a su actividad.</p>
+                                <p><asp:Literal ID="litPreviewResumen" runat="server" Text="Completá el formulario y guardá para actualizar esta vista previa." /></p>
                                 <a href="#" class="newsletter-mail-button">Ver novedades</a>
                                 <small>Recibís este correo porque tenés una cuenta en StageUp.</small>
                             </div>
@@ -147,30 +150,39 @@
                             <h2>Novedades recientes</h2>
                         </div>
 
+                        <asp:Panel ID="pnlSinNovedades" runat="server" CssClass="admin-empty-hint" Visible="false">
+                            Todavía no cargaste ninguna novedad. Creá la primera desde el formulario.
+                        </asp:Panel>
+
                         <div class="newsletter-campaign-list">
-                            <article class="newsletter-campaign-row">
-                                <div>
-                                    <h3>Nuevos espacios para crear esta temporada</h3>
-                                    <p>Publicada · Envío pendiente</p>
-                                </div>
-                                <span class="admin-status-badge">Programada</span>
-                            </article>
-
-                            <article class="newsletter-campaign-row">
-                                <div>
-                                    <h3>Cómo preparar tu espacio para recibir reservas</h3>
-                                    <p>Enviada a gestores · 18/09/2026</p>
-                                </div>
-                                <span class="admin-status-badge admin-status-badge-active">Enviada</span>
-                            </article>
-
-                            <article class="newsletter-campaign-row">
-                                <div>
-                                    <h3>Guía rápida para comparar espacios</h3>
-                                    <p>Borrador · Sin publicar</p>
-                                </div>
-                                <span class="admin-status-badge admin-status-badge-inactive">Borrador</span>
-                            </article>
+                            <asp:Repeater ID="rptNovedades" runat="server" OnItemCommand="rptNovedades_ItemCommand">
+                                <ItemTemplate>
+                                    <article class='<%# ObtenerClaseFilaNovedad((StageUp.BE.Entidades.Novedad)Container.DataItem) %>'>
+                                        <div>
+                                            <h3><%#: Eval("Titulo") %></h3>
+                                            <p><%#: ObtenerTextoFechaNovedad((StageUp.BE.Entidades.Novedad)Container.DataItem) %></p>
+                                            <div class="space-row-actions">
+                                                <asp:LinkButton runat="server" CssClass="admin-action-link" CausesValidation="false"
+                                                    CommandName="Editar" CommandArgument='<%# Eval("IdNovedad") %>' Text="Editar" />
+                                                <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
+                                                    CommandName="Publicar" CommandArgument='<%# Eval("IdNovedad") %>' Text="Publicar"
+                                                    Visible='<%# !Convert.ToBoolean(Eval("Publicado")) %>' />
+                                                <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-danger" CausesValidation="false"
+                                                    CommandName="VolverABorrador" CommandArgument='<%# Eval("IdNovedad") %>' Text="Volver a borrador"
+                                                    Visible='<%# Convert.ToBoolean(Eval("Publicado")) %>'
+                                                    OnClientClick="return confirm('¿Volver esta novedad a borrador? Deja de mostrarse en la página pública.');" />
+                                                <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
+                                                    CommandName="EnviarNewsletter" CommandArgument='<%# Eval("IdNovedad") %>' Text="Enviar newsletter"
+                                                    Visible='<%# Convert.ToBoolean(Eval("Publicado")) && !Convert.ToBoolean(Eval("EnviadaPorCorreo")) %>'
+                                                    OnClientClick="return confirm('¿Enviar el newsletter de esta novedad a la categoría de destinatarios seleccionada arriba?');" />
+                                            </div>
+                                        </div>
+                                        <span class='<%# ObtenerClaseEstadoNovedad((StageUp.BE.Entidades.Novedad)Container.DataItem) %>'>
+                                            <%#: ObtenerTextoEstadoNovedad((StageUp.BE.Entidades.Novedad)Container.DataItem) %>
+                                        </span>
+                                    </article>
+                                </ItemTemplate>
+                            </asp:Repeater>
                         </div>
                     </div>
                 </div>

@@ -6,34 +6,36 @@
             <div>
                 <span class="section-label">Novedades</span>
                 <h1>Noticias y actualizaciones de StageUp.</h1>
-                <p>Un espacio preparado para publicar novedades del catálogo, avisos importantes y contenidos enviados por newsletter.</p>
+                <p>Un espacio para publicar novedades del catálogo, avisos importantes y contenidos enviados por newsletter.</p>
             </div>
         </header>
 
         <div class="public-news-layout container-wide">
-            <article class="public-news-feature">
-                <span class="public-news-category">Nuevos espacios</span>
-                <h2>Nuevos espacios para crear esta temporada</h2>
-                <p>Sumamos salas, estudios y teatros con disponibilidad actualizada para que cada artista encuentre un lugar acorde a su actividad.</p>
+            <asp:Panel ID="pnlSinNovedades" runat="server" CssClass="admin-empty-hint" Visible="false">
+                Todavía no hay novedades publicadas. Volvé a visitar esta sección más adelante.
+            </asp:Panel>
+
+            <asp:Panel ID="pnlDestacada" runat="server" CssClass="public-news-feature" Visible="false">
+                <span class="public-news-category"><asp:Literal ID="litFeaturedCategoria" runat="server" /></span>
+                <h2><asp:Literal ID="litFeaturedTitulo" runat="server" /></h2>
+                <p><asp:Literal ID="litFeaturedResumen" runat="server" /></p>
                 <a class="button button-primary" href="Explorar/ResultadosBusqueda.aspx">Explorar espacios</a>
-            </article>
+            </asp:Panel>
 
             <div class="public-news-list" aria-label="Listado de novedades">
-                <article class="public-news-item">
-                    <span>Comunidad artística</span>
-                    <h3>Cómo preparar tu espacio para recibir reservas</h3>
-                    <p>Recomendaciones para que los gestores mantengan sus publicaciones claras y actualizadas.</p>
-                </article>
-                <article class="public-news-item">
-                    <span>Guías StageUp</span>
-                    <h3>Guía rápida para comparar espacios</h3>
-                    <p>Una ayuda para elegir entre teatro, sala o estudio según el tipo de actividad.</p>
-                </article>
-                <article class="public-news-item">
-                    <span>Institucional</span>
-                    <h3>Newsletter StageUp</h3>
-                    <p>Las próximas publicaciones podrán enviarse por mail y quedar visibles en esta sección.</p>
-                </article>
+                <asp:Panel ID="pnlSinMasNovedades" runat="server" CssClass="admin-empty-hint" Visible="false">
+                    Por ahora esta es la única novedad publicada.
+                </asp:Panel>
+
+                <asp:Repeater ID="rptNovedades" runat="server">
+                    <ItemTemplate>
+                        <article class="public-news-item">
+                            <span><%#: ObtenerEtiquetaCategoria(Eval("Categoria").ToString()) %></span>
+                            <h3><%#: Eval("Titulo") %></h3>
+                            <p><%#: Eval("Resumen") %></p>
+                        </article>
+                    </ItemTemplate>
+                </asp:Repeater>
             </div>
         </div>
     </section>

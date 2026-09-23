@@ -41,43 +41,8 @@ namespace StageUp.UI.Interno
             GrupoMenu raiz = _bllPermiso.ConstruirMenuParaRol(idRolInterno);
             List<ItemMenu> items = raiz.ObtenerItems();
 
-            AgregarAccesoNewsletterSiFalta(items);
-
             rptMenu.DataSource = items;
             rptMenu.DataBind();
-        }
-
-        private static void AgregarAccesoNewsletterSiFalta(List<ItemMenu> items)
-        {
-            if (!DebeMostrarPrototipoNewsletter())
-            {
-                return;
-            }
-
-            foreach (ItemMenu item in items)
-            {
-                if (string.Equals(item.Url, "~/Interno/GestionNovedades.aspx", StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-            }
-
-            items.Add(new ItemMenu(
-                "Novedades",
-                "~/Interno/GestionNovedades.aspx",
-                "Administrar novedades públicas y envíos de newsletter."));
-        }
-
-        private static bool DebeMostrarPrototipoNewsletter()
-        {
-            return DebeMostrarPrototipoAdministrativo();
-        }
-
-        private static bool DebeMostrarPrototipoAdministrativo()
-        {
-            return GestorDeSesion.TienePermisoInterno("GESTIONAR_ROLES") ||
-                GestorDeSesion.TienePermisoInterno("GESTIONAR_IDIOMAS") ||
-                GestorDeSesion.TienePermisoInterno("GESTIONAR_USUARIOS_INTERNOS");
         }
     }
 }

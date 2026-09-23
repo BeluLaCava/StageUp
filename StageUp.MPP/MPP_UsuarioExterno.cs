@@ -134,6 +134,24 @@ namespace StageUp.MPP
             return lista;
         }
 
+        // Usuarios externos activos para el envío de newsletter (ítem 38 del
+        // checklist de correcciones), filtrados según la categoría elegida
+        // en Interno/GestionNovedades.aspx ("Activos", "Gestores",
+        // "Solicitantes" o "Todos").
+        public List<UsuarioExterno> ListarParaNewsletter(string criterio)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_UsuarioExterno_ListarParaNewsletter",
+                new Hashtable { { "@criterio", criterio } });
+
+            List<UsuarioExterno> lista = new List<UsuarioExterno>();
+            foreach (DataRow fila in tabla.Rows)
+            {
+                lista.Add(MapearDesdeFila(fila));
+            }
+            return lista;
+        }
+
         private static UsuarioExterno MapearDesdeFila(DataRow fila)
         {
             return new UsuarioExterno

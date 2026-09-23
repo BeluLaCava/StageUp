@@ -546,6 +546,22 @@ namespace StageUp.BLL
             }
         }
 
+        // Usada por BLL_Novedad al enviar el newsletter (ítem 38 del
+        // checklist de correcciones): lista los usuarios externos activos
+        // que corresponden a la categoría de destinatarios elegida en el
+        // panel ("Activos", "Gestores", "Solicitantes" o "Todos").
+        public List<UsuarioExterno> ListarParaNewsletter(string criterio)
+        {
+            try
+            {
+                return _mppUsuario.ListarParaNewsletter(criterio);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return new List<UsuarioExterno>();
+            }
+        }
+
         public ResultadoOperacion ActualizarDatosPersonales(
             int idUsuarioExterno, string nombre, string apellido, string correoElectronico,
             string telefono, string fotoPerfilRuta, string descripcionPerfil)

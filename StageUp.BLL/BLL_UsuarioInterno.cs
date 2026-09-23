@@ -38,30 +38,52 @@ namespace StageUp.BLL
                     return ResultadoOperacion<UsuarioInterno>.Error(ObtenerMensajeCaptcha(captcha.Estado));
                 }
 
-                UsuarioInterno usuario = _mppUsuarioInterno.ObtenerPorCorreo(new UsuarioInterno
-                {
-                    CorreoElectronico = correoElectronico.Trim().ToLowerInvariant()
-                });
-
-                if (usuario == null || !ProtectorDeCredenciales.VerificarPassword(usuario, password))
-                {
-                    return ResultadoOperacion<UsuarioInterno>.Error("El correo electrónico o la contraseña son incorrectos.");
-                }
-
-                if (usuario.EstadoCuenta != EstadoCuentaInterno.Activa.ToString())
-                {
-                    return ResultadoOperacion<UsuarioInterno>.Error("Esta cuenta interna no se encuentra habilitada.");
-                }
-
-                List<string> codigosPermisos = _bllPermiso.ListarCodigosPermisosDeRol(usuario.IdRolInterno);
-                GestorDeSesion.IniciarSesionInterna(usuario, codigosPermisos);
-
-                _bitacora.RegistrarInterno(
-                    usuario.IdUsuarioInterno, "LOGIN", "UsuarioInterno", usuario.IdUsuarioInterno,
-                    "Inicio de sesión de usuario interno.");
-
-                return ResultadoOperacion<UsuarioInterno>.Ok(usuario);
+                return IniciarSesionSinCaptchaInterno(correoElectronico, password);
             });
+        }
+
+        // Ítems 28/29 del checklist de correcciones (login unificado): variante
+        // sin validación de CAPTCHA, usada por BLL_Autenticacion para poder
+        // probar el login como usuario externo y, si no corresponde, como
+        // usuario interno, validando el token de reCAPTCHA una sola vez (es de
+        // un solo uso) desde un único lugar.
+        internal ResultadoOperacion<UsuarioInterno> IniciarSesionSinCaptcha(
+            string correoElectronico, string password)
+        {
+            return EjecutarProtegido(() => IniciarSesionSinCaptchaInterno(correoElectronico, password));
+        }
+
+        private ResultadoOperacion<UsuarioInterno> IniciarSesionSinCaptchaInterno(
+            string correoElectronico, string password)
+        {
+            if (string.IsNullOrWhiteSpace(correoElectronico) || string.IsNullOrWhiteSpace(password))
+            {
+                return ResultadoOperacion<UsuarioInterno>.Error("Ingresá tu correo electrónico y tu contraseña.");
+            }
+
+            UsuarioInterno usuario = _mppUsuarioInterno.ObtenerPorCorreo(new UsuarioInterno
+            {
+                CorreoElectronico = correoElectronico.Trim().ToLowerInvariant()
+            });
+
+            if (usuario == null || !ProtectorDeCredenciales.VerificarPassword(usuario, password))
+            {
+                return ResultadoOperacion<UsuarioInterno>.Error("El correo electrónico o la contraseña son incorrectos.");
+            }
+
+            if (usuario.EstadoCuenta != EstadoCuentaInterno.Activa.ToString())
+            {
+                return ResultadoOperacion<UsuarioInterno>.Error("Esta cuenta interna no se encuentra habilitada.");
+            }
+
+            List<string> codigosPermisos = _bllPermiso.ListarCodigosPermisosDeRol(usuario.IdRolInterno);
+            GestorDeSesion.IniciarSesionInterna(usuario, codigosPermisos);
+
+            _bitacora.RegistrarInterno(
+                usuario.IdUsuarioInterno, "LOGIN", "UsuarioInterno", usuario.IdUsuarioInterno,
+                "Inicio de sesión de usuario interno.");
+
+            return ResultadoOperacion<UsuarioInterno>.Ok(usuario);
         }
 
         public List<UsuarioInterno> Listar()

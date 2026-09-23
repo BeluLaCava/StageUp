@@ -30,6 +30,15 @@ namespace StageUp.UI.Interno
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            // Ítems 28/29 del checklist de correcciones: se retira esta
+            // pantalla como punto de ingreso propio. Todo el login (externo
+            // e interno) pasa ahora por la pantalla única IniciarSesion.aspx;
+            // esta URL se mantiene solo porque muchas páginas internas
+            // todavía redirigen acá cuando no hay sesión iniciada
+            // (GestorDeSesion.EstaAutenticadoComoInterno() == false), así que
+            // simplemente rebota a la pantalla unificada sin mostrar ningún
+            // formulario propio.
+            Response.Redirect("~/IniciarSesion.aspx");
         }
 
         protected void btnIniciarSesionInterno_Click(object sender, EventArgs e)

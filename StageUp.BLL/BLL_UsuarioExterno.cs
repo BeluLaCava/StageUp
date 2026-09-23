@@ -205,35 +205,57 @@ namespace StageUp.BLL
                     return ResultadoOperacion<UsuarioExterno>.Error(ObtenerMensajeCaptcha(captcha.Estado));
                 }
 
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(new UsuarioExterno
-                {
-                    CorreoElectronico = correoElectronico.Trim().ToLowerInvariant()
-                });
-
-                if (usuario == null || !ProtectorDeCredenciales.VerificarPassword(usuario, password))
-                {
-                    return ResultadoOperacion<UsuarioExterno>.Error("El correo electrónico o la contraseña son incorrectos.");
-                }
-
-                if (usuario.EstadoCuenta == EstadoCuentaExterno.PendienteActivacion.ToString())
-                {
-                    return ResultadoOperacion<UsuarioExterno>.Error(
-                        "Tu cuenta todavía no fue activada. Revisá tu correo electrónico para activarla.");
-                }
-
-                if (usuario.EstadoCuenta != EstadoCuentaExterno.Activa.ToString())
-                {
-                    return ResultadoOperacion<UsuarioExterno>.Error("Esta cuenta no se encuentra habilitada.");
-                }
-
-                GestorDeSesion.IniciarSesion(usuario);
-
-                _bitacora.Registrar(
-                    usuario.IdUsuarioExterno, "LOGIN", "UsuarioExterno", usuario.IdUsuarioExterno,
-                    "Inicio de sesión de usuario externo.");
-
-                return ResultadoOperacion<UsuarioExterno>.Ok(usuario);
+                return IniciarSesionSinCaptchaInterno(correoElectronico, password);
             });
+        }
+
+        // Ítems 28/29 del checklist de correcciones (login unificado): variante
+        // sin validación de CAPTCHA, usada por BLL_Autenticacion para poder
+        // probar el login como usuario externo y, si no corresponde, como
+        // usuario interno, validando el token de reCAPTCHA una sola vez (es de
+        // un solo uso) desde un único lugar.
+        internal ResultadoOperacion<UsuarioExterno> IniciarSesionSinCaptcha(
+            string correoElectronico, string password)
+        {
+            return EjecutarProtegido(() => IniciarSesionSinCaptchaInterno(correoElectronico, password));
+        }
+
+        private ResultadoOperacion<UsuarioExterno> IniciarSesionSinCaptchaInterno(
+            string correoElectronico, string password)
+        {
+            if (string.IsNullOrWhiteSpace(correoElectronico) || string.IsNullOrWhiteSpace(password))
+            {
+                return ResultadoOperacion<UsuarioExterno>.Error("Ingresá tu correo electrónico y tu contraseña.");
+            }
+
+            UsuarioExterno usuario = _mppUsuario.ObtenerPorCorreo(new UsuarioExterno
+            {
+                CorreoElectronico = correoElectronico.Trim().ToLowerInvariant()
+            });
+
+            if (usuario == null || !ProtectorDeCredenciales.VerificarPassword(usuario, password))
+            {
+                return ResultadoOperacion<UsuarioExterno>.Error("El correo electrónico o la contraseña son incorrectos.");
+            }
+
+            if (usuario.EstadoCuenta == EstadoCuentaExterno.PendienteActivacion.ToString())
+            {
+                return ResultadoOperacion<UsuarioExterno>.Error(
+                    "Tu cuenta todavía no fue activada. Revisá tu correo electrónico para activarla.");
+            }
+
+            if (usuario.EstadoCuenta != EstadoCuentaExterno.Activa.ToString())
+            {
+                return ResultadoOperacion<UsuarioExterno>.Error("Esta cuenta no se encuentra habilitada.");
+            }
+
+            GestorDeSesion.IniciarSesion(usuario);
+
+            _bitacora.Registrar(
+                usuario.IdUsuarioExterno, "LOGIN", "UsuarioExterno", usuario.IdUsuarioExterno,
+                "Inicio de sesión de usuario externo.");
+
+            return ResultadoOperacion<UsuarioExterno>.Ok(usuario);
         }
 
         public ResultadoOperacion SolicitarRecuperacion(string correoElectronico)

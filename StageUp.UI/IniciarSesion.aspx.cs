@@ -11,6 +11,7 @@ namespace StageUp.UI
     public partial class IniciarSesion : Page
     {
         private readonly BLL_UsuarioExterno _bllUsuarioExterno = new BLL_UsuarioExterno();
+        private readonly BLL_Autenticacion _bllAutenticacion = new BLL_Autenticacion();
 
         protected string ClaveSitioRecaptcha
         {
@@ -46,11 +47,17 @@ namespace StageUp.UI
                 return;
             }
 
-            ResultadoOperacion<StageUp.BE.Entidades.UsuarioExterno> resultado =
-                _bllUsuarioExterno.IniciarSesion(
-                    txtLoginEmail.Text,
-                    txtLoginPassword.Text,
-                    Request.Form["g-recaptcha-response"]);
+            // Ítems 28/29 del checklist de correcciones: esta es ahora la
+            // única pantalla de login de todo el sitio. BLL_Autenticacion
+            // valida el CAPTCHA una sola vez y prueba primero el login como
+            // usuario externo y, si no corresponde, como usuario interno
+            // (los modelos de datos y los permisos de cada uno siguen
+            // siendo completamente independientes, esto solo unifica la
+            // pantalla de ingreso).
+            ResultadoInicioSesion resultado = _bllAutenticacion.IniciarSesion(
+                txtLoginEmail.Text,
+                txtLoginPassword.Text,
+                Request.Form["g-recaptcha-response"]);
 
             if (!resultado.Exitoso)
             {
@@ -58,7 +65,7 @@ namespace StageUp.UI
                 return;
             }
 
-            Response.Redirect("~/Default.aspx");
+            Response.Redirect(resultado.EsInterno ? "~/Interno/PanelAdministrador.aspx" : "~/Default.aspx");
         }
 
         protected void lnkOlvideContrasena_Click(object sender, EventArgs e)

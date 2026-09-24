@@ -253,16 +253,45 @@ namespace StageUp.BLL
                     }
                 }
 
-                _mpp.MarcarEnviadaPorCorreo(new Novedad { IdNovedad = idNovedad, DestinatarioNewsletter = criterio });
+                // Ítem 38 del checklist de correcciones: antes se marcaba la
+                // novedad como enviada (EnviadaPorCorreo) sin importar el
+                // resultado real del envío. Como el envío solo se permite
+                // una vez (ver el chequeo de EnviadaPorCorreo más arriba), si
+                // había destinatarios pero el envío falló para todos (por
+                // ejemplo, el servidor de correo saliente estaba caído en
+                // ese momento), la novedad quedaba marcada como "ya
+                // enviada" para siempre, sin haber llegado a nadie y sin
+                // posibilidad de reintentar. Ahora solo se marca como
+                // enviada si no había destinatarios (nada que reintentar) o
+                // si al menos uno recibió el correo.
+                bool huboEnvioONoHabiaNadaQueEnviar = enviados > 0 || destinatarios.Count == 0;
+                if (huboEnvioONoHabiaNadaQueEnviar)
+                {
+                    _mpp.MarcarEnviadaPorCorreo(new Novedad { IdNovedad = idNovedad, DestinatarioNewsletter = criterio });
+                }
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "MODIFICACION", TipoEntidadBitacora, idNovedad,
-                    "Envío del newsletter de la novedad \"" + novedad.Titulo + "\" a " + enviados + " de " +
-                    destinatarios.Count + " destinatario(s) (categoría: " + criterio + ").");
+                    huboEnvioONoHabiaNadaQueEnviar
+                        ? "Envío del newsletter de la novedad \"" + novedad.Titulo + "\" a " + enviados + " de " +
+                          destinatarios.Count + " destinatario(s) (categoría: " + criterio + ")."
+                        : "Intento fallido de envío del newsletter de la novedad \"" + novedad.Titulo + "\": no se " +
+                          "pudo entregar a ninguno de los " + destinatarios.Count + " destinatario(s) (categoría: " +
+                          criterio + "). No se marcó como enviada; se puede reintentar.");
 
-                return destinatarios.Count == 0
-                    ? ResultadoOperacion<int>.Ok(0, "No hay destinatarios activos en esa categoría; no se envió ningún correo.")
-                    : ResultadoOperacion<int>.Ok(enviados, "Se envió el newsletter a " + enviados + " de " + destinatarios.Count + " destinatario(s).");
+                if (destinatarios.Count == 0)
+                {
+                    return ResultadoOperacion<int>.Ok(0, "No hay destinatarios activos en esa categoría; no se envió ningún correo.");
+                }
+
+                if (enviados == 0)
+                {
+                    return ResultadoOperacion<int>.Error(
+                        "No se pudo enviar el newsletter a ninguno de los " + destinatarios.Count +
+                        " destinatario(s). Revisá la configuración de correo saliente e intentá de nuevo.");
+                }
+
+                return ResultadoOperacion<int>.Ok(enviados, "Se envió el newsletter a " + enviados + " de " + destinatarios.Count + " destinatario(s).");
             });
         }
 

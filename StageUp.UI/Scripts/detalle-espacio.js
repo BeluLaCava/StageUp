@@ -132,32 +132,28 @@
         }
     }
 
-    function restarOcupados(ranges, dateValue) {
-        var ocupadosDelDia = occupiedRows.filter(function (occupied) {
-            return occupied.Fecha === dateValue;
-        });
-
-        if (!ocupadosDelDia.length) {
+    function restarSegmentos(ranges, bloqueadores) {
+        if (!bloqueadores.length) {
             return ranges;
         }
 
         var libres = [];
         ranges.forEach(function (range) {
             var segmentos = [{ MinutoDesde: range.MinutoDesde, MinutoHasta: range.MinutoHasta }];
-            ocupadosDelDia.forEach(function (ocupado) {
+            bloqueadores.forEach(function (bloqueador) {
                 var siguientes = [];
                 segmentos.forEach(function (segmento) {
-                    if (ocupado.MinutoHasta <= segmento.MinutoDesde || ocupado.MinutoDesde >= segmento.MinutoHasta) {
+                    if (bloqueador.MinutoHasta <= segmento.MinutoDesde || bloqueador.MinutoDesde >= segmento.MinutoHasta) {
                         siguientes.push(segmento);
                         return;
                     }
 
-                    if (ocupado.MinutoDesde > segmento.MinutoDesde) {
-                        siguientes.push({ MinutoDesde: segmento.MinutoDesde, MinutoHasta: ocupado.MinutoDesde });
+                    if (bloqueador.MinutoDesde > segmento.MinutoDesde) {
+                        siguientes.push({ MinutoDesde: segmento.MinutoDesde, MinutoHasta: bloqueador.MinutoDesde });
                     }
 
-                    if (ocupado.MinutoHasta < segmento.MinutoHasta) {
-                        siguientes.push({ MinutoDesde: ocupado.MinutoHasta, MinutoHasta: segmento.MinutoHasta });
+                    if (bloqueador.MinutoHasta < segmento.MinutoHasta) {
+                        siguientes.push({ MinutoDesde: bloqueador.MinutoHasta, MinutoHasta: segmento.MinutoHasta });
                     }
                 });
                 segmentos = siguientes;
@@ -173,6 +169,30 @@
         return libres;
     }
 
+    // Resuelve, para una fecha puntual, qué franjas de un conjunto aplican:
+    // si hay alguna con fecha exacta igual a dateValue, esas mandan (es la
+    // semántica de "excepción puntual" que ya usaba la disponibilidad
+    // publicada); si no, se usan las recurrentes por día de la semana. Se
+    // usa tanto para la disponibilidad publicada como, por separado, para
+    // las franjas bloqueadas por actividad (ítem 27): antes se resolvían
+    // las dos cosas juntas en una sola partición "exact", lo que hacía que
+    // un bloqueo de actividad con fecha puntual tapara por completo la
+    // disponibilidad recurrente de ese día en vez de solo descontar su
+    // propio horario.
+    function franjasParaFecha(candidatas, dateValue, weekday) {
+        var exactas = candidatas.filter(function (row) {
+            return row.Fecha === dateValue;
+        });
+
+        if (exactas.length) {
+            return exactas;
+        }
+
+        return candidatas.filter(function (row) {
+            return !row.Fecha && row.DiaSemana === weekday;
+        });
+    }
+
     var savedStart = startHidden.value;
     var savedDuration = durationHidden.value;
     var now = new Date();
@@ -180,6 +200,7 @@
         String(now.getMonth() + 1).padStart(2, "0") + "-" +
         String(now.getDate()).padStart(2, "0");
     dateInput.min = minimumDate;
+
 
     function time(minutes) {
         if (minutes === 1440) {
@@ -191,24 +212,29 @@
     }
 
     function rangesForDate(dateValue) {
-        var exact = rows.filter(function (row) {
-            return row.Fecha === dateValue;
+        var date = new Date(dateValue + "T12:00:00");
+        var weekday = date.getDay() === 0 ? 7 : date.getDay();
+
+        // Ítem 27: la disponibilidad publicada (Bloqueado = 0) y los
+        // bloqueos por actividad (Bloqueado = 1) se resuelven cada uno por
+        // su lado (cada uno puede tener su propia excepción de fecha
+        // puntual o su propio patrón recurrente) y recién después se
+        // descuentan los bloqueos de la disponibilidad.
+        var disponibilidadRows = rows.filter(function (row) {
+            return !row.Bloqueado;
+        });
+        var bloqueadoRows = rows.filter(function (row) {
+            return row.Bloqueado;
         });
 
-        var disponibles;
-        if (exact.length) {
-            disponibles = exact.filter(function (row) {
-                return !row.Bloqueado;
-            });
-        } else {
-            var date = new Date(dateValue + "T12:00:00");
-            var weekday = date.getDay() === 0 ? 7 : date.getDay();
-            disponibles = rows.filter(function (row) {
-                return !row.Fecha && row.DiaSemana === weekday && !row.Bloqueado;
-            });
-        }
+        var disponibles = franjasParaFecha(disponibilidadRows, dateValue, weekday);
+        var bloqueadosDelDia = franjasParaFecha(bloqueadoRows, dateValue, weekday);
+        var ocupadosDelDia = occupiedRows.filter(function (occupied) {
+            return occupied.Fecha === dateValue;
+        });
 
-        return restarOcupados(disponibles, dateValue);
+        var sinBloqueos = restarSegmentos(disponibles, bloqueadosDelDia);
+        return restarSegmentos(sinBloqueos, ocupadosDelDia);
     }
 
     function durationLabel(minutes) {

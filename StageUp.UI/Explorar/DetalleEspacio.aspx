@@ -224,5 +224,5 @@
 </asp:Content>
 
 <asp:Content ID="SpaceDetailScripts" ContentPlaceHolderID="PageScripts" runat="server">
-    <script src="<%= ResolveUrl("~/Scripts/detalle-espacio.js") %>?v=20260922-1"></script>
+    <script src="<%= ResolveUrl("~/Scripts/detalle-espacio.js") %>?v=20260924-1"></script>
 </asp:Content>

@@ -38,6 +38,7 @@
     <Compile Include="EncriptadorSimetrico.cs" />
     <Compile Include="HashDeContrasenas.cs" />
     <Compile Include="ProtectorDeCredenciales.cs" />
+    <Compile Include="ProtectorDeDatosSensibles.cs" />
     <Compile Include="GeneradorDeCodigos.cs" />
     <Compile Include="GestorDeSesion.cs" />
   </ItemGroup>

@@ -21,7 +21,7 @@ namespace StageUp.UI.Interno
         {
             if (!GestorDeSesion.EstaAutenticadoComoInterno())
             {
-                Response.Redirect("~/Interno/IniciarSesionInterno.aspx");
+                Response.Redirect("~/IniciarSesion.aspx");
                 return;
             }
 
@@ -32,7 +32,7 @@ namespace StageUp.UI.Interno
         protected void lnkCerrarSesionInterna_Click(object sender, EventArgs e)
         {
             GestorDeSesion.CerrarSesionInterna();
-            Response.Redirect("~/Interno/IniciarSesionInterno.aspx");
+            Response.Redirect("~/IniciarSesion.aspx");
         }
 
         private void CargarMenu()

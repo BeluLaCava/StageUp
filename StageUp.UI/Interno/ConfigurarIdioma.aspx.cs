@@ -208,7 +208,7 @@ namespace StageUp.UI.Interno
         {
             if (!GestorDeSesion.EstaAutenticadoComoInterno())
             {
-                Response.Redirect("~/Interno/IniciarSesionInterno.aspx");
+                Response.Redirect("~/IniciarSesion.aspx");
                 return false;
             }
 

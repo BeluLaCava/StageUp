@@ -81,7 +81,7 @@ Write-Host ""
 
 foreach ($script in $pendientes) {
     Write-Host "--- Ejecutando $($script.Name) ---" -ForegroundColor Yellow
-    sqlcmd -S $ServerInstance -d $Database -E -i $script.FullName -b
+    sqlcmd -S $ServerInstance -d $Database -E -i $script.FullName -f 65001 -b
     if ($LASTEXITCODE -ne 0) {
         Write-Host "`nERROR ejecutando $($script.Name). Revisa el mensaje de arriba y solucionalo antes de continuar. Los scripts anteriores ya quedaron marcados como aplicados, asi que al volver a correr este archivo va a arrancar justo desde el que fallo." -ForegroundColor Red
         exit 1

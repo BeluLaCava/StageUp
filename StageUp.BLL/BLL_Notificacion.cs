@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using StageUp.BE.Entidades;
 using StageUp.BE.Enumerados;
 using StageUp.DAL;
@@ -65,17 +64,22 @@ namespace StageUp.BLL
             }
         }
 
+        // Ítem 36 del checklist de correcciones: antes se traían TODAS las
+        // notificaciones del usuario (cantidad = int.MaxValue) solo para
+        // validar en memoria que la notificación pedida le pertenece. Ahora
+        // esa validación va directo en el WHERE del UPDATE (ver
+        // MPP_Notificacion.MarcarLeida / sp_Notificacion_MarcarLeida): si no
+        // es del usuario, no se actualiza nada, mismo comportamiento visible
+        // que antes.
         public void MarcarLeida(int idNotificacion, int idUsuarioExterno)
         {
             try
             {
-                bool esDelUsuario = _mppNotificacion
-                    .ListarPorUsuario(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno }, int.MaxValue)
-                    .Any(notificacion => notificacion.IdNotificacion == idNotificacion);
-                if (esDelUsuario)
+                _mppNotificacion.MarcarLeida(new Notificacion
                 {
-                    _mppNotificacion.MarcarLeida(new Notificacion { IdNotificacion = idNotificacion });
-                }
+                    IdNotificacion = idNotificacion,
+                    IdUsuarioExterno = idUsuarioExterno
+                });
             }
             catch (ErrorAccesoDatosException)
             {

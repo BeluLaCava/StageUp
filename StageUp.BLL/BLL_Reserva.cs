@@ -315,13 +315,23 @@ namespace StageUp.BLL
             }
         }
 
+        // Ítem 36 del checklist de correcciones: esta versión resuelve la
+        // reputación de TODOS los solicitantes distintos de "solicitudes" en
+        // un puñado fijo de consultas (una por cada dato que hace falta),
+        // en vez de repetir 3 consultas por cada solicitante distinto como
+        // hacía antes (patrón N+1 — con muchas solicitudes de muchos
+        // solicitantes distintos, eso significaba muchísimas idas y vueltas
+        // a la base para una sola pantalla de "Solicitudes recibidas").
         private void CompletarReputacionSolicitantes(List<Reserva> solicitudes)
         {
-            Dictionary<int, UsuarioExterno> usuarios = new Dictionary<int, UsuarioExterno>();
-            Dictionary<int, int> reservasAceptadas = new Dictionary<int, int>();
-            Dictionary<int, List<Calificacion>> calificacionesPorUsuario = new Dictionary<int, List<Calificacion>>();
-            Dictionary<int, ResumenReputacion> resumenes = new Dictionary<int, ResumenReputacion>();
+            HashSet<int> idsDistintos = new HashSet<int>();
+            foreach (Reserva solicitud in solicitudes)
+            {
+                idsDistintos.Add(solicitud.IdUsuarioExternoSolicitante);
+            }
+            List<int> idsSolicitantes = new List<int>(idsDistintos);
 
+            Dictionary<int, ResumenReputacion> resumenes = new Dictionary<int, ResumenReputacion>();
             try
             {
                 resumenes = _mppCalificacion.ListarResumenesUsuarios();
@@ -330,59 +340,44 @@ namespace StageUp.BLL
             {
             }
 
+            Dictionary<int, UsuarioExterno> usuarios = new Dictionary<int, UsuarioExterno>();
+            try
+            {
+                foreach (UsuarioExterno usuario in _mppUsuario.ListarPorIds(idsSolicitantes))
+                {
+                    usuarios[usuario.IdUsuarioExterno] = usuario;
+                }
+            }
+            catch (ErrorAccesoDatosException)
+            {
+            }
+
+            Dictionary<int, int> reservasAceptadas;
+            try
+            {
+                reservasAceptadas = _mppReserva.ContarAceptadasPorSolicitantes(idsSolicitantes);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                reservasAceptadas = new Dictionary<int, int>();
+            }
+
+            Dictionary<int, List<Calificacion>> calificacionesPorUsuario;
+            try
+            {
+                calificacionesPorUsuario = _mppCalificacion.ListarRecibidasTop3PorUsuarios(idsSolicitantes);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                calificacionesPorUsuario = new Dictionary<int, List<Calificacion>>();
+            }
+
             foreach (Reserva solicitud in solicitudes)
             {
                 int idSolicitante = solicitud.IdUsuarioExternoSolicitante;
-                if (!usuarios.ContainsKey(idSolicitante))
-                {
-                    UsuarioExterno usuario = null;
-                    int cantidadAceptadas = 0;
 
-                    try
-                    {
-                        usuario = _mppUsuario.ObtenerPorId(
-                            new UsuarioExterno { IdUsuarioExterno = idSolicitante });
-                    }
-                    catch (ErrorAccesoDatosException)
-                    {
-                    }
-
-                    try
-                    {
-                        List<Reserva> historial = _mppReserva.ListarPorSolicitante(
-                            new UsuarioExterno { IdUsuarioExterno = idSolicitante });
-                        foreach (Reserva reserva in historial)
-                        {
-                            if (reserva.EstadoReserva == EstadoReserva.Aceptada.ToString() ||
-                                reserva.EstadoReserva == EstadoReserva.Finalizada.ToString())
-                            {
-                                cantidadAceptadas++;
-                            }
-                        }
-                    }
-                    catch (ErrorAccesoDatosException)
-                    {
-                    }
-
-                    usuarios[idSolicitante] = usuario;
-                    reservasAceptadas[idSolicitante] = cantidadAceptadas;
-
-                    try
-                    {
-                        List<Calificacion> calificaciones = _mppCalificacion.ListarRecibidasPorUsuario(
-                            new UsuarioExterno { IdUsuarioExterno = idSolicitante });
-                        calificacionesPorUsuario[idSolicitante] = calificaciones.Count <= 3
-                            ? calificaciones
-                            : calificaciones.GetRange(0, 3);
-                    }
-                    catch (ErrorAccesoDatosException)
-                    {
-                        calificacionesPorUsuario[idSolicitante] = new List<Calificacion>();
-                    }
-                }
-
-                UsuarioExterno solicitante = usuarios[idSolicitante];
-                if (solicitante != null)
+                UsuarioExterno solicitante;
+                if (usuarios.TryGetValue(idSolicitante, out solicitante) && solicitante != null)
                 {
                     solicitud.SolicitanteDesde = solicitante.FechaActivacion ?? solicitante.FechaAlta;
                     if (string.IsNullOrWhiteSpace(solicitud.NombreSolicitante))
@@ -396,8 +391,16 @@ namespace StageUp.BLL
                     }
                 }
 
-                solicitud.CantidadReservasAceptadasSolicitante = reservasAceptadas[idSolicitante];
-                solicitud.CalificacionesSolicitante = calificacionesPorUsuario[idSolicitante];
+                int cantidadAceptadas;
+                solicitud.CantidadReservasAceptadasSolicitante =
+                    reservasAceptadas.TryGetValue(idSolicitante, out cantidadAceptadas) ? cantidadAceptadas : 0;
+
+                List<Calificacion> calificaciones;
+                solicitud.CalificacionesSolicitante =
+                    calificacionesPorUsuario.TryGetValue(idSolicitante, out calificaciones)
+                        ? calificaciones
+                        : new List<Calificacion>();
+
                 ResumenReputacion resumen;
                 if (resumenes.TryGetValue(idSolicitante, out resumen))
                 {

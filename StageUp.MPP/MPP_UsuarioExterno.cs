@@ -120,6 +120,31 @@ namespace StageUp.MPP
                 });
         }
 
+        // Ítem 36 del checklist de correcciones: versión "por lista de ids"
+        // de ObtenerPorId, pensada para que BLL_Reserva.CompletarReputacionSolicitantes
+        // pueda traer los datos de todos los solicitantes distintos de una
+        // tanda de solicitudes en una sola consulta, en vez de una consulta
+        // por solicitante (patrón N+1).
+        public List<UsuarioExterno> ListarPorIds(IEnumerable<int> idsUsuarios)
+        {
+            List<int> ids = new List<int>(idsUsuarios);
+            if (ids.Count == 0)
+            {
+                return new List<UsuarioExterno>();
+            }
+
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_UsuarioExterno_ListarPorIds",
+                new Hashtable { { "@idsUsuarios", string.Join(",", ids) } });
+
+            List<UsuarioExterno> lista = new List<UsuarioExterno>();
+            foreach (DataRow fila in tabla.Rows)
+            {
+                lista.Add(MapearDesdeFila(fila));
+            }
+            return lista;
+        }
+
         public List<UsuarioExterno> ListarPorPerfil(UsuarioExterno oUsuarioExterno)
         {
             DataTable tabla = Conexion.Instance.Leer(

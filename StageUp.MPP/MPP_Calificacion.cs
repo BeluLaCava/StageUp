@@ -93,6 +93,42 @@ namespace StageUp.MPP
                 "idUsuarioExterno");
         }
 
+        // Ítem 36 del checklist de correcciones: reemplaza, para uso de
+        // BLL_Reserva.CompletarReputacionSolicitantes, el patrón anterior de
+        // llamar ListarRecibidasPorUsuario (historial completo) por cada
+        // solicitante distinto y recortarlo a 3 en memoria. Ahora se resuelve
+        // para todos los solicitantes pedidos en una sola consulta, ya
+        // recortada a las 3 calificaciones más recientes por usuario.
+        public Dictionary<int, List<Calificacion>> ListarRecibidasTop3PorUsuarios(IEnumerable<int> idsUsuarios)
+        {
+            List<int> ids = new List<int>(idsUsuarios);
+            Dictionary<int, List<Calificacion>> resultado = new Dictionary<int, List<Calificacion>>();
+            if (ids.Count == 0)
+            {
+                return resultado;
+            }
+
+            List<Calificacion> calificaciones = MapearLista(Conexion.Instance.Leer(
+                "sp_Calificacion_ListarRecibidasTop3PorUsuarios",
+                new Hashtable { { "@idsUsuarios", string.Join(",", ids) } }));
+
+            foreach (Calificacion calificacion in calificaciones)
+            {
+                if (!calificacion.IdUsuarioEvaluado.HasValue)
+                {
+                    continue;
+                }
+
+                int idUsuarioEvaluado = calificacion.IdUsuarioEvaluado.Value;
+                if (!resultado.ContainsKey(idUsuarioEvaluado))
+                {
+                    resultado[idUsuarioEvaluado] = new List<Calificacion>();
+                }
+                resultado[idUsuarioEvaluado].Add(calificacion);
+            }
+            return resultado;
+        }
+
         private static List<Calificacion> MapearLista(DataTable tabla)
         {
             List<Calificacion> lista = new List<Calificacion>();

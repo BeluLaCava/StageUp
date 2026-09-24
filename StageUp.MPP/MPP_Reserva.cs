@@ -135,6 +135,32 @@ namespace StageUp.MPP
                 new Hashtable { { "@idReserva", reserva.IdReserva } });
         }
 
+        // Ítem 36 del checklist de correcciones: reemplaza, para uso de
+        // BLL_Reserva.CompletarReputacionSolicitantes, el patrón anterior de
+        // llamar ListarPorSolicitante (historial completo) por cada
+        // solicitante distinto y contar en memoria las reservas Aceptadas/
+        // Finalizadas. Ahora se resuelve para todos los solicitantes pedidos
+        // en una sola consulta agrupada.
+        public Dictionary<int, int> ContarAceptadasPorSolicitantes(IEnumerable<int> idsUsuarios)
+        {
+            List<int> ids = new List<int>(idsUsuarios);
+            Dictionary<int, int> resultado = new Dictionary<int, int>();
+            if (ids.Count == 0)
+            {
+                return resultado;
+            }
+
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_Reserva_ContarAceptadasPorSolicitantes",
+                new Hashtable { { "@idsUsuarios", string.Join(",", ids) } });
+
+            foreach (DataRow fila in tabla.Rows)
+            {
+                resultado[Convert.ToInt32(fila["idUsuarioExternoSolicitante"])] = Convert.ToInt32(fila["cantidadAceptadas"]);
+            }
+            return resultado;
+        }
+
         private static List<Reserva> MapearDesdeTabla(DataTable tabla)
         {
             List<Reserva> lista = new List<Reserva>();

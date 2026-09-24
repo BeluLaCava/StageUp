@@ -120,17 +120,36 @@ namespace StageUp.BLL
             espacio.Descripcion = string.IsNullOrWhiteSpace(espacio.Descripcion) ? null : espacio.Descripcion.Trim();
             if (espacio.Ficha.Fotos != null && espacio.Ficha.Fotos.Count > 0)
                 espacio.Ficha.FotoRuta = espacio.Ficha.Fotos[0];
-            int id = _mppEspacio.GuardarFicha(espacio);
-            // Guardar la ficha borra y reinserta FranjaEspacio por completo
-            // (ON DELETE CASCADE contra FichaEspacio), así que hay que
-            // regenerar acá mismo los bloqueos de las actividades que ya
-            // existan sobre este espacio (ítem 26 del checklist de
-            // correcciones) — si no, quedan disponibles para reservar hasta
-            // que alguien vuelva a guardar/modificar esa actividad.
-            _bllActividad.RegenerarFranjasBloqueadasDelEspacio(id);
-            _bitacora.Registrar(idUsuarioGestor, espacio.IdEspacioArtistico == 0 ? "ALTA" : "MODIFICACION",
-                TipoEntidadBitacora, id, "Guardado de ficha completa del espacio artístico.");
-            return ResultadoOperacion<int>.Ok(id, "El espacio se guardó correctamente.");
+
+            // Observación de María sobre los scripts SQL (segunda tanda):
+            // guardar la ficha borra y reinserta FranjaEspacio por completo
+            // (ON DELETE CASCADE de FranjaEspacio contra FichaEspacio, ver
+            // 09_FichaEspacio.sql), lo que incluye a las franjas bloqueadas
+            // por actividad (origen = 'Actividad'), no solo a las manuales
+            // que vienen en espacio.Ficha.Disponibilidad. Por eso, ya desde
+            // el ítem 26, este método regenera esas franjas de actividad
+            // inmediatamente después de guardar la ficha, releyéndolas desde
+            // dbo.Actividad (la fuente de verdad) — así que guardar una
+            // ficha desde "Mis espacios" no pierde los bloqueos generados
+            // desde "Mis actividades". Lo que faltaba, y se agrega ahora, es
+            // que todo el método esté protegido igual que el resto de la
+            // clase (EjecutarProtegido): si la regeneración fallara a mitad
+            // de camino (por ejemplo, por un corte de conexión con la
+            // base), antes esto se colaba como una excepción sin manejar en
+            // vez de un error prolijo — no cambia el resultado exitoso del
+            // caso normal, pero evita una pantalla de error fea si algo
+            // falla, y dejar la ficha ya guardada sin que la actividad se
+            // haya podido regenerar queda igual de visible que antes (el
+            // gestor puede volver a guardar la ficha para reintentar la
+            // regeneración).
+            return EjecutarProtegido(() =>
+            {
+                int id = _mppEspacio.GuardarFicha(espacio);
+                _bllActividad.RegenerarFranjasBloqueadasDelEspacio(id);
+                _bitacora.Registrar(idUsuarioGestor, espacio.IdEspacioArtistico == 0 ? "ALTA" : "MODIFICACION",
+                    TipoEntidadBitacora, id, "Guardado de ficha completa del espacio artístico.");
+                return ResultadoOperacion<int>.Ok(id, "El espacio se guardó correctamente.");
+            });
         }
 
         public ResultadoOperacion<int> Registrar(int idUsuarioGestor, string nombreEspacio, string descripcion, string tipoEspacio)

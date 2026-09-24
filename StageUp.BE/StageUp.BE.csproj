@@ -33,6 +33,7 @@
   <ItemGroup>
     <Compile Include="Entidades\Actividad.cs" />
     <Compile Include="Entidades\Notificacion.cs" />
+    <Compile Include="Entidades\Novedad.cs" />
     <Compile Include="Entidades\Participante.cs" />
     <Compile Include="Enumerados\ModoRecurrenciaActividad.cs" />
     <Compile Include="Enumerados\TipoNotificacion.cs" />

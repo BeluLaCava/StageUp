@@ -49,6 +49,13 @@
     <Compile Include="Entidades\UsuarioInterno.cs" />
     <Compile Include="Entidades\EspacioArtistico.cs" />
     <Compile Include="Entidades\Faq.cs" />
+    <Compile Include="Entidades\Encuesta.cs" />
+    <Compile Include="Entidades\PreguntaEncuesta.cs" />
+    <Compile Include="Entidades\OpcionPregunta.cs" />
+    <Compile Include="Entidades\EncuestaCompleta.cs" />
+    <Compile Include="Entidades\FilaResultadoEncuesta.cs" />
+    <Compile Include="Entidades\ResultadoOpcionEncuesta.cs" />
+    <Compile Include="Entidades\ResultadoPreguntaEncuesta.cs" />
     <Compile Include="Entidades\Reserva.cs" />
     <Compile Include="Entidades\Calificacion.cs" />
     <Compile Include="Entidades\Idioma.cs" />
@@ -61,6 +68,7 @@
     <Compile Include="Enumerados\EstadoReserva.cs" />
     <Compile Include="Enumerados\TipoCalificacion.cs" />
     <Compile Include="Enumerados\EstadoCuentaInterno.cs" />
+    <Compile Include="Enumerados\EstadoEncuesta.cs" />
     <Compile Include="Menu\ComponenteMenu.cs" />
     <Compile Include="Menu\ItemMenu.cs" />
     <Compile Include="Menu\GrupoMenu.cs" />

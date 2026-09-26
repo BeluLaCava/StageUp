@@ -255,6 +255,20 @@
     <Compile Include="Interno\GestionFaq.aspx.designer.cs">
       <DependentUpon>GestionFaq.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Interno\GestionEncuestas.aspx.cs">
+      <DependentUpon>GestionEncuestas.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\GestionEncuestas.aspx.designer.cs">
+      <DependentUpon>GestionEncuestas.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Encuestas.aspx.cs">
+      <DependentUpon>Encuestas.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Encuestas.aspx.designer.cs">
+      <DependentUpon>Encuestas.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Novedades.aspx.cs">
       <DependentUpon>Novedades.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -313,6 +327,8 @@
     <Content Include="Interno\GestionGruposPermisos.aspx" />
     <Content Include="Interno\GestionNovedades.aspx" />
     <Content Include="Interno\GestionFaq.aspx" />
+    <Content Include="Interno\GestionEncuestas.aspx" />
+    <Content Include="Encuestas.aspx" />
     <Content Include="Interno\GestionIdiomas.aspx" />
     <Content Include="Interno\ConfigurarIdioma.aspx" />
     <Content Include="Scripts\site.js" />

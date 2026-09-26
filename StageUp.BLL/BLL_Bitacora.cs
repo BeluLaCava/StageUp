@@ -18,7 +18,7 @@ namespace StageUp.BLL
         public static readonly string[] TiposDeEntidadAfectada =
         {
             "UsuarioExterno", "UsuarioInterno", "EspacioArtistico", "Reserva", "Calificacion", "RolInterno", "Idioma", "Traduccion", "ComponentePermiso",
-            "Actividad", "Participante"
+            "Actividad", "Participante", "Encuesta"
         };
 
         public void Registrar(

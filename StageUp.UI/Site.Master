@@ -101,6 +101,7 @@
                     <a id="ProfileSidebarLink" runat="server" class="sidebar-link" href="~/MiPerfil.aspx" data-i18n="Nav_MiPerfil">Mi perfil</a>
                     <a id="MisEspaciosLink" runat="server" class="sidebar-link" href="~/MisEspacios.aspx" data-i18n="Nav_MisEspacios">Mis espacios</a>
                     <a id="MisActividadesLink" runat="server" class="sidebar-link" href="~/MisActividades.aspx" data-i18n="Nav_MisActividades">Mis actividades</a>
+                    <a id="EncuestasLink" runat="server" class="sidebar-link" href="~/Encuestas.aspx">Encuestas</a>
                 </nav>
             </aside>
 

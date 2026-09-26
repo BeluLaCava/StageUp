@@ -7,9 +7,9 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // Ítems 3 y 10 de la segunda entrega: encuestas dinámicas con fecha de
-    // vencimiento y gráfico de resultados al instante. Mismo patrón que
-    // BLL_Faq.cs (EjecutarProtegido + ResultadoOperacion).
+    // Encuestas dinámicas con fecha de vencimiento y gráfico de resultados
+    // al instante. Mismo patrón que BLL_Faq.cs (EjecutarProtegido +
+    // ResultadoOperacion).
     public class BLL_Encuesta
     {
         private const int LongitudMaximaTitulo = 200;

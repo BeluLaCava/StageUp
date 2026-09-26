@@ -406,7 +406,7 @@ END
 GO
 
 -- ---------------------------------------------------------------------------
--- Resultados al instante (ítem 10): filas planas pregunta+opción con el
+-- Resultados al instante: filas planas pregunta+opción con el
 -- conteo de respuestas de cada opción y el total de respuestas de la
 -- pregunta, para que la BLL arme el gráfico de barras con los porcentajes
 -- calculados en el momento (nada queda cacheado).

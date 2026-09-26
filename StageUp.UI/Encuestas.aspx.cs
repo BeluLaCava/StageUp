@@ -9,9 +9,9 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    // Ítems 3 y 10 de la segunda entrega: encuestas dinámicas con fecha de
-    // vencimiento y gráfico de resultados al instante, del lado del usuario
-    // externo. Tres vistas en una sola página, según query string:
+    // Encuestas dinámicas con fecha de vencimiento y gráfico de resultados
+    // al instante, del lado del usuario externo. Tres vistas en una sola
+    // página, según query string:
     //   Encuestas.aspx                 -> pendientes por responder + resultados disponibles
     //   Encuestas.aspx?responder={id}  -> formulario para responder
     //   Encuestas.aspx?ver={id}        -> resultados en barras, al instante

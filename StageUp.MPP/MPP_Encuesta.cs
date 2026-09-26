@@ -7,9 +7,9 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Ítems 3 y 10 de la segunda entrega: encuestas dinámicas con fecha de
-    // vencimiento y gráfico de resultados al instante. Mismo patrón que
-    // MPP_Faq.cs (Conexion.Instance + Hashtable de parámetros).
+    // Encuestas dinámicas con fecha de vencimiento y gráfico de resultados
+    // al instante. Mismo patrón que MPP_Faq.cs (Conexion.Instance +
+    // Hashtable de parámetros).
     public class MPP_Encuesta
     {
         public List<Encuesta> Listar()
@@ -204,7 +204,7 @@ namespace StageUp.MPP
         }
 
         // Filas planas pregunta+opción con los conteos calculados en el
-        // momento (ítem 10). La BLL las agrupa en ResultadoPreguntaEncuesta.
+        // momento. La BLL las agrupa en ResultadoPreguntaEncuesta.
         public List<FilaResultadoEncuesta> ConsultarResultadosFilas(int idEncuesta)
         {
             DataTable tabla = Conexion.Instance.Leer(

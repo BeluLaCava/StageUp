@@ -1,28 +1,3 @@
--- ============================================================================
--- 32_DescontarBloqueosEnBusqueda.sql
---
--- Ítem 27 del checklist de correcciones (segunda observación de María,
--- 24/09/2026): la validación de backend al confirmar una reserva ya
--- rechazaba correctamente un horario que se superpone con un bloqueo de
--- actividad, pero la búsqueda del catálogo (sp_EspacioArtistico_BuscarPublicados,
--- en 15_FiltrosCatalogo.sql) solo descontaba reservas ya existentes, no
--- franjas bloqueadas por actividad. Resultado: un espacio con disponibilidad
--- amplia (por ej. miércoles 9 a 22) y una actividad propia que bloquea una
--- sub-franja (por ej. 10 a 12) seguía apareciendo como disponible para ese
--- horario en los resultados de búsqueda con filtro de fecha/horario.
---
--- Esta corrección agrega un NOT EXISTS adicional, análogo al que ya existía
--- para reservas, pero contra dbo.FranjaEspacio con bloqueado = 1, respetando
--- la misma resolución de fecha puntual vs. recurrente por día de semana que
--- ya usa la franja disponible (una franja bloqueada con fecha exacta manda
--- por sobre el patrón recurrente de bloqueo de ese día, igual que pasa con
--- la disponibilidad publicada).
---
--- 15_FiltrosCatalogo.sql ya se aplicó en todas las bases existentes (queda
--- registrado en _ScriptsEjecutados), así que la corrección va en este script
--- nuevo, que vuelve a crear el mismo procedimiento con el agregado.
--- ============================================================================
-
 IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;

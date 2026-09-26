@@ -100,6 +100,18 @@
                 </asp:Panel>
             </div>
 
+            <div class="auth-card admin-workspace-card">
+                <div class="auth-card-header admin-workspace-header">
+                    <div>
+                        <span class="admin-card-eyebrow">Exportación</span>
+                        <h2>Exportar registros cifrados</h2>
+                    </div>
+                </div>
+                <p>Genera un archivo XML con los registros que ves arriba (según los filtros aplicados), protegido con cifrado híbrido (AES + RSA). Para volver a leerlo hace falta la clave privada configurada en <a href="HerramientasSeguridad.aspx">Herramientas de seguridad</a>.</p>
+                <asp:Button ID="btnExportar" runat="server" CssClass="button button-secondary" Text="Exportar filtro actual a XML cifrado"
+                    CausesValidation="false" OnClick="btnExportar_Click" />
+            </div>
+
         </div>
     </section>
 </asp:Content>

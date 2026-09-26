@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using StageUp.BE.Entidades;
@@ -12,6 +13,7 @@ namespace StageUp.UI.Interno
     {
         private readonly BLL_Bitacora _bllBitacora = new BLL_Bitacora();
         private readonly BLL_UsuarioExterno _bllUsuario = new BLL_UsuarioExterno();
+        private readonly BLL_ExportacionSegura _bllExportacion = new BLL_ExportacionSegura();
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -38,20 +40,10 @@ namespace StageUp.UI.Interno
         {
             pnlMensaje.Visible = false;
 
-            string correo = txtCorreoUsuario.Text.Trim();
-            int? idUsuario = null;
-
-            if (!string.IsNullOrWhiteSpace(correo))
+            int? idUsuario;
+            if (!TryResolverUsuarioPorCorreo(out idUsuario))
             {
-                idUsuario = _bllUsuario.ObtenerIdPorCorreo(correo);
-                if (idUsuario == null)
-                {
-                    MostrarMensaje("No encontramos ningún usuario con ese correo.", esError: true);
-                    rptRegistros.DataSource = null;
-                    rptRegistros.DataBind();
-                    pnlSinResultados.Visible = false;
-                    return;
-                }
+                return;
             }
 
             DateTime? fechaDesde = ParsearFecha(txtFechaDesde.Text);
@@ -78,9 +70,66 @@ namespace StageUp.UI.Interno
             CargarTodos();
         }
 
+        protected void btnExportar_Click(object sender, EventArgs e)
+        {
+            pnlMensaje.Visible = false;
+
+            int? idUsuario;
+            if (!TryResolverUsuarioPorCorreo(out idUsuario))
+            {
+                return;
+            }
+
+            DateTime? fechaDesde = ParsearFecha(txtFechaDesde.Text);
+            DateTime? fechaHasta = ParsearFecha(txtFechaHasta.Text);
+            string tipoOperacion = string.IsNullOrEmpty(ddlTipoOperacion.SelectedValue) ? null : ddlTipoOperacion.SelectedValue;
+            string tipoEntidadAfectada = string.IsNullOrEmpty(ddlTipoEntidad.SelectedValue) ? null : ddlTipoEntidad.SelectedValue;
+
+            ResultadoOperacion<string> resultado = _bllExportacion.ExportarBitacoraCifrada(
+                idUsuario, fechaDesde, fechaHasta, tipoOperacion, tipoEntidadAfectada);
+
+            if (!resultado.Exitoso)
+            {
+                MostrarMensaje(resultado.Mensaje, esError: true);
+                CargarTodos();
+                return;
+            }
+
+            byte[] contenido = Encoding.UTF8.GetBytes(resultado.Valor);
+            Response.Clear();
+            Response.ContentType = "application/xml";
+            Response.AddHeader("Content-Disposition",
+                "attachment; filename=bitacora_export_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + ".xml");
+            Response.BinaryWrite(contenido);
+            Response.End();
+        }
+
         protected string ObtenerNombreMostrado(string nombreResponsable)
         {
             return string.IsNullOrWhiteSpace(nombreResponsable) ? "Sistema" : nombreResponsable;
+        }
+
+        private bool TryResolverUsuarioPorCorreo(out int? idUsuario)
+        {
+            idUsuario = null;
+            string correo = txtCorreoUsuario.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(correo))
+            {
+                return true;
+            }
+
+            idUsuario = _bllUsuario.ObtenerIdPorCorreo(correo);
+            if (idUsuario == null)
+            {
+                MostrarMensaje("No encontramos ningún usuario con ese correo.", esError: true);
+                rptRegistros.DataSource = null;
+                rptRegistros.DataBind();
+                pnlSinResultados.Visible = false;
+                return false;
+            }
+
+            return true;
         }
 
         private void PoblarFiltros()

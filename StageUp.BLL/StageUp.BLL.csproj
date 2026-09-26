@@ -29,6 +29,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BLL_Actividad.cs" />
@@ -56,6 +58,7 @@
     <Compile Include="BLL_Idioma.cs" />
     <Compile Include="BLL_Traduccion.cs" />
     <Compile Include="BLL_Multidioma.cs" />
+    <Compile Include="BLL_ExportacionSegura.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

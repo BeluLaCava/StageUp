@@ -58,6 +58,9 @@
     <Compile Include="Entidades\ResultadoPreguntaEncuesta.cs" />
     <Compile Include="Entidades\Reserva.cs" />
     <Compile Include="Entidades\Calificacion.cs" />
+    <Compile Include="Entidades\Ticket.cs" />
+    <Compile Include="Entidades\TicketMensaje.cs" />
+    <Compile Include="Entidades\TicketCompleto.cs" />
     <Compile Include="Entidades\Idioma.cs" />
     <Compile Include="Entidades\Traduccion.cs" />
     <Compile Include="Interfaces\IObservadorIdioma.cs" />
@@ -69,6 +72,7 @@
     <Compile Include="Enumerados\TipoCalificacion.cs" />
     <Compile Include="Enumerados\EstadoCuentaInterno.cs" />
     <Compile Include="Enumerados\EstadoEncuesta.cs" />
+    <Compile Include="Enumerados\EstadoTicket.cs" />
     <Compile Include="Menu\ComponenteMenu.cs" />
     <Compile Include="Menu\ItemMenu.cs" />
     <Compile Include="Menu\GrupoMenu.cs" />

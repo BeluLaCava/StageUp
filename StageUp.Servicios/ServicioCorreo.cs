@@ -109,6 +109,24 @@ namespace StageUp.Servicios
             return Enviar(destinatario, titulo + " | StageUp", cuerpo);
         }
 
+        public bool EnviarNotificacionRespuestaTicket(string destinatario, string nombreDestinatario, string asuntoTicket)
+        {
+            string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
+            {
+                Etiqueta = "Soporte StageUp",
+                Titulo = "Tenés una respuesta de soporte",
+                NombreDestinatario = nombreDestinatario,
+                Parrafos = new[]
+                {
+                    "Soporte respondió tu consulta \"" + asuntoTicket + "\".",
+                    "Ingresá a tu cuenta de StageUp, sección Soporte, para ver la respuesta completa y seguir la conversación."
+                },
+                Nota = "Este es un mensaje automático. Por favor, no respondas directamente a este correo."
+            });
+
+            return Enviar(destinatario, "Respuesta de soporte StageUp: " + asuntoTicket, cuerpo);
+        }
+
         private static bool Enviar(string destinatario, string asunto, string cuerpoHtml)
         {
             try

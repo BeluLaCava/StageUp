@@ -262,6 +262,13 @@
     <Compile Include="Interno\GestionEncuestas.aspx.designer.cs">
       <DependentUpon>GestionEncuestas.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Interno\GestionSoporte.aspx.cs">
+      <DependentUpon>GestionSoporte.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\GestionSoporte.aspx.designer.cs">
+      <DependentUpon>GestionSoporte.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Interno\HerramientasSeguridad.aspx.cs">
       <DependentUpon>HerramientasSeguridad.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -293,6 +300,13 @@
     </Compile>
     <Compile Include="Encuestas.aspx.designer.cs">
       <DependentUpon>Encuestas.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Soporte.aspx.cs">
+      <DependentUpon>Soporte.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Soporte.aspx.designer.cs">
+      <DependentUpon>Soporte.aspx</DependentUpon>
     </Compile>
     <Compile Include="Novedades.aspx.cs">
       <DependentUpon>Novedades.aspx</DependentUpon>
@@ -354,10 +368,12 @@
     <Content Include="Interno\GestionFaq.aspx" />
     <Content Include="Interno\GestionEncuestas.aspx" />
     <Content Include="Interno\HerramientasSeguridad.aspx" />
+    <Content Include="Interno\GestionSoporte.aspx" />
     <Content Include="PaginaNoEncontrada.aspx" />
     <Content Include="ErrorGeneral.aspx" />
     <Content Include="Global.asax" />
     <Content Include="Encuestas.aspx" />
+    <Content Include="Soporte.aspx" />
     <Content Include="Interno\GestionIdiomas.aspx" />
     <Content Include="Interno\ConfigurarIdioma.aspx" />
     <Content Include="Scripts\site.js" />

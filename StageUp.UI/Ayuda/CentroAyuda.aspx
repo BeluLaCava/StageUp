@@ -51,7 +51,7 @@
             <section class="support-path" aria-labelledby="support-title">
                 <div class="support-path-marker"><span aria-hidden="true">3</span></div>
                 <div><span class="eyebrow">Última instancia</span><h2 id="support-title">Contactar a soporte</h2><p>Si la asistencia automatizada no resuelve tu consulta, podrás registrar una solicitud. Esta acción requiere una cuenta activa y una sesión iniciada.</p></div>
-                <a class="button button-secondary" href="../IniciarSesion.aspx">Iniciar sesión para contactar a soporte</a>
+                <asp:HyperLink ID="lnkContactarSoporte" runat="server" CssClass="button button-secondary" NavigateUrl="~/IniciarSesion.aspx" Text="Iniciar sesión para contactar a soporte" />
             </section>
         </div>
     </section>

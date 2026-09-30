@@ -1,0 +1,59 @@
+# Scripts de base de datos de StageUp
+
+## Cómo se instala y se actualiza la base
+
+El único flujo normal, tanto para armar la base desde cero como para actualizar una base existente, es:
+
+```powershell
+cd Database
+.\EjecutarTodosLosScripts.ps1                      # instancia por defecto .\SQLEXPRESS
+.\EjecutarTodosLosScripts.ps1 -ServerInstance "PC\SQLEXPRESS01"
+```
+
+El script recorre los archivos numerados (`NN_*.sql`) en orden y ejecuta **solo los que todavía no figuran** en la tabla de control `dbo._ScriptsEjecutados`. Un script ya aplicado nunca se vuelve a ejecutar, así que es seguro correrlo después de cada `git pull`.
+
+Si la base se armó a mano antes de existir la tabla de control, la primera vez hay que correr `.\EjecutarTodosLosScripts.ps1 -MarcarComoAplicados` (no ejecuta nada, solo registra lo que ya está aplicado).
+
+**No ejecutar los scripts numerados a mano sobre una base con datos.**
+
+## Tipos de script
+
+### Scripts iniciales destructivos (contienen `DROP TABLE`)
+
+| Script | Tablas que recrea |
+|---|---|
+| `01_EsquemaSeguridadYRegistro.sql` | UsuarioExterno, CodigoActivacion, CodigoRecuperacion, AreaInterna, RolInterno, PermisoInterno, RolInternoPermiso, UsuarioInterno, RegistroActividad |
+| `02_EspacioArtistico.sql` | EspacioArtistico |
+| `06_Reservas.sql` | Reserva |
+| `09_FichaEspacio.sql` | FichaEspacio, FichaEspacioEquipamiento, FranjaEspacio |
+| `13_EspacioFoto.sql` | EspacioFoto |
+| `26_ActividadesYNotificaciones.sql` | Notificacion, ActividadParticipante, Participante, ActividadDiaSemana, Actividad |
+
+Sirven para armar la base desde cero. Cada uno tiene un encabezado de advertencia y una **protección**: si alguna de las tablas que borraría ya tiene filas, el script se detiene con un error y no ejecuta nada (`SET NOEXEC ON`). En una base nueva esas tablas no existen o están vacías, así que la instalación sigue normalmente.
+
+### Scripts incrementales (migraciones no destructivas)
+
+Todos los demás numerados: agregan columnas, tablas nuevas (con `IF OBJECT_ID(...) IS NULL`), índices, permisos, traducciones o recrean stored procedures. Son seguros sobre una base con datos. Los últimos agregados:
+
+| Script | Qué hace |
+|---|---|
+| `32_DescontarBloqueosEnBusqueda.sql` | Parche para bases viejas: la búsqueda del catálogo descuenta franjas bloqueadas por actividades (el 15 ya lo trae). |
+| `33_LimpiarTraduccionesLoginInterno.sql` | Limpieza para bases viejas de las traducciones de la pantalla de login interno retirada (el 17 ya no las inserta). |
+| `39_EncuestasBorradorYEliminacion.sql` | Una encuesta en Borrador no muestra resultados; eliminación controlada de borradores. |
+| `40_SoporteReservaAsociada.sql` | Tickets de soporte asociados a una reserva propia (validada) y contador de tickets abiertos. |
+| `41_FichaEspacioSinBorrarBloqueosDeActividad.sql` | Guardar la ficha de un espacio ya no borra la ficha ni los bloqueos de actividades. |
+
+Cuando se corrige un script ya publicado (por ejemplo 15, 36 o 38), la corrección se hace **en el script original** (para que una instalación nueva quede bien) **y en un script incremental nuevo** (para que una base que ya tenía aplicado el original también la reciba). Ejecutar ambos deja el mismo resultado.
+
+### Datos de demostración
+
+`05_DatosDePrueba.sql`, `25_DatosDemoCatalogoEspacios.sql` y `31_ReservaDemoFinalizada.sql` cargan datos de ejemplo para la demo.
+
+## Scripts que NO forman parte del flujo normal
+
+- **`Eliminacion_creacion_bd.sql`**: recuperación manual de una base rota. Borra todas las tablas y recrea la base. No es un script de instalación y no se entrega como parte del flujo normal. Tiene rutas físicas de `.mdf`/`.ldf` que hay que ajustar a cada instancia local, y arranca frenado (`SET NOEXEC ON`) para que no se ejecute entero por accidente. `EjecutarTodosLosScripts.ps1` nunca lo toma porque su nombre no empieza con número.
+- **`RepararTildes.ps1`**: utilitario puntual para reparar datos cargados con una codificación incorrecta en bases viejas.
+
+## Configuración privada
+
+Los secretos (SMTP, reCAPTCHA, claves de encriptación) viven en `StageUp.UI/AppSettings.private.config`, que está en `.gitignore` y no se versiona. Para armarlo, copiar `StageUp.UI/AppSettings.private.config.example` y completar los valores.

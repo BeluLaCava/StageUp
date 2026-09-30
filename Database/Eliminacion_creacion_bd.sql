@@ -1,3 +1,19 @@
+-- ############################################################################
+-- ##  NO ES UN SCRIPT DE INSTALACIÓN. NO FORMA PARTE DE LA ENTREGA NORMAL.  ##
+-- ##  Borra TODAS las tablas de StageUp y recrea la base desde cero.        ##
+-- ##  Uso exclusivo: recuperación manual de una base rota.                  ##
+-- ##  Instalación / actualización normal: EjecutarTodosLosScripts.ps1       ##
+-- ##  (ver Database/LEEME_Scripts.md).                                      ##
+-- ############################################################################
+--
+-- Protección: la primera instrucción de abajo frena el script (SET NOEXEC ON)
+-- para que no se pueda ejecutar entero por accidente con F5. Si realmente
+-- necesitás recuperar la base, leé las notas de más abajo, ajustá las rutas
+-- de .mdf/.ldf a tu instancia y recién ahí comentá esas dos líneas.
+RAISERROR(N'Eliminacion_creacion_bd.sql es un script de recuperación manual destructivo. No se ejecutó nada: leé el encabezado antes de usarlo.', 16, 1);
+SET NOEXEC ON;
+GO
+
 -- ============================================================================
 -- Eliminacion_creacion_bd.sql
 --
@@ -79,4 +95,7 @@ IF DB_ID(N'StageUp') IS NULL
     CREATE DATABASE StageUp
     ON PRIMARY (NAME = N'StageUp', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL17.SQLEXPRESS\MSSQL\DATA\StageUp_v2.mdf')
     LOG ON (NAME = N'StageUp_log', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL17.SQLEXPRESS\MSSQL\DATA\StageUp_v2_log.ldf');
+GO
+
+SET NOEXEC OFF;
 GO

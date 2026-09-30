@@ -7,6 +7,36 @@ GO
 USE StageUp;
 GO
 
+-- =============================================================================
+-- 13_EspacioFoto.sql
+-- ADVERTENCIA: SCRIPT INICIAL DESTRUCTIVO (contiene DROP TABLE).
+--
+-- Sirve para armar la base desde cero. NO debe ejecutarse a mano sobre una base
+-- con datos: borraría estas tablas y todo su contenido: EspacioFoto.
+-- El flujo normal de instalación y actualización es Database/EjecutarTodosLosScripts.ps1,
+-- que usa dbo._ScriptsEjecutados y nunca vuelve a correr un script ya aplicado.
+-- Ver Database/LEEME_Scripts.md.
+--
+-- Protección: si alguna de esas tablas ya tiene filas, el script se detiene acá
+-- con un error y no ejecuta nada más (SET NOEXEC ON). En una base nueva las tablas
+-- no existen o están vacías, así que sigue normalmente.
+-- =============================================================================
+IF EXISTS
+(
+    SELECT 1
+    FROM sys.partitions p
+    WHERE p.index_id IN (0, 1)
+      AND p.rows > 0
+      AND p.object_id IN
+      (
+        OBJECT_ID(N'dbo.EspacioFoto', N'U')
+      )
+)
+BEGIN
+    RAISERROR(N'13_EspacioFoto.sql es un script inicial destructivo y la base ya tiene datos en sus tablas. No se ejecutó nada. Para actualizar una base existente usá EjecutarTodosLosScripts.ps1.', 16, 1);
+    SET NOEXEC ON;
+END
+GO
 
 IF OBJECT_ID('dbo.EspacioFoto', 'U') IS NOT NULL DROP TABLE dbo.EspacioFoto;
 GO
@@ -88,4 +118,8 @@ BEGIN
       AND e.publicado = 1
     ORDER BY ef.idEspacioArtistico, ef.orden ASC;
 END
+GO
+
+-- Deja la sesión como estaba si la protección de arriba frenó el script.
+SET NOEXEC OFF;
 GO

@@ -96,6 +96,36 @@ BEGIN
                           AND res.minutoDesde < @minutoHasta
                     )
                 )
+                AND (
+                    -- Ítem 27: además de las reservas ya existentes, hay que
+                    -- descontar las franjas bloqueadas por una actividad del
+                    -- propio gestor (FranjaEspacio.bloqueado = 1). Se resuelve
+                    -- la fecha puntual vs. el día de semana recurrente de
+                    -- forma independiente de la disponibilidad publicada,
+                    -- porque un bloqueo puede tener su propia excepción de
+                    -- fecha distinta de la de la disponibilidad.
+                    @minutoDesde IS NULL OR @minutoHasta IS NULL
+                    OR NOT EXISTS (
+                        SELECT 1 FROM dbo.FranjaEspacio fb
+                        WHERE fb.idEspacioArtistico = e.idEspacioArtistico
+                          AND fb.bloqueado = 1
+                          AND (
+                                fb.fecha = @fechaDisponibilidad
+                                OR (
+                                    fb.fecha IS NULL
+                                    AND fb.diaSemana = @diaSemana
+                                    AND NOT EXISTS (
+                                        SELECT 1 FROM dbo.FranjaEspacio exb
+                                        WHERE exb.idEspacioArtistico = e.idEspacioArtistico
+                                          AND exb.bloqueado = 1
+                                          AND exb.fecha = @fechaDisponibilidad
+                                    )
+                                )
+                          )
+                          AND @minutoDesde < fb.minutoHasta
+                          AND fb.minutoDesde < @minutoHasta
+                    )
+                )
             )
       )
     ORDER BY e.fechaPublicacion DESC;

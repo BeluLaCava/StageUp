@@ -1,3 +1,12 @@
+-- =============================================================================
+-- 32_DescontarBloqueosEnBusqueda.sql  (incremental, no destructivo)
+-- Parche para bases que ya tenían aplicado el 15: recrea
+-- sp_EspacioArtistico_BuscarPublicados descontando las franjas bloqueadas por
+-- actividades. Desde la corrección de María (tercera tanda) el propio
+-- 15_FiltrosCatalogo.sql ya trae esta misma lógica, así que en una instalación
+-- nueva este script deja el procedimiento exactamente igual. Seguro de re-ejecutar.
+-- =============================================================================
+
 IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;

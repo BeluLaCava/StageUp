@@ -296,7 +296,9 @@ namespace StageUp.UI
             txtEquipamientoDetalle.Text = ficha.DetalleEquipamiento;
             foreach (ListItem item in cblEquipamiento.Items)
                 item.Selected = ficha.Equipamiento != null && ficha.Equipamiento.Contains(item.Value);
-            hdnDisponibilidad.Value = new JavaScriptSerializer().Serialize(ficha.Disponibilidad ?? new List<FranjaEspacio>());
+            // Solo las franjas manuales: los bloqueos de "Mis actividades" no se
+            // editan desde la ficha (si se mandaran, volverían como manuales).
+            hdnDisponibilidad.Value = new JavaScriptSerializer().Serialize(BLL_EspacioArtistico.ObtenerFranjasEditables(ficha));
         }
 
         private void GuardarFichaCompleta(int idUsuarioGestor)

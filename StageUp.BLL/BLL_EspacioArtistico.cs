@@ -121,27 +121,21 @@ namespace StageUp.BLL
             if (espacio.Ficha.Fotos != null && espacio.Ficha.Fotos.Count > 0)
                 espacio.Ficha.FotoRuta = espacio.Ficha.Fotos[0];
 
-            // Observación de María sobre los scripts SQL (segunda tanda):
-            // guardar la ficha borra y reinserta FranjaEspacio por completo
-            // (ON DELETE CASCADE de FranjaEspacio contra FichaEspacio, ver
-            // 09_FichaEspacio.sql), lo que incluye a las franjas bloqueadas
-            // por actividad (origen = 'Actividad'), no solo a las manuales
-            // que vienen en espacio.Ficha.Disponibilidad. Por eso, ya desde
-            // el ítem 26, este método regenera esas franjas de actividad
-            // inmediatamente después de guardar la ficha, releyéndolas desde
-            // dbo.Actividad (la fuente de verdad) — así que guardar una
-            // ficha desde "Mis espacios" no pierde los bloqueos generados
-            // desde "Mis actividades". Lo que faltaba, y se agrega ahora, es
-            // que todo el método esté protegido igual que el resto de la
-            // clase (EjecutarProtegido): si la regeneración fallara a mitad
-            // de camino (por ejemplo, por un corte de conexión con la
-            // base), antes esto se colaba como una excepción sin manejar en
-            // vez de un error prolijo — no cambia el resultado exitoso del
-            // caso normal, pero evita una pantalla de error fea si algo
-            // falla, y dejar la ficha ya guardada sin que la actividad se
-            // haya podido regenerar queda igual de visible que antes (el
-            // gestor puede volver a guardar la ficha para reintentar la
-            // regeneración).
+            // Observación de María sobre los scripts SQL (09/26, cascada):
+            // guardar la ficha ya NO borra y reinserta FichaEspacio. El
+            // mapper la actualiza (sp_FichaEspacio_Guardar, script 41) y solo
+            // reemplaza equipamiento, fotos y franjas con origen 'Manual', así
+            // que el ON DELETE CASCADE nunca se dispara desde acá y los
+            // bloqueos generados desde "Mis actividades" (origen 'Actividad')
+            // no se tocan. Por las dudas, si el formulario mandara alguna
+            // franja de actividad, se descarta antes de guardar para que no
+            // quede duplicada como manual.
+            espacio.Ficha.Disponibilidad = ObtenerFranjasEditables(espacio.Ficha);
+
+            // La regeneración de bloqueos de actividad se mantiene: es
+            // idempotente (borra y recrea solo las franjas de cada actividad
+            // desde dbo.Actividad, la fuente de verdad) y deja todo
+            // consistente si alguna actividad cambió mientras tanto.
             return EjecutarProtegido(() =>
             {
                 int id = _mppEspacio.GuardarFicha(espacio);
@@ -214,6 +208,28 @@ namespace StageUp.BLL
 
                 return ResultadoOperacion.Ok("Los cambios se guardaron correctamente.");
             });
+        }
+
+        // Franjas que el gestor puede editar desde la ficha de "Mis espacios":
+        // solo las manuales. Los bloqueos de una actividad se administran
+        // desde "Mis actividades" y nunca se mandan al formulario de la ficha.
+        public static List<FranjaEspacio> ObtenerFranjasEditables(FichaEspacio ficha)
+        {
+            List<FranjaEspacio> editables = new List<FranjaEspacio>();
+            if (ficha == null || ficha.Disponibilidad == null)
+            {
+                return editables;
+            }
+
+            foreach (FranjaEspacio franja in ficha.Disponibilidad)
+            {
+                if (franja != null && franja.Origen != "Actividad")
+                {
+                    editables.Add(franja);
+                }
+            }
+
+            return editables;
         }
 
         public List<EspacioArtistico> ListarMisEspacios(int idUsuarioGestor)

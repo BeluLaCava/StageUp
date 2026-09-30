@@ -61,6 +61,10 @@ namespace StageUp.BE.Entidades
         public int MinutoDesde { get; set; }
         public int MinutoHasta { get; set; }
         public bool Bloqueado { get; set; }
+
+        // "Manual" (cargada desde la ficha en Mis espacios) o "Actividad"
+        // (bloqueo generado desde Mis actividades). Null se trata como Manual.
+        public string Origen { get; set; }
     }
 
     public class FiltroBusquedaEspacios

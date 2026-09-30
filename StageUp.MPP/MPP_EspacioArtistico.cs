@@ -28,12 +28,12 @@ namespace StageUp.MPP
 
             FichaEspacio ficha = oEspacioArtistico.Ficha ?? new FichaEspacio();
 
+            // La ficha ya no se borra y se vuelve a insertar: se actualiza si
+            // existe (sp_FichaEspacio_Guardar, script 41). Así el ON DELETE
+            // CASCADE de FichaEspacio nunca se dispara al guardar y los
+            // bloqueos generados desde "Mis actividades" no se pierden.
             Conexion.Instance.Guardar(
-                "sp_FichaEspacio_EliminarPorEspacio",
-                new Hashtable { { "@idEspacioArtistico", idEspacioArtistico } });
-
-            Conexion.Instance.Guardar(
-                "sp_FichaEspacio_Insertar",
+                "sp_FichaEspacio_Guardar",
                 new Hashtable
                 {
                     { "@idEspacioArtistico", idEspacioArtistico },
@@ -47,6 +47,12 @@ namespace StageUp.MPP
                     { "@tipoPiso", (object)ficha.TipoPiso ?? DBNull.Value },
                     { "@detalleEquipamiento", (object)ficha.DetalleEquipamiento ?? DBNull.Value }
                 });
+
+            // Solo se limpia lo que el formulario vuelve a mandar completo:
+            // equipamiento, fotos y franjas con origen 'Manual'.
+            Conexion.Instance.Guardar(
+                "sp_FichaEspacio_LimpiarDatosEditables",
+                new Hashtable { { "@idEspacioArtistico", idEspacioArtistico } });
 
             foreach (string codigo in ficha.Equipamiento ?? new List<string>())
             {
@@ -367,7 +373,10 @@ namespace StageUp.MPP
                         Fecha = fila["fecha"] == DBNull.Value ? null : Convert.ToDateTime(fila["fecha"]).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                         MinutoDesde = Convert.ToInt32(fila["minutoDesde"]),
                         MinutoHasta = Convert.ToInt32(fila["minutoHasta"]),
-                        Bloqueado = Convert.ToBoolean(fila["bloqueado"])
+                        Bloqueado = Convert.ToBoolean(fila["bloqueado"]),
+                        Origen = fila.Table.Columns.Contains("origen") && fila["origen"] != DBNull.Value
+                            ? fila["origen"].ToString()
+                            : "Manual"
                     });
                 }
             }

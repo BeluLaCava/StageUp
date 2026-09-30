@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using StageUp.BE.Entidades;
@@ -140,6 +141,17 @@ namespace StageUp.UI.Interno
             litEstadoDetalle.Text = ObtenerTextoEstado(ticket.Estado);
             pnlEstadoDetalle.CssClass = "ticket-badge " + ObtenerClaseEstado(ticket.Estado);
 
+            // Contexto de la reserva asociada, para responder sabiendo de qué
+            // servicio contratado se trata.
+            pnlReservaAsociada.Visible = ticket.TieneReservaAsociada;
+            if (ticket.TieneReservaAsociada)
+            {
+                litIdReserva.Text = ticket.IdReservaAsociada.Value.ToString(CultureInfo.InvariantCulture);
+                litEspacioReserva.Text = Server.HtmlEncode(ticket.NombreEspacioReserva ?? "-");
+                litFechaReserva.Text = Server.HtmlEncode(DescribirFechaHorario(ticket));
+                litEstadoReserva.Text = Server.HtmlEncode(ticket.EstadoReserva ?? "-");
+            }
+
             rptMensajes.DataSource = resultado.Valor.Mensajes;
             rptMensajes.DataBind();
 
@@ -193,6 +205,38 @@ namespace StageUp.UI.Interno
                 case "Cerrado": return "ticket-badge-cerrado";
                 default: return string.Empty;
             }
+        }
+
+        protected static string DescribirReserva(Ticket ticket)
+        {
+            string texto = string.IsNullOrEmpty(ticket.NombreEspacioReserva) ? "Reserva" : ticket.NombreEspacioReserva;
+            texto += " · " + DescribirFechaHorario(ticket);
+            if (!string.IsNullOrEmpty(ticket.EstadoReserva))
+            {
+                texto += " (" + ticket.EstadoReserva + ")";
+            }
+            return texto;
+        }
+
+        private static string DescribirFechaHorario(Ticket ticket)
+        {
+            if (!ticket.FechaReserva.HasValue)
+            {
+                return "-";
+            }
+
+            string texto = ticket.FechaReserva.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+            if (ticket.MinutoDesdeReserva.HasValue && ticket.MinutoHastaReserva.HasValue)
+            {
+                texto += " " + FormatearHora(ticket.MinutoDesdeReserva.Value) + " a " + FormatearHora(ticket.MinutoHastaReserva.Value);
+            }
+            return texto;
+        }
+
+        private static string FormatearHora(int minutos)
+        {
+            return (minutos / 60).ToString("00", CultureInfo.InvariantCulture) + ":" +
+                (minutos % 60).ToString("00", CultureInfo.InvariantCulture);
         }
 
         protected static string ObtenerTextoAsignado(object nombre)

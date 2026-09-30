@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using StageUp.BE.Entidades;
@@ -10,8 +12,10 @@ namespace StageUp.UI
     // Módulo de soporte/helpdesk (ítems 6C y 16 de la segunda entrega), del
     // lado del usuario externo. Dos vistas en una sola página, según query
     // string, mismo patrón que Encuestas.aspx:
-    //   Soporte.aspx          -> nueva consulta + mis consultas
-    //   Soporte.aspx?ver={id} -> hilo de mensajes de una consulta puntual
+    //   Soporte.aspx              -> nueva consulta + mis consultas
+    //   Soporte.aspx?reserva={id} -> igual, con esa reserva ya elegida
+    //                                (botón "Contactar soporte" de Mis reservas)
+    //   Soporte.aspx?ver={id}     -> hilo de mensajes de una consulta puntual
     public partial class Soporte : Page
     {
         private readonly BLL_Ticket _bllTicket = new BLL_Ticket();
@@ -30,6 +34,7 @@ namespace StageUp.UI
             }
 
             CargarCategorias();
+            CargarReservas();
 
             int idVer;
             if (int.TryParse(Request.QueryString["ver"], out idVer))
@@ -38,6 +43,7 @@ namespace StageUp.UI
             }
             else
             {
+                PreseleccionarReservaDesdeQueryString();
                 CargarDashboard();
             }
         }
@@ -50,13 +56,17 @@ namespace StageUp.UI
             }
 
             int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            int idReserva;
+            int? idReservaAsociada = int.TryParse(ddlReservaAsociada.SelectedValue, out idReserva)
+                ? idReserva
+                : (int?)null;
+
             ResultadoOperacion<int> resultado = _bllTicket.CrearTicket(
-                idUsuarioExterno, ddlCategoria.SelectedValue, txtAsunto.Text, txtMensajeInicial.Text);
+                idUsuarioExterno, ddlCategoria.SelectedValue, txtAsunto.Text, txtMensajeInicial.Text, idReservaAsociada);
 
             if (!resultado.Exitoso)
             {
                 MostrarMensaje(resultado.Mensaje, true);
-                CargarCategorias();
                 CargarDashboard();
                 return;
             }
@@ -90,6 +100,38 @@ namespace StageUp.UI
             ddlCategoria.DataBind();
         }
 
+        private void CargarReservas()
+        {
+            ddlReservaAsociada.Items.Clear();
+            ddlReservaAsociada.Items.Add(new ListItem("Ninguna en particular", string.Empty));
+
+            int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            List<Reserva> reservas = _bllTicket.ListarReservasParaAsociar(idUsuarioExterno);
+            foreach (Reserva reserva in reservas)
+            {
+                ddlReservaAsociada.Items.Add(new ListItem(
+                    DescribirReserva(reserva.NombreEspacio, reserva.FechaSolicitada, reserva.MinutoDesde, reserva.MinutoHasta, reserva.EstadoReserva),
+                    reserva.IdReserva.ToString(CultureInfo.InvariantCulture)));
+            }
+        }
+
+        private void PreseleccionarReservaDesdeQueryString()
+        {
+            string idReserva = Request.QueryString["reserva"];
+            if (string.IsNullOrEmpty(idReserva) || ddlReservaAsociada.Items.FindByValue(idReserva) == null)
+            {
+                // Solo se preselecciona si es una reserva propia (la lista ya
+                // viene filtrada por usuario); cualquier otro id se ignora.
+                return;
+            }
+
+            ddlReservaAsociada.SelectedValue = idReserva;
+            if (ddlCategoria.Items.FindByValue("Reserva") != null)
+            {
+                ddlCategoria.SelectedValue = "Reserva";
+            }
+        }
+
         private void CargarDashboard()
         {
             MostrarSolo(pnlDashboard);
@@ -118,6 +160,8 @@ namespace StageUp.UI
             Ticket ticket = resultado.Valor.Ticket;
             litAsuntoDetalle.Text = Server.HtmlEncode(ticket.Asunto);
             litCategoriaDetalle.Text = Server.HtmlEncode(ticket.Categoria);
+            pnlReservaDetalle.Visible = ticket.TieneReservaAsociada;
+            litReservaDetalle.Text = ticket.TieneReservaAsociada ? Server.HtmlEncode(DescribirReserva(ticket)) : string.Empty;
             litEstadoDetalle.Text = ObtenerTextoEstado(ticket.Estado);
             pnlEstadoDetalle.CssClass = "ticket-badge " + ObtenerClaseEstado(ticket.Estado);
 
@@ -144,6 +188,39 @@ namespace StageUp.UI
                 ? "form-message form-message-error"
                 : "form-message form-message-success";
             pnlMensaje.Visible = !string.IsNullOrEmpty(mensaje);
+        }
+
+        protected static string DescribirReserva(Ticket ticket)
+        {
+            return DescribirReserva(ticket.NombreEspacioReserva, ticket.FechaReserva, ticket.MinutoDesdeReserva,
+                ticket.MinutoHastaReserva, ticket.EstadoReserva);
+        }
+
+        private static string DescribirReserva(string nombreEspacio, DateTime? fecha, int? minutoDesde, int? minutoHasta, string estado)
+        {
+            string texto = string.IsNullOrEmpty(nombreEspacio) ? "Reserva" : nombreEspacio;
+            if (fecha.HasValue)
+            {
+                texto += " · " + fecha.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+            }
+
+            if (minutoDesde.HasValue && minutoHasta.HasValue)
+            {
+                texto += " " + FormatearHora(minutoDesde.Value) + " a " + FormatearHora(minutoHasta.Value);
+            }
+
+            if (!string.IsNullOrEmpty(estado))
+            {
+                texto += " (" + estado + ")";
+            }
+
+            return texto;
+        }
+
+        private static string FormatearHora(int minutos)
+        {
+            return (minutos / 60).ToString("00", CultureInfo.InvariantCulture) + ":" +
+                (minutos % 60).ToString("00", CultureInfo.InvariantCulture);
         }
 
         protected static string ObtenerTextoEstado(object estado)

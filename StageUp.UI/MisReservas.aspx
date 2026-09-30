@@ -42,6 +42,7 @@
                                 <asp:Panel ID="pnlCalificacionEspacioRealizada" runat="server" CssClass="review-completed-badge">
                                     <span aria-hidden="true">✓</span> <span data-i18n="Calificacion_ResenaEnviada">Reseña enviada</span>
                                 </asp:Panel>
+                                <a class="text-link" href='<%#: "Soporte.aspx?reserva=" + Eval("IdReserva") %>'>Contactar soporte</a>
                             </div>
                         </div>
                     </ItemTemplate>

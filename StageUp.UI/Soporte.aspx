@@ -44,6 +44,12 @@
                     </div>
 
                     <div class="form-field">
+                        <label for="<%= ddlReservaAsociada.ClientID %>">Reserva relacionada (opcional)</label>
+                        <asp:DropDownList ID="ddlReservaAsociada" runat="server" />
+                        <span class="ticket-lista-item-meta">Si tu consulta es sobre una reserva puntual, elegila para que soporte la vea directamente.</span>
+                    </div>
+
+                    <div class="form-field">
                         <label for="<%= txtAsunto.ClientID %>">Asunto *</label>
                         <asp:TextBox ID="txtAsunto" runat="server" TextMode="SingleLine" MaxLength="200"
                             placeholder="Ej: No puedo cancelar una reserva" />
@@ -80,6 +86,9 @@
                                     <span class="ticket-lista-item-meta">
                                         <%#: Eval("Categoria") %> · Última actividad: <%#: Eval("FechaUltimaActividad", "{0:dd/MM/yyyy HH:mm}") %>
                                     </span>
+                                    <asp:PlaceHolder runat="server" Visible='<%# ((StageUp.BE.Entidades.Ticket)Container.DataItem).TieneReservaAsociada %>'>
+                                        <span class="ticket-lista-item-meta">Reserva: <%#: DescribirReserva((StageUp.BE.Entidades.Ticket)Container.DataItem) %></span>
+                                    </asp:PlaceHolder>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:12px;">
                                     <span class='<%# "ticket-badge " + ObtenerClaseEstado(Eval("Estado")) %>'><%#: ObtenerTextoEstado(Eval("Estado")) %></span>
@@ -97,6 +106,9 @@
                         <div>
                             <h2><asp:Literal ID="litAsuntoDetalle" runat="server" /></h2>
                             <p class="ticket-lista-item-meta"><asp:Literal ID="litCategoriaDetalle" runat="server" /></p>
+                            <asp:Panel ID="pnlReservaDetalle" runat="server" Visible="false">
+                                <p class="ticket-lista-item-meta">Reserva relacionada: <asp:Literal ID="litReservaDetalle" runat="server" /></p>
+                            </asp:Panel>
                         </div>
                         <asp:Panel ID="pnlEstadoDetalle" runat="server" CssClass="ticket-badge">
                             <asp:Literal ID="litEstadoDetalle" runat="server" />

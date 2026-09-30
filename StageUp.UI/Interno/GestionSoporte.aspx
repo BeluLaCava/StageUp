@@ -60,6 +60,11 @@
                                         Última actividad: <%#: Eval("FechaUltimaActividad", "{0:dd/MM/yyyy HH:mm}") %>
                                         · <%#: ObtenerTextoAsignado(Eval("NombreUsuarioInternoAsignado")) %>
                                     </div>
+                                    <asp:PlaceHolder runat="server" Visible='<%# ((StageUp.BE.Entidades.Ticket)Container.DataItem).TieneReservaAsociada %>'>
+                                        <div class="ticket-admin-row-meta">
+                                            Reserva #<%#: Eval("IdReservaAsociada") %>: <%#: DescribirReserva((StageUp.BE.Entidades.Ticket)Container.DataItem) %>
+                                        </div>
+                                    </asp:PlaceHolder>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:12px;">
                                     <span class='<%# "ticket-badge " + ObtenerClaseEstado(Eval("Estado")) %>'><%#: ObtenerTextoEstado(Eval("Estado")) %></span>
@@ -84,6 +89,13 @@
                             <asp:Literal ID="litEstadoDetalle" runat="server" />
                         </asp:Panel>
                     </div>
+
+                    <asp:Panel ID="pnlReservaAsociada" runat="server" CssClass="admin-empty-hint" Visible="false">
+                        <strong>Reserva relacionada #<asp:Literal ID="litIdReserva" runat="server" /></strong><br />
+                        Espacio: <asp:Literal ID="litEspacioReserva" runat="server" /><br />
+                        Fecha y horario: <asp:Literal ID="litFechaReserva" runat="server" /><br />
+                        Estado de la reserva: <asp:Literal ID="litEstadoReserva" runat="server" />
+                    </asp:Panel>
 
                     <div class="ticket-hilo">
                         <asp:Repeater ID="rptMensajes" runat="server">

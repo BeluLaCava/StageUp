@@ -22,5 +22,20 @@ namespace StageUp.BE.Entidades
         public string NombreUsuarioExterno { get; set; }
         public string CorreoUsuarioExterno { get; set; }
         public string NombreUsuarioInternoAsignado { get; set; }
+
+        // Contexto de la reserva asociada (null si el ticket no está
+        // asociado a ninguna reserva). Lo completa el LEFT JOIN de los
+        // stored procedures de consulta, para que soporte responda sabiendo
+        // de qué servicio contratado se trata.
+        public string NombreEspacioReserva { get; set; }
+        public DateTime? FechaReserva { get; set; }
+        public int? MinutoDesdeReserva { get; set; }
+        public int? MinutoHastaReserva { get; set; }
+        public string EstadoReserva { get; set; }
+
+        public bool TieneReservaAsociada
+        {
+            get { return IdReservaAsociada.HasValue; }
+        }
     }
 }

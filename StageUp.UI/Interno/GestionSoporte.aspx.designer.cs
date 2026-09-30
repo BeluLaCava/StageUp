@@ -16,6 +16,11 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.Literal litCategoriaDetalle;
         protected global::System.Web.UI.WebControls.Panel pnlEstadoDetalle;
         protected global::System.Web.UI.WebControls.Literal litEstadoDetalle;
+        protected global::System.Web.UI.WebControls.Panel pnlReservaAsociada;
+        protected global::System.Web.UI.WebControls.Literal litIdReserva;
+        protected global::System.Web.UI.WebControls.Literal litEspacioReserva;
+        protected global::System.Web.UI.WebControls.Literal litFechaReserva;
+        protected global::System.Web.UI.WebControls.Literal litEstadoReserva;
         protected global::System.Web.UI.WebControls.Repeater rptMensajes;
         protected global::System.Web.UI.WebControls.Button btnTomarTicket;
         protected global::System.Web.UI.WebControls.DropDownList ddlNuevoEstado;

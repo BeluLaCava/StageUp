@@ -37,7 +37,7 @@
             <nav class="internal-nav" aria-label="Navegación del panel administrativo">
                 <asp:Repeater ID="rptMenu" runat="server">
                     <ItemTemplate>
-                        <a href='<%# ResolveUrl(Eval("Url").ToString()) %>'><%# Eval("Nombre") %></a>
+                        <a href='<%# ResolveUrl(Eval("Url").ToString()) %>'><%# Eval("Nombre") %><%# ObtenerIndicadorPendientes(Eval("Url")) %></a>
                     </ItemTemplate>
                 </asp:Repeater>
             </nav>

@@ -9,10 +9,11 @@ namespace StageUp.MPP
 {
     // Módulo de soporte/helpdesk (ítems 6C y 16 de la segunda entrega).
     // Mismo patrón que MPP_Faq.cs / MPP_Encuesta.cs (Conexion.Instance +
-    // Hashtable de parámetros).
+    // Hashtable de parámetros). Todos los métodos públicos reciben objetos
+    // (Ticket, TicketMensaje, UsuarioExterno), no ids sueltos.
     public class MPP_Ticket
     {
-        public int Crear(Ticket oTicket, string mensajeInicial)
+        public int Crear(Ticket oTicket, TicketMensaje oMensajeInicial)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_Ticket_Crear",
@@ -22,81 +23,89 @@ namespace StageUp.MPP
                     { "@idReservaAsociada", (object)oTicket.IdReservaAsociada ?? DBNull.Value },
                     { "@categoria", oTicket.Categoria },
                     { "@asunto", oTicket.Asunto },
-                    { "@mensajeInicial", mensajeInicial }
+                    { "@mensajeInicial", oMensajeInicial.Mensaje }
                 });
 
             return Convert.ToInt32(resultado);
         }
 
-        public int InsertarMensaje(int idTicket, int? idUsuarioExterno, int? idUsuarioInterno, string mensaje)
+        public int InsertarMensaje(TicketMensaje oMensaje)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_TicketMensaje_Insertar",
                 new Hashtable
                 {
-                    { "@idTicket", idTicket },
-                    { "@idUsuarioExterno", (object)idUsuarioExterno ?? DBNull.Value },
-                    { "@idUsuarioInterno", (object)idUsuarioInterno ?? DBNull.Value },
-                    { "@mensaje", mensaje }
+                    { "@idTicket", oMensaje.IdTicket },
+                    { "@idUsuarioExterno", (object)oMensaje.IdUsuarioExterno ?? DBNull.Value },
+                    { "@idUsuarioInterno", (object)oMensaje.IdUsuarioInterno ?? DBNull.Value },
+                    { "@mensaje", oMensaje.Mensaje }
                 });
 
             return Convert.ToInt32(resultado);
         }
 
-        public void CambiarEstado(int idTicket, string estado)
+        public void CambiarEstado(Ticket oTicket)
         {
             Conexion.Instance.Guardar(
                 "sp_Ticket_CambiarEstado",
                 new Hashtable
                 {
-                    { "@idTicket", idTicket },
-                    { "@estado", estado }
+                    { "@idTicket", oTicket.IdTicket },
+                    { "@estado", oTicket.Estado }
                 });
         }
 
-        public void Asignar(int idTicket, int idUsuarioInternoAsignado)
+        public void Asignar(Ticket oTicket)
         {
             Conexion.Instance.Guardar(
                 "sp_Ticket_Asignar",
                 new Hashtable
                 {
-                    { "@idTicket", idTicket },
-                    { "@idUsuarioInternoAsignado", idUsuarioInternoAsignado }
+                    { "@idTicket", oTicket.IdTicket },
+                    { "@idUsuarioInternoAsignado", oTicket.IdUsuarioInternoAsignado.Value }
                 });
         }
 
-        public Ticket ObtenerPorId(int idTicket)
+        public Ticket ObtenerPorId(Ticket oTicket)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Ticket_ObtenerPorId",
-                new Hashtable { { "@idTicket", idTicket } });
+                new Hashtable { { "@idTicket", oTicket.IdTicket } });
 
             return tabla.Rows.Count == 0 ? null : MapearFilaTicket(tabla.Rows[0]);
         }
 
-        public List<Ticket> ListarPorUsuario(int idUsuarioExterno)
+        public List<Ticket> ListarPorUsuario(UsuarioExterno oUsuario)
         {
             return MapearTickets(Conexion.Instance.Leer(
                 "sp_Ticket_ListarPorUsuario",
-                new Hashtable { { "@idUsuarioExterno", idUsuarioExterno } }));
+                new Hashtable { { "@idUsuarioExterno", oUsuario.IdUsuarioExterno } }));
         }
 
-        public List<Ticket> ListarParaInterno(string estado, string categoria)
+        // El filtro viaja como un Ticket "de ejemplo": Estado y Categoria en
+        // null significan "todos".
+        public List<Ticket> ListarParaInterno(Ticket oFiltro)
         {
             return MapearTickets(Conexion.Instance.Leer(
                 "sp_Ticket_ListarParaInterno",
                 new Hashtable
                 {
-                    { "@estado", (object)estado ?? DBNull.Value },
-                    { "@categoria", (object)categoria ?? DBNull.Value }
+                    { "@estado", (object)oFiltro.Estado ?? DBNull.Value },
+                    { "@categoria", (object)oFiltro.Categoria ?? DBNull.Value }
                 }));
         }
 
-        public List<TicketMensaje> ListarMensajesPorTicket(int idTicket)
+        public int ContarAbiertos()
+        {
+            object resultado = Conexion.Instance.LeerEscalar("sp_Ticket_ContarAbiertos");
+            return resultado == null || resultado == DBNull.Value ? 0 : Convert.ToInt32(resultado);
+        }
+
+        public List<TicketMensaje> ListarMensajesPorTicket(Ticket oTicket)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_TicketMensaje_ListarPorTicket",
-                new Hashtable { { "@idTicket", idTicket } });
+                new Hashtable { { "@idTicket", oTicket.IdTicket } });
 
             List<TicketMensaje> lista = new List<TicketMensaje>();
             foreach (DataRow fila in tabla.Rows)
@@ -142,8 +151,36 @@ namespace StageUp.MPP
                 FechaCierre = fila["fechaCierre"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(fila["fechaCierre"]),
                 NombreUsuarioExterno = fila["nombreUsuarioExterno"].ToString(),
                 CorreoUsuarioExterno = fila["correoUsuarioExterno"].ToString(),
-                NombreUsuarioInternoAsignado = fila["nombreUsuarioInternoAsignado"] == DBNull.Value ? null : fila["nombreUsuarioInternoAsignado"].ToString()
+                NombreUsuarioInternoAsignado = fila["nombreUsuarioInternoAsignado"] == DBNull.Value ? null : fila["nombreUsuarioInternoAsignado"].ToString(),
+                NombreEspacioReserva = LeerTexto(fila, "nombreEspacioReserva"),
+                FechaReserva = LeerFecha(fila, "fechaReserva"),
+                MinutoDesdeReserva = LeerEntero(fila, "minutoDesdeReserva"),
+                MinutoHastaReserva = LeerEntero(fila, "minutoHastaReserva"),
+                EstadoReserva = LeerTexto(fila, "estadoReserva")
             };
+        }
+
+        // Las columnas de la reserva asociada las agrega el script 40; se leen
+        // de forma tolerante para no romper si la columna no viene.
+        private static string LeerTexto(DataRow fila, string columna)
+        {
+            return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value
+                ? fila[columna].ToString()
+                : null;
+        }
+
+        private static DateTime? LeerFecha(DataRow fila, string columna)
+        {
+            return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value
+                ? Convert.ToDateTime(fila[columna])
+                : (DateTime?)null;
+        }
+
+        private static int? LeerEntero(DataRow fila, string columna)
+        {
+            return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value
+                ? Convert.ToInt32(fila[columna])
+                : (int?)null;
         }
     }
 }

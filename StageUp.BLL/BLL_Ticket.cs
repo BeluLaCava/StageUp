@@ -13,9 +13,13 @@ namespace StageUp.BLL
     // externo puede abrir un ticket y mantener una conversación con
     // soporte, y un interno puede tomarlo, responderlo y cerrarlo.
     //
-    // Decisión de alcance: la primera versión no expone la asociación con
-    // una reserva puntual en la UI (el campo queda en el esquema para más
-    // adelante). Tampoco hay un rol "Soporte" separado todavía: el permiso
+    // Soporte por servicio contratado (corrección de María): el ticket se
+    // puede asociar a una reserva propia del usuario (elegida en
+    // Soporte.aspx o precargada desde el botón "Contactar soporte" de
+    // MisReservas.aspx). Se valida que la reserva sea del usuario, y el
+    // panel interno ve el espacio, la fecha, el horario y el estado de esa
+    // reserva para responder con contexto. No hay un rol "Soporte" separado
+    // todavía: el permiso
     // GESTIONAR_SOPORTE se asigna al rol Administrador, igual que el resto
     // de los permisos nuevos de esta tanda (Julian puede reasignarlo a otro
     // rol desde GestionRoles.aspx cuando lo necesite).
@@ -30,6 +34,7 @@ namespace StageUp.BLL
         private const int LongitudMaximaMensaje = 2000;
 
         private readonly MPP_Ticket _mpp = new MPP_Ticket();
+        private readonly MPP_Reserva _mppReserva = new MPP_Reserva();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly BLL_Notificacion _bllNotificacion = new BLL_Notificacion();
         private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
@@ -37,7 +42,7 @@ namespace StageUp.BLL
         private const string TipoEntidadBitacora = "Ticket";
 
         public ResultadoOperacion<int> CrearTicket(
-            int idUsuarioExterno, string categoria, string asunto, string mensajeInicial)
+            int idUsuarioExterno, string categoria, string asunto, string mensajeInicial, int? idReservaAsociada)
         {
             return EjecutarProtegido(() =>
             {
@@ -52,18 +57,36 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error(validacion.Mensaje);
                 }
 
+                Reserva reservaAsociada = null;
+                if (idReservaAsociada.HasValue)
+                {
+                    // Un usuario solo puede pedir soporte sobre una reserva
+                    // que él mismo solicitó (el SP vuelve a validarlo).
+                    reservaAsociada = _mppReserva.ObtenerPorId(new Reserva { IdReserva = idReservaAsociada.Value });
+                    if (reservaAsociada == null || reservaAsociada.IdUsuarioExternoSolicitante != idUsuarioExterno)
+                    {
+                        return ResultadoOperacion<int>.Error("La reserva seleccionada no es válida. Elegí una de tus reservas.");
+                    }
+                }
+
                 int idTicket = _mpp.Crear(
                     new Ticket
                     {
                         IdUsuarioExterno = idUsuarioExterno,
+                        IdReservaAsociada = idReservaAsociada,
                         Categoria = categoriaNormalizada,
                         Asunto = asuntoNormalizado
                     },
-                    mensajeNormalizado);
+                    new TicketMensaje
+                    {
+                        IdUsuarioExterno = idUsuarioExterno,
+                        Mensaje = mensajeNormalizado
+                    });
 
                 _bitacora.Registrar(
                     idUsuarioExterno, "ALTA", TipoEntidadBitacora, idTicket,
-                    "Apertura del ticket de soporte \"" + asuntoNormalizado + "\" (categoría: " + categoriaNormalizada + ").");
+                    "Apertura del ticket de soporte \"" + asuntoNormalizado + "\" (categoría: " + categoriaNormalizada + ")"
+                    + (reservaAsociada != null ? ", asociado a la reserva #" + reservaAsociada.IdReserva : string.Empty) + ".");
 
                 return ResultadoOperacion<int>.Ok(idTicket, "Tu consulta se envió correctamente. Te vamos a responder a la brevedad.");
             });
@@ -73,7 +96,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Ticket ticket = _mpp.ObtenerPorId(idTicket);
+                Ticket ticket = _mpp.ObtenerPorId(TicketConId(idTicket));
                 if (ticket == null || ticket.IdUsuarioExterno != idUsuarioExterno)
                 {
                     return ResultadoOperacion.Error("No se encontró el ticket seleccionado.");
@@ -91,13 +114,18 @@ namespace StageUp.BLL
                     return validacion;
                 }
 
-                _mpp.InsertarMensaje(idTicket, idUsuarioExterno, null, mensajeNormalizado);
+                _mpp.InsertarMensaje(new TicketMensaje
+                {
+                    IdTicket = idTicket,
+                    IdUsuarioExterno = idUsuarioExterno,
+                    Mensaje = mensajeNormalizado
+                });
 
                 // Si soporte ya había respondido, un mensaje nuevo del usuario
                 // vuelve a dejar el ticket a la espera de atención.
                 if (ticket.Estado == EstadoTicket.Respondido.ToString())
                 {
-                    _mpp.CambiarEstado(idTicket, EstadoTicket.Abierto.ToString());
+                    CambiarEstadoTicket(idTicket, EstadoTicket.Abierto);
                 }
 
                 _bitacora.Registrar(
@@ -112,7 +140,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Ticket ticket = _mpp.ObtenerPorId(idTicket);
+                Ticket ticket = _mpp.ObtenerPorId(TicketConId(idTicket));
                 if (ticket == null)
                 {
                     return ResultadoOperacion.Error("No se encontró el ticket seleccionado.");
@@ -130,14 +158,19 @@ namespace StageUp.BLL
                     return validacion;
                 }
 
-                _mpp.InsertarMensaje(idTicket, null, idUsuarioInterno, mensajeNormalizado);
+                _mpp.InsertarMensaje(new TicketMensaje
+                {
+                    IdTicket = idTicket,
+                    IdUsuarioInterno = idUsuarioInterno,
+                    Mensaje = mensajeNormalizado
+                });
 
                 if (!ticket.IdUsuarioInternoAsignado.HasValue)
                 {
-                    _mpp.Asignar(idTicket, idUsuarioInterno);
+                    _mpp.Asignar(new Ticket { IdTicket = idTicket, IdUsuarioInternoAsignado = idUsuarioInterno });
                 }
 
-                _mpp.CambiarEstado(idTicket, EstadoTicket.Respondido.ToString());
+                CambiarEstadoTicket(idTicket, EstadoTicket.Respondido);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInterno, "RESPUESTA", TipoEntidadBitacora, idTicket,
@@ -153,7 +186,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Ticket ticket = _mpp.ObtenerPorId(idTicket);
+                Ticket ticket = _mpp.ObtenerPorId(TicketConId(idTicket));
                 if (ticket == null)
                 {
                     return ResultadoOperacion.Error("No se encontró el ticket seleccionado.");
@@ -165,7 +198,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("El estado indicado no es válido.");
                 }
 
-                _mpp.CambiarEstado(idTicket, estadoValidado.ToString());
+                CambiarEstadoTicket(idTicket, estadoValidado);
 
                 string tipoOperacion = estadoValidado == EstadoTicket.Cerrado ? "CIERRE" : "MODIFICACION";
                 _bitacora.RegistrarInterno(
@@ -180,17 +213,17 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Ticket ticket = _mpp.ObtenerPorId(idTicket);
+                Ticket ticket = _mpp.ObtenerPorId(TicketConId(idTicket));
                 if (ticket == null)
                 {
                     return ResultadoOperacion.Error("No se encontró el ticket seleccionado.");
                 }
 
-                _mpp.Asignar(idTicket, idUsuarioInterno);
+                _mpp.Asignar(new Ticket { IdTicket = idTicket, IdUsuarioInternoAsignado = idUsuarioInterno });
 
                 if (ticket.Estado == EstadoTicket.Abierto.ToString())
                 {
-                    _mpp.CambiarEstado(idTicket, EstadoTicket.EnRevision.ToString());
+                    CambiarEstadoTicket(idTicket, EstadoTicket.EnRevision);
                 }
 
                 _bitacora.RegistrarInterno(
@@ -205,7 +238,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mpp.ListarPorUsuario(idUsuarioExterno);
+                return _mpp.ListarPorUsuario(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -217,9 +250,11 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mpp.ListarParaInterno(
-                    string.IsNullOrWhiteSpace(estado) ? null : estado,
-                    string.IsNullOrWhiteSpace(categoria) ? null : categoria);
+                return _mpp.ListarParaInterno(new Ticket
+                {
+                    Estado = string.IsNullOrWhiteSpace(estado) ? null : estado,
+                    Categoria = string.IsNullOrWhiteSpace(categoria) ? null : categoria
+                });
             }
             catch (ErrorAccesoDatosException)
             {
@@ -231,7 +266,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Ticket ticket = _mpp.ObtenerPorId(idTicket);
+                Ticket ticket = _mpp.ObtenerPorId(TicketConId(idTicket));
                 if (ticket == null || ticket.IdUsuarioExterno != idUsuarioExterno)
                 {
                     return ResultadoOperacion<TicketCompleto>.Error("No se encontró el ticket seleccionado.");
@@ -240,7 +275,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion<TicketCompleto>.Ok(new TicketCompleto
                 {
                     Ticket = ticket,
-                    Mensajes = _mpp.ListarMensajesPorTicket(idTicket)
+                    Mensajes = _mpp.ListarMensajesPorTicket(ticket)
                 });
             });
         }
@@ -249,7 +284,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Ticket ticket = _mpp.ObtenerPorId(idTicket);
+                Ticket ticket = _mpp.ObtenerPorId(TicketConId(idTicket));
                 if (ticket == null)
                 {
                     return ResultadoOperacion<TicketCompleto>.Error("No se encontró el ticket seleccionado.");
@@ -258,9 +293,49 @@ namespace StageUp.BLL
                 return ResultadoOperacion<TicketCompleto>.Ok(new TicketCompleto
                 {
                     Ticket = ticket,
-                    Mensajes = _mpp.ListarMensajesPorTicket(idTicket)
+                    Mensajes = _mpp.ListarMensajesPorTicket(ticket)
                 });
             });
+        }
+
+        // Reservas del usuario que puede asociar a una consulta (las que él
+        // solicitó, en cualquier estado: también se puede pedir ayuda sobre
+        // una reserva rechazada, cancelada o finalizada).
+        public List<Reserva> ListarReservasParaAsociar(int idUsuarioExterno)
+        {
+            try
+            {
+                return _mppReserva.ListarPorSolicitante(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return new List<Reserva>();
+            }
+        }
+
+        // Aviso al equipo interno: cantidad de tickets en estado Abierto
+        // (nuevos, o con un mensaje nuevo del usuario después de una
+        // respuesta). Se muestra como contador en el menú del panel interno.
+        public int ContarTicketsAbiertos()
+        {
+            try
+            {
+                return _mpp.ContarAbiertos();
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return 0;
+            }
+        }
+
+        private void CambiarEstadoTicket(int idTicket, EstadoTicket estado)
+        {
+            _mpp.CambiarEstado(new Ticket { IdTicket = idTicket, Estado = estado.ToString() });
+        }
+
+        private static Ticket TicketConId(int idTicket)
+        {
+            return new Ticket { IdTicket = idTicket };
         }
 
         private void NotificarRespuestaAlUsuario(Ticket ticket)

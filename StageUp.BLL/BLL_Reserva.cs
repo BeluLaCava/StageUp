@@ -5,6 +5,7 @@ using StageUp.BE.Entidades;
 using StageUp.BE.Enumerados;
 using StageUp.DAL;
 using StageUp.MPP;
+using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
@@ -16,6 +17,7 @@ namespace StageUp.BLL
         private readonly MPP_Calificacion _mppCalificacion = new MPP_Calificacion();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly BLL_Notificacion _notificacion = new BLL_Notificacion();
+        private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
 
         private const int LongitudMaximaComentario = 1000;
         private const string TipoEntidadBitacora = "Reserva";
@@ -148,6 +150,17 @@ namespace StageUp.BLL
                     espacio.IdUsuarioGestor, TipoNotificacion.SolicitudReserva,
                     "Recibiste una nueva solicitud de reserva para \"" + espacio.NombreEspacio + "\".",
                     "~/SolicitudesRecibidas.aspx");
+
+                // Ítem 5A: aviso por mail al solicitante (solicitud enviada) y
+                // al gestor (solicitud recibida).
+                reserva.IdReserva = idReserva;
+                reserva.NombreEspacio = espacio.NombreEspacio;
+                UsuarioExterno solicitante = ObtenerUsuarioParaCorreo(idUsuarioExternoSolicitante);
+                UsuarioExterno gestor = ObtenerUsuarioParaCorreo(espacio.IdUsuarioGestor);
+                EnviarCorreoSinBloquear(solicitante, u =>
+                    _servicioCorreo.EnviarSolicitudReservaEnviada(u.CorreoElectronico, u.Nombre, reserva));
+                EnviarCorreoSinBloquear(gestor, u =>
+                    _servicioCorreo.EnviarSolicitudReservaRecibida(u.CorreoElectronico, u.Nombre, reserva, NombreCompleto(solicitante)));
 
                 return ResultadoOperacion<int>.Ok(idReserva,
                     "Enviamos tu solicitud de reserva. El gestor del espacio la va a revisar y te vamos a avisar cuando la resuelva.");
@@ -453,6 +466,9 @@ namespace StageUp.BLL
                     "Tu reserva para \"" + reserva.NombreEspacio + "\" fue aceptada.",
                     "~/MisReservas.aspx");
 
+                EnviarCorreoSinBloquear(ObtenerUsuarioParaCorreo(reserva.IdUsuarioExternoSolicitante), u =>
+                    _servicioCorreo.EnviarReservaAceptada(u.CorreoElectronico, u.Nombre, reserva));
+
                 return ResultadoOperacion.Ok("Tu reserva fue aceptada. ¡Ya está confirmada!");
             });
         }
@@ -498,6 +514,9 @@ namespace StageUp.BLL
                         reserva.IdUsuarioExternoSolicitante, TipoNotificacion.ReservaRechazada,
                         "Tu reserva para \"" + reserva.NombreEspacio + "\" fue rechazada.",
                         "~/MisReservas.aspx");
+
+                    EnviarCorreoSinBloquear(ObtenerUsuarioParaCorreo(reserva.IdUsuarioExternoSolicitante), u =>
+                        _servicioCorreo.EnviarReservaRechazada(u.CorreoElectronico, u.Nombre, reserva));
                 }
 
                 return ResultadoOperacion.Ok(mensajeExito);
@@ -561,6 +580,12 @@ namespace StageUp.BLL
                     "El solicitante canceló su reserva para \"" + reserva.NombreEspacio + "\".",
                     "~/SolicitudesRecibidas.aspx");
 
+                UsuarioExterno solicitanteCancela = ObtenerUsuarioParaCorreo(idUsuarioExternoSolicitante);
+                EnviarCorreoSinBloquear(solicitanteCancela, u =>
+                    _servicioCorreo.EnviarCancelacionAlSolicitante(u.CorreoElectronico, u.Nombre, reserva));
+                EnviarCorreoSinBloquear(ObtenerUsuarioParaCorreo(reserva.IdUsuarioGestor), u =>
+                    _servicioCorreo.EnviarCancelacionAlGestor(u.CorreoElectronico, u.Nombre, reserva, NombreCompleto(solicitanteCancela)));
+
                 return ResultadoOperacion.Ok(mensaje);
             });
         }
@@ -600,6 +625,12 @@ namespace StageUp.BLL
                             "Recordatorio: tu reserva para \"" + reserva.NombreEspacio + "\" es el " + momento + ".",
                             "~/MisReservas.aspx");
 
+                        // Un solo intento de mail: se marca como enviado igual,
+                        // para no reintentar cada 15 minutos si el SMTP falla.
+                        Reserva reservaRecordatorio = reserva;
+                        EnviarCorreoSinBloquear(ObtenerUsuarioParaCorreo(reserva.IdUsuarioExternoSolicitante), u =>
+                            _servicioCorreo.EnviarRecordatorioReserva(u.CorreoElectronico, u.Nombre, reservaRecordatorio));
+
                         _mppReserva.MarcarRecordatorioEnviado(reserva);
                     }
                     catch (ErrorAccesoDatosException)
@@ -609,6 +640,8 @@ namespace StageUp.BLL
                         // próxima corrida.
                     }
                 }
+
+                EnviarAvisosDeReservasFinalizadas();
             }
             catch (ErrorAccesoDatosException)
             {
@@ -616,6 +649,73 @@ namespace StageUp.BLL
                 // Site.Master): si falla, no tiene que romper la página que
                 // lo disparó.
             }
+        }
+
+        // Ítem 5A: mail de "reserva finalizada" (invitación a calificar). La
+        // finalización la hace sp_Reserva_FinalizarVencidas en bloque, así que
+        // se buscan las finalizadas todavía sin aviso (script 42). Un solo
+        // intento por reserva, igual que el recordatorio.
+        private void EnviarAvisosDeReservasFinalizadas()
+        {
+            _mppReserva.FinalizarVencidas();
+            List<Reserva> finalizadas = _mppReserva.ListarFinalizadasSinAviso();
+            foreach (Reserva reserva in finalizadas)
+            {
+                try
+                {
+                    Reserva reservaFinalizada = reserva;
+                    EnviarCorreoSinBloquear(ObtenerUsuarioParaCorreo(reserva.IdUsuarioExternoSolicitante), u =>
+                        _servicioCorreo.EnviarReservaFinalizada(u.CorreoElectronico, u.Nombre, reservaFinalizada));
+
+                    _mppReserva.MarcarAvisoFinalizacionEnviado(reserva);
+                }
+                catch (ErrorAccesoDatosException)
+                {
+                    // Se reintenta en la próxima corrida.
+                }
+            }
+        }
+
+        // Los mails de reserva nunca hacen fallar la operación: la reserva ya
+        // quedó guardada y notificada en StageUp (campanita), que es lo que
+        // importa. Mismo criterio que BLL_Ticket con la respuesta de soporte.
+        private UsuarioExterno ObtenerUsuarioParaCorreo(int idUsuarioExterno)
+        {
+            try
+            {
+                return _mppUsuario.ObtenerPorId(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private static void EnviarCorreoSinBloquear(UsuarioExterno destinatario, Func<UsuarioExterno, bool> envio)
+        {
+            if (destinatario == null || string.IsNullOrWhiteSpace(destinatario.CorreoElectronico))
+            {
+                return;
+            }
+
+            try
+            {
+                envio(destinatario);
+            }
+            catch (Exception)
+            {
+                // Un mail que no sale no debe romper la operación.
+            }
+        }
+
+        private static string NombreCompleto(UsuarioExterno usuario)
+        {
+            if (usuario == null)
+            {
+                return null;
+            }
+
+            return ((usuario.Nombre ?? string.Empty) + " " + (usuario.Apellido ?? string.Empty)).Trim();
         }
 
         private static ResultadoOperacion ValidarPropiedadGestor(Reserva reserva, int idUsuarioGestorSolicitante)

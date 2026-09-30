@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
+using StageUp.BE.Entidades;
 
 namespace StageUp.Servicios
 {
@@ -127,6 +130,198 @@ namespace StageUp.Servicios
             return Enviar(destinatario, "Respuesta de soporte StageUp: " + asuntoTicket, cuerpo);
         }
 
+        // ------------------------------------------------------------------
+        // Reservas (ítems 5A y 7 de la segunda entrega): todos los avisos de
+        // una reserva por mail, con la misma plantilla StageUp que el resto
+        // de los correos. Los datos de la reserva (espacio, fecha, horario,
+        // importe) se muestran en un bloque de detalle común.
+        // ------------------------------------------------------------------
+        public bool EnviarSolicitudReservaEnviada(string destinatario, string nombreDestinatario, Reserva reserva)
+        {
+            return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
+                "Solicitud enviada",
+                "Recibimos tu solicitud de reserva",
+                new[]
+                {
+                    "Tu solicitud para \"" + reserva.NombreEspacio + "\" ya le llegó al gestor del espacio.",
+                    "Te vamos a avisar por este medio y en StageUp apenas la acepte o la rechace. Mientras tanto podés seguirla desde Mis reservas."
+                },
+                null,
+                "Recibimos tu solicitud de reserva: " + reserva.NombreEspacio);
+        }
+
+        public bool EnviarSolicitudReservaRecibida(
+            string destinatario, string nombreDestinatario, Reserva reserva, string nombreSolicitante)
+        {
+            return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
+                "Nueva solicitud",
+                "Tenés una nueva solicitud de reserva",
+                new[]
+                {
+                    (string.IsNullOrWhiteSpace(nombreSolicitante) ? "Un artista" : nombreSolicitante.Trim()) +
+                        " quiere reservar tu espacio \"" + reserva.NombreEspacio + "\".",
+                    string.IsNullOrWhiteSpace(reserva.ComentarioSolicitante)
+                        ? null
+                        : "Comentario del solicitante: \"" + reserva.ComentarioSolicitante + "\"",
+                    "Ingresá a StageUp, sección Solicitudes recibidas, para aceptarla o rechazarla."
+                },
+                null,
+                "Nueva solicitud de reserva para " + reserva.NombreEspacio);
+        }
+
+        public bool EnviarReservaAceptada(string destinatario, string nombreDestinatario, Reserva reserva)
+        {
+            return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
+                "Reserva confirmada",
+                "¡Tu reserva fue aceptada!",
+                new[]
+                {
+                    "El gestor aceptó tu solicitud para \"" + reserva.NombreEspacio + "\". Tu reserva ya está confirmada.",
+                    string.IsNullOrWhiteSpace(reserva.ComentarioResolucion)
+                        ? null
+                        : "Mensaje del gestor: \"" + reserva.ComentarioResolucion + "\""
+                },
+                "Si necesitás cancelarla, hacelo desde Mis reservas. Cancelar con menos de 24 horas de anticipación tiene una comisión.",
+                "Tu reserva fue aceptada: " + reserva.NombreEspacio);
+        }
+
+        public bool EnviarReservaRechazada(string destinatario, string nombreDestinatario, Reserva reserva)
+        {
+            return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
+                "Reserva rechazada",
+                "Tu solicitud de reserva no fue aceptada",
+                new[]
+                {
+                    "El gestor de \"" + reserva.NombreEspacio + "\" no pudo aceptar tu solicitud para esta fecha.",
+                    string.IsNullOrWhiteSpace(reserva.ComentarioResolucion)
+                        ? null
+                        : "Mensaje del gestor: \"" + reserva.ComentarioResolucion + "\"",
+                    "Podés buscar otro horario u otro espacio desde Explorar espacios."
+                },
+                null,
+                "Tu solicitud de reserva fue rechazada: " + reserva.NombreEspacio);
+        }
+
+        public bool EnviarCancelacionAlSolicitante(string destinatario, string nombreDestinatario, Reserva reserva)
+        {
+            return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
+                "Reserva cancelada",
+                "Cancelaste tu reserva",
+                new[]
+                {
+                    "Confirmamos la cancelación de tu reserva para \"" + reserva.NombreEspacio + "\".",
+                    reserva.ComisionAplicada && reserva.ImporteComision.HasValue
+                        ? "Como faltaban menos de 24 horas para el horario reservado, se aplicó una comisión de cancelación de " +
+                          FormatearImporte(reserva.ImporteComision.Value, reserva.Moneda) + "."
+                        : "La cancelación no tuvo ningún costo."
+                },
+                null,
+                "Cancelaste tu reserva: " + reserva.NombreEspacio);
+        }
+
+        public bool EnviarCancelacionAlGestor(
+            string destinatario, string nombreDestinatario, Reserva reserva, string nombreSolicitante)
+        {
+            return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
+                "Reserva cancelada",
+                "Se canceló una reserva de tu espacio",
+                new[]
+                {
+                    (string.IsNullOrWhiteSpace(nombreSolicitante) ? "El solicitante" : nombreSolicitante.Trim()) +
+                        " canceló su reserva para \"" + reserva.NombreEspacio + "\".",
+                    "Ese horario vuelve a quedar disponible para nuevas solicitudes."
+                },
+                null,
+                "Se canceló una reserva de " + reserva.NombreEspacio);
+        }
+
+        public bool EnviarRecordatorioReserva(string destinatario, string nombreDestinatario, Reserva reserva)
+        {
+            return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
+                "Recordatorio",
+                "Tu reserva es mañana",
+                new[]
+                {
+                    "Te recordamos que tenés una reserva confirmada en \"" + reserva.NombreEspacio + "\" dentro de las próximas 24 horas."
+                },
+                "Si no vas a poder asistir, cancelala desde Mis reservas para liberar el horario.",
+                "Recordatorio de tu reserva: " + reserva.NombreEspacio);
+        }
+
+        public bool EnviarReservaFinalizada(string destinatario, string nombreDestinatario, Reserva reserva)
+        {
+            return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
+                "Reserva finalizada",
+                "¿Cómo te fue en " + reserva.NombreEspacio + "?",
+                new[]
+                {
+                    "Tu reserva ya finalizó. ¡Esperamos que hayas tenido una gran experiencia!",
+                    "Ingresá a Mis reservas para calificar el espacio: tu reseña ayuda a otros artistas a elegir y al gestor a mejorar."
+                },
+                null,
+                "Contanos cómo te fue en " + reserva.NombreEspacio);
+        }
+
+        private static bool EnviarAvisoReserva(
+            string destinatario, string nombreDestinatario, Reserva reserva,
+            string etiqueta, string titulo, string[] parrafos, string nota, string asunto)
+        {
+            if (string.IsNullOrWhiteSpace(destinatario) || reserva == null)
+            {
+                return false;
+            }
+
+            string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
+            {
+                Etiqueta = etiqueta,
+                Titulo = titulo,
+                NombreDestinatario = nombreDestinatario,
+                Parrafos = parrafos,
+                Detalles = ConstruirDetallesReserva(reserva),
+                Nota = nota
+            });
+
+            return Enviar(destinatario, asunto, cuerpo);
+        }
+
+        private static List<KeyValuePair<string, string>> ConstruirDetallesReserva(Reserva reserva)
+        {
+            List<KeyValuePair<string, string>> detalles = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("Espacio", reserva.NombreEspacio),
+                new KeyValuePair<string, string>("Fecha", reserva.FechaSolicitada.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture))
+            };
+
+            if (reserva.MinutoDesde.HasValue && reserva.MinutoHasta.HasValue)
+            {
+                detalles.Add(new KeyValuePair<string, string>("Horario",
+                    FormatearHora(reserva.MinutoDesde.Value) + " a " + FormatearHora(reserva.MinutoHasta.Value) + " hs"));
+            }
+
+            if (reserva.ImporteEstimado.HasValue)
+            {
+                detalles.Add(new KeyValuePair<string, string>("Importe estimado",
+                    FormatearImporte(reserva.ImporteEstimado.Value, reserva.Moneda)));
+            }
+
+            detalles.Add(new KeyValuePair<string, string>("N° de reserva",
+                reserva.IdReserva.ToString(CultureInfo.InvariantCulture)));
+
+            return detalles;
+        }
+
+        private static string FormatearHora(int minutos)
+        {
+            return (minutos / 60).ToString("00", CultureInfo.InvariantCulture) + ":" +
+                (minutos % 60).ToString("00", CultureInfo.InvariantCulture);
+        }
+
+        private static string FormatearImporte(decimal importe, string moneda)
+        {
+            return (string.IsNullOrWhiteSpace(moneda) ? "ARS" : moneda) + " " +
+                importe.ToString("N2", CultureInfo.GetCultureInfo("es-AR"));
+        }
+
         private static bool Enviar(string destinatario, string asunto, string cuerpoHtml)
         {
             try
@@ -175,6 +370,7 @@ namespace StageUp.Servicios
             string titulo = Codificar(contenido.Titulo);
             string saludo = "Hola " + Codificar(ObtenerNombre(contenido.NombreDestinatario)) + ",";
             string parrafos = ConstruirParrafos(contenido.Parrafos);
+            string detalles = ConstruirDetalles(contenido.Detalles);
             string bloqueCodigo = ConstruirBloqueCodigo(contenido.Codigo);
             string boton = ConstruirBoton(contenido.TextoBoton, contenido.UrlBoton);
             string nota = ConstruirNota(contenido.Nota);
@@ -212,6 +408,7 @@ namespace StageUp.Servicios
                 "</h1>" +
                 "<p style=\"margin:0 0 18px;font-size:17px;line-height:1.6;color:#4b332a;\">" + saludo + "</p>" +
                 parrafos +
+                detalles +
                 bloqueCodigo +
                 boton +
                 nota +
@@ -245,6 +442,42 @@ namespace StageUp.Servicios
             }
 
             return html;
+        }
+
+        // Bloque "clave: valor" (por ejemplo, los datos de una reserva), con la
+        // misma paleta que el bloque de código de verificación.
+        private static string ConstruirDetalles(List<KeyValuePair<string, string>> detalles)
+        {
+            if (detalles == null || detalles.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            string filas = string.Empty;
+            foreach (KeyValuePair<string, string> detalle in detalles)
+            {
+                if (string.IsNullOrWhiteSpace(detalle.Value))
+                {
+                    continue;
+                }
+
+                filas +=
+                    "<tr>" +
+                    "<td style=\"padding:6px 12px 6px 0;font-size:13px;color:#8a6a5e;font-weight:bold;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;vertical-align:top;\">" +
+                    Codificar(detalle.Key) +
+                    "</td>" +
+                    "<td style=\"padding:6px 0;font-size:16px;color:#4b332a;\">" +
+                    Codificar(detalle.Value) +
+                    "</td>" +
+                    "</tr>";
+            }
+
+            return
+                "<div style=\"margin:8px 0 24px;padding:18px 22px;background:#fff2ec;border:1px solid #e5c5b8;border-radius:16px;\">" +
+                "<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\">" +
+                filas +
+                "</table>" +
+                "</div>";
         }
 
         private static string ConstruirBloqueCodigo(string codigo)
@@ -351,6 +584,7 @@ namespace StageUp.Servicios
             public string NombreDestinatario { get; set; }
             public string[] Parrafos { get; set; }
             public string Codigo { get; set; }
+            public List<KeyValuePair<string, string>> Detalles { get; set; }
             public string Nota { get; set; }
             public string TextoBoton { get; set; }
             public string UrlBoton { get; set; }

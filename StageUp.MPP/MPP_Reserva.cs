@@ -135,6 +135,20 @@ namespace StageUp.MPP
                 new Hashtable { { "@idReserva", reserva.IdReserva } });
         }
 
+        // Reservas finalizadas a las que todavía no se les mandó el mail de
+        // "¿cómo te fue?" (script 42).
+        public List<Reserva> ListarFinalizadasSinAviso()
+        {
+            return MapearDesdeTabla(Conexion.Instance.Leer("sp_Reserva_ListarFinalizadasSinAviso"));
+        }
+
+        public void MarcarAvisoFinalizacionEnviado(Reserva reserva)
+        {
+            Conexion.Instance.Guardar(
+                "sp_Reserva_MarcarAvisoFinalizacionEnviado",
+                new Hashtable { { "@idReserva", reserva.IdReserva } });
+        }
+
         // Ítem 36 del checklist de correcciones: reemplaza, para uso de
         // BLL_Reserva.CompletarReputacionSolicitantes, el patrón anterior de
         // llamar ListarPorSolicitante (historial completo) por cada

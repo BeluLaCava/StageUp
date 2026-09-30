@@ -192,13 +192,6 @@
     <Compile Include="Interno\PanelInterno.Master.designer.cs">
       <DependentUpon>PanelInterno.Master</DependentUpon>
     </Compile>
-    <Compile Include="Interno\IniciarSesionInterno.aspx.cs">
-      <DependentUpon>IniciarSesionInterno.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Interno\IniciarSesionInterno.aspx.designer.cs">
-      <DependentUpon>IniciarSesionInterno.aspx</DependentUpon>
-    </Compile>
     <Compile Include="Interno\PanelAdministrador.aspx.cs">
       <DependentUpon>PanelAdministrador.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -357,7 +350,6 @@
     <Content Include="Servicios\ServicioEspacios.asmx" />
     <Content Include="Interno\RegistrosActividad.aspx" />
     <Content Include="Interno\PanelInterno.Master" />
-    <Content Include="Interno\IniciarSesionInterno.aspx" />
     <Content Include="Interno\PanelAdministrador.aspx" />
     <Content Include="Interno\AprobacionGestores.aspx" />
     <Content Include="Interno\GestionRoles.aspx" />
@@ -384,7 +376,10 @@
     <Content Include="Content\Images\Espacios\estudio-fotografico-ia.png" />
     <Content Include="Site.Master" />
     <Content Include="Web.config" />
-    <Content Include="AppSettings.private.config" />
+    <!-- AppSettings.private.config tiene secretos reales: esta en .gitignore y no se versiona.
+         La condicion evita que Visual Studio lo marque como faltante en un clon limpio. -->
+    <Content Include="AppSettings.private.config" Condition="Exists('AppSettings.private.config')" />
+    <None Include="AppSettings.private.config.example" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

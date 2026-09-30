@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PLANTILLA de configuración privada de StageUp.
+
+  Uso:
+    1. Copiar este archivo como "AppSettings.private.config" en la misma carpeta
+       (StageUp.UI). Web.config lo carga con <appSettings file="AppSettings.private.config">.
+    2. Completar cada valor con los datos reales de su entorno.
+
+  IMPORTANTE:
+    - AppSettings.private.config está en .gitignore y NUNCA debe commitearse.
+    - Este archivo .example sí se versiona y no debe contener ningún valor real.
+    - Las claves asimétricas se generan desde Interno > Herramientas de seguridad.
+    - La clave simétrica es un valor Base64 de 32 bytes (AES-256). También puede
+      definirse con la variable de entorno STAGEUP_CLAVE_ENCRIPTACION.
+    - Las claves de reCAPTCHA también pueden definirse con las variables de entorno
+      STAGEUP_RECAPTCHA_SITE_KEY / STAGEUP_RECAPTCHA_SECRET_KEY.
+-->
+<appSettings>
+  <!-- Correo saliente (SMTP) -->
+  <add key="SmtpHost" value="smtp.gmail.com" />
+  <add key="SmtpPuerto" value="587" />
+  <add key="SmtpUsarSsl" value="true" />
+  <add key="SmtpUsuario" value="COMPLETAR_CUENTA@gmail.com" />
+  <add key="SmtpPassword" value="COMPLETAR_CONTRASENA_DE_APLICACION" />
+  <add key="CorreoRemitente" value="COMPLETAR_CUENTA@gmail.com" />
+  <add key="NombreRemitente" value="StageUp" />
+
+  <!-- Google reCAPTCHA v2 -->
+  <add key="RecaptchaSiteKey" value="COMPLETAR_SITE_KEY" />
+  <add key="RecaptchaSecretKey" value="COMPLETAR_SECRET_KEY" />
+
+  <!-- Encriptación simétrica (AES) -->
+  <add key="ClaveEncriptacionSimetrica" value="COMPLETAR_CLAVE_BASE64_32_BYTES" />
+
+  <!-- Encriptación asimétrica (RSA 2048) - generar desde Interno > Herramientas de seguridad -->
+  <add key="ClaveAsimetricaPublica" value="COMPLETAR_CLAVE_PUBLICA_BASE64" />
+  <add key="ClaveAsimetricaPrivada" value="COMPLETAR_CLAVE_PRIVADA_BASE64" />
+</appSettings>

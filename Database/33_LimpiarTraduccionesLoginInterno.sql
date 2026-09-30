@@ -1,3 +1,14 @@
+-- =============================================================================
+-- 33_LimpiarTraduccionesLoginInterno.sql
+-- Limpieza para bases VIEJAS solamente.
+--
+-- La pantalla Interno/IniciarSesionInterno.aspx fue eliminada del proyecto (login
+-- unico en IniciarSesion.aspx) y el script 17_MultidiomaCompleto.sql ya NO inserta
+-- sus traducciones. Este script solo borra las etiquetas que hayan quedado en una
+-- base creada antes de ese cambio. En una base nueva no encuentra nada que borrar
+-- (los DELETE afectan 0 filas) y es seguro volver a ejecutarlo.
+-- =============================================================================
+
 IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;

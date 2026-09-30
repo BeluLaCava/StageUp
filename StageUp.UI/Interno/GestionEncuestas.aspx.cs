@@ -190,6 +190,27 @@ namespace StageUp.UI.Interno
             CargarSeleccion();
         }
 
+        protected void btnEliminarBorrador_Click(object sender, EventArgs e)
+        {
+            if (!TieneAcceso() || !IdEncuestaSeleccionada.HasValue)
+            {
+                return;
+            }
+
+            int idResponsable = GestorDeSesion.ObtenerIdUsuarioInternoActual().Value;
+            ResultadoOperacion resultado = _bllEncuesta.EliminarBorrador(IdEncuestaSeleccionada.Value, idResponsable);
+            MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+
+            if (resultado.Exitoso)
+            {
+                IdEncuestaSeleccionada = null;
+            }
+
+            CargarResumen();
+            CargarEncuestas();
+            CargarSeleccion();
+        }
+
         protected void rptEncuestas_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
             if (!TieneAcceso() || e.CommandName != "Gestionar")
@@ -299,6 +320,7 @@ namespace StageUp.UI.Interno
 
             btnPublicar.Visible = encuesta.Estado == "Borrador";
             btnCerrar.Visible = encuesta.Estado == "Activa";
+            btnEliminarBorrador.Visible = encuesta.Estado == "Borrador";
             litEstadoSinAcciones.Visible = encuesta.Estado == "Cerrada";
         }
 

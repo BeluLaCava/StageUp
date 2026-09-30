@@ -186,6 +186,26 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('dbo.sp_Encuesta_EliminarBorrador', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Encuesta_EliminarBorrador;
+GO
+CREATE PROCEDURE dbo.sp_Encuesta_EliminarBorrador
+    @idEncuesta INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Eliminación controlada: solo borra si la encuesta sigue en Borrador y
+    -- no tiene ninguna respuesta. Las preguntas y opciones caen por
+    -- ON DELETE CASCADE. Una encuesta publicada nunca se borra (se cierra).
+    DELETE FROM dbo.Encuesta
+    WHERE idEncuesta = @idEncuesta
+      AND estado = N'Borrador'
+      AND NOT EXISTS (SELECT 1 FROM dbo.RespuestaEncuesta r WHERE r.idEncuesta = @idEncuesta);
+
+    SELECT @@ROWCOUNT AS filasEliminadas;
+END
+GO
+
 IF OBJECT_ID('dbo.sp_Encuesta_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Encuesta_Listar;
 GO
 CREATE PROCEDURE dbo.sp_Encuesta_Listar
@@ -338,7 +358,8 @@ BEGIN
     -- vigente y abierta para otros usuarios).
     SELECT e.idEncuesta, e.titulo, e.descripcion, e.fechaInicio, e.fechaVencimiento, e.publicoObjetivo, e.estado, e.fechaAlta, e.fechaUltimaModificacion
     FROM dbo.Encuesta e
-    WHERE e.fechaInicio <= GETDATE()
+    WHERE e.estado IN (N'Activa', N'Cerrada') -- un Borrador nunca se publicó: no tiene resultados, aunque esté vencido
+      AND e.fechaInicio <= GETDATE()
       AND (e.publicoObjetivo = N'Todos' OR e.publicoObjetivo = @perfilUsuario)
       AND
       (

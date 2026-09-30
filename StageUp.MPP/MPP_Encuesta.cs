@@ -9,7 +9,10 @@ namespace StageUp.MPP
 {
     // Encuestas dinámicas con fecha de vencimiento y gráfico de resultados
     // al instante. Mismo patrón que MPP_Faq.cs (Conexion.Instance +
-    // Hashtable de parámetros).
+    // Hashtable de parámetros). Todos los métodos públicos reciben objetos
+    // de negocio (Encuesta, PreguntaEncuesta, UsuarioExterno,
+    // RespuestaEncuesta...), no ids sueltos, igual que el resto de los
+    // mappers (corrección del profesor sobre "objetos, no variables").
     public class MPP_Encuesta
     {
         public List<Encuesta> Listar()
@@ -17,11 +20,11 @@ namespace StageUp.MPP
             return MapearEncuestas(Conexion.Instance.Leer("sp_Encuesta_Listar"));
         }
 
-        public Encuesta ObtenerPorId(int idEncuesta)
+        public Encuesta ObtenerPorId(Encuesta oEncuesta)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Encuesta_ObtenerPorId",
-                new Hashtable { { "@idEncuesta", idEncuesta } });
+                new Hashtable { { "@idEncuesta", oEncuesta.IdEncuesta } });
 
             return tabla.Rows.Count == 0 ? null : MapearFilaEncuesta(tabla.Rows[0]);
         }
@@ -57,36 +60,48 @@ namespace StageUp.MPP
                 });
         }
 
-        public void CambiarEstado(int idEncuesta, string estado)
+        public void CambiarEstado(Encuesta oEncuesta)
         {
             Conexion.Instance.Guardar(
                 "sp_Encuesta_CambiarEstado",
                 new Hashtable
                 {
-                    { "@idEncuesta", idEncuesta },
-                    { "@estado", estado }
+                    { "@idEncuesta", oEncuesta.IdEncuesta },
+                    { "@estado", oEncuesta.Estado }
                 });
         }
 
-        public List<Encuesta> ListarPendientesParaUsuario(int idUsuarioExterno, string perfilUsuario)
+        // Eliminación controlada: el SP solo borra si la encuesta sigue en
+        // Borrador y no tiene respuestas (las preguntas y opciones caen por
+        // ON DELETE CASCADE). Devuelve true si efectivamente se eliminó.
+        public bool EliminarBorrador(Encuesta oEncuesta)
+        {
+            object resultado = Conexion.Instance.LeerEscalar(
+                "sp_Encuesta_EliminarBorrador",
+                new Hashtable { { "@idEncuesta", oEncuesta.IdEncuesta } });
+
+            return resultado != null && resultado != DBNull.Value && Convert.ToInt32(resultado) > 0;
+        }
+
+        public List<Encuesta> ListarPendientesParaUsuario(UsuarioExterno oUsuario)
         {
             return MapearEncuestas(Conexion.Instance.Leer(
                 "sp_Encuesta_ListarPendientesParaUsuario",
                 new Hashtable
                 {
-                    { "@idUsuarioExterno", idUsuarioExterno },
-                    { "@perfilUsuario", perfilUsuario }
+                    { "@idUsuarioExterno", oUsuario.IdUsuarioExterno },
+                    { "@perfilUsuario", oUsuario.PerfilUsuario }
                 }));
         }
 
-        public List<Encuesta> ListarConResultadosParaUsuario(int idUsuarioExterno, string perfilUsuario)
+        public List<Encuesta> ListarConResultadosParaUsuario(UsuarioExterno oUsuario)
         {
             return MapearEncuestas(Conexion.Instance.Leer(
                 "sp_Encuesta_ListarConResultadosParaUsuario",
                 new Hashtable
                 {
-                    { "@idUsuarioExterno", idUsuarioExterno },
-                    { "@perfilUsuario", perfilUsuario }
+                    { "@idUsuarioExterno", oUsuario.IdUsuarioExterno },
+                    { "@perfilUsuario", oUsuario.PerfilUsuario }
                 }));
         }
 
@@ -104,11 +119,11 @@ namespace StageUp.MPP
             return Convert.ToInt32(resultado);
         }
 
-        public List<PreguntaEncuesta> ListarPreguntasPorEncuesta(int idEncuesta)
+        public List<PreguntaEncuesta> ListarPreguntasPorEncuesta(Encuesta oEncuesta)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_PreguntaEncuesta_ListarPorEncuesta",
-                new Hashtable { { "@idEncuesta", idEncuesta } });
+                new Hashtable { { "@idEncuesta", oEncuesta.IdEncuesta } });
 
             List<PreguntaEncuesta> lista = new List<PreguntaEncuesta>();
             foreach (DataRow fila in tabla.Rows)
@@ -124,11 +139,11 @@ namespace StageUp.MPP
             return lista;
         }
 
-        public void EliminarPregunta(int idPreguntaEncuesta)
+        public void EliminarPregunta(PreguntaEncuesta oPregunta)
         {
             Conexion.Instance.Guardar(
                 "sp_PreguntaEncuesta_Eliminar",
-                new Hashtable { { "@idPreguntaEncuesta", idPreguntaEncuesta } });
+                new Hashtable { { "@idPreguntaEncuesta", oPregunta.IdPreguntaEncuesta } });
         }
 
         public int InsertarOpcion(OpcionPregunta oOpcion)
@@ -145,11 +160,11 @@ namespace StageUp.MPP
             return Convert.ToInt32(resultado);
         }
 
-        public List<OpcionPregunta> ListarOpcionesPorPregunta(int idPreguntaEncuesta)
+        public List<OpcionPregunta> ListarOpcionesPorPregunta(PreguntaEncuesta oPregunta)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_OpcionPregunta_ListarPorPregunta",
-                new Hashtable { { "@idPreguntaEncuesta", idPreguntaEncuesta } });
+                new Hashtable { { "@idPreguntaEncuesta", oPregunta.IdPreguntaEncuesta } });
 
             List<OpcionPregunta> lista = new List<OpcionPregunta>();
             foreach (DataRow fila in tabla.Rows)
@@ -165,51 +180,51 @@ namespace StageUp.MPP
             return lista;
         }
 
-        public bool ExisteRespuestaDeUsuario(int idEncuesta, int idUsuarioExterno)
+        public bool ExisteRespuestaDeUsuario(RespuestaEncuesta oRespuesta)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_RespuestaEncuesta_ExisteDeUsuario",
                 new Hashtable
                 {
-                    { "@idEncuesta", idEncuesta },
-                    { "@idUsuarioExterno", idUsuarioExterno }
+                    { "@idEncuesta", oRespuesta.IdEncuesta },
+                    { "@idUsuarioExterno", oRespuesta.IdUsuarioExterno }
                 });
 
             return resultado != null && Convert.ToBoolean(resultado);
         }
 
-        public int InsertarRespuesta(int idEncuesta, int idUsuarioExterno)
+        public int InsertarRespuesta(RespuestaEncuesta oRespuesta)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_RespuestaEncuesta_Insertar",
                 new Hashtable
                 {
-                    { "@idEncuesta", idEncuesta },
-                    { "@idUsuarioExterno", idUsuarioExterno }
+                    { "@idEncuesta", oRespuesta.IdEncuesta },
+                    { "@idUsuarioExterno", oRespuesta.IdUsuarioExterno }
                 });
 
             return Convert.ToInt32(resultado);
         }
 
-        public void InsertarRespuestaDetalle(int idRespuestaEncuesta, int idPreguntaEncuesta, int idOpcionPregunta)
+        public void InsertarRespuestaDetalle(RespuestaEncuestaDetalle oDetalle)
         {
             Conexion.Instance.Guardar(
                 "sp_RespuestaEncuestaDetalle_Insertar",
                 new Hashtable
                 {
-                    { "@idRespuestaEncuesta", idRespuestaEncuesta },
-                    { "@idPreguntaEncuesta", idPreguntaEncuesta },
-                    { "@idOpcionPregunta", idOpcionPregunta }
+                    { "@idRespuestaEncuesta", oDetalle.IdRespuestaEncuesta },
+                    { "@idPreguntaEncuesta", oDetalle.IdPreguntaEncuesta },
+                    { "@idOpcionPregunta", oDetalle.IdOpcionPregunta }
                 });
         }
 
         // Filas planas pregunta+opción con los conteos calculados en el
         // momento. La BLL las agrupa en ResultadoPreguntaEncuesta.
-        public List<FilaResultadoEncuesta> ConsultarResultadosFilas(int idEncuesta)
+        public List<FilaResultadoEncuesta> ConsultarResultadosFilas(Encuesta oEncuesta)
         {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Encuesta_ConsultarResultados",
-                new Hashtable { { "@idEncuesta", idEncuesta } });
+                new Hashtable { { "@idEncuesta", oEncuesta.IdEncuesta } });
 
             List<FilaResultadoEncuesta> lista = new List<FilaResultadoEncuesta>();
             foreach (DataRow fila in tabla.Rows)

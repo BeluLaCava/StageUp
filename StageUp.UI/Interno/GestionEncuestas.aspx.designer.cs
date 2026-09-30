@@ -36,6 +36,7 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.Literal litEstadoBadge;
         protected global::System.Web.UI.WebControls.Button btnPublicar;
         protected global::System.Web.UI.WebControls.Button btnCerrar;
+        protected global::System.Web.UI.WebControls.Button btnEliminarBorrador;
         protected global::System.Web.UI.WebControls.Literal litEstadoSinAcciones;
         protected global::System.Web.UI.WebControls.Panel pnlResultados;
         protected global::System.Web.UI.WebControls.Literal litTotalRespuestas;

@@ -44,7 +44,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mpp.ObtenerPorId(idEncuesta);
+                return _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
             }
             catch (ErrorAccesoDatosException)
             {
@@ -56,10 +56,10 @@ namespace StageUp.BLL
         {
             try
             {
-                List<PreguntaEncuesta> preguntas = _mpp.ListarPreguntasPorEncuesta(idEncuesta);
+                List<PreguntaEncuesta> preguntas = _mpp.ListarPreguntasPorEncuesta(EncuestaConId(idEncuesta));
                 foreach (PreguntaEncuesta pregunta in preguntas)
                 {
-                    pregunta.Opciones = _mpp.ListarOpcionesPorPregunta(pregunta.IdPreguntaEncuesta);
+                    pregunta.Opciones = _mpp.ListarOpcionesPorPregunta(pregunta);
                 }
                 return preguntas;
             }
@@ -108,7 +108,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Encuesta actual = _mpp.ObtenerPorId(idEncuesta);
+                Encuesta actual = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
                 if (actual == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la encuesta seleccionada.");
@@ -152,7 +152,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Encuesta encuesta = _mpp.ObtenerPorId(idEncuesta);
+                Encuesta encuesta = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
                 if (encuesta == null)
                 {
                     return ResultadoOperacion<int>.Error("No se encontró la encuesta seleccionada.");
@@ -189,7 +189,7 @@ namespace StageUp.BLL
                         "Ninguna opción puede superar los " + LongitudMaximaTextoOpcion + " caracteres.");
                 }
 
-                int cantidadPreguntasActual = _mpp.ListarPreguntasPorEncuesta(idEncuesta).Count;
+                int cantidadPreguntasActual = _mpp.ListarPreguntasPorEncuesta(EncuestaConId(idEncuesta)).Count;
 
                 int idPregunta = _mpp.InsertarPregunta(new PreguntaEncuesta
                 {
@@ -222,7 +222,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Encuesta encuesta = _mpp.ObtenerPorId(idEncuesta);
+                Encuesta encuesta = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
                 if (encuesta == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la encuesta seleccionada.");
@@ -233,14 +233,14 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("Solo se pueden quitar preguntas mientras la encuesta está en borrador.");
                 }
 
-                List<PreguntaEncuesta> preguntas = _mpp.ListarPreguntasPorEncuesta(idEncuesta);
+                List<PreguntaEncuesta> preguntas = _mpp.ListarPreguntasPorEncuesta(EncuestaConId(idEncuesta));
                 PreguntaEncuesta pregunta = preguntas.FirstOrDefault(p => p.IdPreguntaEncuesta == idPreguntaEncuesta);
                 if (pregunta == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la pregunta seleccionada en esta encuesta.");
                 }
 
-                _mpp.EliminarPregunta(idPreguntaEncuesta);
+                _mpp.EliminarPregunta(pregunta);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "MODIFICACION", TipoEntidadBitacora, idEncuesta,
@@ -254,7 +254,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Encuesta encuesta = _mpp.ObtenerPorId(idEncuesta);
+                Encuesta encuesta = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
                 if (encuesta == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la encuesta seleccionada.");
@@ -283,7 +283,8 @@ namespace StageUp.BLL
                         "La pregunta \"" + preguntaIncompleta.Texto + "\" necesita al menos " + CantidadMinimaOpciones + " opciones.");
                 }
 
-                _mpp.CambiarEstado(idEncuesta, "Activa");
+                encuesta.Estado = "Activa";
+                _mpp.CambiarEstado(encuesta);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "ACTIVACION", TipoEntidadBitacora, idEncuesta,
@@ -297,7 +298,7 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Encuesta encuesta = _mpp.ObtenerPorId(idEncuesta);
+                Encuesta encuesta = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
                 if (encuesta == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la encuesta seleccionada.");
@@ -308,7 +309,8 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("Solo se pueden cerrar encuestas que estén activas.");
                 }
 
-                _mpp.CambiarEstado(idEncuesta, "Cerrada");
+                encuesta.Estado = "Cerrada";
+                _mpp.CambiarEstado(encuesta);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "BAJA", TipoEntidadBitacora, idEncuesta,
@@ -318,11 +320,42 @@ namespace StageUp.BLL
             });
         }
 
+        // Eliminación controlada: solo para encuestas que siguen en Borrador
+        // (nunca se publicaron, así que no tienen respuestas). Una encuesta
+        // publicada no se borra: se cierra, para conservar sus resultados.
+        public ResultadoOperacion EliminarBorrador(int idEncuesta, int idUsuarioInternoResponsable)
+        {
+            return EjecutarProtegido(() =>
+            {
+                Encuesta encuesta = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
+                if (encuesta == null)
+                {
+                    return ResultadoOperacion.Error("No se encontró la encuesta seleccionada.");
+                }
+
+                if (encuesta.Estado != "Borrador")
+                {
+                    return ResultadoOperacion.Error("Solo se pueden eliminar encuestas en borrador. Una encuesta publicada se cierra, no se elimina.");
+                }
+
+                if (!_mpp.EliminarBorrador(encuesta))
+                {
+                    return ResultadoOperacion.Error("No se pudo eliminar la encuesta: ya no está en borrador o tiene respuestas registradas.");
+                }
+
+                _bitacora.RegistrarInterno(
+                    idUsuarioInternoResponsable, "BAJA", TipoEntidadBitacora, idEncuesta,
+                    "Eliminación de la encuesta en borrador \"" + encuesta.Titulo + "\" (con sus preguntas y opciones).");
+
+                return ResultadoOperacion.Ok("La encuesta en borrador se eliminó correctamente.");
+            });
+        }
+
         public List<ResultadoPreguntaEncuesta> ObtenerResultadosAdmin(int idEncuesta)
         {
             try
             {
-                return AgruparResultados(_mpp.ConsultarResultadosFilas(idEncuesta));
+                return AgruparResultados(_mpp.ConsultarResultadosFilas(EncuestaConId(idEncuesta)));
             }
             catch (ErrorAccesoDatosException)
             {
@@ -337,7 +370,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mpp.ListarPendientesParaUsuario(idUsuarioExterno, perfilUsuario);
+                return _mpp.ListarPendientesParaUsuario(UsuarioConPerfil(idUsuarioExterno, perfilUsuario));
             }
             catch (ErrorAccesoDatosException)
             {
@@ -349,7 +382,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return _mpp.ListarConResultadosParaUsuario(idUsuarioExterno, perfilUsuario);
+                return _mpp.ListarConResultadosParaUsuario(UsuarioConPerfil(idUsuarioExterno, perfilUsuario));
             }
             catch (ErrorAccesoDatosException)
             {
@@ -410,10 +443,15 @@ namespace StageUp.BLL
                     }
                 }
 
-                int idRespuestaEncuesta = _mpp.InsertarRespuesta(idEncuesta, idUsuarioExterno);
+                int idRespuestaEncuesta = _mpp.InsertarRespuesta(RespuestaDe(idEncuesta, idUsuarioExterno));
                 foreach (KeyValuePair<int, int> respuesta in respuestasPorPregunta)
                 {
-                    _mpp.InsertarRespuestaDetalle(idRespuestaEncuesta, respuesta.Key, respuesta.Value);
+                    _mpp.InsertarRespuestaDetalle(new RespuestaEncuestaDetalle
+                    {
+                        IdRespuestaEncuesta = idRespuestaEncuesta,
+                        IdPreguntaEncuesta = respuesta.Key,
+                        IdOpcionPregunta = respuesta.Value
+                    });
                 }
 
                 _bitacora.Registrar(
@@ -429,10 +467,18 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                Encuesta encuesta = _mpp.ObtenerPorId(idEncuesta);
+                Encuesta encuesta = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
                 if (encuesta == null)
                 {
                     return ResultadoOperacion<List<ResultadoPreguntaEncuesta>>.Error("No se encontró la encuesta seleccionada.");
+                }
+
+                // Una encuesta en Borrador nunca se publicó: no tiene
+                // resultados para mostrar, aunque su fecha de vencimiento ya
+                // haya pasado (antes "vencida" alcanzaba para dejar verla).
+                if (encuesta.Estado != "Activa" && encuesta.Estado != "Cerrada")
+                {
+                    return ResultadoOperacion<List<ResultadoPreguntaEncuesta>>.Error("Esta encuesta no está disponible.");
                 }
 
                 bool dirigidaAlPerfil = encuesta.PublicoObjetivo == "Todos" || encuesta.PublicoObjetivo == perfilUsuario;
@@ -441,7 +487,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion<List<ResultadoPreguntaEncuesta>>.Error("Esta encuesta no está disponible para tu perfil.");
                 }
 
-                bool yaRespondida = _mpp.ExisteRespuestaDeUsuario(idEncuesta, idUsuarioExterno);
+                bool yaRespondida = _mpp.ExisteRespuestaDeUsuario(RespuestaDe(idEncuesta, idUsuarioExterno));
                 bool vencidaOCerrada = encuesta.Estado == "Cerrada" || encuesta.FechaVencimiento < DateTime.Now;
 
                 if (!yaRespondida && !vencidaOCerrada)
@@ -450,7 +496,7 @@ namespace StageUp.BLL
                         "Todavía no respondiste esta encuesta. Respondela para ver los resultados.");
                 }
 
-                List<ResultadoPreguntaEncuesta> resultados = AgruparResultados(_mpp.ConsultarResultadosFilas(idEncuesta));
+                List<ResultadoPreguntaEncuesta> resultados = AgruparResultados(_mpp.ConsultarResultadosFilas(encuesta));
                 return ResultadoOperacion<List<ResultadoPreguntaEncuesta>>.Ok(resultados);
             });
         }
@@ -461,7 +507,7 @@ namespace StageUp.BLL
         private ResultadoOperacion ValidarPuedeResponder(
             int idEncuesta, int idUsuarioExterno, string perfilUsuario, out Encuesta encuesta)
         {
-            encuesta = _mpp.ObtenerPorId(idEncuesta);
+            encuesta = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
             if (encuesta == null)
             {
                 return ResultadoOperacion.Error("No se encontró la encuesta seleccionada.");
@@ -488,7 +534,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("Esta encuesta no está disponible para tu perfil.");
             }
 
-            if (_mpp.ExisteRespuestaDeUsuario(idEncuesta, idUsuarioExterno))
+            if (_mpp.ExisteRespuestaDeUsuario(RespuestaDe(idEncuesta, idUsuarioExterno)))
             {
                 return ResultadoOperacion.Error("Ya respondiste esta encuesta.");
             }
@@ -601,6 +647,21 @@ namespace StageUp.BLL
             }
 
             return resultados;
+        }
+
+        private static Encuesta EncuestaConId(int idEncuesta)
+        {
+            return new Encuesta { IdEncuesta = idEncuesta };
+        }
+
+        private static UsuarioExterno UsuarioConPerfil(int idUsuarioExterno, string perfilUsuario)
+        {
+            return new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno, PerfilUsuario = perfilUsuario };
+        }
+
+        private static RespuestaEncuesta RespuestaDe(int idEncuesta, int idUsuarioExterno)
+        {
+            return new RespuestaEncuesta { IdEncuesta = idEncuesta, IdUsuarioExterno = idUsuarioExterno };
         }
 
         private static ResultadoOperacion EjecutarProtegido(Func<ResultadoOperacion> operacion)

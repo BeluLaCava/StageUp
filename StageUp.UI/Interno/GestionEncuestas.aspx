@@ -175,6 +175,9 @@
                         <asp:Button ID="btnCerrar" runat="server" CssClass="button button-secondary" Text="Cerrar encuesta"
                             CausesValidation="false" OnClick="btnCerrar_Click"
                             OnClientClick="return confirm('¿Seguro que querés cerrar la encuesta? Deja de aceptar respuestas.');" />
+                        <asp:Button ID="btnEliminarBorrador" runat="server" CssClass="button button-secondary" Text="Eliminar borrador"
+                            CausesValidation="false" OnClick="btnEliminarBorrador_Click"
+                            OnClientClick="return confirm('¿Seguro que querés eliminar esta encuesta en borrador? Se borran también sus preguntas y opciones.');" />
                         <asp:Literal ID="litEstadoSinAcciones" runat="server" Visible="false" Text="Esta encuesta está cerrada." />
                     </asp:Panel>
 

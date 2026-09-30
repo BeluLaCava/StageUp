@@ -212,6 +212,7 @@ namespace StageUp.MPP
                 RecordatorioEnviado = fila.Table.Columns.Contains("recordatorioEnviado") && Convert.ToBoolean(fila["recordatorioEnviado"]),
                 NombreEspacio = fila.Table.Columns.Contains("nombreEspacio") && fila["nombreEspacio"] != DBNull.Value ? fila["nombreEspacio"].ToString() : null,
                 IdUsuarioGestor = fila.Table.Columns.Contains("idUsuarioGestor") ? Convert.ToInt32(fila["idUsuarioGestor"]) : 0,
+                NombreGestor = fila.Table.Columns.Contains("nombreGestor") && fila["nombreGestor"] != DBNull.Value ? fila["nombreGestor"].ToString() : null,
                 PromedioCalificacionSolicitante = fila.Table.Columns.Contains("promedioCalificacionSolicitante") && fila["promedioCalificacionSolicitante"] != DBNull.Value
                     ? Convert.ToDecimal(fila["promedioCalificacionSolicitante"]) : 0m,
                 CantidadCalificacionesSolicitante = fila.Table.Columns.Contains("cantidadCalificacionesSolicitante")

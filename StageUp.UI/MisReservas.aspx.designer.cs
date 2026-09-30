@@ -6,6 +6,7 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Panel pnlMensaje;
         protected global::System.Web.UI.WebControls.Literal litMensaje;
 
+        protected global::System.Web.UI.WebControls.DropDownList ddlFiltroHistorial;
         protected global::System.Web.UI.WebControls.Literal litSinReservas;
         protected global::System.Web.UI.WebControls.Repeater rptMisReservas;
         protected global::System.Web.UI.WebControls.Panel pnlCalificarEspacio;

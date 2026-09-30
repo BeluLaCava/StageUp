@@ -30,8 +30,26 @@ namespace StageUp.UI
 
             if (!IsPostBack)
             {
+                CargarFiltrosHistorial();
                 CargarMisReservas();
             }
+        }
+
+        protected void ddlFiltroHistorial_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            CargarMisReservas();
+        }
+
+        private void CargarFiltrosHistorial()
+        {
+            ddlFiltroHistorial.Items.Clear();
+            ddlFiltroHistorial.Items.Add(new ListItem("Todas", BLL_Reserva.FiltroTodas));
+            ddlFiltroHistorial.Items.Add(new ListItem("Pendientes de revisión", BLL_Reserva.FiltroPendientes));
+            ddlFiltroHistorial.Items.Add(new ListItem("Confirmadas / próximas", BLL_Reserva.FiltroProximas));
+            ddlFiltroHistorial.Items.Add(new ListItem("Finalizadas", BLL_Reserva.FiltroFinalizadas));
+            ddlFiltroHistorial.Items.Add(new ListItem("Pendientes de calificar", BLL_Reserva.FiltroSinCalificar));
+            ddlFiltroHistorial.Items.Add(new ListItem("Rechazadas", BLL_Reserva.FiltroRechazadas));
+            ddlFiltroHistorial.Items.Add(new ListItem("Canceladas", BLL_Reserva.FiltroCanceladas));
         }
 
         protected void rptMisReservas_ItemCommand(object source, RepeaterCommandEventArgs e)
@@ -177,8 +195,12 @@ namespace StageUp.UI
         private void CargarMisReservas()
         {
             int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
-            List<Reserva> reservas = _bllReserva.ListarMisReservas(idUsuarioExterno);
+            string filtro = ddlFiltroHistorial.SelectedValue;
+            List<Reserva> reservas = _bllReserva.ListarMisReservas(idUsuarioExterno, filtro);
 
+            litSinReservas.Text = string.IsNullOrEmpty(filtro) || filtro == BLL_Reserva.FiltroTodas
+                ? "Todavía no solicitaste ninguna reserva. Podés explorar espacios publicados y solicitar una desde su detalle."
+                : "No tenés reservas con ese estado.";
             litSinReservas.Visible = reservas.Count == 0;
             rptMisReservas.DataSource = reservas;
             rptMisReservas.DataBind();

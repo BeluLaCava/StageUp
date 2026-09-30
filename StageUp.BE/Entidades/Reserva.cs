@@ -30,6 +30,7 @@ namespace StageUp.BE.Entidades
 
         public string NombreEspacio { get; set; }
         public int IdUsuarioGestor { get; set; }
+        public string NombreGestor { get; set; }
         public string NombreSolicitante { get; set; }
         public string CorreoSolicitante { get; set; }
         public DateTime? SolicitanteDesde { get; set; }

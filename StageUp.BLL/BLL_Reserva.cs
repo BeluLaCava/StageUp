@@ -287,6 +287,139 @@ namespace StageUp.BLL
             }
         }
 
+        // ------------------------------------------------------------------
+        // Historial y seguimiento de reservas (ítems 6A y 6D de la segunda
+        // entrega): "Mis reservas" funciona como historial completo, con
+        // filtro por estado, y cada reserva muestra su línea de tiempo.
+        // ------------------------------------------------------------------
+        public const string FiltroTodas = "Todas";
+        public const string FiltroPendientes = "Pendientes";
+        public const string FiltroProximas = "Proximas";
+        public const string FiltroFinalizadas = "Finalizadas";
+        public const string FiltroSinCalificar = "SinCalificar";
+        public const string FiltroRechazadas = "Rechazadas";
+        public const string FiltroCanceladas = "Canceladas";
+
+        public List<Reserva> ListarMisReservas(int idUsuarioExternoSolicitante, string filtro)
+        {
+            List<Reserva> todas = ListarMisReservas(idUsuarioExternoSolicitante);
+            List<Reserva> filtradas = new List<Reserva>();
+            foreach (Reserva reserva in todas)
+            {
+                if (CumpleFiltroHistorial(reserva, filtro))
+                {
+                    filtradas.Add(reserva);
+                }
+            }
+            return filtradas;
+        }
+
+        private static bool CumpleFiltroHistorial(Reserva reserva, string filtro)
+        {
+            string estado = reserva.EstadoReserva;
+            switch (filtro)
+            {
+                case FiltroPendientes:
+                    return estado == EstadoReserva.Pendiente.ToString();
+                case FiltroProximas:
+                    return estado == EstadoReserva.Aceptada.ToString();
+                case FiltroFinalizadas:
+                    return estado == EstadoReserva.Finalizada.ToString();
+                case FiltroSinCalificar:
+                    return estado == EstadoReserva.Finalizada.ToString() && !reserva.CalificacionEspacioRealizada;
+                case FiltroRechazadas:
+                    return estado == EstadoReserva.Rechazada.ToString();
+                case FiltroCanceladas:
+                    return estado == EstadoReserva.Cancelada.ToString();
+                default:
+                    return true;
+            }
+        }
+
+        // Línea de tiempo de una reserva. Los pasos futuros quedan como
+        // "Pendiente"; el paso en el que está la reserva ahora, como "Actual";
+        // un rechazo o una cancelación cortan la línea con un paso
+        // "Interrumpido". (Cuando exista el módulo de pagos se agrega acá el
+        // paso "Pendiente de pago".)
+        public static List<PasoSeguimientoReserva> ConstruirSeguimiento(Reserva reserva)
+        {
+            List<PasoSeguimientoReserva> pasos = new List<PasoSeguimientoReserva>();
+            if (reserva == null)
+            {
+                return pasos;
+            }
+
+            string estado = reserva.EstadoReserva;
+            DateTime inicioReserva = reserva.FechaSolicitada.Date.AddMinutes(reserva.MinutoDesde ?? 0);
+            string momentoReserva = reserva.MinutoDesde.HasValue
+                ? reserva.FechaSolicitada.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) + " a las " + FormatearHora(reserva.MinutoDesde.Value)
+                : reserva.FechaSolicitada.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+
+            pasos.Add(Paso("Solicitud enviada", "Le enviaste la solicitud al gestor del espacio.",
+                reserva.FechaCreacion, "Completado"));
+
+            if (estado == EstadoReserva.Pendiente.ToString())
+            {
+                pasos.Add(Paso("Revisión del gestor", "Esperando que el gestor acepte o rechace la solicitud.", null, "Actual"));
+                pasos.Add(Paso("Reserva confirmada", null, null, "Pendiente"));
+                pasos.Add(Paso("Día de la reserva", momentoReserva, null, "Pendiente"));
+                pasos.Add(Paso("Calificación", null, null, "Pendiente"));
+                return pasos;
+            }
+
+            if (estado == EstadoReserva.Rechazada.ToString())
+            {
+                pasos.Add(Paso("Solicitud rechazada",
+                    string.IsNullOrEmpty(reserva.ComentarioResolucion)
+                        ? "El gestor no aceptó la solicitud."
+                        : "El gestor no aceptó la solicitud: \"" + reserva.ComentarioResolucion + "\"",
+                    reserva.FechaResolucion, "Interrumpido"));
+                return pasos;
+            }
+
+            bool fueAceptada = estado == EstadoReserva.Aceptada.ToString()
+                || estado == EstadoReserva.Finalizada.ToString()
+                || (estado == EstadoReserva.Cancelada.ToString() && reserva.FechaResolucion.HasValue);
+
+            if (fueAceptada)
+            {
+                pasos.Add(Paso("Reserva confirmada", "El gestor aceptó la solicitud.", reserva.FechaResolucion, "Completado"));
+            }
+
+            if (estado == EstadoReserva.Cancelada.ToString())
+            {
+                string detalle = reserva.ComisionAplicada && reserva.ImporteComision.HasValue
+                    ? "Cancelaste la reserva. Se aplicó una comisión de " +
+                      reserva.ImporteComision.Value.ToString("0.##", CultureInfo.InvariantCulture) + " " + (reserva.Moneda ?? "ARS") + "."
+                    : "Cancelaste la reserva, sin costo.";
+                pasos.Add(Paso("Reserva cancelada", detalle, reserva.FechaCancelacion, "Interrumpido"));
+                return pasos;
+            }
+
+            if (estado == EstadoReserva.Aceptada.ToString())
+            {
+                int dias = (int)Math.Ceiling((inicioReserva - DateTime.Now).TotalDays);
+                string faltan = dias <= 0 ? "Es hoy." : dias == 1 ? "Falta 1 día." : "Faltan " + dias + " días.";
+                pasos.Add(Paso("Día de la reserva", momentoReserva + ". " + faltan, inicioReserva, "Actual"));
+                pasos.Add(Paso("Reserva finalizada", null, null, "Pendiente"));
+                pasos.Add(Paso("Calificación", null, null, "Pendiente"));
+                return pasos;
+            }
+
+            // Finalizada
+            pasos.Add(Paso("Día de la reserva", momentoReserva, inicioReserva, "Completado"));
+            pasos.Add(Paso("Reserva finalizada", null, reserva.FechaFinalizacion, "Completado"));
+            pasos.Add(reserva.CalificacionEspacioRealizada
+                ? Paso("Calificación", "Ya calificaste el espacio. ¡Gracias!", null, "Completado")
+                : Paso("Calificación", "Calificá el espacio para ayudar a otros artistas.", null, "Actual"));
+            return pasos;
+        }
+
+        private static PasoSeguimientoReserva Paso(string titulo, string detalle, DateTime? fecha, string estado)
+        {
+            return new PasoSeguimientoReserva { Titulo = titulo, Detalle = detalle, Fecha = fecha, Estado = estado };
+        }
+
         public List<Reserva> ListarSolicitudesRecibidas(int idUsuarioGestor)
         {
             try

@@ -35,6 +35,7 @@
     <Compile Include="Entidades\Notificacion.cs" />
     <Compile Include="Entidades\Novedad.cs" />
     <Compile Include="Entidades\Participante.cs" />
+    <Compile Include="Entidades\PasoSeguimientoReserva.cs" />
     <Compile Include="Enumerados\ModoRecurrenciaActividad.cs" />
     <Compile Include="Enumerados\TipoNotificacion.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

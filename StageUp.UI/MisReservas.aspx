@@ -1,11 +1,28 @@
 <%@ Page Title="Mis reservas | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="MisReservas.aspx.cs" Inherits="StageUp.UI.MisReservas" %>
 
 <asp:Content ID="MisReservasContent" ContentPlaceHolderID="MainContent" runat="server">
+    <style type="text/css">
+        .reserva-historial-filtro { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .reserva-historial-meta { color: var(--color-text-muted, #6b7280); font-size: 0.88em; margin: 2px 0; }
+        .reserva-seguimiento { margin-top: 10px; }
+        .reserva-seguimiento summary { cursor: pointer; font-weight: bold; color: #7a0c20; }
+        .reserva-timeline { list-style: none; margin: 12px 0 4px; padding: 0 0 0 6px; }
+        .reserva-timeline li { position: relative; padding: 0 0 14px 24px; border-left: 2px solid #e5c5b8; }
+        .reserva-timeline li:last-child { border-left-color: transparent; padding-bottom: 0; }
+        .reserva-timeline li::before { content: ""; position: absolute; left: -8px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid #c9b3a8; }
+        .reserva-timeline li.paso-completado::before { background: #7a0c20; border-color: #7a0c20; }
+        .reserva-timeline li.paso-actual::before { background: #f3dfd4; border-color: #7a0c20; box-shadow: 0 0 0 4px rgba(122, 12, 32, 0.12); }
+        .reserva-timeline li.paso-interrumpido::before { background: #9ca3af; border-color: #6b7280; }
+        .reserva-timeline li.paso-pendiente { color: #9ca3af; }
+        .reserva-timeline .paso-titulo { font-weight: bold; }
+        .reserva-timeline .paso-fecha { font-size: 0.82em; color: #8a6a5e; margin-left: 6px; }
+        .reserva-timeline .paso-detalle { display: block; font-size: 0.9em; margin-top: 2px; }
+    </style>
     <section class="static-page">
         <div class="static-page-header">
             <span class="section-label">Mis reservas</span>
             <h1>Tus solicitudes de reserva</h1>
-            <p>Acá vas a ver el historial de las reservas que solicitaste, con su estado actual.</p>
+            <p>Acá vas a ver el historial completo de las reservas que solicitaste, con su estado y el seguimiento de cada una.</p>
         </div>
 
         <div class="static-page-body">
@@ -14,8 +31,11 @@
             </asp:Panel>
 
             <div class="auth-card">
-                <div class="auth-card-header">
+                <div class="auth-card-header reserva-historial-filtro">
                     <h2>Historial</h2>
+                    <label for="<%= ddlFiltroHistorial.ClientID %>">Mostrar</label>
+                    <asp:DropDownList ID="ddlFiltroHistorial" runat="server" AutoPostBack="true"
+                        OnSelectedIndexChanged="ddlFiltroHistorial_SelectedIndexChanged" />
                 </div>
 
                 <asp:Literal ID="litSinReservas" runat="server" Visible="false"
@@ -26,13 +46,32 @@
                         <div class="space-row">
                             <div class="space-row-info">
                                 <h3><%# Eval("NombreEspacio") %></h3>
-                                <p>Fecha solicitada: <%# Eval("FechaSolicitada", "{0:dd/MM/yyyy}") %> · Estado: <%# Eval("EstadoReserva") %></p>
+                                <p>Fecha del alquiler: <%# Eval("FechaSolicitada", "{0:dd/MM/yyyy}") %> · Estado: <%# Eval("EstadoReserva") %></p>
+                                <p class="reserva-historial-meta">
+                                    N° <%# Eval("IdReserva") %> · Solicitada el <%# Eval("FechaCreacion", "{0:dd/MM/yyyy HH:mm}") %>
+                                    <%#: string.IsNullOrEmpty(Eval("NombreGestor") as string) ? "" : " · Gestor: " + Eval("NombreGestor") %>
+                                </p>
                                 <p class="space-row-horario">
                                     <asp:Literal ID="litHorarioImporte" runat="server"
                                         Visible='<%# ((StageUp.BE.Entidades.Reserva)Container.DataItem).MinutoDesde.HasValue %>' />
                                 </p>
                                 <p class="space-row-descripcion"><%# Eval("ComentarioSolicitante") %></p>
                                 <asp:Literal ID="litComentarioResolucion" runat="server" Visible='<%# !string.IsNullOrEmpty(Eval("ComentarioResolucion") as string) %>' />
+                                <details class="reserva-seguimiento">
+                                    <summary>Ver seguimiento</summary>
+                                    <ol class="reserva-timeline">
+                                        <asp:Repeater ID="rptSeguimiento" runat="server"
+                                            DataSource='<%# StageUp.BLL.BLL_Reserva.ConstruirSeguimiento((StageUp.BE.Entidades.Reserva)Container.DataItem) %>'>
+                                            <ItemTemplate>
+                                                <li class='<%# "paso-" + Eval("Estado").ToString().ToLowerInvariant() %>'>
+                                                    <span class="paso-titulo"><%#: Eval("Titulo") %></span>
+                                                    <span class="paso-fecha"><%#: Eval("Fecha", "{0:dd/MM/yyyy HH:mm}") %></span>
+                                                    <span class="paso-detalle"><%#: Eval("Detalle") %></span>
+                                                </li>
+                                            </ItemTemplate>
+                                        </asp:Repeater>
+                                    </ol>
+                                </details>
                             </div>
                             <div class="space-row-actions">
                                 <asp:LinkButton ID="lnkCancelar" runat="server" CssClass="text-link" CausesValidation="false"

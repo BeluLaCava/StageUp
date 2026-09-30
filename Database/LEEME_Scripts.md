@@ -43,6 +43,7 @@ Todos los demás numerados: agregan columnas, tablas nuevas (con `IF OBJECT_ID(.
 | `40_SoporteReservaAsociada.sql` | Tickets de soporte asociados a una reserva propia (validada) y contador de tickets abiertos. |
 | `41_FichaEspacioSinBorrarBloqueosDeActividad.sql` | Guardar la ficha de un espacio ya no borra la ficha ni los bloqueos de actividades. |
 | `42_AvisosPorCorreoReservas.sql` | Marca de "aviso de finalización enviado" para el mail de reserva finalizada, y datos de importe en el listado de recordatorios. |
+| `43_HistorialYSeguimientoReservas.sql` | El historial de Mis reservas incluye el nombre del gestor del espacio. |
 
 Cuando se corrige un script ya publicado (por ejemplo 15, 36 o 38), la corrección se hace **en el script original** (para que una instalación nueva quede bien) **y en un script incremental nuevo** (para que una base que ya tenía aplicado el original también la reciba). Ejecutar ambos deja el mismo resultado.
 

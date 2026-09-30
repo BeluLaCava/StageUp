@@ -61,6 +61,7 @@
     <Compile Include="BLL_ExportacionSegura.cs" />
     <Compile Include="BLL_Ticket.cs" />
     <Compile Include="BLL_OpcionMenu.cs" />
+    <Compile Include="BLL_Backup.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

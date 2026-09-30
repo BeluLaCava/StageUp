@@ -135,6 +135,94 @@ namespace StageUp.DAL
             }
         }
 
+        // ------------------------------------------------------------------
+        // Backup y restore (ítem 17 de la segunda entrega). Son operaciones
+        // largas (timeout de 10 minutos en vez de los 30 segundos por
+        // defecto) y la restauración se ejecuta conectada a master, porque
+        // una base no se puede restaurar a sí misma mientras está en uso.
+        // ------------------------------------------------------------------
+        private const int SegundosTimeoutOperacionLarga = 600;
+
+        public string ObtenerNombreBaseDeDatos()
+        {
+            string cadena = ConfigurationManager.ConnectionStrings[NombreCadenaConexion].ConnectionString;
+            return new SqlConnectionStringBuilder(cadena).InitialCatalog;
+        }
+
+        public DataTable LeerOperacionLarga(string nombreSp, Hashtable parametros = null)
+        {
+            try
+            {
+                DataTable tabla = new DataTable();
+
+                using (SqlConnection conexion = ObtenerConexion())
+                using (SqlCommand comando = new SqlCommand(nombreSp, conexion))
+                {
+                    comando.CommandType = CommandType.StoredProcedure;
+                    comando.CommandTimeout = SegundosTimeoutOperacionLarga;
+                    AgregarParametros(comando, parametros);
+
+                    using (SqlDataAdapter adaptador = new SqlDataAdapter(comando))
+                    {
+                        adaptador.Fill(tabla);
+                    }
+                }
+
+                return tabla;
+            }
+            catch (SqlException ex)
+            {
+                throw new ErrorAccesoDatosException(
+                    nombreSp, "Ocurrió un error SQL en la operación: " + ex.Message, ex);
+            }
+            catch (Exception ex)
+            {
+                throw new ErrorAccesoDatosException(
+                    nombreSp, "Ocurrió un error en la operación. Probá nuevamente en unos minutos.", ex);
+            }
+        }
+
+        public void EjecutarEnMaster(string nombreSp, Hashtable parametros = null)
+        {
+            try
+            {
+                string cadena = ConfigurationManager.ConnectionStrings[NombreCadenaConexion].ConnectionString;
+                SqlConnectionStringBuilder constructor = new SqlConnectionStringBuilder(cadena)
+                {
+                    InitialCatalog = "master",
+                    Pooling = false
+                };
+
+                using (SqlConnection conexion = new SqlConnection(constructor.ConnectionString))
+                using (SqlCommand comando = new SqlCommand(nombreSp, conexion))
+                {
+                    comando.CommandType = CommandType.StoredProcedure;
+                    comando.CommandTimeout = SegundosTimeoutOperacionLarga;
+                    AgregarParametros(comando, parametros);
+
+                    conexion.Open();
+                    comando.ExecuteNonQuery();
+                }
+            }
+            catch (SqlException ex)
+            {
+                throw new ErrorAccesoDatosException(
+                    nombreSp, "Ocurrió un error SQL en la operación: " + ex.Message, ex);
+            }
+            catch (Exception ex)
+            {
+                throw new ErrorAccesoDatosException(
+                    nombreSp, "Ocurrió un error en la operación. Probá nuevamente en unos minutos.", ex);
+            }
+        }
+
+        // Después de restaurar, las conexiones que quedaron en el pool apuntan
+        // a sesiones que SQL Server cerró: se descartan todas.
+        public void LimpiarConexionesAbiertas()
+        {
+            SqlConnection.ClearAllPools();
+        }
+
         private static void AgregarParametros(SqlCommand comando, Hashtable parametros)
         {
             if (parametros == null)

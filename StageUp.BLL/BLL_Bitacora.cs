@@ -13,13 +13,13 @@ namespace StageUp.BLL
         {
             "ALTA", "MODIFICACION", "BAJA", "ACTIVACION", "LOGIN", "RECUPERACION_SOLICITADA",
             "APROBACION", "RECHAZO", "ASIGNACION_PERMISOS", "ASOCIACION", "DESVINCULACION", "ERROR",
-            "RESPUESTA", "CIERRE"
+            "RESPUESTA", "CIERRE", "BACKUP", "RESTAURACION"
         };
 
         public static readonly string[] TiposDeEntidadAfectada =
         {
             "UsuarioExterno", "UsuarioInterno", "EspacioArtistico", "Reserva", "Calificacion", "RolInterno", "Idioma", "Traduccion", "ComponentePermiso",
-            "Actividad", "Participante", "Encuesta", "Sistema", "Ticket", "OpcionMenu"
+            "Actividad", "Participante", "Encuesta", "Sistema", "Ticket", "OpcionMenu", "BaseDeDatos"
         };
 
         public void Registrar(

@@ -46,6 +46,7 @@ Todos los demás numerados: agregan columnas, tablas nuevas (con `IF OBJECT_ID(.
 | `43_HistorialYSeguimientoReservas.sql` | El historial de Mis reservas incluye el nombre del gestor del espacio. |
 | `44_DatosDemoRanking.sql` | Datos de demostración: reseñas de ejemplo para el ranking de espacios mejor valorados. |
 | `45_MenuDinamicoAbmc.sql` | Menú del panel interno administrable (tabla `OpcionMenu`, permiso `GESTIONAR_MENU`), cargado con las opciones que ya existían. |
+| `46_BackupRestore.sql` | Backup y restauración desde el panel (permiso `GESTIONAR_BACKUP`). Crea `sp_StageUp_RestaurarBackup` en **master** (una base no se puede restaurar a sí misma). |
 
 Desde el script 45, el menú del panel interno sale de `dbo.OpcionMenu`: si un script futuro agrega un permiso con pantalla propia, tiene que insertar también su opción de menú (o darla de alta desde Gestión del menú).
 
@@ -59,6 +60,12 @@ Cuando se corrige un script ya publicado (por ejemplo 15, 36 o 38), la correcci�
 
 - **`Eliminacion_creacion_bd.sql`**: recuperación manual de una base rota. Borra todas las tablas y recrea la base. No es un script de instalación y no se entrega como parte del flujo normal. Tiene rutas físicas de `.mdf`/`.ldf` que hay que ajustar a cada instancia local, y arranca frenado (`SET NOEXEC ON`) para que no se ejecute entero por accidente. `EjecutarTodosLosScripts.ps1` nunca lo toma porque su nombre no empieza con número.
 - **`RepararTildes.ps1`**: utilitario puntual para reparar datos cargados con una codificación incorrecta en bases viejas.
+
+## Backup y restauración
+
+Desde **Interno > Backup y restauración** (rol Administrador) se genera un backup completo de la base en la carpeta de backups de la instancia de SQL Server, y se puede restaurar desde cualquier backup del historial. Para restaurar hay que escribir RESTAURAR; antes de restaurar se genera automáticamente un backup del estado actual, y todo queda en la bitácora. El usuario de Windows con el que corre la aplicación necesita permisos de backup/restore en la instancia (en desarrollo local normalmente es sysadmin).
+
+Alternativa manual (SSMS): clic derecho sobre la base > Tareas > Copia de seguridad / Restaurar.
 
 ## Configuración privada
 

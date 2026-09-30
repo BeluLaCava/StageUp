@@ -37,6 +37,7 @@
     <Compile Include="Entidades\Participante.cs" />
     <Compile Include="Entidades\PasoSeguimientoReserva.cs" />
     <Compile Include="Entidades\OpcionMenu.cs" />
+    <Compile Include="Entidades\BackupBaseDatos.cs" />
     <Compile Include="Enumerados\ModoRecurrenciaActividad.cs" />
     <Compile Include="Enumerados\TipoNotificacion.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

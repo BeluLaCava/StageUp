@@ -262,6 +262,13 @@
     <Compile Include="Interno\GestionSoporte.aspx.designer.cs">
       <DependentUpon>GestionSoporte.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Interno\GestionMenu.aspx.cs">
+      <DependentUpon>GestionMenu.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\GestionMenu.aspx.designer.cs">
+      <DependentUpon>GestionMenu.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Interno\HerramientasSeguridad.aspx.cs">
       <DependentUpon>HerramientasSeguridad.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -361,6 +368,7 @@
     <Content Include="Interno\GestionEncuestas.aspx" />
     <Content Include="Interno\HerramientasSeguridad.aspx" />
     <Content Include="Interno\GestionSoporte.aspx" />
+    <Content Include="Interno\GestionMenu.aspx" />
     <Content Include="PaginaNoEncontrada.aspx" />
     <Content Include="ErrorGeneral.aspx" />
     <Content Include="Global.asax" />

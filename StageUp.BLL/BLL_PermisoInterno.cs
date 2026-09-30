@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using StageUp.BE.Entidades;
 using StageUp.BE.Menu;
 using StageUp.BE.Permisos;
@@ -13,7 +14,14 @@ namespace StageUp.BLL
         private static readonly Dictionary<int, List<PermisoHoja>> CachePermisosPorRol =
             new Dictionary<int, List<PermisoHoja>>();
 
+        // Opciones del menú dinámico (ítem 19): se leen una vez y se guardan
+        // en memoria, porque el menú se arma en cada página del panel. Se
+        // invalida desde BLL_OpcionMenu cada vez que se modifica el menú.
+        private static readonly object CacheMenuLock = new object();
+        private static List<OpcionMenu> _cacheOpcionesMenu;
+
         private readonly MPP_ComponentePermiso _mppComponente = new MPP_ComponentePermiso();
+        private readonly MPP_OpcionMenu _mppOpcionMenu = new MPP_OpcionMenu();
         private readonly MPP_RolInternoComponentePermiso _mppRolComponente = new MPP_RolInternoComponentePermiso();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
@@ -27,13 +35,90 @@ namespace StageUp.BLL
             return codigos;
         }
 
+        // Ítem 19: el menú se arma desde las opciones administrables
+        // (dbo.OpcionMenu, ABMC en Interno/GestionMenu.aspx). Se muestran las
+        // opciones activas, en su orden, cuyo permiso tenga el rol. Si la
+        // tabla todavía no existe (script 45 sin aplicar), se usa el armado
+        // anterior, directo desde los permisos, para no dejar el panel sin
+        // menú.
         public GrupoMenu ConstruirMenuParaRol(int idRolInterno)
+        {
+            List<PermisoHoja> hojasDelRol = ObtenerHojasAsignadas(idRolInterno);
+            List<OpcionMenu> opciones = ObtenerOpcionesMenuActivas();
+            if (opciones == null)
+            {
+                return ConstruirMenuDesdePermisos(hojasDelRol);
+            }
+
+            HashSet<int> idsPermitidos = new HashSet<int>(hojasDelRol.Select(h => h.IdComponentePermiso));
+
+            GrupoMenu raiz = new GrupoMenu("Menú");
+            GrupoMenu grupoActual = null;
+            string nombreGrupoActual = null;
+
+            foreach (OpcionMenu opcion in opciones)
+            {
+                if (!idsPermitidos.Contains(opcion.IdComponentePermiso))
+                {
+                    continue;
+                }
+
+                if (grupoActual == null || opcion.Modulo != nombreGrupoActual)
+                {
+                    grupoActual = new GrupoMenu(opcion.Modulo);
+                    raiz.Agregar(grupoActual);
+                    nombreGrupoActual = opcion.Modulo;
+                }
+
+                grupoActual.Agregar(new ItemMenu(opcion.Texto, opcion.Url, opcion.Descripcion));
+            }
+
+            return raiz;
+        }
+
+        public static void InvalidarCacheMenu()
+        {
+            lock (CacheMenuLock)
+            {
+                _cacheOpcionesMenu = null;
+            }
+        }
+
+        private List<OpcionMenu> ObtenerOpcionesMenuActivas()
+        {
+            lock (CacheMenuLock)
+            {
+                if (_cacheOpcionesMenu != null)
+                {
+                    return new List<OpcionMenu>(_cacheOpcionesMenu);
+                }
+            }
+
+            List<OpcionMenu> opciones;
+            try
+            {
+                opciones = _mppOpcionMenu.ListarActivas();
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return null;
+            }
+
+            lock (CacheMenuLock)
+            {
+                _cacheOpcionesMenu = new List<OpcionMenu>(opciones);
+            }
+
+            return opciones;
+        }
+
+        private static GrupoMenu ConstruirMenuDesdePermisos(List<PermisoHoja> hojasDelRol)
         {
             GrupoMenu raiz = new GrupoMenu("Menú");
             GrupoMenu grupoActual = null;
             string nombreGrupoActual = null;
 
-            foreach (PermisoHoja hoja in ObtenerHojasAsignadas(idRolInterno))
+            foreach (PermisoHoja hoja in hojasDelRol)
             {
                 string nombreGrupo = hoja.NombreGrupo ?? "General";
                 if (grupoActual == null || nombreGrupo != nombreGrupoActual)

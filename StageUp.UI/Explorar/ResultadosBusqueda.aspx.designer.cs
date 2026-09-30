@@ -3,6 +3,10 @@ namespace StageUp.UI.Explorar
     public partial class ResultadosBusqueda
     {
         protected global::System.Web.UI.WebControls.Repeater rptEspaciosPublicados;
+        protected global::System.Web.UI.WebControls.DropDownList ddlOrden;
+        protected global::System.Web.UI.WebControls.Panel pnlRanking;
+        protected global::System.Web.UI.WebControls.Literal litCriterioRanking;
+        protected global::System.Web.UI.WebControls.Repeater rptRanking;
 
         protected global::System.Web.UI.WebControls.Panel pnlComparacionServicios;
         protected global::System.Web.UI.WebControls.Repeater rptTiposServicio;

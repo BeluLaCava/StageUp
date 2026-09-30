@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using StageUp.BE.Entidades;
 using StageUp.BE.Enumerados;
 using StageUp.DAL;
@@ -10,6 +11,19 @@ namespace StageUp.BLL
     public class BLL_Calificacion
     {
         private const int LongitudMaximaComentario = 1000;
+
+        // Ranking de espacios (ítem 8 de la segunda entrega). Para que una
+        // sola reseña de 5 estrellas no deje a un espacio primero, el orden
+        // usa un promedio ponderado (promedio bayesiano):
+        //
+        //   puntaje = (n * promedioEspacio + M * promedioGeneral) / (n + M)
+        //
+        // n = reseñas del espacio, M = MinimoResenasRanking, promedioGeneral =
+        // promedio de todas las reseñas de espacios. Con pocas reseñas, el
+        // puntaje queda cerca del promedio general; a medida que suma
+        // reseñas, pesa más su propio promedio. Además, el ranking público
+        // solo muestra espacios con al menos MinimoResenasRanking reseñas.
+        public const int MinimoResenasRanking = 3;
         private readonly MPP_Calificacion _mppCalificacion = new MPP_Calificacion();
         private readonly MPP_Reserva _mppReserva = new MPP_Reserva();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
@@ -106,15 +120,67 @@ namespace StageUp.BLL
                 return;
             }
 
+            decimal promedioGeneral = CalcularPromedioGeneral(resumenes.Values);
+
             foreach (EspacioArtistico espacio in espacios)
             {
+                if (espacio == null)
+                {
+                    continue;
+                }
+
                 ResumenReputacion resumen;
-                if (espacio != null && resumenes.TryGetValue(espacio.IdEspacioArtistico, out resumen))
+                if (resumenes.TryGetValue(espacio.IdEspacioArtistico, out resumen))
                 {
                     espacio.PromedioCalificacion = resumen.Promedio;
                     espacio.CantidadCalificaciones = resumen.CantidadCalificaciones;
                 }
+
+                espacio.PuntajeRanking = CalcularPuntajeRanking(
+                    espacio.PromedioCalificacion, espacio.CantidadCalificaciones, promedioGeneral);
             }
+        }
+
+        // Ranking público: espacios con al menos MinimoResenasRanking reseñas,
+        // ordenados por puntaje ponderado. Espera la lista ya completada con
+        // CompletarReputacionesEspacios.
+        public static List<EspacioArtistico> ObtenerRankingMejorValorados(IEnumerable<EspacioArtistico> espacios, int cantidad)
+        {
+            if (espacios == null)
+            {
+                return new List<EspacioArtistico>();
+            }
+
+            return espacios
+                .Where(e => e != null && e.CantidadCalificaciones >= MinimoResenasRanking)
+                .OrderByDescending(e => e.PuntajeRanking)
+                .ThenByDescending(e => e.CantidadCalificaciones)
+                .Take(cantidad)
+                .ToList();
+        }
+
+        public static decimal CalcularPuntajeRanking(decimal promedio, int cantidad, decimal promedioGeneral)
+        {
+            if (cantidad <= 0)
+            {
+                return 0m;
+            }
+
+            return decimal.Round(
+                (cantidad * promedio + MinimoResenasRanking * promedioGeneral) / (cantidad + MinimoResenasRanking), 3);
+        }
+
+        private static decimal CalcularPromedioGeneral(IEnumerable<ResumenReputacion> resumenes)
+        {
+            decimal suma = 0m;
+            int cantidad = 0;
+            foreach (ResumenReputacion resumen in resumenes)
+            {
+                suma += resumen.Promedio * resumen.CantidadCalificaciones;
+                cantidad += resumen.CantidadCalificaciones;
+            }
+
+            return cantidad == 0 ? 0m : suma / cantidad;
         }
 
         public Dictionary<int, ResumenReputacion> ObtenerResumenesUsuarios()

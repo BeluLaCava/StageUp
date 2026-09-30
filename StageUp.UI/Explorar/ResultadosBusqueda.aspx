@@ -1,6 +1,19 @@
 <%@ Page Title="Explorar espacios | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="ResultadosBusqueda.aspx.cs" Inherits="StageUp.UI.Explorar.ResultadosBusqueda" %>
 
 <asp:Content ID="ExploreContent" ContentPlaceHolderID="MainContent" runat="server">
+    <style type="text/css">
+        .results-sort { display: flex; align-items: center; gap: 0.6rem; font-size: 0.95rem; }
+        .results-sort select { padding: 0.45rem 0.7rem; border-radius: 0.6rem; border: 1px solid var(--color-border, #e2d4cc); background: #fff; }
+        .ranking-panel { margin-top: clamp(1.5rem, 3vw, 2.25rem); padding: 1.4rem 1.6rem; background: #fffaf7; border: 1px solid var(--color-border, #e7d5cc); border-radius: 1.1rem; }
+        .ranking-panel h2 { margin: 0.2rem 0 0.3rem; color: var(--color-primary, #7a0c20); font-family: var(--font-display, Georgia, serif); font-weight: 500; }
+        .ranking-panel p.ranking-criterio { margin: 0 0 1rem; color: #8a6a5e; font-size: 0.9rem; }
+        .ranking-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+        .ranking-item a { display: flex; gap: 0.8rem; align-items: center; padding: 0.75rem 0.9rem; background: #fff; border: 1px solid #efe1d9; border-radius: 0.9rem; text-decoration: none; color: inherit; }
+        .ranking-item a:hover { border-color: var(--color-primary, #7a0c20); }
+        .ranking-posicion { flex: 0 0 2.2rem; height: 2.2rem; border-radius: 50%; background: #7a0c20; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .ranking-datos strong { display: block; }
+        .ranking-datos span { font-size: 0.85rem; color: #8a6a5e; }
+    </style>
     <section class="explore-page" data-results-page>
         <header class="explore-header">
             <div class="explore-container explore-page-container">
@@ -60,10 +73,35 @@
                 <span class="service-compare-status" data-service-compare-status aria-live="polite">Elegí al menos 2 servicios para comparar</span>
             </asp:Panel>
 
+            <asp:Panel ID="pnlRanking" runat="server" CssClass="ranking-panel" Visible="false">
+                <span class="eyebrow">Ranking de la comunidad</span>
+                <h2>Espacios mejor valorados</h2>
+                <p class="ranking-criterio"><asp:Literal ID="litCriterioRanking" runat="server" /></p>
+                <ol class="ranking-lista">
+                    <asp:Repeater ID="rptRanking" runat="server">
+                        <ItemTemplate>
+                            <li class="ranking-item">
+                                <a href='<%# "DetalleEspacio.aspx?id=" + Eval("IdEspacioArtistico") %>'>
+                                    <span class="ranking-posicion"><%# Container.ItemIndex + 1 %></span>
+                                    <span class="ranking-datos">
+                                        <strong><%#: Eval("NombreEspacio") %></strong>
+                                        <span><%#: Eval("TipoEspacio") %> · <%#: ObtenerReputacion((StageUp.BE.Entidades.EspacioArtistico)Container.DataItem) %></span>
+                                    </span>
+                                </a>
+                            </li>
+                        </ItemTemplate>
+                    </asp:Repeater>
+                </ol>
+            </asp:Panel>
+
             <section class="results-section" aria-labelledby="results-title">
                 <div class="results-surface">
                     <div class="results-heading">
                         <h2 id="results-title">Espacios para explorar</h2>
+                        <div class="results-sort">
+                            <label for="<%= ddlOrden.ClientID %>">Ordenar por</label>
+                            <asp:DropDownList ID="ddlOrden" runat="server" onchange="stageUpCambiarOrden(this.value);" />
+                        </div>
                     </div>
                     <div class="results-grid" aria-live="polite" data-results-grid>
                         <asp:Repeater ID="rptEspaciosPublicados" runat="server">
@@ -123,6 +161,17 @@
             </div>
         </div>
     </section>
+
+    <script type="text/javascript">
+        // Ordenamiento del catálogo (ítem 8): se agrega/quita "orden" de la
+        // URL y se recarga, conservando los filtros que ya estén aplicados.
+        function stageUpCambiarOrden(valor) {
+            var params = new URLSearchParams(window.location.search);
+            if (valor) { params.set("orden", valor); } else { params.delete("orden"); }
+            var query = params.toString();
+            window.location.href = window.location.pathname + (query ? "?" + query : "");
+        }
+    </script>
 
     <div class="filter-backdrop" data-filter-backdrop hidden></div>
     <aside class="filter-drawer" data-filter-panel hidden aria-labelledby="advanced-filters-title" aria-modal="true" role="dialog">

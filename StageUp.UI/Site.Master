@@ -129,7 +129,7 @@
 
         <asp:HiddenField ID="hdnDiccionarioIdioma" runat="server" ClientIDMode="Static" EnableViewState="false" />
         <asp:ContentPlaceHolder ID="PageScripts" runat="server" />
-        <script src="<%= ResolveUrl("~/Scripts/site.js") %>?v=20260915-3"></script>
+        <script src="<%= ResolveUrl("~/Scripts/site.js") %>?v=20260930-1"></script>
         <script src="<%= ResolveUrl("~/Scripts/multidioma.js") %>?v=20260910-2"></script>
     </form>
 </body>

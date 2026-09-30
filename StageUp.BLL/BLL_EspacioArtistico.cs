@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
@@ -271,6 +272,56 @@ namespace StageUp.BLL
                     ContieneTexto(espacio.TipoEspacio, termino) ||
                     ContieneTexto(espacio.Descripcion, termino)) &&
                 (tipo == null || ContieneTexto(espacio.TipoEspacio, tipo)));
+        }
+
+        // Ordenamiento de los resultados del catálogo (ítems 4 y 8 de la
+        // segunda entrega). "Relevancia" deja el orden del SP (más recientes
+        // primero). "MejorValorados" usa el puntaje ponderado de
+        // BLL_Calificacion, así que la lista tiene que venir con las
+        // reputaciones ya completadas.
+        public const string OrdenRelevancia = "";
+        public const string OrdenMejorValorados = "valoracion";
+        public const string OrdenPrecioMenor = "precio-asc";
+        public const string OrdenPrecioMayor = "precio-desc";
+        public const string OrdenCapacidad = "capacidad";
+        public const string OrdenRecientes = "recientes";
+
+        public static List<EspacioArtistico> Ordenar(List<EspacioArtistico> espacios, string criterio)
+        {
+            if (espacios == null)
+            {
+                return new List<EspacioArtistico>();
+            }
+
+            switch (criterio)
+            {
+                case OrdenMejorValorados:
+                    return espacios
+                        .OrderByDescending(e => e.PuntajeRanking)
+                        .ThenByDescending(e => e.CantidadCalificaciones)
+                        .ToList();
+                case OrdenPrecioMenor:
+                    // Los que no informan precio van al final.
+                    return espacios
+                        .OrderBy(e => e.Ficha != null && e.Ficha.PrecioHora.HasValue ? 0 : 1)
+                        .ThenBy(e => e.Ficha != null && e.Ficha.PrecioHora.HasValue ? e.Ficha.PrecioHora.Value : 0m)
+                        .ToList();
+                case OrdenPrecioMayor:
+                    return espacios
+                        .OrderBy(e => e.Ficha != null && e.Ficha.PrecioHora.HasValue ? 0 : 1)
+                        .ThenByDescending(e => e.Ficha != null && e.Ficha.PrecioHora.HasValue ? e.Ficha.PrecioHora.Value : 0m)
+                        .ToList();
+                case OrdenCapacidad:
+                    return espacios
+                        .OrderByDescending(e => e.Ficha != null && e.Ficha.CapacidadMaxima.HasValue ? e.Ficha.CapacidadMaxima.Value : 0)
+                        .ToList();
+                case OrdenRecientes:
+                    return espacios
+                        .OrderByDescending(e => e.FechaPublicacion ?? e.FechaAlta)
+                        .ToList();
+                default:
+                    return espacios;
+            }
         }
 
         public List<EspacioArtistico> Buscar(FiltroBusquedaEspacios filtro)

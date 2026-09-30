@@ -26,6 +26,10 @@ namespace StageUp.BE.Entidades
         public decimal PromedioCalificacion { get; set; }
         public int CantidadCalificaciones { get; set; }
 
+        // Puntaje para ordenar por "mejor valorados" (ítem 8): promedio
+        // ponderado por cantidad de reseñas, ver BLL_Calificacion.
+        public decimal PuntajeRanking { get; set; }
+
         public string NombreCompletoGestor
         {
             get

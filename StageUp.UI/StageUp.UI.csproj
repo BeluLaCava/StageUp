@@ -276,6 +276,20 @@
     <Compile Include="Interno\BackupRestore.aspx.designer.cs">
       <DependentUpon>BackupRestore.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Interno\BusquedaInterna.aspx.cs">
+      <DependentUpon>BusquedaInterna.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\BusquedaInterna.aspx.designer.cs">
+      <DependentUpon>BusquedaInterna.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Buscar.aspx.cs">
+      <DependentUpon>Buscar.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Buscar.aspx.designer.cs">
+      <DependentUpon>Buscar.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Interno\HerramientasSeguridad.aspx.cs">
       <DependentUpon>HerramientasSeguridad.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -377,6 +391,8 @@
     <Content Include="Interno\GestionSoporte.aspx" />
     <Content Include="Interno\GestionMenu.aspx" />
     <Content Include="Interno\BackupRestore.aspx" />
+    <Content Include="Interno\BusquedaInterna.aspx" />
+    <Content Include="Buscar.aspx" />
     <Content Include="PaginaNoEncontrada.aspx" />
     <Content Include="ErrorGeneral.aspx" />
     <Content Include="Global.asax" />

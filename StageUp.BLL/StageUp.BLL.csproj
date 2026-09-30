@@ -62,6 +62,7 @@
     <Compile Include="BLL_Ticket.cs" />
     <Compile Include="BLL_OpcionMenu.cs" />
     <Compile Include="BLL_Backup.cs" />
+    <Compile Include="BLL_Busqueda.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

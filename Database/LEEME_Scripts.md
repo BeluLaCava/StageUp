@@ -47,6 +47,7 @@ Todos los demás numerados: agregan columnas, tablas nuevas (con `IF OBJECT_ID(.
 | `44_DatosDemoRanking.sql` | Datos de demostración: reseñas de ejemplo para el ranking de espacios mejor valorados. |
 | `45_MenuDinamicoAbmc.sql` | Menú del panel interno administrable (tabla `OpcionMenu`, permiso `GESTIONAR_MENU`), cargado con las opciones que ya existían. |
 | `46_BackupRestore.sql` | Backup y restauración desde el panel (permiso `GESTIONAR_BACKUP`). Crea `sp_StageUp_RestaurarBackup` en **master** (una base no se puede restaurar a sí misma). |
+| `47_BusquedaGlobal.sql` | Búsqueda de toda la plataforma: pública (`Buscar.aspx`) e interna según permisos (`Interno/BusquedaInterna.aspx`, permiso `BUSCAR_EN_PLATAFORMA`). |
 
 Desde el script 45, el menú del panel interno sale de `dbo.OpcionMenu`: si un script futuro agrega un permiso con pantalla propia, tiene que insertar también su opción de menú (o darla de alta desde Gestión del menú).
 

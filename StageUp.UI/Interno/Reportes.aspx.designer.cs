@@ -41,9 +41,12 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.Literal litTablaTotalComisiones;
         protected global::System.Web.UI.WebControls.Panel pnlZonasVacio;
         protected global::System.Web.UI.WebControls.Repeater rptZonas;
+        protected global::System.Web.UI.WebControls.Repeater rptZonasTabla;
         protected global::System.Web.UI.WebControls.Panel pnlEstadosVacio;
         protected global::System.Web.UI.WebControls.Repeater rptEstados;
+        protected global::System.Web.UI.WebControls.Repeater rptEstadosTabla;
         protected global::System.Web.UI.WebControls.Panel pnlEncuestasVacio;
         protected global::System.Web.UI.WebControls.Repeater rptEncuestas;
+        protected global::System.Web.UI.WebControls.Repeater rptEncuestasTabla;
     }
 }

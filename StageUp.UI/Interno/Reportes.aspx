@@ -137,7 +137,7 @@
                     <asp:LinkButton ID="lnkUltimos12Meses" runat="server" CssClass="text-link" CausesValidation="false"
                         Text="Volver a los últimos 12 meses" OnClick="lnkUltimos12Meses_Click" />
                     <asp:LinkButton ID="lnkExportarCsv" runat="server" CssClass="text-link" CausesValidation="false"
-                        Text="Exportar ingresos a CSV" OnClick="lnkExportarCsv_Click" />
+                        Text="Exportar reporte completo a CSV" OnClick="lnkExportarCsv_Click" />
                 </div>
             </asp:Panel>
 
@@ -287,6 +287,35 @@
                                 </ItemTemplate>
                             </asp:Repeater>
                         </div>
+                        <details class="rep-detalles">
+                            <summary>Ver como tabla</summary>
+                            <div class="rep-tabla-wrap">
+                                <table class="rep-tabla">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Provincia</th>
+                                            <th scope="col">Ciudad</th>
+                                            <th scope="col" class="num">Reservas</th>
+                                            <th scope="col" class="num">Importe</th>
+                                            <th scope="col" class="num">%</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <asp:Repeater ID="rptZonasTabla" runat="server">
+                                            <ItemTemplate>
+                                                <tr>
+                                                    <td><%#: Eval("Provincia") %></td>
+                                                    <td><%#: Eval("Ciudad") %></td>
+                                                    <td class="num"><%#: Eval("CantidadReservas") %></td>
+                                                    <td class="num"><%#: Importe(Eval("ImporteReservas")) %></td>
+                                                    <td class="num"><%#: Porcentaje(Eval("PorcentajeDelTotal")) %></td>
+                                                </tr>
+                                            </ItemTemplate>
+                                        </asp:Repeater>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
                     </div>
 
                     <!-- Por estado -->
@@ -310,6 +339,31 @@
                                 </ItemTemplate>
                             </asp:Repeater>
                         </div>
+                        <details class="rep-detalles">
+                            <summary>Ver como tabla</summary>
+                            <div class="rep-tabla-wrap">
+                                <table class="rep-tabla">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Estado</th>
+                                            <th scope="col" class="num">Cantidad</th>
+                                            <th scope="col" class="num">%</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <asp:Repeater ID="rptEstadosTabla" runat="server">
+                                            <ItemTemplate>
+                                                <tr>
+                                                    <td><%#: NombreEstado(Eval("Estado") as string) %></td>
+                                                    <td class="num"><%#: Eval("Cantidad") %></td>
+                                                    <td class="num"><%#: Porcentaje(Eval("PorcentajeDelTotal")) %></td>
+                                                </tr>
+                                            </ItemTemplate>
+                                        </asp:Repeater>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
                     </div>
                 </div>
 
@@ -334,6 +388,39 @@
                             </ItemTemplate>
                         </asp:Repeater>
                     </div>
+                    <details class="rep-detalles">
+                        <summary>Ver como tabla</summary>
+                        <div class="rep-tabla-wrap">
+                            <table class="rep-tabla">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Encuesta</th>
+                                        <th scope="col">Estado</th>
+                                        <th scope="col">Público objetivo</th>
+                                        <th scope="col" class="num">Respuestas</th>
+                                        <th scope="col" class="num">Destinatarios</th>
+                                        <th scope="col" class="num">Participación</th>
+                                        <th scope="col">Vencimiento</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <asp:Repeater ID="rptEncuestasTabla" runat="server">
+                                        <ItemTemplate>
+                                            <tr>
+                                                <td><%#: Eval("Titulo") %></td>
+                                                <td><%#: Eval("Estado") %></td>
+                                                <td><%#: NombrePublico(Eval("PublicoObjetivo") as string) %></td>
+                                                <td class="num"><%#: Eval("CantidadRespuestas") %></td>
+                                                <td class="num"><%#: Eval("CantidadDestinatarios") %></td>
+                                                <td class="num"><%#: TasaParticipacion(Eval("TasaParticipacion")) %></td>
+                                                <td><%#: Eval("FechaVencimiento", "{0:dd/MM/yyyy}") %></td>
+                                            </tr>
+                                        </ItemTemplate>
+                                    </asp:Repeater>
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
                 </div>
             </asp:Panel>
         </div>

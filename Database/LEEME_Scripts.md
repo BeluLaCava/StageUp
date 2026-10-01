@@ -50,6 +50,7 @@ Todos los demás numerados: agregan columnas, tablas nuevas (con `IF OBJECT_ID(.
 | `47_BusquedaGlobal.sql` | Búsqueda de toda la plataforma: pública (`Buscar.aspx`) e interna según permisos (`Interno/BusquedaInterna.aspx`, permiso `BUSCAR_EN_PLATAFORMA`). |
 | `48_ReportesYDashboard.sql` | Reportes con gráficos y tablero de indicadores (`Interno/Reportes.aspx`, permiso `VER_REPORTES`): ingresos por día/semana/mes/año, por zona, reservas por estado y participación en encuestas. |
 | `49_PagosNotasYCuentaCorriente.sql` | Pagos de reservas (tarjeta con pasarela simulada, saldo a favor o ambos), notas de crédito y débito, cuenta corriente de clientes y gestores y parámetros de la plataforma. Permisos `GESTIONAR_PAGOS` y `CONFIGURAR_PARAMETROS`. Las reservas aceptadas pasan a esperar el pago. |
+| `50_PagoSinTitularYMenuInterno.sql` | Correcciones de la revisión: el pago ya no guarda el titular de la tarjeta (se elimina `Pago.titularTarjeta` y se recrean los SP de pagos) y el menú dinámico solo acepta páginas `~/Interno/*.aspx` (nuevo CHECK de `OpcionMenu.url`). |
 
 Desde el script 45, el menú del panel interno sale de `dbo.OpcionMenu`: si un script futuro agrega un permiso con pantalla propia, tiene que insertar también su opción de menú (o darla de alta desde Gestión del menú).
 

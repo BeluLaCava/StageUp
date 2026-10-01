@@ -221,14 +221,11 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("El módulo no puede superar los " + LongitudMaximaModulo + " caracteres.");
             }
 
-            // Solo páginas propias de StageUp: ruta relativa a la aplicación
-            // ("~/..."), sin sitios externos ni scripts.
-            if (opcion.Url == null || !opcion.Url.StartsWith("~/", StringComparison.Ordinal)
-                || opcion.Url.Contains("://") || opcion.Url.Contains(" ")
-                || opcion.Url.IndexOf("javascript:", StringComparison.OrdinalIgnoreCase) >= 0
-                || opcion.Url.IndexOf(".aspx", StringComparison.OrdinalIgnoreCase) < 0)
+            if (!EsUrlInternaValida(opcion.Url))
             {
-                return ResultadoOperacion.Error("La URL tiene que ser una página de StageUp, por ejemplo ~/Interno/GestionFaq.aspx.");
+                return ResultadoOperacion.Error(
+                    "La URL tiene que ser una página del panel interno, por ejemplo ~/Interno/GestionFaq.aspx " +
+                    "(sin parámetros, sin \"..\" y sin direcciones externas).");
             }
 
             if (opcion.Url.Length > LongitudMaximaUrl)
@@ -272,6 +269,24 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion<T>.Error(ex.Message);
             }
+        }
+
+        // El menú del panel interno solo puede llevar a páginas internas:
+        // "~/Interno/<carpetas opcionales>/<pagina>.aspx". Se rechazan las
+        // páginas públicas, "..", esquemas (http:, https:, javascript:),
+        // rutas externas ("//"), barras invertidas, espacios y parámetros.
+        // El CHECK CK_OpcionMenu_url de la base (scripts 45 y 50) aplica la
+        // misma regla.
+        private static readonly System.Text.RegularExpressions.Regex PatronUrlInterna =
+            new System.Text.RegularExpressions.Regex(@"^~/Interno/([A-Za-z0-9_\-]+/)*[A-Za-z0-9_\-]+\.aspx$",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        public static bool EsUrlInternaValida(string url)
+        {
+            return !string.IsNullOrEmpty(url)
+                && url.IndexOf("..", StringComparison.Ordinal) < 0
+                && url.IndexOf(':') < 0
+                && PatronUrlInterna.IsMatch(url);
         }
     }
 }

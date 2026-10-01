@@ -271,9 +271,9 @@ namespace StageUp.BLL
 
         // Valida la tarjeta y pide la autorización a la pasarela. Si la
         // pasarela la rechaza, el intento queda registrado (sin movimientos).
-        // Completa en el pago la marca, los últimos 4 dígitos, el titular y el
-        // código de autorización: nunca el número completo ni el código de
-        // seguridad.
+        // Completa en el pago la marca, los últimos 4 dígitos y el código de
+        // autorización: nunca el número completo, el código de seguridad ni
+        // el titular.
         private ResultadoOperacion AutorizarTarjeta(DatosTarjeta tarjeta, Pago pago)
         {
             ResultadoOperacion<string> validacion = ValidadorTarjeta.Validar(tarjeta);
@@ -282,9 +282,11 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error(validacion.Mensaje);
             }
 
+            // El titular (igual que el número completo y el código de
+            // seguridad) solo se usa en memoria para validar y autorizar: no se
+            // guarda. Del medio de pago se persisten la marca y los últimos 4.
             pago.MarcaTarjeta = validacion.Valor;
             pago.UltimosDigitos = ValidadorTarjeta.ObtenerUltimosDigitos(tarjeta.Numero);
-            pago.TitularTarjeta = ValidadorTarjeta.NormalizarTitular(tarjeta.Titular);
 
             ResultadoAutorizacionPago autorizacion = _pasarela.Autorizar(tarjeta, pago.ImporteTarjeta, pago.Moneda);
             if (!autorizacion.Aprobado)

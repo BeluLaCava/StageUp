@@ -31,7 +31,15 @@ BEGIN
         CONSTRAINT FK_OpcionMenu_ComponentePermiso FOREIGN KEY (idComponentePermiso)
             REFERENCES dbo.ComponentePermiso (idComponentePermiso),
         CONSTRAINT CK_OpcionMenu_texto CHECK (LEN(LTRIM(RTRIM(texto))) > 0),
-        CONSTRAINT CK_OpcionMenu_url CHECK (url LIKE N'~/%')
+        -- Solo páginas internas: ~/Interno/<pagina>.aspx, sin "..", sin
+        -- esquemas (http:, https:, javascript:) ni rutas externas.
+        CONSTRAINT CK_OpcionMenu_url CHECK (
+            url LIKE N'~/Interno/%.aspx'
+            AND url NOT LIKE N'%..%'
+            AND url NOT LIKE N'%:%'
+            AND url NOT LIKE N'%//%'
+            AND url NOT LIKE N'%\%'
+            AND url NOT LIKE N'% %')
     );
 
     CREATE INDEX IX_OpcionMenu_Orden ON dbo.OpcionMenu (activo, orden);
@@ -223,7 +231,9 @@ BEGIN
     WHERE h.tipoComponente = N'Permiso'
       AND h.activo = 1
       AND h.urlAsociada IS NOT NULL
-      AND h.urlAsociada LIKE N'~/%';
+      AND h.urlAsociada LIKE N'~/Interno/%.aspx'
+      AND h.urlAsociada NOT LIKE N'%..%'
+      AND h.urlAsociada NOT LIKE N'%:%';
 END
 GO
 

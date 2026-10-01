@@ -85,13 +85,13 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-            string nombreArchivo = "StageUp_ingresos_" + filtro.Desde.ToString("yyyyMMdd", CultureInfo.InvariantCulture) +
+            string nombreArchivo = "StageUp_reporte_" + filtro.Desde.ToString("yyyyMMdd", CultureInfo.InvariantCulture) +
                                    "_" + filtro.Hasta.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + ".csv";
 
             // Con BOM, para que Excel reconozca los acentos.
             UTF8Encoding codificacion = new UTF8Encoding(true);
             byte[] contenido = codificacion.GetPreamble()
-                .Concat(codificacion.GetBytes(BLL_Reporte.GenerarCsvIngresos(resultado.Valor)))
+                .Concat(codificacion.GetBytes(BLL_Reporte.GenerarCsvReporteCompleto(resultado.Valor)))
                 .ToArray();
 
             Response.Clear();
@@ -252,14 +252,20 @@ namespace StageUp.UI.Interno
             pnlZonasVacio.Visible = reporte.Zonas.Count == 0;
             rptZonas.DataSource = reporte.Zonas;
             rptZonas.DataBind();
+            rptZonasTabla.DataSource = reporte.ZonasDetalle;
+            rptZonasTabla.DataBind();
 
             pnlEstadosVacio.Visible = reporte.Estados.Count == 0;
             rptEstados.DataSource = reporte.Estados;
             rptEstados.DataBind();
+            rptEstadosTabla.DataSource = reporte.Estados;
+            rptEstadosTabla.DataBind();
 
             pnlEncuestasVacio.Visible = reporte.Encuestas.Count == 0;
             rptEncuestas.DataSource = reporte.Encuestas;
             rptEncuestas.DataBind();
+            rptEncuestasTabla.DataSource = reporte.Encuestas;
+            rptEncuestasTabla.DataBind();
         }
 
         // ---- Ayudas para el marcado --------------------------------------
@@ -362,25 +368,17 @@ namespace StageUp.UI.Interno
 
         protected static string NombreEstado(string estado)
         {
-            switch (estado)
-            {
-                case "Pendiente": return "Pendiente de revisión";
-                case "Aceptada": return "Aceptada";
-                case "Rechazada": return "Rechazada";
-                case "Cancelada": return "Cancelada";
-                case "Finalizada": return "Finalizada";
-                default: return estado;
-            }
+            return BLL_Reporte.NombreEstadoReserva(estado);
         }
 
-        private static string NombrePublico(string publico)
+        protected static string NombrePublico(string publico)
         {
-            switch (publico)
-            {
-                case "GestorEspacios": return "Gestores de espacios";
-                case "ExternoSolicitante": return "Solicitantes";
-                default: return "Todos";
-            }
+            return BLL_Reporte.NombrePublicoEncuesta(publico);
+        }
+
+        protected string TasaParticipacion(object tasa)
+        {
+            return tasa == null ? "-" : Porcentaje(tasa);
         }
 
         private static string Atributo(string texto)

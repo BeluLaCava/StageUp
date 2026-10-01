@@ -66,7 +66,8 @@ GO
 
 -- ---------------------------------------------------------------------------
 -- Pagos (intentos aprobados y rechazados). Nunca se guarda el número
--- completo de la tarjeta ni el código de seguridad: solo marca y últimos 4.
+-- completo de la tarjeta, el código de seguridad ni el titular: solo marca,
+-- últimos 4 dígitos y código de autorización.
 -- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.Pago', N'U') IS NULL
 BEGIN
@@ -83,7 +84,6 @@ BEGIN
         estado                          NVARCHAR(20)      NOT NULL,
         marcaTarjeta                    NVARCHAR(30)      NULL,
         ultimosDigitos                  NVARCHAR(4)       NULL,
-        titularTarjeta                  NVARCHAR(150)     NULL,
         codigoAutorizacion              NVARCHAR(20)      NULL,
         motivoRechazo                   NVARCHAR(300)     NULL,
         porcentajeComisionPlataforma    DECIMAL(5,2)      NULL,
@@ -668,7 +668,6 @@ CREATE PROCEDURE dbo.sp_Pago_RegistrarReserva
     @importeSaldo                   DECIMAL(18,2),
     @marcaTarjeta                   NVARCHAR(30)  = NULL,
     @ultimosDigitos                 NVARCHAR(4)   = NULL,
-    @titularTarjeta                 NVARCHAR(150) = NULL,
     @codigoAutorizacion             NVARCHAR(20)  = NULL,
     @porcentajeComisionPlataforma   DECIMAL(5,2)
 AS
@@ -720,13 +719,12 @@ BEGIN
 
         INSERT INTO dbo.Pago
             (idUsuarioExterno, idReserva, concepto, moneda, importeTotal, importeTarjeta, importeSaldo, estado,
-             marcaTarjeta, ultimosDigitos, titularTarjeta, codigoAutorizacion,
+             marcaTarjeta, ultimosDigitos, codigoAutorizacion,
              porcentajeComisionPlataforma, importeComisionPlataforma)
         VALUES
             (@idUsuarioExterno, @idReserva, N'Reserva', @moneda, @total, @importeTarjeta, @importeSaldo, N'Aprobado',
              CASE WHEN @importeTarjeta > 0 THEN @marcaTarjeta END,
              CASE WHEN @importeTarjeta > 0 THEN @ultimosDigitos END,
-             CASE WHEN @importeTarjeta > 0 THEN @titularTarjeta END,
              CASE WHEN @importeTarjeta > 0 THEN @codigoAutorizacion END,
              @porcentajeComisionPlataforma, @comision);
 
@@ -787,17 +785,16 @@ CREATE PROCEDURE dbo.sp_Pago_RegistrarRechazado
     @importeTarjeta     DECIMAL(18,2),
     @marcaTarjeta       NVARCHAR(30) = NULL,
     @ultimosDigitos     NVARCHAR(4) = NULL,
-    @titularTarjeta     NVARCHAR(150) = NULL,
     @motivoRechazo      NVARCHAR(300)
 AS
 BEGIN
     SET NOCOUNT ON;
     INSERT INTO dbo.Pago
         (idUsuarioExterno, idReserva, concepto, moneda, importeTotal, importeTarjeta, importeSaldo, estado,
-         marcaTarjeta, ultimosDigitos, titularTarjeta, motivoRechazo)
+         marcaTarjeta, ultimosDigitos, motivoRechazo)
     VALUES
         (@idUsuarioExterno, @idReserva, @concepto, @moneda, @importeTotal, @importeTarjeta, 0, N'Rechazado',
-         @marcaTarjeta, @ultimosDigitos, @titularTarjeta, @motivoRechazo);
+         @marcaTarjeta, @ultimosDigitos, @motivoRechazo);
 
     SELECT CAST(SCOPE_IDENTITY() AS INT) AS idPago;
 END
@@ -813,7 +810,6 @@ CREATE PROCEDURE dbo.sp_CuentaCorriente_PagarDeuda
     @importe            DECIMAL(18,2),
     @marcaTarjeta       NVARCHAR(30),
     @ultimosDigitos     NVARCHAR(4),
-    @titularTarjeta     NVARCHAR(150),
     @codigoAutorizacion NVARCHAR(20)
 AS
 BEGIN
@@ -848,10 +844,10 @@ BEGIN
 
         INSERT INTO dbo.Pago
             (idUsuarioExterno, idReserva, concepto, moneda, importeTotal, importeTarjeta, importeSaldo, estado,
-             marcaTarjeta, ultimosDigitos, titularTarjeta, codigoAutorizacion)
+             marcaTarjeta, ultimosDigitos, codigoAutorizacion)
         VALUES
             (@idUsuarioExterno, NULL, N'Deuda', @moneda, @importe, @importe, 0, N'Aprobado',
-             @marcaTarjeta, @ultimosDigitos, @titularTarjeta, @codigoAutorizacion);
+             @marcaTarjeta, @ultimosDigitos, @codigoAutorizacion);
 
         DECLARE @idPago INT = CAST(SCOPE_IDENTITY() AS INT);
 
@@ -881,7 +877,7 @@ BEGIN
     SET NOCOUNT ON;
     SELECT TOP 300
         p.idPago, p.idUsuarioExterno, p.idReserva, p.concepto, p.moneda, p.importeTotal, p.importeTarjeta, p.importeSaldo,
-        p.estado, p.marcaTarjeta, p.ultimosDigitos, p.titularTarjeta, p.codigoAutorizacion, p.motivoRechazo,
+        p.estado, p.marcaTarjeta, p.ultimosDigitos, p.codigoAutorizacion, p.motivoRechazo,
         p.porcentajeComisionPlataforma, p.importeComisionPlataforma, p.fechaPago,
         LTRIM(RTRIM(u.nombre + N' ' + u.apellido)) AS nombreUsuario, u.correoElectronico AS correoUsuario,
         e.nombreEspacio

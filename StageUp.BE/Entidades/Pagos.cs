@@ -6,8 +6,10 @@ namespace StageUp.BE.Entidades
     // corriente (ítems 5B, 5C, 5D y 6B de la segunda entrega, script 49).
 
     // Datos de la tarjeta tal como los carga el usuario. Solo viven en memoria
-    // durante el pago: nunca se guardan ni se registran en la bitácora. De la
-    // tarjeta se persisten solo la marca y los últimos 4 dígitos (en Pago).
+    // durante el pago (validación y autorización): nunca se guardan ni se
+    // registran en la bitácora. De la tarjeta se persisten solo la marca, los
+    // últimos 4 dígitos y el código de autorización (en Pago). El titular
+    // tampoco se guarda.
     public class DatosTarjeta
     {
         public string Numero { get; set; }
@@ -30,7 +32,6 @@ namespace StageUp.BE.Entidades
         public string Estado { get; set; }            // Aprobado | Rechazado
         public string MarcaTarjeta { get; set; }
         public string UltimosDigitos { get; set; }
-        public string TitularTarjeta { get; set; }
         public string CodigoAutorizacion { get; set; }
         public string MotivoRechazo { get; set; }
         public decimal? PorcentajeComisionPlataforma { get; set; }

@@ -85,7 +85,12 @@ namespace StageUp.BE.Entidades
         public FiltroReporte Filtro { get; set; }
         public IndicadoresTablero Indicadores { get; set; }
         public List<FilaReportePeriodo> Ingresos { get; set; } = new List<FilaReportePeriodo>();
+        // Para el gráfico: las 9 zonas con más ingresos y el resto sumado en
+        // "Otras zonas".
         public List<FilaReporteZona> Zonas { get; set; } = new List<FilaReporteZona>();
+
+        // Para la vista de tabla y el CSV: todas las zonas, sin agrupar.
+        public List<FilaReporteZona> ZonasDetalle { get; set; } = new List<FilaReporteZona>();
         public List<FilaReporteEstado> Estados { get; set; } = new List<FilaReporteEstado>();
         public List<FilaParticipacionEncuesta> Encuestas { get; set; } = new List<FilaParticipacionEncuesta>();
 

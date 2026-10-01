@@ -22,7 +22,6 @@ namespace StageUp.MPP
                     { "@importeSaldo", oPago.ImporteSaldo },
                     { "@marcaTarjeta", oPago.MarcaTarjeta },
                     { "@ultimosDigitos", oPago.UltimosDigitos },
-                    { "@titularTarjeta", oPago.TitularTarjeta },
                     { "@codigoAutorizacion", oPago.CodigoAutorizacion },
                     { "@porcentajeComisionPlataforma", oPago.PorcentajeComisionPlataforma ?? 0m }
                 }), "idPago");
@@ -39,7 +38,6 @@ namespace StageUp.MPP
                     { "@importe", oPago.ImporteTotal },
                     { "@marcaTarjeta", oPago.MarcaTarjeta },
                     { "@ultimosDigitos", oPago.UltimosDigitos },
-                    { "@titularTarjeta", oPago.TitularTarjeta },
                     { "@codigoAutorizacion", oPago.CodigoAutorizacion }
                 }), "idPago");
         }
@@ -58,7 +56,6 @@ namespace StageUp.MPP
                     { "@importeTarjeta", oPago.ImporteTarjeta },
                     { "@marcaTarjeta", oPago.MarcaTarjeta },
                     { "@ultimosDigitos", oPago.UltimosDigitos },
-                    { "@titularTarjeta", oPago.TitularTarjeta },
                     { "@motivoRechazo", oPago.MotivoRechazo }
                 });
         }
@@ -90,7 +87,6 @@ namespace StageUp.MPP
                     Estado = fila["estado"].ToString(),
                     MarcaTarjeta = Texto(fila, "marcaTarjeta"),
                     UltimosDigitos = Texto(fila, "ultimosDigitos"),
-                    TitularTarjeta = Texto(fila, "titularTarjeta"),
                     CodigoAutorizacion = Texto(fila, "codigoAutorizacion"),
                     MotivoRechazo = Texto(fila, "motivoRechazo"),
                     PorcentajeComisionPlataforma = fila["porcentajeComisionPlataforma"] == DBNull.Value

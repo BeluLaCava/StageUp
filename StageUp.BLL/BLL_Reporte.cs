@@ -130,6 +130,7 @@ namespace StageUp.BLL
                 reporte.TotalReservasPeriodo = reporte.Ingresos.Sum(f => f.CantidadReservas);
 
                 CalcularPorcentajesIngresos(reporte.Ingresos);
+                reporte.ZonasDetalle = CalcularPorcentajesZonasDetalle(reporte.Zonas);
                 reporte.Zonas = CalcularPorcentajesZonas(reporte.Zonas);
                 CalcularPorcentajesEstados(reporte.Estados);
                 CalcularParticipacion(reporte.Encuestas);
@@ -163,19 +164,46 @@ namespace StageUp.BLL
             return (moneda == "USD" ? "US$ " : "$ ") + importe.ToString("N0", Cultura);
         }
 
-        // CSV de ingresos por período, con punto y coma (lo abre Excel en
-        // configuración regional de Argentina) e importes sin separador de miles.
-        public static string GenerarCsvIngresos(ReporteCompleto reporte)
+        public static string NombreEstadoReserva(string estado)
+        {
+            switch (estado)
+            {
+                case "Pendiente": return "Pendiente de revisión";
+                case "Aceptada": return "Aceptada";
+                case "Rechazada": return "Rechazada";
+                case "Cancelada": return "Cancelada";
+                case "Finalizada": return "Finalizada";
+                default: return estado;
+            }
+        }
+
+        public static string NombrePublicoEncuesta(string publico)
+        {
+            switch (publico)
+            {
+                case "GestorEspacios": return "Gestores de espacios";
+                case "ExternoSolicitante": return "Solicitantes";
+                default: return "Todos";
+            }
+        }
+
+        // CSV del reporte completo (ingresos por período, por zona, reservas
+        // por estado y participación en encuestas), con punto y coma (lo abre
+        // Excel en configuración regional de Argentina), importes sin
+        // separador de miles y porcentajes con coma decimal.
+        public static string GenerarCsvReporteCompleto(ReporteCompleto reporte)
         {
             System.Text.StringBuilder csv = new System.Text.StringBuilder();
             FiltroReporte filtro = reporte.Filtro;
-            csv.AppendLine("Reporte de ingresos StageUp");
+            csv.AppendLine("Reporte StageUp");
             csv.AppendLine("Desde;" + filtro.Desde.ToString("dd/MM/yyyy", Cultura) +
                            ";Hasta;" + filtro.Hasta.ToString("dd/MM/yyyy", Cultura));
             csv.AppendLine("Moneda;" + filtro.Moneda +
                            ";Zona;" + CampoCsv(filtro.Provincia ?? "Todas") +
                            ";Tipo de espacio;" + CampoCsv(filtro.TipoEspacio ?? "Todos"));
+
             csv.AppendLine();
+            csv.AppendLine("Ingresos por período (" + ObtenerAgrupaciones()[filtro.Agrupacion].ToLowerInvariant() + ")");
             csv.AppendLine("Inicio del período;Período;Reservas confirmadas;Importe reservas;Comisiones por cancelación");
             foreach (FilaReportePeriodo fila in reporte.Ingresos)
             {
@@ -183,16 +211,66 @@ namespace StageUp.BLL
                     fila.InicioPeriodo.ToString("dd/MM/yyyy", Cultura),
                     CampoCsv(fila.Etiqueta),
                     fila.CantidadReservas.ToString(Cultura),
-                    fila.ImporteReservas.ToString("0.00", Cultura),
-                    fila.ImporteComisiones.ToString("0.00", Cultura)));
+                    Decimal2(fila.ImporteReservas),
+                    Decimal2(fila.ImporteComisiones)));
             }
 
             csv.AppendLine(string.Join(";",
                 "Total", string.Empty,
                 reporte.TotalReservasPeriodo.ToString(Cultura),
-                reporte.TotalImporteReservas.ToString("0.00", Cultura),
-                reporte.TotalImporteComisiones.ToString("0.00", Cultura)));
+                Decimal2(reporte.TotalImporteReservas),
+                Decimal2(reporte.TotalImporteComisiones)));
+
+            csv.AppendLine();
+            csv.AppendLine("Ingresos por zona");
+            csv.AppendLine("Provincia;Ciudad;Cantidad de reservas;Importe;Porcentaje del total");
+            foreach (FilaReporteZona zona in reporte.ZonasDetalle)
+            {
+                csv.AppendLine(string.Join(";",
+                    CampoCsv(zona.Provincia),
+                    CampoCsv(zona.Ciudad),
+                    zona.CantidadReservas.ToString(Cultura),
+                    Decimal2(zona.ImporteReservas),
+                    Decimal1(zona.PorcentajeDelTotal)));
+            }
+
+            csv.AppendLine();
+            csv.AppendLine("Reservas por estado");
+            csv.AppendLine("Estado;Cantidad;Porcentaje del total");
+            foreach (FilaReporteEstado estado in reporte.Estados)
+            {
+                csv.AppendLine(string.Join(";",
+                    CampoCsv(NombreEstadoReserva(estado.Estado)),
+                    estado.Cantidad.ToString(Cultura),
+                    Decimal1(estado.PorcentajeDelTotal)));
+            }
+
+            csv.AppendLine();
+            csv.AppendLine("Participación en encuestas");
+            csv.AppendLine("Encuesta;Estado;Público objetivo;Respuestas;Destinatarios;Tasa de participación;Vencimiento");
+            foreach (FilaParticipacionEncuesta encuesta in reporte.Encuestas)
+            {
+                csv.AppendLine(string.Join(";",
+                    CampoCsv(encuesta.Titulo),
+                    CampoCsv(encuesta.Estado),
+                    CampoCsv(NombrePublicoEncuesta(encuesta.PublicoObjetivo)),
+                    encuesta.CantidadRespuestas.ToString(Cultura),
+                    encuesta.CantidadDestinatarios.ToString(Cultura),
+                    encuesta.TasaParticipacion.HasValue ? Decimal1(encuesta.TasaParticipacion.Value) : "-",
+                    encuesta.FechaVencimiento.ToString("dd/MM/yyyy", Cultura)));
+            }
+
             return csv.ToString();
+        }
+
+        private static string Decimal2(decimal valor)
+        {
+            return valor.ToString("0.00", Cultura);
+        }
+
+        private static string Decimal1(decimal valor)
+        {
+            return valor.ToString("0.0", Cultura);
         }
 
         private static string CampoCsv(string valor)
@@ -301,6 +379,29 @@ namespace StageUp.BLL
         }
 
         // Se muestran las 10 zonas con más ingresos; el resto se suma en "Otras".
+        // Todas las zonas (copias, sin agrupar), con su porcentaje del total.
+        private static List<FilaReporteZona> CalcularPorcentajesZonasDetalle(List<FilaReporteZona> zonas)
+        {
+            List<FilaReporteZona> detalle = zonas
+                .OrderByDescending(z => z.ImporteReservas)
+                .Select(z => new FilaReporteZona
+                {
+                    Provincia = z.Provincia,
+                    Ciudad = z.Ciudad,
+                    CantidadReservas = z.CantidadReservas,
+                    ImporteReservas = z.ImporteReservas
+                })
+                .ToList();
+
+            decimal total = detalle.Sum(z => z.ImporteReservas);
+            foreach (FilaReporteZona zona in detalle)
+            {
+                zona.PorcentajeDelTotal = Porcentaje(zona.ImporteReservas, total);
+            }
+
+            return detalle;
+        }
+
         private static List<FilaReporteZona> CalcularPorcentajesZonas(List<FilaReporteZona> zonas)
         {
             List<FilaReporteZona> ordenadas = zonas.OrderByDescending(z => z.ImporteReservas).ToList();

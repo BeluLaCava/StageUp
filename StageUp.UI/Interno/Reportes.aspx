@@ -2,20 +2,31 @@
 
 <asp:Content ID="ReportesContent" ContentPlaceHolderID="MainContent" runat="server">
     <style type="text/css">
-        .rep-stack { grid-template-columns: minmax(0, 1fr); }
+        .rep-stack { grid-template-columns: minmax(0, 1fr); gap: 1.55rem; }
         .rep-stack > * { min-width: 0; }
         .rep-filtros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 1rem; }
         .rep-aviso { padding: 12px 16px; border-radius: 12px; background: var(--color-nude-light, #fcf7f3); border-left: 4px solid var(--color-brown, #896650); color: var(--color-text, #3e2925); margin-bottom: 14px; }
         .rep-nota { color: var(--color-text-muted, #765f55); font-size: 0.85em; margin: 6px 0 0; }
 
-        .rep-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-        .rep-tile { background: var(--color-surface, #fffcfa); border: 1px solid var(--color-border, #e2e2e2); border-radius: var(--radius-medium, 1rem); padding: 14px 16px; }
+        .rep-report-stack { display: grid; gap: 1.55rem; }
+        .rep-dashboard-card { overflow: hidden; }
+        .rep-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 1rem; }
+        .rep-tile { position: relative; overflow: hidden; min-height: 8.3rem; background: linear-gradient(145deg, rgba(255, 252, 250, 0.98), rgba(252, 247, 243, 0.82)); border: 1px solid var(--color-border, #e2e2e2); border-radius: var(--radius-medium, 1rem); padding: 1.1rem 1.15rem; box-shadow: 0 0.75rem 1.8rem rgba(77, 11, 23, 0.05); }
+        .rep-tile::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--rep-accent, var(--color-primary, #6d1021)); }
+        .rep-tile::after { content: ""; position: absolute; right: -2.5rem; top: -2.5rem; width: 7rem; height: 7rem; border-radius: 50%; background: color-mix(in srgb, var(--rep-accent, #6d1021) 12%, transparent); }
+        .rep-tile:nth-child(1) { --rep-accent: #7a0c20; }
+        .rep-tile:nth-child(2) { --rep-accent: #a83d52; }
+        .rep-tile:nth-child(3) { --rep-accent: #8a5a44; }
+        .rep-tile:nth-child(4) { --rep-accent: #c0796b; }
+        .rep-tile:nth-child(5) { --rep-accent: #5f6f52; }
+        .rep-tile:nth-child(6) { --rep-accent: #b98224; }
+        .rep-tile:nth-child(7) { --rep-accent: #6d1021; }
         .rep-tile-label { display: block; color: var(--color-text-muted, #765f55); font-size: 0.85em; }
-        .rep-tile-valor { display: block; font-size: clamp(1.2em, 4vw, 1.6em); white-space: nowrap; font-weight: 700; color: var(--color-text, #3e2925); margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+        .rep-tile-valor { display: block; font-size: clamp(1.35em, 4vw, 1.85em); white-space: nowrap; font-weight: 800; color: var(--color-text, #3e2925); margin: 0.55rem 0 0.3rem; font-variant-numeric: tabular-nums; }
         .rep-tile-sub { display: block; color: var(--color-text-muted, #765f55); font-size: 0.8em; }
         .rep-tile a { color: var(--color-primary, #6d1021); }
 
-        .rep-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+        .rep-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.35rem; }
         .rep-total { color: var(--color-text-muted, #765f55); font-size: 0.9em; }
         .rep-total strong { color: var(--color-text, #3e2925); }
 
@@ -24,7 +35,7 @@
         .rep-columnas-max { position: absolute; top: 0; left: 0; font-size: 0.75em; color: var(--color-text-muted, #765f55); }
         .rep-columnas::before { content: ""; position: absolute; top: 18px; left: 0; right: 0; border-top: 1px dashed var(--color-border, #e2e2e2); }
         .rep-col { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: default; }
-        .rep-col-barra { width: 100%; max-width: 44px; background: var(--color-primary, #6d1021); border-radius: 4px 4px 0 0; }
+        .rep-col-barra { width: 100%; max-width: 44px; background: linear-gradient(180deg, #a83d52, var(--color-primary, #6d1021)); border-radius: 4px 4px 0 0; }
         .rep-col:hover .rep-col-barra, .rep-col:focus .rep-col-barra { background: var(--color-primary-dark, #4d0b17); }
         .rep-ejes { display: flex; gap: 2px; margin-top: 4px; }
         .rep-eje { flex: 1 1 0; min-width: 0; text-align: center; font-size: 0.72em; color: var(--color-text-muted, #765f55); white-space: nowrap; overflow: hidden; }
@@ -35,7 +46,12 @@
         .rep-barra-etiqueta { font-size: 0.9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .rep-barra-etiqueta small { color: var(--color-text-muted, #765f55); }
         .rep-barra-track { height: 14px; background: var(--color-nude-light, #fcf7f3); border-radius: 0 4px 4px 0; }
-        .rep-barra-fill { height: 100%; background: var(--color-primary, #6d1021); border-radius: 0 4px 4px 0; }
+        .rep-barra-fill { height: 100%; background: var(--rep-bar-color, var(--color-primary, #6d1021)); border-radius: 0 4px 4px 0; }
+        .rep-barra-fila:nth-child(5n+1) { --rep-bar-color: #7a0c20; }
+        .rep-barra-fila:nth-child(5n+2) { --rep-bar-color: #a83d52; }
+        .rep-barra-fila:nth-child(5n+3) { --rep-bar-color: #8a5a44; }
+        .rep-barra-fila:nth-child(5n+4) { --rep-bar-color: #c0796b; }
+        .rep-barra-fila:nth-child(5n+5) { --rep-bar-color: #5f6f52; }
         .rep-barra-fila:hover .rep-barra-fill { background: var(--color-primary-dark, #4d0b17); }
         .rep-barra-valor { text-align: right; font-size: 0.85em; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--color-text, #3e2925); }
 
@@ -58,6 +74,7 @@
 
         @media (max-width: 900px) {
             .rep-grid, .rep-filtros { grid-template-columns: 1fr; }
+            .rep-report-stack { gap: 1.15rem; }
             .rep-barra-fila { grid-template-columns: minmax(0, 1fr) auto; }
             .rep-barra-track { grid-column: 1 / -1; grid-row: 2; }
         }
@@ -124,13 +141,13 @@
                 </div>
             </asp:Panel>
 
-            <asp:Panel ID="pnlReporte" runat="server" Visible="false">
+            <asp:Panel ID="pnlReporte" runat="server" Visible="false" CssClass="rep-report-stack">
                 <asp:Panel ID="pnlAviso" runat="server" CssClass="rep-aviso" Visible="false">
                     <asp:Literal ID="litAviso" runat="server" />
                 </asp:Panel>
 
                 <!-- Tablero -->
-                <div class="auth-card admin-list-card">
+                <div class="auth-card admin-list-card rep-dashboard-card">
                     <div class="auth-card-header">
                         <span class="admin-card-eyebrow">Tablero</span>
                         <h2>Indicadores</h2>

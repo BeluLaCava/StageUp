@@ -19,7 +19,7 @@
         @media (max-width: 480px) { .pago-tarjeta-fila { grid-template-columns: 1fr 1fr; } }
     </style>
 
-    <section class="static-page">
+    <section class="static-page user-module-page">
         <div class="static-page-header">
             <span class="section-label">Pago</span>
             <h1>Pagar reserva</h1>

@@ -1,7 +1,7 @@
 <%@ Page Title="Mis espacios | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="MisEspacios.aspx.cs" Inherits="StageUp.UI.MisEspacios" %>
 
 <asp:Content ID="MisEspaciosContent" ContentPlaceHolderID="MainContent" runat="server">
-    <section class="static-page managed-spaces">
+    <section class="static-page user-module-page managed-spaces">
         <div class="static-page-header managed-spaces-header">
             <span class="section-label">Tu espacio creativo</span>
             <h1>Mis espacios</h1>

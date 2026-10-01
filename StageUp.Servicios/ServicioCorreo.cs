@@ -14,6 +14,7 @@ namespace StageUp.Servicios
     {
         private const string LogoToken = "{{STAGEUP_LOGO}}";
         private const string LogoContentId = "stageup-logo";
+        private const string NewsletterImageContentId = "stageup-newsletter-image";
 
         public bool EnviarCodigoActivacion(string destinatario, string nombreDestinatario, string codigo)
         {
@@ -93,13 +94,17 @@ namespace StageUp.Servicios
             string titulo,
             string resumen,
             string llamadaAccionTexto,
-            string llamadaAccionUrl)
+            string llamadaAccionUrl,
+            string imagenUrl = null,
+            string rutaImagenNewsletter = null)
         {
+            bool usarImagenEmbebida = !string.IsNullOrWhiteSpace(rutaImagenNewsletter) && File.Exists(rutaImagenNewsletter);
             string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
             {
                 Etiqueta = "Novedades StageUp",
                 Titulo = titulo,
                 NombreDestinatario = nombreDestinatario,
+                ImagenUrl = usarImagenEmbebida ? "cid:" + NewsletterImageContentId : imagenUrl,
                 Parrafos = new[]
                 {
                     resumen
@@ -109,7 +114,7 @@ namespace StageUp.Servicios
                 Nota = "Recibís este correo porque tenés una cuenta en StageUp. Próximamente vas a poder administrar tus preferencias de novedades."
             });
 
-            return Enviar(destinatario, titulo + " | StageUp", cuerpo);
+            return Enviar(destinatario, titulo + " | StageUp", cuerpo, usarImagenEmbebida ? rutaImagenNewsletter : null);
         }
 
         public bool EnviarNotificacionRespuestaTicket(string destinatario, string nombreDestinatario, string asuntoTicket)
@@ -447,7 +452,7 @@ namespace StageUp.Servicios
                 importe.ToString("N2", CultureInfo.GetCultureInfo("es-AR"));
         }
 
-        private static bool Enviar(string destinatario, string asunto, string cuerpoHtml)
+        private static bool Enviar(string destinatario, string asunto, string cuerpoHtml, string rutaImagenNewsletter = null)
         {
             try
             {
@@ -471,6 +476,7 @@ namespace StageUp.Servicios
 
                     AlternateView vistaHtml = AlternateView.CreateAlternateViewFromString(cuerpoFinal, null, MediaTypeNames.Text.Html);
                     AgregarLogoSiExiste(vistaHtml);
+                    AgregarImagenNewsletterSiExiste(vistaHtml, rutaImagenNewsletter);
                     mensaje.AlternateViews.Add(vistaHtml);
 
                     using (SmtpClient cliente = new SmtpClient(host, puerto))
@@ -499,6 +505,7 @@ namespace StageUp.Servicios
             string bloqueCodigo = ConstruirBloqueCodigo(contenido.Codigo);
             string boton = ConstruirBoton(contenido.TextoBoton, contenido.UrlBoton);
             string nota = ConstruirNota(contenido.Nota);
+            string imagen = ConstruirImagen(contenido.ImagenUrl);
 
             return
                 "<!DOCTYPE html>" +
@@ -528,6 +535,7 @@ namespace StageUp.Servicios
                 "</tr></table>" +
                 "</td></tr>" +
                 "<tr><td style=\"padding:34px 32px 28px;\">" +
+                imagen +
                 "<h1 style=\"margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:34px;line-height:1.12;color:#7a0c20;font-weight:normal;\">" +
                 titulo +
                 "</h1>" +
@@ -636,6 +644,17 @@ namespace StageUp.Servicios
                 "</td></tr></table>";
         }
 
+        private static string ConstruirImagen(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return string.Empty;
+            }
+
+            return
+                "<img src=\"" + Codificar(url) + "\" width=\"556\" alt=\"\" style=\"display:block;width:100%;max-width:556px;height:auto;border:0;border-radius:16px;margin:0 0 26px;\">";
+        }
+
         private static string ConstruirNota(string nota)
         {
             if (string.IsNullOrWhiteSpace(nota))
@@ -678,6 +697,40 @@ namespace StageUp.Servicios
             vistaHtml.LinkedResources.Add(logo);
         }
 
+        private static void AgregarImagenNewsletterSiExiste(AlternateView vistaHtml, string rutaImagen)
+        {
+            if (string.IsNullOrWhiteSpace(rutaImagen) || !File.Exists(rutaImagen))
+            {
+                return;
+            }
+
+            LinkedResource imagen = new LinkedResource(rutaImagen, ObtenerMimeImagen(rutaImagen))
+            {
+                ContentId = NewsletterImageContentId,
+                TransferEncoding = TransferEncoding.Base64
+            };
+
+            imagen.ContentType.Name = Path.GetFileName(rutaImagen);
+            vistaHtml.LinkedResources.Add(imagen);
+        }
+
+        private static string ObtenerMimeImagen(string rutaImagen)
+        {
+            string extension = Path.GetExtension(rutaImagen);
+            if (string.Equals(extension, ".jpg", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(extension, ".jpeg", StringComparison.OrdinalIgnoreCase))
+            {
+                return "image/jpeg";
+            }
+
+            if (string.Equals(extension, ".gif", StringComparison.OrdinalIgnoreCase))
+            {
+                return "image/gif";
+            }
+
+            return "image/png";
+        }
+
         private static bool ExisteLogo()
         {
             string rutaLogo = ObtenerRutaLogo();
@@ -708,6 +761,7 @@ namespace StageUp.Servicios
             public string Titulo { get; set; }
             public string NombreDestinatario { get; set; }
             public string[] Parrafos { get; set; }
+            public string ImagenUrl { get; set; }
             public string Codigo { get; set; }
             public List<KeyValuePair<string, string>> Detalles { get; set; }
             public string Nota { get; set; }

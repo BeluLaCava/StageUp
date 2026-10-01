@@ -107,7 +107,9 @@ namespace StageUp.UI
                 return;
             }
 
+            PreguntaEncuesta pregunta = e.Item.DataItem as PreguntaEncuesta;
             Repeater rptOpciones = (Repeater)e.Item.FindControl("rptOpcionesResponder");
+            rptOpciones.DataSource = pregunta == null ? new List<OpcionPregunta>() : pregunta.Opciones;
             rptOpciones.DataBind();
         }
 
@@ -118,7 +120,9 @@ namespace StageUp.UI
                 return;
             }
 
+            ResultadoPreguntaEncuesta resultado = e.Item.DataItem as ResultadoPreguntaEncuesta;
             Repeater rptOpciones = (Repeater)e.Item.FindControl("rptOpcionesResultado");
+            rptOpciones.DataSource = resultado == null ? new List<ResultadoOpcionEncuesta>() : resultado.Opciones;
             rptOpciones.DataBind();
         }
 

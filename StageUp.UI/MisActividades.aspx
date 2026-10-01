@@ -1,7 +1,7 @@
 <%@ Page Title="Mis actividades | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="MisActividades.aspx.cs" Inherits="StageUp.UI.MisActividades" %>
 
 <asp:Content ID="MisActividadesContent" ContentPlaceHolderID="MainContent" runat="server">
-    <section class="static-page managed-activities">
+    <section class="static-page user-module-page managed-activities">
         <div class="static-page-header managed-activities-header">
             <span class="section-label">Programación interna</span>
             <h1>Mis actividades</h1>

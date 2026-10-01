@@ -20,6 +20,9 @@
         .cc-tabla .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
         .cc-comprobante { display: inline-block; font-size: 0.8em; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--color-border, #e2e2e2); margin-top: 3px; }
         .cc-vacio { color: var(--color-text-muted, #765f55); padding: 14px 0; }
+        .cc-resumen-card { margin-bottom: 1.45rem; padding-bottom: 1.05rem; }
+        .cc-resumen-card .cc-nota { margin-bottom: 0; }
+        .cc-movimientos-card { margin-top: 0; }
         .cc-filtros > *, .cc-tarjeta > * { min-width: 0; }
         .cc-filtros input, .cc-tarjeta input, .cc-filtros select, .cc-tarjeta select { width: 100%; box-sizing: border-box; }
         @media (max-width: 520px) { .cc-filtros, .cc-tarjeta { grid-template-columns: 1fr !important; } }
@@ -33,7 +36,7 @@
         }
     </style>
 
-    <section class="static-page">
+    <section class="static-page user-module-page">
         <div class="static-page-header">
             <span class="section-label">Cuenta corriente</span>
             <h1>Mi cuenta corriente</h1>
@@ -50,7 +53,7 @@
                 <asp:HyperLink ID="lnkCuentaGestor" runat="server" NavigateUrl="~/MiCuentaCorriente.aspx?cuenta=Gestor" Text="Como gestor de espacios" />
             </asp:Panel>
 
-            <div class="auth-card">
+            <div class="auth-card cc-resumen-card">
                 <div class="auth-card-header">
                     <h2><asp:Literal ID="litTituloSaldo" runat="server" /></h2>
                 </div>
@@ -102,7 +105,7 @@
                 </asp:Panel>
             </div>
 
-            <div class="auth-card">
+            <div class="auth-card cc-movimientos-card">
                 <div class="auth-card-header">
                     <h2>Movimientos</h2>
                 </div>

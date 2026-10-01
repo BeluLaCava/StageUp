@@ -1730,13 +1730,17 @@ body.overlay-open {
     text-align: center;
 }
 
+.help-hero h1 {
+    font-size: clamp(2.05rem, 4vw, 3.45rem);
+}
+
 .help-hero h1,
 .help-hero p {
     margin-inline: auto;
 }
 
 .help-content {
-    padding-block: clamp(1.5rem, 4.5vw, 3.25rem);
+    padding-block: clamp(0.9rem, 2.6vw, 1.8rem);
 }
 
 .help-section + .help-section {
@@ -2235,14 +2239,14 @@ body.overlay-open {
 }
 
 .help-hero {
-    padding-block: clamp(1.8rem, 4.5vw, 3.2rem);
+    padding-block: clamp(1.15rem, 3vw, 2.1rem);
 }
 
 .help-hero p {
     max-width: 42rem;
-    margin-top: 0.65rem;
-    font-size: clamp(0.98rem, 1.4vw, 1.08rem);
-    line-height: 1.55;
+    margin-top: 0.45rem;
+    font-size: clamp(0.9rem, 1.15vw, 0.98rem);
+    line-height: 1.48;
 }
 
 .help-journey {
@@ -2250,7 +2254,7 @@ body.overlay-open {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 1.35rem auto 0;
+    margin: 0.95rem auto 0;
 }
 
 .help-journey-item {
@@ -2292,7 +2296,7 @@ body.overlay-open {
 }
 
 .faq-section {
-    padding: clamp(1.25rem, 3vw, 2rem);
+    padding: clamp(1rem, 2.4vw, 1.55rem);
     background: rgba(255, 252, 250, 0.78);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-large);
@@ -2303,9 +2307,9 @@ body.overlay-open {
     display: grid;
     grid-template-columns: minmax(0, 0.8fr) minmax(18rem, 1fr);
     align-items: end;
-    gap: 1.25rem;
-    margin-bottom: 1.25rem;
-    padding-bottom: 1.1rem;
+    gap: 0.95rem;
+    margin-bottom: 0.95rem;
+    padding-bottom: 0.9rem;
     border-bottom: 1px solid var(--color-border);
 }
 
@@ -2388,8 +2392,8 @@ body.overlay-open {
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: clamp(1.2rem, 4vw, 2rem);
-    margin-top: clamp(3rem, 7vw, 5rem);
-    padding: clamp(1.5rem, 4vw, 2.4rem);
+    margin-top: clamp(1.35rem, 3.6vw, 2.25rem);
+    padding: clamp(1.15rem, 3vw, 1.75rem);
     background: linear-gradient(135deg, var(--color-nude), rgba(255, 252, 250, 0.95));
     border: 1px solid rgba(109, 16, 33, 0.16);
     border-radius: var(--radius-large);
@@ -2435,8 +2439,8 @@ body.overlay-open {
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 1.25rem;
-    margin-top: clamp(2rem, 5vw, 3.5rem);
-    padding: 1.5rem 0.25rem 0;
+    margin-top: clamp(1.2rem, 3.4vw, 2rem);
+    padding: 1.05rem 0.25rem 0;
     border-top: 1px solid var(--color-border);
 }
 
@@ -3538,12 +3542,16 @@ body.overlay-open {
 
 .reservation-card {
     position: sticky;
-    top: calc(var(--navbar-height) + 1.5rem);
+    top: calc(var(--navbar-height) + 1rem);
+    max-height: calc(100vh - var(--navbar-height) - 2rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 1.5rem;
     background: var(--color-surface);
     border: 1px solid rgba(109, 16, 33, 0.2);
     border-radius: 1.35rem;
     box-shadow: 0 1rem 2.5rem rgba(77, 11, 23, 0.1);
+    scrollbar-width: thin;
 }
 
 .reservation-card-label {
@@ -3577,6 +3585,8 @@ body.overlay-open {
 
     .reservation-card {
         position: static;
+        max-height: none;
+        overflow: visible;
     }
 }
 
@@ -3674,6 +3684,51 @@ body.overlay-open {
     margin-top: 2.5rem;
     padding-top: 1.5rem;
     border-top: 1px solid var(--color-border);
+}
+
+.user-module-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 3rem 28px 4.5rem;
+}
+
+.user-module-page .static-page-header,
+.profile-page.user-module-page .profile-page-header {
+    display: block;
+    margin-bottom: 2.5rem;
+}
+
+.user-module-page .static-page-header h1,
+.profile-page.user-module-page .profile-page-header h1 {
+    margin: 0.5rem 0 0.6rem;
+    color: var(--color-primary);
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3.6vw, 2.65rem);
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    line-height: 1.08;
+}
+
+.user-module-page .static-page-header p,
+.profile-page.user-module-page .profile-page-header p {
+    max-width: 56rem;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    line-height: 1.65;
+}
+
+.user-module-page .static-page-body,
+.profile-page.user-module-page .container-wide {
+    max-width: none;
+    padding-right: 0;
+    padding-left: 0;
+}
+
+.profile-page.user-module-page {
+    min-height: auto;
+    padding: 3rem 28px 4.5rem;
+    background: transparent;
 }
 
 
@@ -4262,6 +4317,11 @@ body.overlay-open {
     border-bottom: none;
 }
 
+.space-row-info {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 .space-row-info h3 {
     margin: 0 0 0.3rem;
     color: var(--color-primary-dark);
@@ -4288,6 +4348,208 @@ body.overlay-open {
     flex-wrap: wrap;
     gap: 0.9rem;
     flex-shrink: 0;
+}
+
+.booking-progress {
+    width: min(100%, 52rem);
+    margin-top: 1rem;
+    padding: 1rem;
+    background: linear-gradient(180deg, rgba(255, 252, 250, 0.96), rgba(252, 247, 243, 0.78));
+    border: 1px solid rgba(109, 16, 33, 0.12);
+    border-radius: 1rem;
+}
+
+.booking-progress-manager {
+    width: auto;
+    margin: 1.4rem 1.5rem 1.15rem;
+}
+
+.booking-progress-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+    gap: 0.8rem 0.4rem;
+    align-items: start;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.booking-progress-step {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
+.booking-progress-step:not(:last-child)::after {
+    position: absolute;
+    z-index: 0;
+    top: 1.1rem;
+    left: calc(50% + 1.45rem);
+    width: calc(100% - 2.9rem);
+    height: 2px;
+    background: rgba(137, 102, 80, 0.22);
+    content: "";
+}
+
+.booking-progress-step-completado:not(:last-child)::after {
+    background: var(--color-primary);
+}
+
+.booking-progress-icon {
+    position: relative;
+    z-index: 1;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: grid;
+    place-items: center;
+    color: #9a887f;
+    background: #fff;
+    border: 2px solid #dfc8bd;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.booking-progress-step-completado .booking-progress-icon {
+    color: #fff;
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.booking-progress-step-actual .booking-progress-icon {
+    color: var(--color-primary);
+    background: var(--color-nude);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 5px rgba(109, 16, 33, 0.1);
+}
+
+.booking-progress-step-interrumpido .booking-progress-icon {
+    color: #fff;
+    background: #6b7280;
+    border-color: #6b7280;
+}
+
+.booking-progress-title {
+    color: var(--color-primary-dark);
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.booking-progress-step-pendiente .booking-progress-title,
+.booking-progress-step-pendiente .booking-progress-date {
+    color: #9a887f;
+}
+
+.booking-progress-date {
+    min-height: 1rem;
+    color: var(--color-text-muted);
+    font-size: 0.72rem;
+    line-height: 1.25;
+}
+
+.booking-progress-date:empty::after {
+    content: "Pendiente";
+}
+
+.booking-progress-details {
+    margin-top: 0.75rem;
+    border-top: 1px solid rgba(109, 16, 33, 0.1);
+}
+
+.booking-progress-details summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.75rem;
+    color: var(--color-primary);
+    font-size: 0.86rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.booking-progress-details ol {
+    margin: 0.75rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.booking-progress-detail {
+    position: relative;
+    display: grid;
+    grid-template-columns: 7.3rem minmax(0, 1fr);
+    gap: 1.35rem;
+    padding: 0 0 0.9rem;
+}
+
+.booking-progress-detail:not(:last-child)::before {
+    position: absolute;
+    top: 0.45rem;
+    bottom: -0.2rem;
+    left: 8.05rem;
+    width: 2px;
+    background: rgba(137, 102, 80, 0.18);
+    content: "";
+}
+
+.booking-progress-detail::after {
+    position: absolute;
+    top: 0.32rem;
+    left: 7.78rem;
+    width: 0.55rem;
+    height: 0.55rem;
+    background: #c9b3a8;
+    border-radius: 50%;
+    content: "";
+}
+
+.booking-progress-detail-completado::after {
+    background: var(--color-primary);
+}
+
+.booking-progress-detail-actual::after {
+    background: var(--color-nude);
+    border: 2px solid var(--color-primary);
+}
+
+.booking-progress-detail-interrumpido::after {
+    background: #6b7280;
+}
+
+.booking-progress-detail time {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: right;
+}
+
+.booking-progress-detail time:empty::after {
+    content: "Pendiente";
+}
+
+.booking-progress-detail strong,
+.booking-progress-detail span {
+    display: block;
+}
+
+.booking-progress-detail strong {
+    color: var(--color-primary-dark);
+    font-size: 0.9rem;
+}
+
+.booking-progress-detail span {
+    margin-top: 0.18rem;
+    color: var(--color-text-muted);
+    font-size: 0.84rem;
+    line-height: 1.45;
+}
+
+.booking-progress-detail span:empty {
+    display: none;
 }
 
 .gestor-subnav {
@@ -7926,7 +8188,35 @@ body.internal-body {
 }
 
 .public-news-feature {
-    padding: clamp(1.35rem, 3vw, 2rem);
+    overflow: hidden;
+    padding: 0;
+}
+
+.public-news-feature > :not(.public-news-image) {
+    margin-left: clamp(1.35rem, 3vw, 2rem);
+    margin-right: clamp(1.35rem, 3vw, 2rem);
+}
+
+.public-news-feature .public-news-category {
+    margin-top: clamp(1.35rem, 3vw, 2rem);
+}
+
+.public-news-feature .button {
+    margin-bottom: clamp(1.35rem, 3vw, 2rem);
+}
+
+.public-news-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 8;
+    object-fit: cover;
+    background: var(--color-nude-light);
+}
+
+.public-news-item .public-news-image {
+    margin: -1.15rem -1.25rem 1rem;
+    width: calc(100% + 2.5rem);
+    border-radius: 1rem 1rem 0 0;
 }
 
 .public-news-category,

@@ -9,10 +9,22 @@
         .encuesta-resultado-barra-track { background: var(--color-border, #e2e2e2); border-radius: 6px; height: 14px; overflow: hidden; }
         .encuesta-resultado-barra-fill { background: var(--color-primary, #4f46e5); height: 100%; border-radius: 6px; }
         .encuesta-resultado-total { color: var(--color-text-muted, #6b7280); margin-bottom: 14px; }
-        .encuesta-pregunta-item { border-bottom: 1px solid var(--color-border, #e2e2e2); padding: 10px 0; }
+        .encuesta-admin-layout { display: grid; grid-template-columns: minmax(22rem, 0.82fr) minmax(0, 1.18fr); align-items: start; gap: 1.25rem; }
+        .encuesta-editor-stack { display: grid; gap: 1rem; min-width: 0; }
+        .encuesta-admin-side { display: grid; gap: 1.25rem; min-width: 0; }
+        .encuesta-editor-card { position: static; }
+        .encuesta-card-note { margin-top: 0.25rem; color: var(--color-text-muted, #6b7280); font-size: 0.9rem; line-height: 1.55; }
+        .encuesta-pregunta-item { margin-bottom: 0.75rem; padding: 0.85rem; background: rgba(255, 247, 241, 0.72); border: 1px solid var(--color-border, #e2e2e2); border-radius: 0.85rem; }
         .encuesta-pregunta-item ul { margin: 6px 0 0 20px; padding: 0; }
+        .encuesta-pregunta-item .admin-action-link { margin-top: 0.65rem; }
+        .encuesta-agregar-pregunta { padding-top: 0.95rem; margin-top: 0.95rem; border-top: 1px solid var(--color-border, #e2e2e2); }
+        .encuesta-estado-acciones { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; }
+        .encuesta-estado-acciones .button { flex: 1 1 12rem; }
         .encuesta-datos-solo-lectura dt { font-weight: bold; margin-top: 8px; }
         .encuesta-datos-solo-lectura dd { margin: 0; }
+        @media (max-width: 68rem) {
+            .encuesta-admin-layout { grid-template-columns: 1fr; }
+        }
     </style>
 
     <section class="static-page internal-page internal-management-page faq-admin-page">
@@ -42,9 +54,9 @@
                 </article>
             </div>
 
-            <div class="faq-admin-layout">
-                <div>
-                    <asp:Panel ID="pnlFormularioEncuesta" runat="server" CssClass="auth-card admin-editor-card">
+            <div class="encuesta-admin-layout">
+                <div class="encuesta-editor-stack">
+                    <asp:Panel ID="pnlFormularioEncuesta" runat="server" CssClass="auth-card admin-editor-card encuesta-editor-card">
                         <div class="auth-card-header">
                             <span class="admin-card-eyebrow">Datos generales</span>
                             <h2><asp:Literal ID="litTituloFormulario" runat="server" Text="Nueva encuesta" /></h2>
@@ -97,7 +109,7 @@
                         </div>
                     </asp:Panel>
 
-                    <asp:Panel ID="pnlDatosSoloLectura" runat="server" CssClass="auth-card admin-editor-card" Visible="false">
+                    <asp:Panel ID="pnlDatosSoloLectura" runat="server" CssClass="auth-card admin-editor-card encuesta-editor-card" Visible="false">
                         <div class="auth-card-header">
                             <span class="admin-card-eyebrow">Datos generales</span>
                             <h2><asp:Literal ID="litTituloSoloLectura" runat="server" /></h2>
@@ -117,10 +129,11 @@
                         </div>
                     </asp:Panel>
 
-                    <asp:Panel ID="pnlPreguntas" runat="server" CssClass="auth-card admin-editor-card" Visible="false">
+                    <asp:Panel ID="pnlPreguntas" runat="server" CssClass="auth-card admin-editor-card encuesta-editor-card" Visible="false">
                         <div class="auth-card-header">
                             <span class="admin-card-eyebrow">Preguntas</span>
                             <h2>Preguntas de la encuesta</h2>
+                            <p>Agregá las preguntas y sus opciones mientras la encuesta esté en borrador.</p>
                         </div>
 
                         <asp:Panel ID="pnlSinPreguntas" runat="server" CssClass="admin-empty-hint" Visible="false">
@@ -132,7 +145,7 @@
                                 <div class="encuesta-pregunta-item">
                                     <strong><%#: Eval("Texto") %></strong>
                                     <ul>
-                                        <asp:Repeater ID="rptOpcionesPregunta" runat="server" DataSource='<%# Eval("Opciones") %>'>
+                                        <asp:Repeater ID="rptOpcionesPregunta" runat="server">
                                             <ItemTemplate>
                                                 <li><%#: Eval("Texto") %></li>
                                             </ItemTemplate>
@@ -146,8 +159,7 @@
                             </ItemTemplate>
                         </asp:Repeater>
 
-                        <asp:Panel ID="pnlAgregarPregunta" runat="server">
-                            <hr />
+                        <asp:Panel ID="pnlAgregarPregunta" runat="server" CssClass="encuesta-agregar-pregunta">
                             <div class="form-field">
                                 <label for="<%= txtTextoPregunta.ClientID %>">Nueva pregunta</label>
                                 <asp:TextBox ID="txtTextoPregunta" runat="server" TextMode="SingleLine" MaxLength="300"
@@ -165,23 +177,26 @@
                         </asp:Panel>
                     </asp:Panel>
 
-                    <asp:Panel ID="pnlEstadoAcciones" runat="server" CssClass="auth-card admin-editor-card" Visible="false">
+                    <asp:Panel ID="pnlEstadoAcciones" runat="server" CssClass="auth-card admin-editor-card encuesta-editor-card" Visible="false">
                         <div class="auth-card-header">
                             <span class="admin-card-eyebrow">Estado</span>
                             <h2><asp:Literal ID="litEstadoBadge" runat="server" /></h2>
+                            <p class="encuesta-card-note">Publicá la encuesta cuando ya tenga sus preguntas cargadas.</p>
                         </div>
-                        <asp:Button ID="btnPublicar" runat="server" CssClass="button button-primary" Text="Publicar encuesta"
-                            CausesValidation="false" OnClick="btnPublicar_Click" />
-                        <asp:Button ID="btnCerrar" runat="server" CssClass="button button-secondary" Text="Cerrar encuesta"
-                            CausesValidation="false" OnClick="btnCerrar_Click"
-                            OnClientClick="return confirm('¿Seguro que querés cerrar la encuesta? Deja de aceptar respuestas.');" />
-                        <asp:Button ID="btnEliminarBorrador" runat="server" CssClass="button button-secondary" Text="Eliminar borrador"
-                            CausesValidation="false" OnClick="btnEliminarBorrador_Click"
-                            OnClientClick="return confirm('¿Seguro que querés eliminar esta encuesta en borrador? Se borran también sus preguntas y opciones.');" />
-                        <asp:Literal ID="litEstadoSinAcciones" runat="server" Visible="false" Text="Esta encuesta está cerrada." />
+                        <div class="encuesta-estado-acciones">
+                            <asp:Button ID="btnPublicar" runat="server" CssClass="button button-primary" Text="Publicar encuesta"
+                                CausesValidation="false" OnClick="btnPublicar_Click" />
+                            <asp:Button ID="btnCerrar" runat="server" CssClass="button button-secondary" Text="Cerrar encuesta"
+                                CausesValidation="false" OnClick="btnCerrar_Click"
+                                OnClientClick="return confirm('¿Seguro que querés cerrar la encuesta? Deja de aceptar respuestas.');" />
+                            <asp:Button ID="btnEliminarBorrador" runat="server" CssClass="button button-secondary" Text="Eliminar borrador"
+                                CausesValidation="false" OnClick="btnEliminarBorrador_Click"
+                                OnClientClick="return confirm('¿Seguro que querés eliminar esta encuesta en borrador? Se borran también sus preguntas y opciones.');" />
+                            <asp:Literal ID="litEstadoSinAcciones" runat="server" Visible="false" Text="Esta encuesta está cerrada." />
+                        </div>
                     </asp:Panel>
 
-                    <asp:Panel ID="pnlResultados" runat="server" CssClass="auth-card admin-editor-card" Visible="false">
+                    <asp:Panel ID="pnlResultados" runat="server" CssClass="auth-card admin-editor-card encuesta-editor-card" Visible="false">
                         <div class="auth-card-header">
                             <span class="admin-card-eyebrow">Resultados</span>
                             <h2>Resultados al instante</h2>
@@ -191,7 +206,7 @@
                             <ItemTemplate>
                                 <div class="encuesta-resultado-pregunta">
                                     <h4><%#: Eval("TextoPregunta") %></h4>
-                                    <asp:Repeater ID="rptOpcionesResultado" runat="server" DataSource='<%# Eval("Opciones") %>'>
+                                    <asp:Repeater ID="rptOpcionesResultado" runat="server">
                                         <ItemTemplate>
                                             <div class="encuesta-resultado-opcion">
                                                 <div class="encuesta-resultado-opcion-etiqueta">
@@ -210,7 +225,7 @@
                     </asp:Panel>
                 </div>
 
-                <div class="faq-admin-side">
+                <div class="encuesta-admin-side">
                     <div class="auth-card admin-list-card faq-list-card">
                         <div class="auth-card-header">
                             <span class="admin-card-eyebrow">Directorio</span>

@@ -7,11 +7,12 @@
         .ranking-panel { margin-top: clamp(1.5rem, 3vw, 2.25rem); padding: 1.4rem 1.6rem; background: #fffaf7; border: 1px solid var(--color-border, #e7d5cc); border-radius: 1.1rem; }
         .ranking-panel h2 { margin: 0.2rem 0 0.3rem; color: var(--color-primary, #7a0c20); font-family: var(--font-display, Georgia, serif); font-weight: 500; }
         .ranking-panel p.ranking-criterio { margin: 0 0 1rem; color: #8a6a5e; font-size: 0.9rem; }
-        .ranking-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
-        .ranking-item a { display: flex; gap: 0.8rem; align-items: center; padding: 0.75rem 0.9rem; background: #fff; border: 1px solid #efe1d9; border-radius: 0.9rem; text-decoration: none; color: inherit; }
+        .ranking-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.7rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+        .ranking-item a { min-height: 4.6rem; display: grid; grid-template-columns: 2.35rem minmax(0, 1fr); gap: 0.85rem; align-items: center; padding: 0.75rem 1rem; background: #fff; border: 1px solid #efe1d9; border-radius: 0.9rem; text-decoration: none; color: inherit; box-sizing: border-box; }
         .ranking-item a:hover { border-color: var(--color-primary, #7a0c20); }
-        .ranking-posicion { flex: 0 0 2.2rem; height: 2.2rem; border-radius: 50%; background: #7a0c20; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        .ranking-datos strong { display: block; }
+        .ranking-posicion { width: 2.35rem; height: 2.35rem; border-radius: 50%; background: #7a0c20; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .ranking-datos { min-width: 0; }
+        .ranking-datos strong { display: block; line-height: 1.25; }
         .ranking-datos span { font-size: 0.85rem; color: #8a6a5e; }
     </style>
     <section class="explore-page" data-results-page>

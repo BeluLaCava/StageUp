@@ -17,22 +17,20 @@
         .ticket-mensaje-meta { display: flex; justify-content: space-between; gap: 12px; font-size: 0.8em; color: var(--color-text-muted, #6b7280); margin-bottom: 4px; }
     </style>
 
-    <section class="static-page public-news-page">
-        <header class="public-news-hero container-wide">
-            <div>
-                <span class="section-label">Ayuda</span>
-                <h1>Soporte</h1>
-                <p>Contanos tu consulta y seguí la conversación con nuestro equipo desde acá.</p>
-            </div>
-        </header>
+    <section class="static-page user-module-page">
+        <div class="static-page-header">
+            <span class="section-label">Ayuda</span>
+            <h1>Soporte</h1>
+            <p>Contanos tu consulta y seguí la conversación con nuestro equipo desde acá.</p>
+        </div>
 
-        <div class="public-news-layout container-wide">
+        <div class="static-page-body">
             <asp:Panel ID="pnlMensaje" runat="server" Visible="false" CssClass="form-message">
                 <asp:Literal ID="litMensaje" runat="server" />
             </asp:Panel>
 
             <asp:Panel ID="pnlDashboard" runat="server" Visible="false">
-                <div class="auth-card admin-editor-card">
+                <div class="auth-card">
                     <div class="auth-card-header">
                         <h2>Nueva consulta</h2>
                         <p>Contanos qué necesitás y te vamos a responder acá mismo.</p>

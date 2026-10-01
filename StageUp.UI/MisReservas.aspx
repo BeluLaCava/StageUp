@@ -2,25 +2,15 @@
 
 <asp:Content ID="MisReservasContent" ContentPlaceHolderID="MainContent" runat="server">
     <style type="text/css">
-        .reserva-historial-filtro { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .reserva-historial-filtro { display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+        .reserva-historial-control { display: inline-flex; align-items: center; gap: 0.55rem; margin-left: auto; color: var(--color-text-muted, #765f55); font-size: 0.9rem; }
+        .reserva-historial-control label { margin: 0; font-weight: 700; }
+        .reserva-historial-control select { min-width: 10rem; padding: 0.55rem 0.8rem; color: var(--color-primary, #6d1021); background: #fff; border: 1px solid var(--color-border, #e2d4cc); border-radius: 0.75rem; font: inherit; font-weight: 700; }
         .reserva-historial-meta { color: var(--color-text-muted, #6b7280); font-size: 0.88em; margin: 2px 0; }
-        .reserva-seguimiento { margin-top: 10px; }
-        .reserva-seguimiento summary { cursor: pointer; font-weight: bold; color: #7a0c20; }
-        .reserva-timeline { list-style: none; margin: 12px 0 4px; padding: 0 0 0 6px; }
-        .reserva-timeline li { position: relative; padding: 0 0 14px 24px; border-left: 2px solid #e5c5b8; }
-        .reserva-timeline li:last-child { border-left-color: transparent; padding-bottom: 0; }
-        .reserva-timeline li::before { content: ""; position: absolute; left: -8px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid #c9b3a8; }
-        .reserva-timeline li.paso-completado::before { background: #7a0c20; border-color: #7a0c20; }
-        .reserva-timeline li.paso-actual::before { background: #f3dfd4; border-color: #7a0c20; box-shadow: 0 0 0 4px rgba(122, 12, 32, 0.12); }
-        .reserva-timeline li.paso-interrumpido::before { background: #9ca3af; border-color: #6b7280; }
-        .reserva-timeline li.paso-pendiente { color: #9ca3af; }
-        .reserva-timeline .paso-titulo { font-weight: bold; }
-        .reserva-timeline .paso-fecha { font-size: 0.82em; color: #8a6a5e; margin-left: 6px; }
-        .reserva-timeline .paso-detalle { display: block; font-size: 0.9em; margin-top: 2px; }
         .reserva-pago { margin: 6px 0; padding: 8px 12px; border-radius: 10px; font-size: 0.9em; background: #fcf7f3; border-left: 4px solid #896650; }
         .reserva-pago-pendiente { background: #fff4e5; border-left-color: #b45309; color: #78350f; }
     </style>
-    <section class="static-page">
+    <section class="static-page user-module-page">
         <div class="static-page-header">
             <span class="section-label">Mis reservas</span>
             <h1>Tus solicitudes de reserva</h1>
@@ -35,9 +25,11 @@
             <div class="auth-card">
                 <div class="auth-card-header reserva-historial-filtro">
                     <h2>Historial</h2>
-                    <label for="<%= ddlFiltroHistorial.ClientID %>">Mostrar</label>
-                    <asp:DropDownList ID="ddlFiltroHistorial" runat="server" AutoPostBack="true"
-                        OnSelectedIndexChanged="ddlFiltroHistorial_SelectedIndexChanged" />
+                    <div class="reserva-historial-control">
+                        <label for="<%= ddlFiltroHistorial.ClientID %>">Mostrar</label>
+                        <asp:DropDownList ID="ddlFiltroHistorial" runat="server" AutoPostBack="true"
+                            OnSelectedIndexChanged="ddlFiltroHistorial_SelectedIndexChanged" />
+                    </div>
                 </div>
 
                 <asp:Literal ID="litSinReservas" runat="server" Visible="false"
@@ -62,21 +54,37 @@
                                 <asp:Panel ID="pnlEstadoPago" runat="server" CssClass="reserva-pago" Visible="false">
                                     <asp:Literal ID="litEstadoPago" runat="server" />
                                 </asp:Panel>
-                                <details class="reserva-seguimiento">
-                                    <summary>Ver seguimiento</summary>
-                                    <ol class="reserva-timeline">
+                                <section class="booking-progress" aria-label="Seguimiento de la reserva">
+                                    <ol class="booking-progress-steps">
                                         <asp:Repeater ID="rptSeguimiento" runat="server"
                                             DataSource='<%# StageUp.BLL.BLL_Reserva.ConstruirSeguimiento((StageUp.BE.Entidades.Reserva)Container.DataItem) %>'>
                                             <ItemTemplate>
-                                                <li class='<%# "paso-" + Eval("Estado").ToString().ToLowerInvariant() %>'>
-                                                    <span class="paso-titulo"><%#: Eval("Titulo") %></span>
-                                                    <span class="paso-fecha"><%#: Eval("Fecha", "{0:dd/MM/yyyy HH:mm}") %></span>
-                                                    <span class="paso-detalle"><%#: Eval("Detalle") %></span>
+                                                <li class='<%# "booking-progress-step booking-progress-step-" + Eval("Estado").ToString().ToLowerInvariant() %>'>
+                                                    <span class="booking-progress-icon"><%#: ObtenerIconoSeguimiento(Eval("Titulo") as string) %></span>
+                                                    <span class="booking-progress-title"><%#: Eval("Titulo") %></span>
+                                                    <span class="booking-progress-date"><%#: Eval("Fecha", "{0:dd/MM HH:mm}") %></span>
                                                 </li>
                                             </ItemTemplate>
                                         </asp:Repeater>
                                     </ol>
-                                </details>
+                                    <details class="booking-progress-details">
+                                        <summary>Ver detalle del seguimiento</summary>
+                                        <ol>
+                                            <asp:Repeater ID="rptSeguimientoDetalle" runat="server"
+                                                DataSource='<%# StageUp.BLL.BLL_Reserva.ConstruirSeguimiento((StageUp.BE.Entidades.Reserva)Container.DataItem) %>'>
+                                                <ItemTemplate>
+                                                    <li class='<%# "booking-progress-detail booking-progress-detail-" + Eval("Estado").ToString().ToLowerInvariant() %>'>
+                                                        <time><%#: Eval("Fecha", "{0:dd/MM/yyyy HH:mm}") %></time>
+                                                        <div>
+                                                            <strong><%#: Eval("Titulo") %></strong>
+                                                            <span><%#: Eval("Detalle") %></span>
+                                                        </div>
+                                                    </li>
+                                                </ItemTemplate>
+                                            </asp:Repeater>
+                                        </ol>
+                                    </details>
+                                </section>
                             </div>
                             <div class="space-row-actions">
                                 <asp:HyperLink ID="lnkPagar" runat="server" CssClass="button button-primary button-small" Text="Pagar reserva" Visible="false" />

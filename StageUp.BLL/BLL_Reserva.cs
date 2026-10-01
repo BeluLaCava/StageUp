@@ -347,6 +347,16 @@ namespace StageUp.BLL
         // reservas anteriores (estadoPago = NoRequerido) no lo muestran.
         public static List<PasoSeguimientoReserva> ConstruirSeguimiento(Reserva reserva)
         {
+            return ConstruirSeguimiento(reserva, false);
+        }
+
+        public static List<PasoSeguimientoReserva> ConstruirSeguimientoGestor(Reserva reserva)
+        {
+            return ConstruirSeguimiento(reserva, true);
+        }
+
+        private static List<PasoSeguimientoReserva> ConstruirSeguimiento(Reserva reserva, bool paraGestor)
+        {
             List<PasoSeguimientoReserva> pasos = new List<PasoSeguimientoReserva>();
             if (reserva == null)
             {
@@ -361,12 +371,16 @@ namespace StageUp.BLL
                 ? reserva.FechaSolicitada.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) + " a las " + FormatearHora(reserva.MinutoDesde.Value)
                 : reserva.FechaSolicitada.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
 
-            pasos.Add(Paso("Solicitud enviada", "Le enviaste la solicitud al gestor del espacio.",
+            pasos.Add(Paso(
+                paraGestor ? "Solicitud recibida" : "Solicitud enviada",
+                paraGestor ? "Recibiste una solicitud para reservar tu espacio." : "Le enviaste la solicitud al gestor del espacio.",
                 reserva.FechaCreacion, "Completado"));
 
             if (estado == EstadoReserva.Pendiente.ToString())
             {
-                pasos.Add(Paso("Revisión del gestor", "Esperando que el gestor acepte o rechace la solicitud.", null, "Actual"));
+                pasos.Add(Paso("Revisión del gestor",
+                    paraGestor ? "Tenés que aceptar o rechazar la solicitud." : "Esperando que el gestor acepte o rechace la solicitud.",
+                    null, "Actual"));
                 pasos.Add(Paso("Pago", null, null, "Pendiente"));
                 pasos.Add(Paso("Día de la reserva", momentoReserva, null, "Pendiente"));
                 pasos.Add(Paso("Calificación", null, null, "Pendiente"));
@@ -375,10 +389,14 @@ namespace StageUp.BLL
 
             if (estado == EstadoReserva.Rechazada.ToString())
             {
-                pasos.Add(Paso("Solicitud rechazada",
-                    string.IsNullOrEmpty(reserva.ComentarioResolucion)
-                        ? "El gestor no aceptó la solicitud."
-                        : "El gestor no aceptó la solicitud: \"" + reserva.ComentarioResolucion + "\"",
+                pasos.Add(Paso(paraGestor ? "Solicitud rechazada" : "Solicitud rechazada",
+                    paraGestor
+                        ? (string.IsNullOrEmpty(reserva.ComentarioResolucion)
+                            ? "Rechazaste la solicitud."
+                            : "Rechazaste la solicitud: \"" + reserva.ComentarioResolucion + "\"")
+                        : (string.IsNullOrEmpty(reserva.ComentarioResolucion)
+                            ? "El gestor no aceptó la solicitud."
+                            : "El gestor no aceptó la solicitud: \"" + reserva.ComentarioResolucion + "\""),
                     reserva.FechaResolucion, "Interrumpido"));
                 return pasos;
             }
@@ -390,19 +408,22 @@ namespace StageUp.BLL
             if (fueAceptada)
             {
                 pasos.Add(conPago
-                    ? Paso("Reserva aceptada", "El gestor aceptó la solicitud.", reserva.FechaResolucion, "Completado")
-                    : Paso("Reserva confirmada", "El gestor aceptó la solicitud.", reserva.FechaResolucion, "Completado"));
+                    ? Paso("Reserva aceptada", paraGestor ? "Aceptaste la solicitud." : "El gestor aceptó la solicitud.", reserva.FechaResolucion, "Completado")
+                    : Paso("Reserva confirmada", paraGestor ? "Aceptaste la solicitud." : "El gestor aceptó la solicitud.", reserva.FechaResolucion, "Completado"));
             }
 
             if (fueAceptada && conPago)
             {
                 if (estadoPago == BLL_Pago.EstadoPagado || estadoPago == BLL_Pago.EstadoDevuelto)
                 {
-                    pasos.Add(Paso("Pago recibido", "La reserva quedó confirmada.", reserva.FechaPago, "Completado"));
+                    pasos.Add(Paso("Pago recibido",
+                        paraGestor ? "El solicitante pagó la reserva y quedó confirmada." : "La reserva quedó confirmada.",
+                        reserva.FechaPago, "Completado"));
                 }
                 else if (estadoPago == BLL_Pago.EstadoVencido)
                 {
-                    pasos.Add(Paso("Pago vencido", "No se pagó dentro del plazo y la reserva se canceló sin cargo.",
+                    pasos.Add(Paso("Pago vencido",
+                        paraGestor ? "El solicitante no pagó dentro del plazo y la reserva se canceló sin cargo." : "No se pagó dentro del plazo y la reserva se canceló sin cargo.",
                         reserva.FechaCancelacion, "Interrumpido"));
                     return pasos;
                 }
@@ -411,7 +432,8 @@ namespace StageUp.BLL
                     string limite = reserva.FechaLimitePago.HasValue
                         ? " antes del " + reserva.FechaLimitePago.Value.ToString("dd/MM/yyyy 'a las' HH:mm", CultureInfo.InvariantCulture) + " hs"
                         : string.Empty;
-                    pasos.Add(Paso("Pago", "Pagala" + limite + " para confirmarla. Si no, se cancela sola, sin cargo.",
+                    pasos.Add(Paso("Pago",
+                        paraGestor ? "Esperando el pago del solicitante" + limite + ". Si no paga a tiempo, se cancela sola." : "Pagala" + limite + " para confirmarla. Si no, se cancela sola, sin cargo.",
                         reserva.FechaLimitePago, "Actual"));
                     pasos.Add(Paso("Día de la reserva", momentoReserva, null, "Pendiente"));
                     pasos.Add(Paso("Calificación", null, null, "Pendiente"));
@@ -422,12 +444,14 @@ namespace StageUp.BLL
             if (estado == EstadoReserva.Cancelada.ToString())
             {
                 string detalle = reserva.ComisionAplicada && reserva.ImporteComision.HasValue
-                    ? "Cancelaste la reserva. Se aplicó una comisión de " +
+                    ? (paraGestor ? "La reserva fue cancelada. Se aplicó una comisión de " : "Cancelaste la reserva. Se aplicó una comisión de ") +
                       reserva.ImporteComision.Value.ToString("0.##", CultureInfo.InvariantCulture) + " " + (reserva.Moneda ?? "ARS") + "."
-                    : "Cancelaste la reserva, sin costo.";
+                    : (paraGestor ? "La reserva fue cancelada, sin costo." : "Cancelaste la reserva, sin costo.");
                 if (estadoPago == BLL_Pago.EstadoDevuelto)
                 {
-                    detalle += " Lo que pagaste quedó como saldo a favor en tu cuenta corriente.";
+                    detalle += paraGestor
+                        ? " El importe quedó como saldo a favor del solicitante."
+                        : " Lo que pagaste quedó como saldo a favor en tu cuenta corriente.";
                 }
 
                 pasos.Add(Paso("Reserva cancelada", detalle, reserva.FechaCancelacion, "Interrumpido"));
@@ -438,7 +462,9 @@ namespace StageUp.BLL
             {
                 int dias = (int)Math.Ceiling((inicioReserva - DateTime.Now).TotalDays);
                 string faltan = dias <= 0 ? "Es hoy." : dias == 1 ? "Falta 1 día." : "Faltan " + dias + " días.";
-                pasos.Add(Paso("Día de la reserva", momentoReserva + ". " + faltan, inicioReserva, "Actual"));
+                pasos.Add(Paso("Día de la reserva",
+                    paraGestor ? "La reserva está programada para " + momentoReserva + ". " + faltan : momentoReserva + ". " + faltan,
+                    inicioReserva, "Actual"));
                 pasos.Add(Paso("Reserva finalizada", null, null, "Pendiente"));
                 pasos.Add(Paso("Calificación", null, null, "Pendiente"));
                 return pasos;
@@ -447,9 +473,13 @@ namespace StageUp.BLL
             // Finalizada
             pasos.Add(Paso("Día de la reserva", momentoReserva, inicioReserva, "Completado"));
             pasos.Add(Paso("Reserva finalizada", null, reserva.FechaFinalizacion, "Completado"));
-            pasos.Add(reserva.CalificacionEspacioRealizada
-                ? Paso("Calificación", "Ya calificaste el espacio. ¡Gracias!", null, "Completado")
-                : Paso("Calificación", "Calificá el espacio para ayudar a otros artistas.", null, "Actual"));
+            pasos.Add(paraGestor
+                ? (reserva.CalificacionSolicitanteRealizada
+                    ? Paso("Calificación", "Ya calificaste al solicitante.", null, "Completado")
+                    : Paso("Calificación", "Calificá al solicitante para dejar registro de la experiencia.", null, "Actual"))
+                : (reserva.CalificacionEspacioRealizada
+                    ? Paso("Calificación", "Ya calificaste el espacio. ¡Gracias!", null, "Completado")
+                    : Paso("Calificación", "Calificá el espacio para ayudar a otros artistas.", null, "Actual")));
             return pasos;
         }
 

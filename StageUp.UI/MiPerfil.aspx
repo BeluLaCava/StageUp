@@ -1,7 +1,7 @@
 <%@ Page Title="Mi perfil | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="MiPerfil.aspx.cs" Inherits="StageUp.UI.MiPerfil" %>
 
 <asp:Content ID="ProfileContent" ContentPlaceHolderID="MainContent" runat="server">
-    <section class="profile-page">
+    <section class="profile-page user-module-page">
         <div class="container-wide">
             <header class="profile-page-header">
                 <div>

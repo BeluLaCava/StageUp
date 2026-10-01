@@ -313,6 +313,42 @@ namespace StageUp.UI
                 reserva.ImporteEstimado.Value.ToString("0.##", CultureInfo.CurrentCulture) + " " + (reserva.Moneda ?? "ARS");
         }
 
+        protected string ObtenerIconoSeguimiento(string titulo)
+        {
+            if (string.IsNullOrWhiteSpace(titulo))
+            {
+                return "•";
+            }
+
+            string normalizado = titulo.ToLowerInvariant();
+            if (normalizado.Contains("solicitud"))
+            {
+                return "✉";
+            }
+
+            if (normalizado.Contains("pago"))
+            {
+                return "$";
+            }
+
+            if (normalizado.Contains("día") || normalizado.Contains("reserva finalizada"))
+            {
+                return "◷";
+            }
+
+            if (normalizado.Contains("calificación"))
+            {
+                return "★";
+            }
+
+            if (normalizado.Contains("rechazada") || normalizado.Contains("cancelada") || normalizado.Contains("vencido"))
+            {
+                return "!";
+            }
+
+            return "✓";
+        }
+
         private static string FormatearHora(int minutos)
         {
             return minutos == 1440

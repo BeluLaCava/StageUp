@@ -105,6 +105,38 @@
                                 </aside>
                             </div>
 
+                            <section class="booking-progress booking-progress-manager" aria-label="Seguimiento de la reserva">
+                                <ol class="booking-progress-steps">
+                                    <asp:Repeater ID="rptSeguimientoGestor" runat="server"
+                                        DataSource='<%# StageUp.BLL.BLL_Reserva.ConstruirSeguimientoGestor((StageUp.BE.Entidades.Reserva)Container.DataItem) %>'>
+                                        <ItemTemplate>
+                                            <li class='<%# "booking-progress-step booking-progress-step-" + Eval("Estado").ToString().ToLowerInvariant() %>'>
+                                                <span class="booking-progress-icon"><%#: ObtenerIconoSeguimiento(Eval("Titulo") as string) %></span>
+                                                <span class="booking-progress-title"><%#: Eval("Titulo") %></span>
+                                                <span class="booking-progress-date"><%#: Eval("Fecha", "{0:dd/MM HH:mm}") %></span>
+                                            </li>
+                                        </ItemTemplate>
+                                    </asp:Repeater>
+                                </ol>
+                                <details class="booking-progress-details">
+                                    <summary>Ver detalle del seguimiento</summary>
+                                    <ol>
+                                        <asp:Repeater ID="rptSeguimientoDetalleGestor" runat="server"
+                                            DataSource='<%# StageUp.BLL.BLL_Reserva.ConstruirSeguimientoGestor((StageUp.BE.Entidades.Reserva)Container.DataItem) %>'>
+                                            <ItemTemplate>
+                                                <li class='<%# "booking-progress-detail booking-progress-detail-" + Eval("Estado").ToString().ToLowerInvariant() %>'>
+                                                    <time><%#: Eval("Fecha", "{0:dd/MM/yyyy HH:mm}") %></time>
+                                                    <div>
+                                                        <strong><%#: Eval("Titulo") %></strong>
+                                                        <span><%#: Eval("Detalle") %></span>
+                                                    </div>
+                                                </li>
+                                            </ItemTemplate>
+                                        </asp:Repeater>
+                                    </ol>
+                                </details>
+                            </section>
+
                             <asp:Panel ID="pnlAcciones" runat="server" CssClass="request-card-actions">
                                 <span>¿Querés aceptar esta solicitud?</span>
                                 <div>

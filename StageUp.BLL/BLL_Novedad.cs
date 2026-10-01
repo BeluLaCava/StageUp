@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 using StageUp.MPP;
@@ -213,7 +214,8 @@ namespace StageUp.BLL
         // novedad (se marca con enviadaPorCorreo) para evitar duplicar
         // envíos si la novedad se vuelve a editar más adelante.
         public ResultadoOperacion<int> EnviarNewsletter(
-            int idNovedad, string destinatarioCodigo, string urlNovedades, int idUsuarioInternoResponsable)
+            int idNovedad, string destinatarioCodigo, string urlNovedades, int idUsuarioInternoResponsable,
+            string urlBaseAplicacion = null, string rutaBaseAplicacion = null)
         {
             return EjecutarProtegido<int>(() =>
             {
@@ -235,6 +237,8 @@ namespace StageUp.BLL
 
                 string criterio = EsDestinatarioValido(destinatarioCodigo) ? destinatarioCodigo : "Activos";
                 List<UsuarioExterno> destinatarios = _bllUsuarioExterno.ListarParaNewsletter(criterio);
+                string urlImagenNewsletter = ConstruirUrlAbsoluta(novedad.UrlImagen, urlBaseAplicacion);
+                string rutaImagenNewsletter = ResolverRutaFisica(novedad.UrlImagen, rutaBaseAplicacion);
 
                 int enviados = 0;
                 foreach (UsuarioExterno destinatario in destinatarios)
@@ -245,7 +249,9 @@ namespace StageUp.BLL
                         novedad.Titulo,
                         novedad.Resumen,
                         "Ver novedades",
-                        urlNovedades);
+                        urlNovedades,
+                        urlImagenNewsletter,
+                        rutaImagenNewsletter);
 
                     if (enviado)
                     {
@@ -299,7 +305,8 @@ namespace StageUp.BLL
         // formulario (sin necesidad de haberlo guardado antes) únicamente al
         // correo del usuario interno que está probando la pantalla.
         public ResultadoOperacion EnviarPrueba(
-            string correoDestino, string nombreDestino, string titulo, string resumen, string urlNovedades)
+            string correoDestino, string nombreDestino, string titulo, string resumen, string urlNovedades,
+            string urlImagen = null, string urlBaseAplicacion = null, string rutaBaseAplicacion = null)
         {
             if (string.IsNullOrWhiteSpace(correoDestino))
             {
@@ -311,8 +318,12 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("Completá el título y el resumen antes de enviar una prueba.");
             }
 
+            string urlImagenNewsletter = ConstruirUrlAbsoluta(urlImagen, urlBaseAplicacion);
+            string rutaImagenNewsletter = ResolverRutaFisica(urlImagen, rutaBaseAplicacion);
+
             bool enviado = _servicioCorreo.EnviarNewsletter(
-                correoDestino, nombreDestino, titulo.Trim(), resumen.Trim(), "Ver novedades", urlNovedades);
+                correoDestino, nombreDestino, titulo.Trim(), resumen.Trim(), "Ver novedades", urlNovedades,
+                urlImagenNewsletter, rutaImagenNewsletter);
 
             return enviado
                 ? ResultadoOperacion.Ok("Se envió el correo de prueba a " + correoDestino + ".")
@@ -334,6 +345,70 @@ namespace StageUp.BLL
                 }
             }
             return false;
+        }
+
+        private static string ConstruirUrlAbsoluta(string url, string urlBaseAplicacion)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return null;
+            }
+
+            string urlNormalizada = url.Trim();
+            Uri uriAbsoluta;
+            if (Uri.TryCreate(urlNormalizada, UriKind.Absolute, out uriAbsoluta) &&
+                (uriAbsoluta.Scheme == Uri.UriSchemeHttp || uriAbsoluta.Scheme == Uri.UriSchemeHttps))
+            {
+                return uriAbsoluta.ToString();
+            }
+
+            if (string.IsNullOrWhiteSpace(urlBaseAplicacion))
+            {
+                return null;
+            }
+
+            string relativa = NormalizarRutaRelativa(urlNormalizada);
+            return new Uri(new Uri(AsegurarBarraFinal(urlBaseAplicacion)), relativa).ToString();
+        }
+
+        private static string ResolverRutaFisica(string url, string rutaBaseAplicacion)
+        {
+            if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(rutaBaseAplicacion))
+            {
+                return null;
+            }
+
+            Uri uriAbsoluta;
+            if (Uri.TryCreate(url.Trim(), UriKind.Absolute, out uriAbsoluta))
+            {
+                return null;
+            }
+
+            string baseCompleta = Path.GetFullPath(rutaBaseAplicacion);
+            string relativa = NormalizarRutaRelativa(url.Trim()).Replace('/', Path.DirectorySeparatorChar);
+            string rutaCompleta = Path.GetFullPath(Path.Combine(baseCompleta, relativa));
+
+            if (!rutaCompleta.StartsWith(baseCompleta, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return File.Exists(rutaCompleta) ? rutaCompleta : null;
+        }
+
+        private static string NormalizarRutaRelativa(string url)
+        {
+            if (url.StartsWith("~/", StringComparison.Ordinal))
+            {
+                return url.Substring(2);
+            }
+
+            return url.TrimStart('/');
+        }
+
+        private static string AsegurarBarraFinal(string url)
+        {
+            return url.EndsWith("/", StringComparison.Ordinal) ? url : url + "/";
         }
 
         private static ResultadoOperacion ValidarDatos(

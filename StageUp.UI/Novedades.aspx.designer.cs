@@ -4,6 +4,7 @@ namespace StageUp.UI
     {
         protected global::System.Web.UI.WebControls.Panel pnlSinNovedades;
         protected global::System.Web.UI.WebControls.Panel pnlDestacada;
+        protected global::System.Web.UI.WebControls.Image imgFeatured;
         protected global::System.Web.UI.WebControls.Literal litFeaturedCategoria;
         protected global::System.Web.UI.WebControls.Literal litFeaturedTitulo;
         protected global::System.Web.UI.WebControls.Literal litFeaturedResumen;

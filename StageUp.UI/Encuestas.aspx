@@ -17,16 +17,14 @@
         .encuesta-lista-item span.encuesta-vencimiento { color: var(--color-text-muted, #6b7280); font-size: 0.85em; }
     </style>
 
-    <section class="static-page public-news-page">
-        <header class="public-news-hero container-wide">
-            <div>
-                <span class="section-label">Comunidad</span>
-                <h1>Encuestas</h1>
-                <p>Respondé las encuestas activas de StageUp y mirá los resultados actualizados al instante.</p>
-            </div>
-        </header>
+    <section class="static-page user-module-page">
+        <div class="static-page-header">
+            <span class="section-label">Comunidad</span>
+            <h1>Encuestas</h1>
+            <p>Respondé las encuestas activas de StageUp y mirá los resultados actualizados al instante.</p>
+        </div>
 
-        <div class="public-news-layout container-wide">
+        <div class="static-page-body">
             <asp:Panel ID="pnlMensaje" runat="server" Visible="false" CssClass="form-message">
                 <asp:Literal ID="litMensaje" runat="server" />
             </asp:Panel>
@@ -84,7 +82,7 @@
                             <div class="encuesta-pregunta-item">
                                 <h3><%#: Eval("Texto") %></h3>
                                 <div class="encuesta-opciones-responder">
-                                    <asp:Repeater ID="rptOpcionesResponder" runat="server" DataSource='<%# Eval("Opciones") %>'>
+                                    <asp:Repeater ID="rptOpcionesResponder" runat="server">
                                         <ItemTemplate>
                                             <label class="encuesta-opcion-radio">
                                                 <input type="radio" name='<%# "pregunta_" + Eval("IdPreguntaEncuesta") %>' value='<%# Eval("IdOpcionPregunta") %>' />
@@ -116,7 +114,7 @@
                         <ItemTemplate>
                             <div class="encuesta-resultado-pregunta">
                                 <h3><%#: Eval("TextoPregunta") %></h3>
-                                <asp:Repeater ID="rptOpcionesResultado" runat="server" DataSource='<%# Eval("Opciones") %>'>
+                                <asp:Repeater ID="rptOpcionesResultado" runat="server">
                                     <ItemTemplate>
                                         <div class="encuesta-resultado-opcion">
                                             <div class="encuesta-resultado-opcion-etiqueta">

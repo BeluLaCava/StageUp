@@ -32,6 +32,9 @@ namespace StageUp.UI
                 litFeaturedCategoria.Text = Server.HtmlEncode(ObtenerEtiquetaCategoria(destacada.Categoria));
                 litFeaturedTitulo.Text = Server.HtmlEncode(destacada.Titulo);
                 litFeaturedResumen.Text = Server.HtmlEncode(destacada.Resumen);
+                imgFeatured.ImageUrl = ResolverUrlImagen(destacada.UrlImagen);
+                imgFeatured.AlternateText = destacada.Titulo;
+                imgFeatured.Visible = TieneImagen(destacada.UrlImagen);
             }
 
             List<Novedad> resto = publicadas.Skip(1).ToList();
@@ -55,6 +58,29 @@ namespace StageUp.UI
                 default:
                     return "Novedades";
             }
+        }
+
+        protected string ResolverUrlImagen(object valor)
+        {
+            string url = valor == null ? null : valor.ToString();
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return string.Empty;
+            }
+
+            url = url.Trim();
+            if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                return url;
+            }
+
+            return ResolveUrl(url);
+        }
+
+        protected static bool TieneImagen(object valor)
+        {
+            return valor != null && !string.IsNullOrWhiteSpace(valor.ToString());
         }
     }
 }

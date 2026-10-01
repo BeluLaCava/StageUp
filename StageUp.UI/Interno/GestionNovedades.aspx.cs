@@ -67,7 +67,10 @@ namespace StageUp.UI.Interno
                 usuarioInterno.Nombre,
                 txtTitulo.Text,
                 txtResumen.Text,
-                ConstruirUrlNovedadesPublicas());
+                ConstruirUrlNovedadesPublicas(),
+                txtUrlImagen.Text,
+                ConstruirUrlBaseAplicacion(),
+                Server.MapPath("~/"));
 
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
         }
@@ -108,7 +111,8 @@ namespace StageUp.UI.Interno
 
                 case "EnviarNewsletter":
                     ResultadoOperacion<int> resultadoEnvio = _bllNovedad.EnviarNewsletter(
-                        idNovedad, ddlDestinatarios.SelectedValue, ConstruirUrlNovedadesPublicas(), idResponsable);
+                        idNovedad, ddlDestinatarios.SelectedValue, ConstruirUrlNovedadesPublicas(), idResponsable,
+                        ConstruirUrlBaseAplicacion(), Server.MapPath("~/"));
                     MostrarMensaje(resultadoEnvio.Mensaje, !resultadoEnvio.Exitoso);
                     CargarNovedades();
                     return;
@@ -157,7 +161,8 @@ namespace StageUp.UI.Interno
             if (publicado && chkEnviarMail.Checked && idNovedadGuardada > 0)
             {
                 ResultadoOperacion<int> resultadoEnvio = _bllNovedad.EnviarNewsletter(
-                    idNovedadGuardada, ddlDestinatarios.SelectedValue, ConstruirUrlNovedadesPublicas(), idResponsable);
+                    idNovedadGuardada, ddlDestinatarios.SelectedValue, ConstruirUrlNovedadesPublicas(), idResponsable,
+                    ConstruirUrlBaseAplicacion(), Server.MapPath("~/"));
                 mensajeFinal += " " + resultadoEnvio.Mensaje;
                 huboErrorEnEnvio = !resultadoEnvio.Exitoso;
             }
@@ -251,6 +256,11 @@ namespace StageUp.UI.Interno
         {
             string urlRelativa = ResolveUrl("~/Novedades.aspx");
             return new Uri(Request.Url, urlRelativa).ToString();
+        }
+
+        private string ConstruirUrlBaseAplicacion()
+        {
+            return new Uri(Request.Url, ResolveUrl("~/")).ToString();
         }
 
         protected static string ObtenerEtiquetaCategoria(string categoria)

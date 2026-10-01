@@ -45,6 +45,7 @@ namespace StageUp.UI
             ddlFiltroHistorial.Items.Clear();
             ddlFiltroHistorial.Items.Add(new ListItem("Todas", BLL_Reserva.FiltroTodas));
             ddlFiltroHistorial.Items.Add(new ListItem("Pendientes de revisión", BLL_Reserva.FiltroPendientes));
+            ddlFiltroHistorial.Items.Add(new ListItem("Pendientes de pago", BLL_Reserva.FiltroPendientesDePago));
             ddlFiltroHistorial.Items.Add(new ListItem("Confirmadas / próximas", BLL_Reserva.FiltroProximas));
             ddlFiltroHistorial.Items.Add(new ListItem("Finalizadas", BLL_Reserva.FiltroFinalizadas));
             ddlFiltroHistorial.Items.Add(new ListItem("Pendientes de calificar", BLL_Reserva.FiltroSinCalificar));
@@ -95,8 +96,21 @@ namespace StageUp.UI
             if (puedeCancelar)
             {
                 lnkCancelar.Attributes["onclick"] =
-                    "return confirm('" + ObtenerMensajeConfirmacionCancelacion(reserva).Replace("'", "\\'") + "');";
+                    "return confirm('" + _bllReserva.ObtenerAvisoCancelacion(reserva).Replace("'", "\\'") + "');";
             }
+
+            // Módulo de pagos: estado del pago y botón para pagar.
+            HyperLink lnkPagar = (HyperLink)e.Item.FindControl("lnkPagar");
+            bool esperaPago = BLL_Pago.EsperaPago(reserva);
+            lnkPagar.Visible = esperaPago;
+            lnkPagar.NavigateUrl = "~/Pagar.aspx?reserva=" + reserva.IdReserva.ToString(CultureInfo.InvariantCulture);
+
+            Panel pnlEstadoPago = (Panel)e.Item.FindControl("pnlEstadoPago");
+            Literal litEstadoPago = (Literal)e.Item.FindControl("litEstadoPago");
+            string estadoPago = BLL_Pago.DescribirEstadoPago(reserva, false);
+            pnlEstadoPago.Visible = !string.IsNullOrEmpty(estadoPago);
+            pnlEstadoPago.CssClass = esperaPago ? "reserva-pago reserva-pago-pendiente" : "reserva-pago";
+            litEstadoPago.Text = Server.HtmlEncode(estadoPago ?? string.Empty);
 
             bool finalizada = reserva.EstadoReserva == "Finalizada";
             lnkCalificarEspacio.Visible = finalizada && !reserva.CalificacionEspacioRealizada;
@@ -162,27 +176,6 @@ namespace StageUp.UI
             pnlCalificarEspacio.Visible = false;
             ddlPuntajeEspacio.SelectedIndex = 0;
             txtComentarioCalificacionEspacio.Text = string.Empty;
-        }
-
-        private static string ObtenerMensajeConfirmacionCancelacion(Reserva reserva)
-        {
-            const string mensajeBase = "¿Seguro que querés cancelar esta solicitud de reserva?";
-            if (reserva.EstadoReserva != "Aceptada" || !reserva.MinutoDesde.HasValue || !reserva.ImporteEstimado.HasValue)
-            {
-                return mensajeBase;
-            }
-
-            DateTime momentoReservado = reserva.FechaSolicitada.Date.AddMinutes(reserva.MinutoDesde.Value);
-            double horasRestantes = (momentoReservado - DateTime.Now).TotalHours;
-            if (horasRestantes >= 24)
-            {
-                return mensajeBase;
-            }
-
-            decimal comision = decimal.Round(reserva.ImporteEstimado.Value * 0.10m, 2);
-            return "Esta reserva ya está aceptada y faltan menos de 24hs para el horario reservado. " +
-                "Si la cancelás ahora se te va a aplicar una comisión de cancelación de " +
-                comision.ToString("0.##", CultureInfo.CurrentCulture) + " " + (reserva.Moneda ?? "ARS") + ". ¿Querés continuar?";
         }
 
         private static string FormatearHora(int minutos)

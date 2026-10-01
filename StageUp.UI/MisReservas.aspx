@@ -17,6 +17,8 @@
         .reserva-timeline .paso-titulo { font-weight: bold; }
         .reserva-timeline .paso-fecha { font-size: 0.82em; color: #8a6a5e; margin-left: 6px; }
         .reserva-timeline .paso-detalle { display: block; font-size: 0.9em; margin-top: 2px; }
+        .reserva-pago { margin: 6px 0; padding: 8px 12px; border-radius: 10px; font-size: 0.9em; background: #fcf7f3; border-left: 4px solid #896650; }
+        .reserva-pago-pendiente { background: #fff4e5; border-left-color: #b45309; color: #78350f; }
     </style>
     <section class="static-page">
         <div class="static-page-header">
@@ -57,6 +59,9 @@
                                 </p>
                                 <p class="space-row-descripcion"><%# Eval("ComentarioSolicitante") %></p>
                                 <asp:Literal ID="litComentarioResolucion" runat="server" Visible='<%# !string.IsNullOrEmpty(Eval("ComentarioResolucion") as string) %>' />
+                                <asp:Panel ID="pnlEstadoPago" runat="server" CssClass="reserva-pago" Visible="false">
+                                    <asp:Literal ID="litEstadoPago" runat="server" />
+                                </asp:Panel>
                                 <details class="reserva-seguimiento">
                                     <summary>Ver seguimiento</summary>
                                     <ol class="reserva-timeline">
@@ -74,6 +79,7 @@
                                 </details>
                             </div>
                             <div class="space-row-actions">
+                                <asp:HyperLink ID="lnkPagar" runat="server" CssClass="button button-primary button-small" Text="Pagar reserva" Visible="false" />
                                 <asp:LinkButton ID="lnkCancelar" runat="server" CssClass="text-link" CausesValidation="false"
                                     CommandName="Cancelar" CommandArgument='<%# Eval("IdReserva") %>' Text="Cancelar" />
                                 <asp:LinkButton ID="lnkCalificarEspacio" runat="server" CssClass="button button-primary button-small" CausesValidation="false"

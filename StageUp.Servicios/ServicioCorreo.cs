@@ -172,16 +172,21 @@ namespace StageUp.Servicios
         public bool EnviarReservaAceptada(string destinatario, string nombreDestinatario, Reserva reserva)
         {
             return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
-                "Reserva confirmada",
+                EsperaPago(reserva) ? "Reserva aceptada" : "Reserva confirmada",
                 "¡Tu reserva fue aceptada!",
                 new[]
                 {
-                    "El gestor aceptó tu solicitud para \"" + reserva.NombreEspacio + "\". Tu reserva ya está confirmada.",
+                    EsperaPago(reserva)
+                        ? "El gestor aceptó tu solicitud para \"" + reserva.NombreEspacio + "\". Para confirmarla, pagala desde Mis reservas antes del " +
+                          reserva.FechaLimitePago.Value.ToString("dd/MM/yyyy 'a las' HH:mm", CultureInfo.InvariantCulture) + " hs."
+                        : "El gestor aceptó tu solicitud para \"" + reserva.NombreEspacio + "\". Tu reserva ya está confirmada.",
                     string.IsNullOrWhiteSpace(reserva.ComentarioResolucion)
                         ? null
                         : "Mensaje del gestor: \"" + reserva.ComentarioResolucion + "\""
                 },
-                "Si necesitás cancelarla, hacelo desde Mis reservas. Cancelar con menos de 24 horas de anticipación tiene una comisión.",
+                EsperaPago(reserva)
+                    ? "Podés pagar con tarjeta, con tu saldo a favor o combinando los dos. Si no se paga a tiempo, la reserva se cancela sola, sin cargo."
+                    : "Si necesitás cancelarla, hacelo desde Mis reservas. Cancelar con poca anticipación tiene una comisión.",
                 "Tu reserva fue aceptada: " + reserva.NombreEspacio);
         }
 
@@ -211,9 +216,12 @@ namespace StageUp.Servicios
                 {
                     "Confirmamos la cancelación de tu reserva para \"" + reserva.NombreEspacio + "\".",
                     reserva.ComisionAplicada && reserva.ImporteComision.HasValue
-                        ? "Como faltaban menos de 24 horas para el horario reservado, se aplicó una comisión de cancelación de " +
+                        ? "Como faltaba poco para el horario reservado, se aplicó una comisión de cancelación de " +
                           FormatearImporte(reserva.ImporteComision.Value, reserva.Moneda) + "."
-                        : "La cancelación no tuvo ningún costo."
+                        : "La cancelación no tuvo ningún costo.",
+                    reserva.EstadoPago == "Devuelto"
+                        ? "Lo que pagaste quedó como saldo a favor en tu cuenta corriente (te mandamos las notas de crédito y débito en otro correo). Podés usarlo en tu próxima reserva."
+                        : null
                 },
                 null,
                 "Cancelaste tu reserva: " + reserva.NombreEspacio);
@@ -260,6 +268,123 @@ namespace StageUp.Servicios
                 },
                 null,
                 "Contanos cómo te fue en " + reserva.NombreEspacio);
+        }
+
+        // ------------------------------------------------------------------
+        // Pagos, notas de crédito/débito y cuenta corriente (ítems 5B, 5C,
+        // 5D y 6B de la segunda entrega).
+        // ------------------------------------------------------------------
+        public bool EnviarPagoAprobado(string destinatario, string nombreDestinatario, Reserva reserva, Pago pago)
+        {
+            if (string.IsNullOrWhiteSpace(destinatario) || reserva == null || pago == null)
+            {
+                return false;
+            }
+
+            List<KeyValuePair<string, string>> detalles = ConstruirDetallesReserva(reserva);
+            detalles.Add(new KeyValuePair<string, string>("N° de pago", pago.IdPago.ToString(CultureInfo.InvariantCulture)));
+            detalles.Add(new KeyValuePair<string, string>("Total pagado", FormatearImporte(pago.ImporteTotal, pago.Moneda)));
+            if (pago.ImporteTarjeta > 0)
+            {
+                detalles.Add(new KeyValuePair<string, string>("Con tarjeta",
+                    FormatearImporte(pago.ImporteTarjeta, pago.Moneda) + " · " + pago.MarcaTarjeta + " terminada en " + pago.UltimosDigitos +
+                    " (autorización " + pago.CodigoAutorizacion + ")"));
+            }
+
+            if (pago.ImporteSaldo > 0)
+            {
+                detalles.Add(new KeyValuePair<string, string>("Con saldo a favor", FormatearImporte(pago.ImporteSaldo, pago.Moneda)));
+            }
+
+            string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
+            {
+                Etiqueta = "Comprobante de pago",
+                Titulo = "¡Pago recibido! Tu reserva está confirmada",
+                NombreDestinatario = nombreDestinatario,
+                Parrafos = new[]
+                {
+                    "Recibimos el pago de tu reserva para \"" + reserva.NombreEspacio + "\". Ya está todo listo.",
+                    "Podés ver el detalle del pago y tus movimientos en Mi cuenta corriente."
+                },
+                Detalles = detalles,
+                Nota = "Si cancelás la reserva, lo que pagaste vuelve como saldo a favor (con penalidad si cancelás con poca anticipación)."
+            });
+
+            return Enviar(destinatario, "Comprobante de pago: " + reserva.NombreEspacio, cuerpo);
+        }
+
+        public bool EnviarPagoRecibidoGestor(string destinatario, string nombreDestinatario, Reserva reserva, decimal importeNeto)
+        {
+            return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
+                "Reserva pagada",
+                "Una reserva de tu espacio ya está pagada",
+                new[]
+                {
+                    "El solicitante pagó su reserva para \"" + reserva.NombreEspacio + "\". La reserva queda confirmada.",
+                    "Te acreditamos " + FormatearImporte(importeNeto, reserva.Moneda) +
+                        " en tu cuenta corriente de gestor (el importe de la reserva menos la comisión de StageUp)."
+                },
+                null,
+                "Reserva pagada: " + reserva.NombreEspacio);
+        }
+
+        public bool EnviarPagoVencido(string destinatario, string nombreDestinatario, Reserva reserva)
+        {
+            return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
+                "Reserva cancelada",
+                "Se venció el plazo para pagar tu reserva",
+                new[]
+                {
+                    "No recibimos el pago de tu reserva para \"" + reserva.NombreEspacio + "\" dentro del plazo, así que la cancelamos sin ningún cargo.",
+                    "Si todavía querés ese espacio, podés volver a solicitarlo desde Explorar espacios."
+                },
+                null,
+                "Se canceló tu reserva por falta de pago: " + reserva.NombreEspacio);
+        }
+
+        public bool EnviarComprobanteEmitido(string destinatario, string nombreDestinatario, Comprobante comprobante)
+        {
+            if (string.IsNullOrWhiteSpace(destinatario) || comprobante == null)
+            {
+                return false;
+            }
+
+            bool esCredito = comprobante.Tipo == "NC";
+            string nombreTipo = esCredito ? "Nota de crédito" : "Nota de débito";
+            List<KeyValuePair<string, string>> detalles = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("Comprobante", nombreTipo + " " + comprobante.Numero),
+                new KeyValuePair<string, string>("Fecha", comprobante.FechaEmision.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture)),
+                new KeyValuePair<string, string>("Importe", FormatearImporte(comprobante.Importe, comprobante.Moneda)),
+                new KeyValuePair<string, string>("Motivo", comprobante.Motivo)
+            };
+
+            if (comprobante.IdReserva.HasValue)
+            {
+                detalles.Add(new KeyValuePair<string, string>("N° de reserva", comprobante.IdReserva.Value.ToString(CultureInfo.InvariantCulture)));
+            }
+
+            string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
+            {
+                Etiqueta = nombreTipo,
+                Titulo = esCredito ? "Te emitimos una nota de crédito" : "Te emitimos una nota de débito",
+                NombreDestinatario = nombreDestinatario,
+                Parrafos = new[]
+                {
+                    esCredito
+                        ? "El importe se acreditó como saldo a favor en tu cuenta corriente de StageUp."
+                        : "El importe se debitó de tu cuenta corriente de StageUp.",
+                    "Podés ver todos tus movimientos en Mi cuenta corriente."
+                },
+                Detalles = detalles
+            });
+
+            return Enviar(destinatario, nombreTipo + " " + comprobante.Numero + " | StageUp", cuerpo);
+        }
+
+        private static bool EsperaPago(Reserva reserva)
+        {
+            return reserva.EstadoPago == "Pendiente" && reserva.FechaLimitePago.HasValue;
         }
 
         private static bool EnviarAvisoReserva(

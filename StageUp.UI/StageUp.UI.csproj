@@ -283,6 +283,34 @@
     <Compile Include="Interno\Reportes.aspx.designer.cs">
       <DependentUpon>Reportes.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Pagar.aspx.cs">
+      <DependentUpon>Pagar.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pagar.aspx.designer.cs">
+      <DependentUpon>Pagar.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="MiCuentaCorriente.aspx.cs">
+      <DependentUpon>MiCuentaCorriente.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="MiCuentaCorriente.aspx.designer.cs">
+      <DependentUpon>MiCuentaCorriente.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\GestionCuentasCorrientes.aspx.cs">
+      <DependentUpon>GestionCuentasCorrientes.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\GestionCuentasCorrientes.aspx.designer.cs">
+      <DependentUpon>GestionCuentasCorrientes.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\ParametrosPlataforma.aspx.cs">
+      <DependentUpon>ParametrosPlataforma.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\ParametrosPlataforma.aspx.designer.cs">
+      <DependentUpon>ParametrosPlataforma.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Interno\BusquedaInterna.aspx.cs">
       <DependentUpon>BusquedaInterna.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -400,6 +428,10 @@
     <Content Include="Interno\BackupRestore.aspx" />
     <Content Include="Interno\BusquedaInterna.aspx" />
     <Content Include="Interno\Reportes.aspx" />
+    <Content Include="Pagar.aspx" />
+    <Content Include="MiCuentaCorriente.aspx" />
+    <Content Include="Interno\GestionCuentasCorrientes.aspx" />
+    <Content Include="Interno\ParametrosPlataforma.aspx" />
     <Content Include="Buscar.aspx" />
     <Content Include="PaginaNoEncontrada.aspx" />
     <Content Include="ErrorGeneral.aspx" />

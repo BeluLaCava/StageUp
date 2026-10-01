@@ -28,6 +28,11 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaCancelacion { get; set; }
         public bool RecordatorioEnviado { get; set; }
 
+        // Módulo de pagos (script 49): NoRequerido | Pendiente | Pagado | Devuelto | Vencido
+        public string EstadoPago { get; set; }
+        public DateTime? FechaLimitePago { get; set; }
+        public DateTime? FechaPago { get; set; }
+
         public string NombreEspacio { get; set; }
         public int IdUsuarioGestor { get; set; }
         public string NombreGestor { get; set; }

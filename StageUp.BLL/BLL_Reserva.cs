@@ -18,11 +18,10 @@ namespace StageUp.BLL
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly BLL_Notificacion _notificacion = new BLL_Notificacion();
         private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
+        private readonly BLL_ParametroPlataforma _bllParametros = new BLL_ParametroPlataforma();
 
         private const int LongitudMaximaComentario = 1000;
         private const string TipoEntidadBitacora = "Reserva";
-        private const decimal PorcentajeComisionCancelacion = 0.10m;
-        private const int HorasLimiteSinComision = 24;
 
         // Throttle en memoria para GenerarRecordatorios24hsSiCorresponde: no
         // hay SQL Server Agent disponible en la edición Express, así que en
@@ -277,6 +276,7 @@ namespace StageUp.BLL
         {
             try
             {
+                ProcesarPagosVencidos();
                 _mppReserva.FinalizarVencidas();
                 return _mppReserva.ListarPorSolicitante(
                     new UsuarioExterno { IdUsuarioExterno = idUsuarioExternoSolicitante });
@@ -294,6 +294,7 @@ namespace StageUp.BLL
         // ------------------------------------------------------------------
         public const string FiltroTodas = "Todas";
         public const string FiltroPendientes = "Pendientes";
+        public const string FiltroPendientesDePago = "PendientesDePago";
         public const string FiltroProximas = "Proximas";
         public const string FiltroFinalizadas = "Finalizadas";
         public const string FiltroSinCalificar = "SinCalificar";
@@ -321,6 +322,8 @@ namespace StageUp.BLL
             {
                 case FiltroPendientes:
                     return estado == EstadoReserva.Pendiente.ToString();
+                case FiltroPendientesDePago:
+                    return BLL_Pago.EsperaPago(reserva);
                 case FiltroProximas:
                     return estado == EstadoReserva.Aceptada.ToString();
                 case FiltroFinalizadas:
@@ -338,9 +341,10 @@ namespace StageUp.BLL
 
         // Línea de tiempo de una reserva. Los pasos futuros quedan como
         // "Pendiente"; el paso en el que está la reserva ahora, como "Actual";
-        // un rechazo o una cancelación cortan la línea con un paso
-        // "Interrumpido". (Cuando exista el módulo de pagos se agrega acá el
-        // paso "Pendiente de pago".)
+        // un rechazo, una cancelación o un pago vencido cortan la línea con un
+        // paso "Interrumpido". Desde el módulo de pagos (script 49), entre la
+        // aceptación y el día de la reserva está el paso del pago; las
+        // reservas anteriores (estadoPago = NoRequerido) no lo muestran.
         public static List<PasoSeguimientoReserva> ConstruirSeguimiento(Reserva reserva)
         {
             List<PasoSeguimientoReserva> pasos = new List<PasoSeguimientoReserva>();
@@ -350,6 +354,8 @@ namespace StageUp.BLL
             }
 
             string estado = reserva.EstadoReserva;
+            string estadoPago = reserva.EstadoPago ?? BLL_Pago.EstadoNoRequerido;
+            bool conPago = estadoPago != BLL_Pago.EstadoNoRequerido;
             DateTime inicioReserva = reserva.FechaSolicitada.Date.AddMinutes(reserva.MinutoDesde ?? 0);
             string momentoReserva = reserva.MinutoDesde.HasValue
                 ? reserva.FechaSolicitada.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) + " a las " + FormatearHora(reserva.MinutoDesde.Value)
@@ -361,7 +367,7 @@ namespace StageUp.BLL
             if (estado == EstadoReserva.Pendiente.ToString())
             {
                 pasos.Add(Paso("Revisión del gestor", "Esperando que el gestor acepte o rechace la solicitud.", null, "Actual"));
-                pasos.Add(Paso("Reserva confirmada", null, null, "Pendiente"));
+                pasos.Add(Paso("Pago", null, null, "Pendiente"));
                 pasos.Add(Paso("Día de la reserva", momentoReserva, null, "Pendiente"));
                 pasos.Add(Paso("Calificación", null, null, "Pendiente"));
                 return pasos;
@@ -383,7 +389,34 @@ namespace StageUp.BLL
 
             if (fueAceptada)
             {
-                pasos.Add(Paso("Reserva confirmada", "El gestor aceptó la solicitud.", reserva.FechaResolucion, "Completado"));
+                pasos.Add(conPago
+                    ? Paso("Reserva aceptada", "El gestor aceptó la solicitud.", reserva.FechaResolucion, "Completado")
+                    : Paso("Reserva confirmada", "El gestor aceptó la solicitud.", reserva.FechaResolucion, "Completado"));
+            }
+
+            if (fueAceptada && conPago)
+            {
+                if (estadoPago == BLL_Pago.EstadoPagado || estadoPago == BLL_Pago.EstadoDevuelto)
+                {
+                    pasos.Add(Paso("Pago recibido", "La reserva quedó confirmada.", reserva.FechaPago, "Completado"));
+                }
+                else if (estadoPago == BLL_Pago.EstadoVencido)
+                {
+                    pasos.Add(Paso("Pago vencido", "No se pagó dentro del plazo y la reserva se canceló sin cargo.",
+                        reserva.FechaCancelacion, "Interrumpido"));
+                    return pasos;
+                }
+                else if (estado == EstadoReserva.Aceptada.ToString())
+                {
+                    string limite = reserva.FechaLimitePago.HasValue
+                        ? " antes del " + reserva.FechaLimitePago.Value.ToString("dd/MM/yyyy 'a las' HH:mm", CultureInfo.InvariantCulture) + " hs"
+                        : string.Empty;
+                    pasos.Add(Paso("Pago", "Pagala" + limite + " para confirmarla. Si no, se cancela sola, sin cargo.",
+                        reserva.FechaLimitePago, "Actual"));
+                    pasos.Add(Paso("Día de la reserva", momentoReserva, null, "Pendiente"));
+                    pasos.Add(Paso("Calificación", null, null, "Pendiente"));
+                    return pasos;
+                }
             }
 
             if (estado == EstadoReserva.Cancelada.ToString())
@@ -392,6 +425,11 @@ namespace StageUp.BLL
                     ? "Cancelaste la reserva. Se aplicó una comisión de " +
                       reserva.ImporteComision.Value.ToString("0.##", CultureInfo.InvariantCulture) + " " + (reserva.Moneda ?? "ARS") + "."
                     : "Cancelaste la reserva, sin costo.";
+                if (estadoPago == BLL_Pago.EstadoDevuelto)
+                {
+                    detalle += " Lo que pagaste quedó como saldo a favor en tu cuenta corriente.";
+                }
+
                 pasos.Add(Paso("Reserva cancelada", detalle, reserva.FechaCancelacion, "Interrumpido"));
                 return pasos;
             }
@@ -424,6 +462,7 @@ namespace StageUp.BLL
         {
             try
             {
+                ProcesarPagosVencidos();
                 _mppReserva.FinalizarVencidas();
                 List<Reserva> solicitudes = _mppReserva.ListarPorGestor(
                     new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor });
@@ -582,6 +621,18 @@ namespace StageUp.BLL
                 string comentarioLimpio = string.IsNullOrWhiteSpace(comentarioResolucion) ? null : comentarioResolucion.Trim();
                 reserva.ComentarioResolucion = comentarioLimpio;
 
+                // Módulo de pagos: si la reserva tiene importe, el cliente
+                // tiene HorasLimitePago para pagarla (o hasta que empiece, si
+                // es antes). Si no paga, sp_Reserva_VencerPagosPendientes la
+                // cancela sin cargo.
+                bool requierePago = reserva.ImporteEstimado.HasValue && reserva.ImporteEstimado.Value > 0;
+                if (requierePago)
+                {
+                    DateTime inicioReserva = reserva.FechaSolicitada.Date.AddMinutes(reserva.MinutoDesde ?? 0);
+                    DateTime limite = DateTime.Now.AddHours(_bllParametros.ObtenerEntero(BLL_ParametroPlataforma.HorasLimitePago));
+                    reserva.FechaLimitePago = inicioReserva < limite ? inicioReserva : limite;
+                }
+
                 bool aceptada = _mppReserva.AceptarSiDisponible(reserva);
                 if (!aceptada)
                 {
@@ -594,15 +645,24 @@ namespace StageUp.BLL
                     idUsuarioGestorSolicitante, "MODIFICACION", TipoEntidadBitacora, idReserva,
                     "El gestor aceptó la solicitud de reserva del espacio \"" + reserva.NombreEspacio + "\".");
 
+                reserva.EstadoPago = requierePago ? BLL_Pago.EstadoPendiente : BLL_Pago.EstadoNoRequerido;
+                string textoLimite = requierePago
+                    ? reserva.FechaLimitePago.Value.ToString("dd/MM/yyyy 'a las' HH:mm", CultureInfo.InvariantCulture) + " hs"
+                    : null;
+
                 _notificacion.Notificar(
                     reserva.IdUsuarioExternoSolicitante, TipoNotificacion.ReservaAceptada,
-                    "Tu reserva para \"" + reserva.NombreEspacio + "\" fue aceptada.",
+                    requierePago
+                        ? "Tu reserva para \"" + reserva.NombreEspacio + "\" fue aceptada. Pagala antes del " + textoLimite + " para confirmarla."
+                        : "Tu reserva para \"" + reserva.NombreEspacio + "\" fue aceptada.",
                     "~/MisReservas.aspx");
 
                 EnviarCorreoSinBloquear(ObtenerUsuarioParaCorreo(reserva.IdUsuarioExternoSolicitante), u =>
                     _servicioCorreo.EnviarReservaAceptada(u.CorreoElectronico, u.Nombre, reserva));
 
-                return ResultadoOperacion.Ok("Tu reserva fue aceptada. ¡Ya está confirmada!");
+                return ResultadoOperacion.Ok(requierePago
+                    ? "Aceptaste la solicitud. El solicitante tiene hasta el " + textoLimite + " para pagarla; te avisamos cuando lo haga."
+                    : "Aceptaste la solicitud. La reserva quedó confirmada.");
             });
         }
 
@@ -656,10 +716,69 @@ namespace StageUp.BLL
             });
         }
 
+        // Penalidad que correspondería si el cliente cancela ahora (0 si no
+        // corresponde). Con el módulo de pagos, solo se cobra penalidad si la
+        // reserva ya estaba pagada (o es anterior al módulo); cancelar una
+        // reserva aceptada que todavía no se pagó no tiene costo.
+        public decimal CalcularPenalidadCancelacion(Reserva reserva)
+        {
+            if (reserva == null
+                || reserva.EstadoReserva != EstadoReserva.Aceptada.ToString()
+                || !reserva.MinutoDesde.HasValue
+                || !reserva.ImporteEstimado.HasValue
+                || reserva.EstadoPago == BLL_Pago.EstadoPendiente)
+            {
+                return 0m;
+            }
+
+            DateTime momentoReservado = reserva.FechaSolicitada.Date.AddMinutes(reserva.MinutoDesde.Value);
+            double horasRestantes = (momentoReservado - DateTime.Now).TotalHours;
+            if (horasRestantes >= _bllParametros.ObtenerEntero(BLL_ParametroPlataforma.HorasCancelacionSinCargo))
+            {
+                return 0m;
+            }
+
+            decimal porcentaje = _bllParametros.ObtenerDecimal(BLL_ParametroPlataforma.PenalidadCancelacionPorcentaje);
+            return decimal.Round(reserva.ImporteEstimado.Value * porcentaje / 100m, 2);
+        }
+
+        // Texto de confirmación que muestra Mis reservas antes de cancelar.
+        public string ObtenerAvisoCancelacion(Reserva reserva)
+        {
+            const string mensajeBase = "¿Seguro que querés cancelar esta reserva?";
+            if (reserva == null)
+            {
+                return mensajeBase;
+            }
+
+            string moneda = reserva.Moneda ?? "ARS";
+            decimal penalidad = CalcularPenalidadCancelacion(reserva);
+            bool pagada = reserva.EstadoPago == BLL_Pago.EstadoPagado;
+
+            if (pagada && reserva.ImporteEstimado.HasValue)
+            {
+                string devolucion = "Te devolvemos " + (reserva.ImporteEstimado.Value - penalidad).ToString("0.##", CultureInfo.CurrentCulture) +
+                    " " + moneda + " como saldo a favor en tu cuenta corriente";
+                return penalidad > 0
+                    ? "Falta poco para el horario reservado: si la cancelás ahora se cobra una penalidad de " +
+                      penalidad.ToString("0.##", CultureInfo.CurrentCulture) + " " + moneda + ". " + devolucion + ". ¿Querés continuar?"
+                    : devolucion + ". ¿Querés continuar?";
+            }
+
+            if (penalidad > 0)
+            {
+                return "Esta reserva ya está aceptada y falta poco para el horario reservado. Si la cancelás ahora se te va a aplicar una comisión de cancelación de " +
+                    penalidad.ToString("0.##", CultureInfo.CurrentCulture) + " " + moneda + ". ¿Querés continuar?";
+            }
+
+            return mensajeBase;
+        }
+
         public ResultadoOperacion Cancelar(int idReserva, int idUsuarioExternoSolicitante)
         {
             return EjecutarProtegido(() =>
             {
+                ProcesarPagosVencidos();
                 _mppReserva.FinalizarVencidas();
                 Reserva reserva = _mppReserva.ObtenerPorId(new Reserva { IdReserva = idReserva });
                 if (reserva == null)
@@ -679,34 +798,47 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("Esta reserva ya fue resuelta y no se puede cancelar.");
                 }
 
-                bool comisionAplicada = false;
-                decimal? importeComision = null;
-
-                if (esAceptada && reserva.MinutoDesde.HasValue && reserva.ImporteEstimado.HasValue)
-                {
-                    DateTime momentoReservado = reserva.FechaSolicitada.Date.AddMinutes(reserva.MinutoDesde.Value);
-                    double horasRestantes = (momentoReservado - DateTime.Now).TotalHours;
-                    if (horasRestantes < HorasLimiteSinComision)
-                    {
-                        comisionAplicada = true;
-                        importeComision = decimal.Round(reserva.ImporteEstimado.Value * PorcentajeComisionCancelacion, 2);
-                    }
-                }
+                bool estabaPagada = reserva.EstadoPago == BLL_Pago.EstadoPagado;
+                decimal penalidad = CalcularPenalidadCancelacion(reserva);
+                bool comisionAplicada = penalidad > 0;
 
                 reserva.ComisionAplicada = comisionAplicada;
-                reserva.ImporteComision = importeComision;
-                _mppReserva.Cancelar(reserva);
+                reserva.ImporteComision = comisionAplicada ? penalidad : (decimal?)null;
+                ResultadoCancelacionReserva resultado = _mppReserva.Cancelar(reserva);
+                if (!resultado.SeCancelo)
+                {
+                    return ResultadoOperacion.Error("Esta reserva ya fue resuelta y no se puede cancelar.");
+                }
 
-                string mensaje = comisionAplicada
-                    ? "Tu reserva fue cancelada. Como faltaban menos de " + HorasLimiteSinComision +
-                      "hs para el horario reservado, se aplicó una comisión de cancelación de " +
-                      importeComision.Value.ToString("0.##", CultureInfo.InvariantCulture) + " " + (reserva.Moneda ?? "ARS") + "."
-                    : "Tu reserva fue cancelada.";
+                if (estabaPagada)
+                {
+                    reserva.EstadoPago = BLL_Pago.EstadoDevuelto;
+                }
+
+                string moneda = reserva.Moneda ?? "ARS";
+                string mensaje;
+                if (estabaPagada && reserva.ImporteEstimado.HasValue)
+                {
+                    mensaje = "Tu reserva fue cancelada. Te devolvimos " +
+                        (reserva.ImporteEstimado.Value - penalidad).ToString("0.##", CultureInfo.InvariantCulture) + " " + moneda +
+                        " como saldo a favor" + (comisionAplicada
+                            ? " (se descontó una penalidad de " + penalidad.ToString("0.##", CultureInfo.InvariantCulture) + " " + moneda + " por cancelar con poca anticipación)"
+                            : string.Empty) +
+                        ". Podés verlo en Mi cuenta corriente.";
+                }
+                else
+                {
+                    mensaje = comisionAplicada
+                        ? "Tu reserva fue cancelada. Como faltaba poco para el horario reservado, se aplicó una comisión de cancelación de " +
+                          penalidad.ToString("0.##", CultureInfo.InvariantCulture) + " " + moneda + "."
+                        : "Tu reserva fue cancelada.";
+                }
 
                 _bitacora.Registrar(
                     idUsuarioExternoSolicitante, "MODIFICACION", TipoEntidadBitacora, idReserva,
                     "El solicitante canceló su reserva del espacio \"" + reserva.NombreEspacio + "\"." +
-                    (comisionAplicada ? " Se aplicó comisión de cancelación." : string.Empty));
+                    (comisionAplicada ? " Se aplicó comisión de cancelación." : string.Empty) +
+                    (estabaPagada ? " Se emitió nota de crédito por el importe pagado." : string.Empty));
 
                 _notificacion.Notificar(
                     reserva.IdUsuarioGestor, TipoNotificacion.ReservaCancelada,
@@ -719,8 +851,65 @@ namespace StageUp.BLL
                 EnviarCorreoSinBloquear(ObtenerUsuarioParaCorreo(reserva.IdUsuarioGestor), u =>
                     _servicioCorreo.EnviarCancelacionAlGestor(u.CorreoElectronico, u.Nombre, reserva, NombreCompleto(solicitanteCancela)));
 
+                BLL_CuentaCorriente bllCuenta = new BLL_CuentaCorriente();
+                if (resultado.IdNotaCredito.HasValue)
+                {
+                    bllCuenta.AvisarComprobanteEmitido(resultado.IdNotaCredito.Value);
+                }
+
+                if (resultado.IdNotaDebito.HasValue)
+                {
+                    bllCuenta.AvisarComprobanteEmitido(resultado.IdNotaDebito.Value);
+                }
+
                 return ResultadoOperacion.Ok(mensaje);
             });
+        }
+
+        // Cancela (sin cargo) las reservas aceptadas que no se pagaron a
+        // tiempo y avisa al cliente y al gestor. Se llama antes de listar o
+        // cancelar reservas y desde el chequeo periódico de Site.Master.
+        private void ProcesarPagosVencidos()
+        {
+            List<Reserva> vencidas;
+            try
+            {
+                vencidas = _mppReserva.VencerPagosPendientes();
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return;
+            }
+
+            foreach (Reserva reserva in vencidas)
+            {
+                Reserva reservaVencida = reserva;
+                try
+                {
+                    _bitacora.Registrar(
+                        null, "MODIFICACION", TipoEntidadBitacora, reserva.IdReserva,
+                        "Se canceló la reserva del espacio \"" + reserva.NombreEspacio + "\" porque venció el plazo de pago.",
+                        "StageUp.BLL");
+
+                    _notificacion.Notificar(
+                        reserva.IdUsuarioExternoSolicitante, TipoNotificacion.PagoVencido,
+                        "Se canceló tu reserva para \"" + reserva.NombreEspacio + "\" porque no se pagó a tiempo.",
+                        "~/MisReservas.aspx");
+
+                    _notificacion.Notificar(
+                        reserva.IdUsuarioGestor, TipoNotificacion.PagoVencido,
+                        "La reserva N° " + reserva.IdReserva + " de \"" + reserva.NombreEspacio + "\" se canceló por falta de pago. El horario quedó libre.",
+                        "~/SolicitudesRecibidas.aspx");
+
+                    EnviarCorreoSinBloquear(ObtenerUsuarioParaCorreo(reserva.IdUsuarioExternoSolicitante), u =>
+                        _servicioCorreo.EnviarPagoVencido(u.CorreoElectronico, u.Nombre, reservaVencida));
+                }
+                catch (ErrorAccesoDatosException)
+                {
+                    // La reserva ya quedó cancelada: un aviso que falla no
+                    // tiene que cortar el resto.
+                }
+            }
         }
 
         // Genera la notificación de "recordatorio 24hs antes" para las
@@ -744,6 +933,7 @@ namespace StageUp.BLL
 
             try
             {
+                ProcesarPagosVencidos();
                 List<Reserva> pendientes = _mppReserva.ListarPendientesDeRecordatorio();
                 foreach (Reserva reserva in pendientes)
                 {

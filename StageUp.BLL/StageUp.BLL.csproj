@@ -63,6 +63,10 @@
     <Compile Include="BLL_OpcionMenu.cs" />
     <Compile Include="BLL_Backup.cs" />
     <Compile Include="BLL_Reporte.cs" />
+    <Compile Include="BLL_Pago.cs" />
+    <Compile Include="BLL_CuentaCorriente.cs" />
+    <Compile Include="BLL_ParametroPlataforma.cs" />
+    <Compile Include="ValidadorTarjeta.cs" />
     <Compile Include="BLL_Busqueda.cs" />
   </ItemGroup>
   <ItemGroup>

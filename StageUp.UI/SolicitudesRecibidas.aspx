@@ -69,6 +69,7 @@
                                     <div class="request-meta">
                                         <span>Recibida el <%# Eval("FechaCreacion", "{0:dd/MM/yyyy 'a las' HH:mm}") %></span>
                                         <span>Solicitud #<%#: Eval("IdReserva") %></span>
+                                        <span><%#: StageUp.BLL.BLL_Pago.DescribirEstadoPago((StageUp.BE.Entidades.Reserva)Container.DataItem, true) %></span>
                                     </div>
                                     <asp:Panel ID="pnlDetalleSolicitud" runat="server" CssClass="request-message"
                                         Visible='<%# !string.IsNullOrWhiteSpace(Eval("ComentarioSolicitante") as string) %>'>

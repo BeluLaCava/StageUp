@@ -52,6 +52,10 @@
     <Compile Include="MPP_OpcionMenu.cs" />
     <Compile Include="MPP_Backup.cs" />
     <Compile Include="MPP_Reporte.cs" />
+    <Compile Include="MPP_Pago.cs" />
+    <Compile Include="MPP_CuentaCorriente.cs" />
+    <Compile Include="MPP_Comprobante.cs" />
+    <Compile Include="MPP_ParametroPlataforma.cs" />
     <Compile Include="MPP_Busqueda.cs" />
     <Compile Include="MPP_UsuarioInterno.cs" />
     <Compile Include="MPP_AreaInterna.cs" />

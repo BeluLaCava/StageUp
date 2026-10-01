@@ -52,7 +52,8 @@ namespace StageUp.MPP
                 new Hashtable
                 {
                     { "@idReserva", oReserva.IdReserva },
-                    { "@comentarioResolucion", (object)oReserva.ComentarioResolucion ?? DBNull.Value }
+                    { "@comentarioResolucion", (object)oReserva.ComentarioResolucion ?? DBNull.Value },
+                    { "@fechaLimitePago", (object)oReserva.FechaLimitePago ?? DBNull.Value }
                 });
 
             return Convert.ToBoolean(resultado);
@@ -92,9 +93,11 @@ namespace StageUp.MPP
                 });
         }
 
-        public void Cancelar(Reserva oReserva)
+        // Script 49: si la reserva estaba pagada, el SP emite la nota de
+        // crédito (y la de débito por penalidad) en la misma transacción.
+        public ResultadoCancelacionReserva Cancelar(Reserva oReserva)
         {
-            Conexion.Instance.Guardar(
+            DataTable tabla = Conexion.Instance.Leer(
                 "sp_Reserva_Cancelar",
                 new Hashtable
                 {
@@ -102,6 +105,26 @@ namespace StageUp.MPP
                     { "@comisionAplicada", oReserva.ComisionAplicada },
                     { "@importeComision", (object)oReserva.ImporteComision ?? DBNull.Value }
                 });
+
+            if (tabla.Rows.Count == 0)
+            {
+                return new ResultadoCancelacionReserva();
+            }
+
+            DataRow fila = tabla.Rows[0];
+            return new ResultadoCancelacionReserva
+            {
+                SeCancelo = Convert.ToBoolean(fila["seCancelo"]),
+                IdNotaCredito = fila["idNotaCredito"] == DBNull.Value ? (int?)null : Convert.ToInt32(fila["idNotaCredito"]),
+                IdNotaDebito = fila["idNotaDebito"] == DBNull.Value ? (int?)null : Convert.ToInt32(fila["idNotaDebito"])
+            };
+        }
+
+        // Cancela las reservas aceptadas cuyo plazo de pago venció y las
+        // devuelve para avisar (script 49).
+        public List<Reserva> VencerPagosPendientes()
+        {
+            return MapearDesdeTabla(Conexion.Instance.Leer("sp_Reserva_VencerPagosPendientes"));
         }
 
         public void FinalizarVencidas()
@@ -210,6 +233,11 @@ namespace StageUp.MPP
                 ImporteComision = fila.Table.Columns.Contains("importeComision") && fila["importeComision"] != DBNull.Value ? Convert.ToDecimal(fila["importeComision"]) : (decimal?)null,
                 FechaCancelacion = fila.Table.Columns.Contains("fechaCancelacion") && fila["fechaCancelacion"] != DBNull.Value ? Convert.ToDateTime(fila["fechaCancelacion"]) : (DateTime?)null,
                 RecordatorioEnviado = fila.Table.Columns.Contains("recordatorioEnviado") && Convert.ToBoolean(fila["recordatorioEnviado"]),
+                EstadoPago = fila.Table.Columns.Contains("estadoPago") && fila["estadoPago"] != DBNull.Value ? fila["estadoPago"].ToString() : "NoRequerido",
+                FechaLimitePago = fila.Table.Columns.Contains("fechaLimitePago") && fila["fechaLimitePago"] != DBNull.Value
+                    ? Convert.ToDateTime(fila["fechaLimitePago"]) : (DateTime?)null,
+                FechaPago = fila.Table.Columns.Contains("fechaPago") && fila["fechaPago"] != DBNull.Value
+                    ? Convert.ToDateTime(fila["fechaPago"]) : (DateTime?)null,
                 NombreEspacio = fila.Table.Columns.Contains("nombreEspacio") && fila["nombreEspacio"] != DBNull.Value ? fila["nombreEspacio"].ToString() : null,
                 IdUsuarioGestor = fila.Table.Columns.Contains("idUsuarioGestor") ? Convert.ToInt32(fila["idUsuarioGestor"]) : 0,
                 NombreGestor = fila.Table.Columns.Contains("nombreGestor") && fila["nombreGestor"] != DBNull.Value ? fila["nombreGestor"].ToString() : null,

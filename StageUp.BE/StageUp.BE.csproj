@@ -39,6 +39,7 @@
     <Compile Include="Entidades\OpcionMenu.cs" />
     <Compile Include="Entidades\BackupBaseDatos.cs" />
     <Compile Include="Entidades\Reportes.cs" />
+    <Compile Include="Entidades\Pagos.cs" />
     <Compile Include="Entidades\ResultadoBusqueda.cs" />
     <Compile Include="Enumerados\ModoRecurrenciaActividad.cs" />
     <Compile Include="Enumerados\TipoNotificacion.cs" />

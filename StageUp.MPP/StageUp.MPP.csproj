@@ -51,6 +51,7 @@
     <Compile Include="MPP_Ticket.cs" />
     <Compile Include="MPP_OpcionMenu.cs" />
     <Compile Include="MPP_Backup.cs" />
+    <Compile Include="MPP_Reporte.cs" />
     <Compile Include="MPP_Busqueda.cs" />
     <Compile Include="MPP_UsuarioInterno.cs" />
     <Compile Include="MPP_AreaInterna.cs" />
@@ -77,4 +78,4 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-</Project>
+</Project>

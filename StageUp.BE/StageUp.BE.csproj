@@ -38,6 +38,7 @@
     <Compile Include="Entidades\PasoSeguimientoReserva.cs" />
     <Compile Include="Entidades\OpcionMenu.cs" />
     <Compile Include="Entidades\BackupBaseDatos.cs" />
+    <Compile Include="Entidades\Reportes.cs" />
     <Compile Include="Entidades\ResultadoBusqueda.cs" />
     <Compile Include="Enumerados\ModoRecurrenciaActividad.cs" />
     <Compile Include="Enumerados\TipoNotificacion.cs" />
@@ -87,4 +88,4 @@
     <Compile Include="Permisos\GrupoPermisos.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-</Project>
+</Project>

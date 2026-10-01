@@ -51,6 +51,7 @@ Todos los demás numerados: agregan columnas, tablas nuevas (con `IF OBJECT_ID(.
 | `48_ReportesYDashboard.sql` | Reportes con gráficos y tablero de indicadores (`Interno/Reportes.aspx`, permiso `VER_REPORTES`): ingresos por día/semana/mes/año, por zona, reservas por estado y participación en encuestas. |
 | `49_PagosNotasYCuentaCorriente.sql` | Pagos de reservas (tarjeta con pasarela simulada, saldo a favor o ambos), notas de crédito y débito, cuenta corriente de clientes y gestores y parámetros de la plataforma. Permisos `GESTIONAR_PAGOS` y `CONFIGURAR_PARAMETROS`. Las reservas aceptadas pasan a esperar el pago. |
 | `50_PagoSinTitularYMenuInterno.sql` | Correcciones de la revisión: el pago ya no guarda el titular de la tarjeta (se elimina `Pago.titularTarjeta` y se recrean los SP de pagos) y el menú dinámico solo acepta páginas `~/Interno/*.aspx` (nuevo CHECK de `OpcionMenu.url`). |
+| `51_RendimientoYBitacora.sql` | Rendimiento (ítem 36): índices para bitácora, reservas con pago pendiente o por finalizar y notificaciones; búsqueda de bitácora con tope de 500 filas y filtro por responsable (interno, externo o sistema); detalle de un registro; reputación de solicitantes y conteo de solicitudes pendientes en una sola consulta. |
 
 Desde el script 45, el menú del panel interno sale de `dbo.OpcionMenu`: si un script futuro agrega un permiso con pantalla propia, tiene que insertar también su opción de menú (o darla de alta desde Gestión del menú).
 
@@ -64,6 +65,34 @@ Cuando se corrige un script ya publicado (por ejemplo 15, 36 o 38), la correcci�
 
 - **`Eliminacion_creacion_bd.sql`**: recuperación manual de una base rota. Borra todas las tablas y recrea la base. No es un script de instalación y no se entrega como parte del flujo normal. Tiene rutas físicas de `.mdf`/`.ldf` que hay que ajustar a cada instancia local, y arranca frenado (`SET NOEXEC ON`) para que no se ejecute entero por accidente. `EjecutarTodosLosScripts.ps1` nunca lo toma porque su nombre no empieza con número.
 - **`RepararTildes.ps1`**: utilitario puntual para reparar datos cargados con una codificación incorrecta en bases viejas.
+- **`Volumen_CargarDatos.sql`** y **`Volumen_LimpiarDatos.sql`**: carga y borrado de datos de volumen para medir el rendimiento (ítem 36). Ver la sección siguiente.
+
+## Pruebas de rendimiento con volumen (ítem 36)
+
+`Volumen_CargarDatos.sql` agrega a la base 200 gestores, 3.000 clientes, 1.000 espacios, 60.000 reservas (con pagos, movimientos de cuenta corriente y calificaciones), 1.000 actividades, 3.000 tickets, 150.000 notificaciones y 300.000 registros de bitácora. Las cantidades se cambian en las variables del principio del script. Todo queda marcado (correos `volumen.*@stageup.test`, espacios `[Volumen] ...`, bitácora con origen `CargaVolumen`) y `Volumen_LimpiarDatos.sql` lo borra sin tocar los datos reales.
+
+Pasos:
+
+1. Hacer un backup de la base (Interno > Backup y restauración, o SSMS).
+2. Tener aplicados todos los scripts numerados (incluido el 51): `.\EjecutarTodosLosScripts.ps1`.
+3. Cargar el volumen (tarda entre uno y tres minutos):
+   ```powershell
+   cd Database
+   sqlcmd -S .\SQLEXPRESS -d StageUp -E -f 65001 -b -i Volumen_CargarDatos.sql
+   ```
+4. Para medir como en producción, en `StageUp.UI/Web.config` poner `<compilation debug="false" ...>` (volver a `true` al terminar) y compilar en **Release**.
+5. Medir las pantallas con más datos: catálogo y búsqueda (`Explorar/ResultadosBusqueda.aspx`), Mis reservas y Solicitudes recibidas con un usuario de volumen (por ejemplo `volumen.cliente1@stageup.test` o `volumen.gestor1@stageup.test`, con la misma contraseña que los usuarios demo), Mi cuenta corriente, Interno > Registros de actividad (sin filtros y filtrando por responsable), Interno > Reportes y Interno > Gestión de soporte. El tiempo de cada página se ve en las herramientas de desarrollo del navegador (F12 > Red > columna Tiempo del documento).
+6. Para ver el costo de una consulta puntual en SSMS:
+   ```sql
+   SET STATISTICS IO ON;
+   SET STATISTICS TIME ON;
+   EXEC dbo.sp_RegistroActividad_Buscar @maximo = 500;
+   ```
+   La pestaña Mensajes muestra lecturas lógicas y milisegundos; "Incluir plan de ejecución real" (Ctrl+M) muestra qué índices usa.
+7. Al terminar, borrar el volumen:
+   ```powershell
+   sqlcmd -S .\SQLEXPRESS -d StageUp -E -f 65001 -b -i Volumen_LimpiarDatos.sql
+   ```
 
 ## Backup y restauración
 

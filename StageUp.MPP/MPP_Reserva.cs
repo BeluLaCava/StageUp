@@ -127,6 +127,15 @@ namespace StageUp.MPP
             return MapearDesdeTabla(Conexion.Instance.Leer("sp_Reserva_VencerPagosPendientes"));
         }
 
+        // Ítem 36 (script 51): cantidad de solicitudes pendientes del gestor.
+        public int ContarPendientesPorGestor(UsuarioExterno oUsuarioGestor)
+        {
+            object resultado = Conexion.Instance.LeerEscalar(
+                "sp_Reserva_ContarPendientesPorGestor",
+                new Hashtable { { "@idUsuarioGestor", oUsuarioGestor.IdUsuarioExterno } });
+            return resultado == null || resultado == DBNull.Value ? 0 : Convert.ToInt32(resultado);
+        }
+
         public void FinalizarVencidas()
         {
             Conexion.Instance.Guardar("sp_Reserva_FinalizarVencidas");

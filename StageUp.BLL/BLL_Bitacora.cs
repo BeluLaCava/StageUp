@@ -68,5 +68,35 @@ namespace StageUp.BLL
                 TipoEntidadAfectada = tipoEntidadAfectada
             });
         }
+
+        // CU-001-013 / ítem 36: búsqueda con todos los filtros (responsable
+        // externo o interno por nombre o correo) y un tope de filas.
+        public const int MaximoRegistrosPorBusqueda = 500;
+
+        public List<RegistroActividad> Buscar(FiltroRegistroActividad filtro)
+        {
+            filtro = filtro ?? new FiltroRegistroActividad();
+            if (filtro.Maximo <= 0 || filtro.Maximo > MaximoRegistrosPorBusqueda)
+            {
+                filtro.Maximo = MaximoRegistrosPorBusqueda;
+            }
+
+            if (filtro.TipoResponsable != "Externo" && filtro.TipoResponsable != "Interno" && filtro.TipoResponsable != "Sistema")
+            {
+                filtro.TipoResponsable = null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(filtro.TextoResponsable) && filtro.TextoResponsable.Trim().Length > 150)
+            {
+                filtro.TextoResponsable = filtro.TextoResponsable.Trim().Substring(0, 150);
+            }
+
+            return _mpp.Buscar(filtro);
+        }
+
+        public RegistroActividad ObtenerPorId(int idRegistroActividad)
+        {
+            return _mpp.ObtenerPorId(new RegistroActividad { IdRegistroActividad = idRegistroActividad });
+        }
     }
 }

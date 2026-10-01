@@ -10,7 +10,6 @@ namespace StageUp.UI
     public partial class SiteMaster : MasterPageMultidioma
     {
         private readonly BLL_Notificacion _bllNotificacion = new BLL_Notificacion();
-        private readonly BLL_Reserva _bllReserva = new BLL_Reserva();
 
         protected override void OnInit(EventArgs e)
         {
@@ -41,7 +40,22 @@ namespace StageUp.UI
                 // programado, así que el chequeo de recordatorios se
                 // aprovecha de cualquier pageview autenticado (ver el
                 // throttle en BLL_Reserva, que hace que esto sea barato).
-                _bllReserva.GenerarRecordatorios24hsSiCorresponde();
+                // Ítem 36: corre en segundo plano, para que el usuario que
+                // dispara el chequeo no espere el envío de los mails.
+                if (BLL_Reserva.CorrespondeGenerarRecordatorios())
+                {
+                    try
+                    {
+                        System.Web.Hosting.HostingEnvironment.QueueBackgroundWorkItem(
+                            cancelacion => new BLL_Reserva().GenerarRecordatorios24hsSiCorresponde());
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // Fuera de IIS / IIS Express no hay cola en segundo plano:
+                        // se genera en el mismo request, como antes.
+                        new BLL_Reserva().GenerarRecordatorios24hsSiCorresponde();
+                    }
+                }
 
                 CargarNotificaciones();
             }

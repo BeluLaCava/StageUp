@@ -35,9 +35,27 @@ namespace StageUp.MPP
                     { "@fechaDesde", (object)oFiltroRegistroActividad.FechaDesde ?? DBNull.Value },
                     { "@fechaHasta", (object)oFiltroRegistroActividad.FechaHasta ?? DBNull.Value },
                     { "@tipoOperacion", (object)oFiltroRegistroActividad.TipoOperacion ?? DBNull.Value },
-                    { "@tipoEntidadAfectada", (object)oFiltroRegistroActividad.TipoEntidadAfectada ?? DBNull.Value }
+                    { "@tipoEntidadAfectada", (object)oFiltroRegistroActividad.TipoEntidadAfectada ?? DBNull.Value },
+                    { "@idUsuarioInternoResponsable", (object)oFiltroRegistroActividad.IdUsuarioInternoResponsable ?? DBNull.Value },
+                    { "@textoResponsable", string.IsNullOrWhiteSpace(oFiltroRegistroActividad.TextoResponsable) ? (object)DBNull.Value : oFiltroRegistroActividad.TextoResponsable.Trim() },
+                    { "@tipoResponsable", string.IsNullOrEmpty(oFiltroRegistroActividad.TipoResponsable) ? (object)DBNull.Value : oFiltroRegistroActividad.TipoResponsable },
+                    { "@maximo", oFiltroRegistroActividad.Maximo > 0 ? oFiltroRegistroActividad.Maximo : 500 }
                 });
 
+            return Mapear(tabla);
+        }
+
+        public RegistroActividad ObtenerPorId(RegistroActividad oRegistro)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_RegistroActividad_ObtenerPorId",
+                new Hashtable { { "@idRegistroActividad", oRegistro.IdRegistroActividad } });
+            List<RegistroActividad> lista = Mapear(tabla);
+            return lista.Count == 0 ? null : lista[0];
+        }
+
+        private static List<RegistroActividad> Mapear(DataTable tabla)
+        {
             List<RegistroActividad> lista = new List<RegistroActividad>();
             foreach (DataRow fila in tabla.Rows)
             {

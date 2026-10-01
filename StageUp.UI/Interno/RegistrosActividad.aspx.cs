@@ -12,7 +12,6 @@ namespace StageUp.UI.Interno
     public partial class RegistrosActividad : Page
     {
         private readonly BLL_Bitacora _bllBitacora = new BLL_Bitacora();
-        private readonly BLL_UsuarioExterno _bllUsuario = new BLL_UsuarioExterno();
         private readonly BLL_ExportacionSegura _bllExportacion = new BLL_ExportacionSegura();
 
         protected void Page_Load(object sender, EventArgs e)
@@ -39,28 +38,16 @@ namespace StageUp.UI.Interno
         protected void btnBuscar_Click(object sender, EventArgs e)
         {
             pnlMensaje.Visible = false;
-
-            int? idUsuario;
-            if (!TryResolverUsuarioPorCorreo(out idUsuario))
-            {
-                return;
-            }
-
-            DateTime? fechaDesde = ParsearFecha(txtFechaDesde.Text);
-            DateTime? fechaHasta = ParsearFecha(txtFechaHasta.Text);
-            string tipoOperacion = string.IsNullOrEmpty(ddlTipoOperacion.SelectedValue) ? null : ddlTipoOperacion.SelectedValue;
-            string tipoEntidadAfectada = string.IsNullOrEmpty(ddlTipoEntidad.SelectedValue) ? null : ddlTipoEntidad.SelectedValue;
-
-            bool hayFiltrosAplicados = idUsuario != null || fechaDesde != null || fechaHasta != null
-                || tipoOperacion != null || tipoEntidadAfectada != null;
-
-            List<RegistroActividad> registros = _bllBitacora.Buscar(idUsuario, fechaDesde, fechaHasta, tipoOperacion, tipoEntidadAfectada);
-            MostrarResultados(registros, hayFiltrosAplicados);
+            pnlDetalle.Visible = false;
+            FiltroRegistroActividad filtro = ArmarFiltro();
+            MostrarResultados(_bllBitacora.Buscar(filtro), HayFiltros(filtro));
         }
 
         protected void lnkLimpiarFiltros_Click(object sender, EventArgs e)
         {
-            txtCorreoUsuario.Text = string.Empty;
+            txtResponsable.Text = string.Empty;
+            ddlTipoResponsable.SelectedIndex = 0;
+            pnlDetalle.Visible = false;
             txtFechaDesde.Text = string.Empty;
             txtFechaHasta.Text = string.Empty;
             ddlTipoOperacion.SelectedIndex = 0;
@@ -74,20 +61,7 @@ namespace StageUp.UI.Interno
         {
             pnlMensaje.Visible = false;
 
-            int? idUsuario;
-            if (!TryResolverUsuarioPorCorreo(out idUsuario))
-            {
-                return;
-            }
-
-            DateTime? fechaDesde = ParsearFecha(txtFechaDesde.Text);
-            DateTime? fechaHasta = ParsearFecha(txtFechaHasta.Text);
-            string tipoOperacion = string.IsNullOrEmpty(ddlTipoOperacion.SelectedValue) ? null : ddlTipoOperacion.SelectedValue;
-            string tipoEntidadAfectada = string.IsNullOrEmpty(ddlTipoEntidad.SelectedValue) ? null : ddlTipoEntidad.SelectedValue;
-
-            ResultadoOperacion<string> resultado = _bllExportacion.ExportarBitacoraCifrada(
-                idUsuario, fechaDesde, fechaHasta, tipoOperacion, tipoEntidadAfectada);
-
+            ResultadoOperacion<string> resultado = _bllExportacion.ExportarBitacoraCifrada(ArmarFiltro());
             if (!resultado.Exitoso)
             {
                 MostrarMensaje(resultado.Mensaje, esError: true);
@@ -109,27 +83,59 @@ namespace StageUp.UI.Interno
             return string.IsNullOrWhiteSpace(nombreResponsable) ? "Sistema" : nombreResponsable;
         }
 
-        private bool TryResolverUsuarioPorCorreo(out int? idUsuario)
+        protected void rptRegistros_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
-            idUsuario = null;
-            string correo = txtCorreoUsuario.Text.Trim();
-
-            if (string.IsNullOrWhiteSpace(correo))
+            int idRegistro;
+            if (e.CommandName != "Ver" || !int.TryParse(Convert.ToString(e.CommandArgument), out idRegistro))
             {
-                return true;
+                return;
             }
 
-            idUsuario = _bllUsuario.ObtenerIdPorCorreo(correo);
-            if (idUsuario == null)
+            RegistroActividad registro = _bllBitacora.ObtenerPorId(idRegistro);
+            if (registro == null)
             {
-                MostrarMensaje("No encontramos ningún usuario con ese correo.", esError: true);
-                rptRegistros.DataSource = null;
-                rptRegistros.DataBind();
-                pnlSinResultados.Visible = false;
-                return false;
+                MostrarMensaje("No se encontró el registro.", esError: true);
+                return;
             }
 
-            return true;
+            litDetalleId.Text = registro.IdRegistroActividad.ToString();
+            litDetalleOperacion.Text = Server.HtmlEncode(registro.TipoOperacion);
+            litDetalleEntidad.Text = Server.HtmlEncode(registro.TipoEntidadAfectada);
+            litDetalleIdAfectado.Text = registro.IdEntidadAfectada.HasValue ? registro.IdEntidadAfectada.Value.ToString() : "-";
+            litDetalleResponsable.Text = Server.HtmlEncode(
+                registro.TipoResponsable == "Sistema"
+                    ? "Sistema (proceso automático)"
+                    : ObtenerNombreMostrado(registro.NombreResponsable) +
+                      (string.IsNullOrEmpty(registro.CorreoResponsable) ? string.Empty : " (" + registro.CorreoResponsable + ")") +
+                      " · usuario " + registro.TipoResponsable.ToLowerInvariant());
+            litDetalleFecha.Text = registro.FechaOperacion.ToString("dd/MM/yyyy HH:mm:ss");
+            litDetalleOrigen.Text = Server.HtmlEncode(string.IsNullOrEmpty(registro.OrigenOperacion) ? "-" : registro.OrigenOperacion);
+            litDetalleDescripcion.Text = Server.HtmlEncode(string.IsNullOrEmpty(registro.DescripcionOperacion) ? "-" : registro.DescripcionOperacion);
+            pnlDetalle.Visible = true;
+        }
+
+        protected void lnkCerrarDetalle_Click(object sender, EventArgs e)
+        {
+            pnlDetalle.Visible = false;
+        }
+
+        private FiltroRegistroActividad ArmarFiltro()
+        {
+            return new FiltroRegistroActividad
+            {
+                TextoResponsable = string.IsNullOrWhiteSpace(txtResponsable.Text) ? null : txtResponsable.Text.Trim(),
+                TipoResponsable = string.IsNullOrEmpty(ddlTipoResponsable.SelectedValue) ? null : ddlTipoResponsable.SelectedValue,
+                FechaDesde = ParsearFecha(txtFechaDesde.Text),
+                FechaHasta = ParsearFecha(txtFechaHasta.Text),
+                TipoOperacion = string.IsNullOrEmpty(ddlTipoOperacion.SelectedValue) ? null : ddlTipoOperacion.SelectedValue,
+                TipoEntidadAfectada = string.IsNullOrEmpty(ddlTipoEntidad.SelectedValue) ? null : ddlTipoEntidad.SelectedValue
+            };
+        }
+
+        private static bool HayFiltros(FiltroRegistroActividad filtro)
+        {
+            return filtro.TextoResponsable != null || filtro.TipoResponsable != null || filtro.FechaDesde != null ||
+                filtro.FechaHasta != null || filtro.TipoOperacion != null || filtro.TipoEntidadAfectada != null;
         }
 
         private void PoblarFiltros()
@@ -151,7 +157,7 @@ namespace StageUp.UI.Interno
 
         private void CargarTodos()
         {
-            List<RegistroActividad> registros = _bllBitacora.Buscar();
+            List<RegistroActividad> registros = _bllBitacora.Buscar(new FiltroRegistroActividad());
             MostrarResultados(registros, hayFiltrosAplicados: false);
         }
 
@@ -159,6 +165,10 @@ namespace StageUp.UI.Interno
         {
             rptRegistros.DataSource = registros;
             rptRegistros.DataBind();
+
+            litCantidad.Text = registros.Count >= BLL_Bitacora.MaximoRegistrosPorBusqueda
+                ? "Se muestran los " + BLL_Bitacora.MaximoRegistrosPorBusqueda + " registros más recientes. Usá los filtros para acotar la búsqueda."
+                : registros.Count + (registros.Count == 1 ? " registro." : " registros.");
 
             bool sinResultados = registros.Count == 0;
             pnlSinResultados.Visible = sinResultados;

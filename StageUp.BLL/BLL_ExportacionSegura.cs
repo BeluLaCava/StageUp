@@ -28,10 +28,23 @@ namespace StageUp.BLL
             int? idUsuarioExternoResponsable, DateTime? fechaDesde, DateTime? fechaHasta,
             string tipoOperacion, string tipoEntidadAfectada)
         {
+            return ExportarBitacoraCifrada(new FiltroRegistroActividad
+            {
+                IdUsuarioExternoResponsable = idUsuarioExternoResponsable,
+                FechaDesde = fechaDesde,
+                FechaHasta = fechaHasta,
+                TipoOperacion = tipoOperacion,
+                TipoEntidadAfectada = tipoEntidadAfectada
+            });
+        }
+
+        // Exporta los mismos registros que muestra la pantalla con los
+        // filtros aplicados (hasta el máximo por búsqueda).
+        public ResultadoOperacion<string> ExportarBitacoraCifrada(FiltroRegistroActividad filtro)
+        {
             try
             {
-                List<RegistroActividad> registros = _bllBitacora.Buscar(
-                    idUsuarioExternoResponsable, fechaDesde, fechaHasta, tipoOperacion, tipoEntidadAfectada);
+                List<RegistroActividad> registros = _bllBitacora.Buscar(filtro);
 
                 string xmlRegistros = SerializarRegistros(registros);
 

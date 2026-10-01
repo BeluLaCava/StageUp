@@ -36,21 +36,27 @@ namespace StageUp.UI.Explorar
             List<EspacioArtistico> espacios = _bllEspacio.Buscar(filtro);
             _bllCalificacion.CompletarReputacionesEspacios(espacios);
 
+            bool hayFiltrosAplicados = !string.IsNullOrWhiteSpace(textoBusqueda) || !string.IsNullOrWhiteSpace(tipoEspacio) ||
+                !string.IsNullOrWhiteSpace(filtro.Ubicacion) || !string.IsNullOrWhiteSpace(filtro.TipoPiso) ||
+                filtro.PrecioMaximo.HasValue || filtro.CapacidadMinima.HasValue ||
+                !string.IsNullOrWhiteSpace(filtro.FechaDisponibilidad) || (filtro.Equipamiento != null && filtro.Equipamiento.Count > 0);
+
+            // Ítem 36: sin filtros, el catálogo completo ya es la lista que se
+            // acaba de cargar (con su reputación). Solo con filtros hace falta
+            // una segunda consulta para las categorías disponibles.
+            List<EspacioArtistico> espaciosPublicados = hayFiltrosAplicados
+                ? _bllEspacio.Buscar(new FiltroBusquedaEspacios())
+                : espacios;
+
             string orden = CargarOpcionesOrden();
             espacios = BLL_EspacioArtistico.Ordenar(espacios, orden);
 
-            List<EspacioArtistico> espaciosPublicados = _bllEspacio.Buscar(new FiltroBusquedaEspacios());
             CargarTiposServicio(espaciosPublicados);
 
             rptEspaciosPublicados.DataSource = espacios;
             rptEspaciosPublicados.DataBind();
 
             pnlSinResultados.Visible = espacios.Count == 0;
-
-            bool hayFiltrosAplicados = !string.IsNullOrWhiteSpace(textoBusqueda) || !string.IsNullOrWhiteSpace(tipoEspacio) ||
-                !string.IsNullOrWhiteSpace(filtro.Ubicacion) || !string.IsNullOrWhiteSpace(filtro.TipoPiso) ||
-                filtro.PrecioMaximo.HasValue || filtro.CapacidadMinima.HasValue ||
-                !string.IsNullOrWhiteSpace(filtro.FechaDisponibilidad) || (filtro.Equipamiento != null && filtro.Equipamiento.Count > 0);
 
             CargarRanking(espaciosPublicados, hayFiltrosAplicados);
 
@@ -105,7 +111,7 @@ namespace StageUp.UI.Explorar
                 return;
             }
 
-            _bllCalificacion.CompletarReputacionesEspacios(espaciosPublicados);
+            // (Sin filtros, espaciosPublicados ya tiene la reputación cargada.)
             List<EspacioArtistico> ranking = BLL_Calificacion.ObtenerRankingMejorValorados(espaciosPublicados, CantidadRanking);
 
             pnlRanking.Visible = ranking.Count > 0;

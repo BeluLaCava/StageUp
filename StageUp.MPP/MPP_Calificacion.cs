@@ -93,6 +93,23 @@ namespace StageUp.MPP
                 "idUsuarioExterno");
         }
 
+        // Ítem 36 (script 51): solo los usuarios pedidos, en vez de calcular la
+        // reputación de todos los usuarios del sistema.
+        public Dictionary<int, ResumenReputacion> ListarResumenesPorUsuarios(IEnumerable<int> idsUsuarios)
+        {
+            List<int> ids = new List<int>(idsUsuarios);
+            if (ids.Count == 0)
+            {
+                return new Dictionary<int, ResumenReputacion>();
+            }
+
+            return MapearResumenes(
+                Conexion.Instance.Leer(
+                    "sp_Calificacion_ListarResumenesPorUsuarios",
+                    new Hashtable { { "@idsUsuarios", string.Join(",", ids) } }),
+                "idUsuarioExterno");
+        }
+
         // Ítem 36 del checklist de correcciones: reemplaza, para uso de
         // BLL_Reserva.CompletarReputacionSolicitantes, el patrón anterior de
         // llamar ListarRecibidasPorUsuario (historial completo) por cada

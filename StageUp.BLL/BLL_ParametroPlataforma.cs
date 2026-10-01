@@ -42,6 +42,42 @@ namespace StageUp.BLL
         private readonly MPP_ParametroPlataforma _mpp = new MPP_ParametroPlataforma();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
+        // Ítem 36: los parámetros se leen en cada reserva, cancelación y pago
+        // (y en Mis reservas, una vez por fila). Se guardan en memoria unos
+        // minutos y se descartan cuando el administrador los modifica.
+        private const int MinutosCache = 5;
+        private static readonly object _lockCache = new object();
+        private static List<ParametroPlataforma> _cache;
+        private static DateTime _vencimientoCache = DateTime.MinValue;
+
+        private List<ParametroPlataforma> ListarConCache()
+        {
+            lock (_lockCache)
+            {
+                if (_cache != null && DateTime.Now < _vencimientoCache)
+                {
+                    return _cache;
+                }
+            }
+
+            List<ParametroPlataforma> parametros = _mpp.Listar();
+            lock (_lockCache)
+            {
+                _cache = parametros;
+                _vencimientoCache = DateTime.Now.AddMinutes(MinutosCache);
+            }
+
+            return parametros;
+        }
+
+        public static void InvalidarCache()
+        {
+            lock (_lockCache)
+            {
+                _cache = null;
+            }
+        }
+
         public static string ObtenerNombre(string clave)
         {
             DefinicionParametro definicion;
@@ -71,7 +107,7 @@ namespace StageUp.BLL
             DefinicionParametro definicion = Definiciones[clave];
             try
             {
-                ParametroPlataforma parametro = _mpp.Listar().FirstOrDefault(p => p.Clave == clave);
+                ParametroPlataforma parametro = ListarConCache().FirstOrDefault(p => p.Clave == clave);
                 decimal valor;
                 if (parametro != null &&
                     decimal.TryParse(parametro.Valor, NumberStyles.Number, CultureInfo.InvariantCulture, out valor) &&
@@ -136,6 +172,8 @@ namespace StageUp.BLL
                 {
                     return ResultadoOperacion.Error("No se encontró el parámetro " + definicion.Nombre + ".");
                 }
+
+                InvalidarCache();
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "MODIFICACION", TipoEntidadBitacora, null,

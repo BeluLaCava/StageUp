@@ -276,8 +276,7 @@ namespace StageUp.BLL
         {
             try
             {
-                ProcesarPagosVencidos();
-                _mppReserva.FinalizarVencidas();
+                ActualizarEstadosSiCorresponde();
                 return _mppReserva.ListarPorSolicitante(
                     new UsuarioExterno { IdUsuarioExterno = idUsuarioExternoSolicitante });
             }
@@ -492,8 +491,7 @@ namespace StageUp.BLL
         {
             try
             {
-                ProcesarPagosVencidos();
-                _mppReserva.FinalizarVencidas();
+                ActualizarEstadosSiCorresponde();
                 List<Reserva> solicitudes = _mppReserva.ListarPorGestor(
                     new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor });
                 CompletarReputacionSolicitantes(solicitudes);
@@ -505,28 +503,53 @@ namespace StageUp.BLL
             }
         }
 
+        // Ítem 36: antes traía todo el historial del gestor solo para contar
+        // las pendientes; ahora lo cuenta la base.
         public int ContarSolicitudesPendientes(int idUsuarioGestor)
         {
             try
             {
-                _mppReserva.FinalizarVencidas();
-                List<Reserva> solicitudes = _mppReserva.ListarPorGestor(
-                    new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor });
-                int cantidadPendientes = 0;
-
-                foreach (Reserva solicitud in solicitudes)
-                {
-                    if (solicitud.EstadoReserva == EstadoReserva.Pendiente.ToString())
-                    {
-                        cantidadPendientes++;
-                    }
-                }
-
-                return cantidadPendientes;
+                return _mppReserva.ContarPendientesPorGestor(new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor });
             }
             catch (ErrorAccesoDatosException)
             {
                 return 0;
+            }
+        }
+
+        // Ítem 36: vencer pagos y finalizar reservas son dos UPDATE sobre toda
+        // la tabla de reservas. Antes corrían en cada carga de Mis reservas y
+        // Solicitudes recibidas; ahora como mucho una vez por minuto por
+        // proceso. (Cancelar y el chequeo periódico de Site.Master los siguen
+        // ejecutando siempre.)
+        private const int SegundosEntreActualizacionesDeEstado = 60;
+        private static DateTime _ultimaActualizacionEstados = DateTime.MinValue;
+        private static readonly object _lockEstados = new object();
+
+        private void ActualizarEstadosSiCorresponde()
+        {
+            lock (_lockEstados)
+            {
+                if ((DateTime.Now - _ultimaActualizacionEstados).TotalSeconds < SegundosEntreActualizacionesDeEstado)
+                {
+                    return;
+                }
+
+                _ultimaActualizacionEstados = DateTime.Now;
+            }
+
+            ProcesarPagosVencidos();
+            _mppReserva.FinalizarVencidas();
+        }
+
+        // Para que Site.Master solo encole el chequeo periódico cuando
+        // realmente toca (ver GenerarRecordatorios24hsSiCorresponde).
+        public static bool CorrespondeGenerarRecordatorios()
+        {
+            lock (_lockRecordatorios)
+            {
+                return !_ultimaGeneracionRecordatorios.HasValue ||
+                    (DateTime.Now - _ultimaGeneracionRecordatorios.Value).TotalMinutes >= IntervaloMinutosRecordatorios;
             }
         }
 
@@ -549,7 +572,7 @@ namespace StageUp.BLL
             Dictionary<int, ResumenReputacion> resumenes = new Dictionary<int, ResumenReputacion>();
             try
             {
-                resumenes = _mppCalificacion.ListarResumenesUsuarios();
+                resumenes = _mppCalificacion.ListarResumenesPorUsuarios(idsSolicitantes);
             }
             catch (ErrorAccesoDatosException)
             {

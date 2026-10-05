@@ -30,7 +30,7 @@ $ErrorActionPreference = "Stop"
 
 function Invoke-Sql {
     param([string]$Consulta, [string]$Db = $Database)
-    sqlcmd -S $ServerInstance -d $Db -E -Q $Consulta -b
+    sqlcmd -S $ServerInstance -d $Db -E -I -Q $Consulta -b
     if ($LASTEXITCODE -ne 0) {
         throw "Fallo ejecutando una consulta de control contra '$Db'. Revisa el mensaje de sqlcmd de arriba."
     }
@@ -81,7 +81,9 @@ Write-Host ""
 
 foreach ($script in $pendientes) {
     Write-Host "--- Ejecutando $($script.Name) ---" -ForegroundColor Yellow
-    sqlcmd -S $ServerInstance -d $Database -E -i $script.FullName -f 65001 -b
+    # -I activa QUOTED_IDENTIFIER: sin eso falla cualquier INSERT/UPDATE sobre una
+    # tabla con indice filtrado (por ejemplo UQ_ComponentePermiso_Codigo del script 16).
+    sqlcmd -S $ServerInstance -d $Database -E -I -i $script.FullName -f 65001 -b
     if ($LASTEXITCODE -ne 0) {
         Write-Host "`nERROR ejecutando $($script.Name). Revisa el mensaje de arriba y solucionalo antes de continuar. Los scripts anteriores ya quedaron marcados como aplicados, asi que al volver a correr este archivo va a arrancar justo desde el que fallo." -ForegroundColor Red
         exit 1

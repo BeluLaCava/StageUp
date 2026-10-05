@@ -139,6 +139,94 @@ namespace StageUp.UI
             MostrarMensaje(resultado.Mensaje, false);
         }
 
+        // CU-001-003 A8: "Dar de baja cuenta" muestra lo que implica la baja y
+        // las condiciones pendientes (A9) antes de pedir la confirmación.
+        protected void lnkDarDeBaja_Click(object sender, EventArgs e)
+        {
+            OcultarMensaje();
+            int idUsuario = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            ResultadoOperacion<EvaluacionBajaCuenta> resultado = _bllUsuario.EvaluarBajaCuenta(idUsuario);
+            if (!resultado.Exitoso)
+            {
+                MostrarMensaje(resultado.Mensaje, true);
+                return;
+            }
+
+            MostrarEvaluacionBaja(resultado.Valor);
+            pnlBajaResumen.Visible = false;
+            pnlBaja.Visible = true;
+            lnkDarDeBaja.Visible = false;
+            pnlBajaConfirmacionFinal.Visible = false;
+        }
+
+        protected void btnConfirmarBaja_Click(object sender, EventArgs e)
+        {
+            // Paso 4: confirmación final para evitar bajas accidentales.
+            pnlBajaAcciones.Visible = false;
+            pnlBajaConfirmacionFinal.Visible = true;
+            OcultarMensaje();
+        }
+
+        protected void lnkCancelarBaja_Click(object sender, EventArgs e)
+        {
+            CerrarPanelBaja();
+            OcultarMensaje();
+        }
+
+        protected void btnBajaDefinitiva_Click(object sender, EventArgs e)
+        {
+            int idUsuario = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            ResultadoOperacion<EvaluacionBajaCuenta> resultado = _bllUsuario.DarDeBajaCuenta(idUsuario);
+
+            if (!resultado.Exitoso)
+            {
+                // A9: la cuenta sigue activa; se vuelve a "Mi perfil" con el
+                // detalle de lo que hay que resolver.
+                MostrarMensaje(resultado.Mensaje, true);
+                ResultadoOperacion<EvaluacionBajaCuenta> evaluacion = _bllUsuario.EvaluarBajaCuenta(idUsuario);
+                if (evaluacion.Exitoso)
+                {
+                    MostrarEvaluacionBaja(evaluacion.Valor);
+                    pnlBajaConfirmacionFinal.Visible = false;
+                }
+                else
+                {
+                    CerrarPanelBaja();
+                }
+
+                return;
+            }
+
+            // Pasos 11 a 13: se informa la baja, se cierra la sesión y se vuelve
+            // a la pantalla inicial pública.
+            GestorDeSesion.CerrarSesion();
+            Response.Redirect("~/Default.aspx?cuenta=baja", false);
+            Context.ApplicationInstance.CompleteRequest();
+        }
+
+        private void MostrarEvaluacionBaja(EvaluacionBajaCuenta evaluacion)
+        {
+            rptBajaCondiciones.DataSource = evaluacion.Condiciones;
+            rptBajaCondiciones.DataBind();
+            pnlBajaCondiciones.Visible = evaluacion.Condiciones.Count > 0;
+
+            rptBajaAvisos.DataSource = evaluacion.Avisos;
+            rptBajaAvisos.DataBind();
+            pnlBajaAvisos.Visible = evaluacion.Avisos.Count > 0;
+
+            btnConfirmarBaja.Enabled = evaluacion.PuedeDarseDeBaja;
+            btnConfirmarBaja.Attributes["aria-disabled"] = evaluacion.PuedeDarseDeBaja ? "false" : "true";
+            pnlBajaAcciones.Visible = true;
+        }
+
+        private void CerrarPanelBaja()
+        {
+            pnlBaja.Visible = false;
+            pnlBajaConfirmacionFinal.Visible = false;
+            pnlBajaResumen.Visible = true;
+            lnkDarDeBaja.Visible = true;
+        }
+
         private void ConfigurarIntegracionPerfil()
         {
             bool habilitada = _bllUsuario.PerfilCompletoHabilitado;

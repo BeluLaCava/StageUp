@@ -52,6 +52,7 @@ Todos los demás numerados: agregan columnas, tablas nuevas (con `IF OBJECT_ID(.
 | `49_PagosNotasYCuentaCorriente.sql` | Pagos de reservas (tarjeta con pasarela simulada, saldo a favor o ambos), notas de crédito y débito, cuenta corriente de clientes y gestores y parámetros de la plataforma. Permisos `GESTIONAR_PAGOS` y `CONFIGURAR_PARAMETROS`. Las reservas aceptadas pasan a esperar el pago. |
 | `50_PagoSinTitularYMenuInterno.sql` | Correcciones de la revisión: el pago ya no guarda el titular de la tarjeta (se elimina `Pago.titularTarjeta` y se recrean los SP de pagos) y el menú dinámico solo acepta páginas `~/Interno/*.aspx` (nuevo CHECK de `OpcionMenu.url`). |
 | `51_RendimientoYBitacora.sql` | Rendimiento (ítem 36): índices para bitácora, reservas con pago pendiente o por finalizar y notificaciones; búsqueda de bitácora con tope de 500 filas y filtro por responsable (interno, externo o sistema); detalle de un registro; reputación de solicitantes y conteo de solicitudes pendientes en una sola consulta. |
+| `52_BajaLogicaCuentaExterna.sql` | CU-001-003: baja lógica de la cuenta desde Mi perfil (`sp_UsuarioExterno_BajaLogica`). Valida reservas pendientes o aceptadas (propias y de sus espacios) y saldo en cuenta corriente; si no hay nada pendiente pasa la cuenta a Inactiva, pausa sus espacios publicados y conserva el historial. |
 
 Desde el script 45, el menú del panel interno sale de `dbo.OpcionMenu`: si un script futuro agrega un permiso con pantalla propia, tiene que insertar también su opción de menú (o darla de alta desde Gestión del menú).
 

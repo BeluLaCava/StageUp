@@ -51,6 +51,33 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvConfirmarPassword;
         protected global::System.Web.UI.WebControls.CompareValidator cvPassword;
         protected global::System.Web.UI.WebControls.Button btnCambiarPassword;
+
         protected global::System.Web.UI.WebControls.LinkButton lnkCancelarPassword;
+
+        protected global::System.Web.UI.WebControls.LinkButton lnkDarDeBaja;
+
+        protected global::System.Web.UI.WebControls.Panel pnlBajaResumen;
+
+        protected global::System.Web.UI.WebControls.Panel pnlBaja;
+
+        protected global::System.Web.UI.WebControls.Panel pnlBajaCondiciones;
+
+        protected global::System.Web.UI.WebControls.Repeater rptBajaCondiciones;
+
+        protected global::System.Web.UI.WebControls.Panel pnlBajaAvisos;
+
+        protected global::System.Web.UI.WebControls.Repeater rptBajaAvisos;
+
+        protected global::System.Web.UI.WebControls.Panel pnlBajaAcciones;
+
+        protected global::System.Web.UI.WebControls.Button btnConfirmarBaja;
+
+        protected global::System.Web.UI.WebControls.LinkButton lnkCancelarBaja;
+
+        protected global::System.Web.UI.WebControls.Panel pnlBajaConfirmacionFinal;
+
+        protected global::System.Web.UI.WebControls.Button btnBajaDefinitiva;
+
+        protected global::System.Web.UI.WebControls.LinkButton lnkCancelarBajaFinal;
     }
 }

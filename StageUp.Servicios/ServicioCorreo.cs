@@ -88,6 +88,25 @@ namespace StageUp.Servicios
             return Enviar(destinatario, "Tu contraseña de StageUp fue actualizada", cuerpo);
         }
 
+        // CU-001-003 A8 (pasos 9 y 10): aviso de baja lógica de la cuenta.
+        public bool EnviarConfirmacionBajaCuenta(string destinatario, string nombreDestinatario)
+        {
+            string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
+            {
+                Etiqueta = "Cuenta",
+                Titulo = "Tu cuenta fue dada de baja",
+                NombreDestinatario = nombreDestinatario,
+                Parrafos = new[]
+                {
+                    "Te confirmamos que tu cuenta de StageUp fue dada de baja, tal como lo pediste desde tu perfil.",
+                    "Desde ahora ya no podés ingresar con ella. Conservamos el historial de tus reservas, pagos y calificaciones, como indican nuestros términos y condiciones."
+                },
+                Nota = "Si no fuiste vos quien pidió la baja, escribinos a la brevedad desde la sección Contáctenos."
+            });
+
+            return Enviar(destinatario, "Tu cuenta de StageUp fue dada de baja", cuerpo);
+        }
+
         public bool EnviarNewsletter(
             string destinatario,
             string nombreDestinatario,

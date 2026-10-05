@@ -15,6 +15,21 @@ namespace StageUp.UI
         {
             base.OnInit(e);
             InicializarMultidioma(ddlIdioma, hdnDiccionarioIdioma, HtmlRoot, LanguageSelector);
+
+            // CU-001-003: si la cuenta se dio de baja (por ejemplo desde otro
+            // navegador), la sesión se corta antes de que la página procese nada.
+            int? idUsuario = GestorDeSesion.ObtenerIdUsuarioActual();
+            if (idUsuario.HasValue && GestorDeSesion.CorrespondeVerificarCuenta())
+            {
+                if (!new BLL_UsuarioExterno().CuentaSigueActiva(idUsuario.Value))
+                {
+                    GestorDeSesion.CerrarSesion();
+                    Response.Redirect("~/Default.aspx?cuenta=baja", true);
+                    return;
+                }
+
+                GestorDeSesion.MarcarCuentaVerificada();
+            }
         }
 
         protected void Page_Load(object sender, EventArgs e)

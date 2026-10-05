@@ -1,6 +1,21 @@
 <%@ Page Title="Mi perfil | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="MiPerfil.aspx.cs" Inherits="StageUp.UI.MiPerfil" %>
 
 <asp:Content ID="ProfileContent" ContentPlaceHolderID="MainContent" runat="server">
+    <style type="text/css">
+        .profile-delete-summary { padding: 1rem 1.15rem; background: var(--color-nude-light); border-radius: 1rem; }
+        .profile-delete-summary p { margin: 0; color: var(--color-text-muted); }
+        .profile-delete-box { padding: 1rem 1.15rem; border-radius: 1rem; margin-bottom: 1rem; }
+        .profile-delete-box h3 { margin: 0 0 0.5rem; font-size: 1rem; }
+        .profile-delete-box ul { margin: 0; padding-left: 1.2rem; }
+        .profile-delete-box li + li { margin-top: 0.35rem; }
+        .profile-delete-blocking { background: #fdecea; border-left: 4px solid #b3261e; }
+        .profile-delete-notice { background: #fff4e5; border-left: 4px solid #b45309; }
+        .profile-delete-final { padding: 1rem 1.15rem; border-radius: 1rem; border: 2px solid #b3261e; margin-top: 1rem; }
+        .profile-delete-final p { margin: 0 0 0.75rem; }
+        .button-danger { background: #b3261e; border-color: #b3261e; color: #fff; }
+        .button-danger:hover, .button-danger:focus-visible { background: #8c1d18; border-color: #8c1d18; color: #fff; }
+        @media (max-width: 39rem) { .profile-delete-final .profile-form-actions { flex-direction: column; align-items: stretch; } }
+    </style>
     <section class="profile-page user-module-page">
         <div class="container-wide">
             <header class="profile-page-header">
@@ -206,6 +221,60 @@
                                 <asp:Button ID="btnCambiarPassword" runat="server" CssClass="button button-primary" Text="Actualizar contraseña" ValidationGroup="CambiarPassword" OnClick="btnCambiarPassword_Click" />
                                 <asp:LinkButton ID="lnkCancelarPassword" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCancelarPassword_Click">Cancelar</asp:LinkButton>
                             </div>
+                        </asp:Panel>
+                    </section>
+
+                    <section class="profile-card" aria-labelledby="account-delete-title">
+                        <div class="profile-card-header">
+                            <div>
+                                <span class="profile-card-eyebrow">Cuenta</span>
+                                <h2 id="account-delete-title">Baja de la cuenta</h2>
+                            </div>
+                            <asp:LinkButton ID="lnkDarDeBaja" runat="server" CssClass="button button-secondary button-small" CausesValidation="false" OnClick="lnkDarDeBaja_Click">Dar de baja cuenta</asp:LinkButton>
+                        </div>
+
+                        <asp:Panel ID="pnlBajaResumen" runat="server" CssClass="profile-delete-summary">
+                            <p>Si ya no querés usar StageUp, podés dar de baja tu cuenta. Tu historial se conserva.</p>
+                        </asp:Panel>
+
+                        <asp:Panel ID="pnlBaja" runat="server" Visible="false">
+                            <p class="profile-form-intro">
+                                Al dar de baja tu cuenta se restringe el acceso: no vas a poder iniciar sesión ni usar las funciones de StageUp.
+                                La información histórica asociada (reservas, pagos, comprobantes y calificaciones) se conserva.
+                            </p>
+
+                            <asp:Panel ID="pnlBajaCondiciones" runat="server" CssClass="profile-delete-box profile-delete-blocking" Visible="false" role="alert">
+                                <h3>Antes de darte de baja tenés que resolver:</h3>
+                                <ul>
+                                    <asp:Repeater ID="rptBajaCondiciones" runat="server">
+                                        <ItemTemplate><li><%#: Container.DataItem %></li></ItemTemplate>
+                                    </asp:Repeater>
+                                </ul>
+                            </asp:Panel>
+
+                            <asp:Panel ID="pnlBajaAvisos" runat="server" CssClass="profile-delete-box profile-delete-notice" Visible="false">
+                                <h3>Tené en cuenta:</h3>
+                                <ul>
+                                    <asp:Repeater ID="rptBajaAvisos" runat="server">
+                                        <ItemTemplate><li><%#: Container.DataItem %></li></ItemTemplate>
+                                    </asp:Repeater>
+                                </ul>
+                            </asp:Panel>
+
+                            <asp:Panel ID="pnlBajaAcciones" runat="server" CssClass="profile-form-actions">
+                                <asp:Button ID="btnConfirmarBaja" runat="server" CssClass="button button-danger" Text="Confirmar baja" CausesValidation="false" OnClick="btnConfirmarBaja_Click" />
+                                <asp:LinkButton ID="lnkCancelarBaja" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCancelarBaja_Click">Cancelar</asp:LinkButton>
+                            </asp:Panel>
+
+                            <asp:Panel ID="pnlBajaConfirmacionFinal" runat="server" CssClass="profile-delete-final" Visible="false" role="alertdialog" aria-labelledby="account-delete-final-title">
+                                <p id="account-delete-final-title"><strong>¿Seguro que querés dar de baja tu cuenta?</strong></p>
+                                <p>No vas a poder volver a ingresar con este correo. Para reactivarla vas a tener que escribirnos desde Contáctenos.</p>
+                                <div class="profile-form-actions">
+                                    <asp:Button ID="btnBajaDefinitiva" runat="server" CssClass="button button-danger" Text="Sí, dar de baja mi cuenta" CausesValidation="false"
+                                        UseSubmitBehavior="false" OnClientClick="this.disabled=true;this.value='Procesando...';" OnClick="btnBajaDefinitiva_Click" />
+                                    <asp:LinkButton ID="lnkCancelarBajaFinal" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCancelarBaja_Click">No, volver</asp:LinkButton>
+                                </div>
+                            </asp:Panel>
                         </asp:Panel>
                     </section>
                 </div>

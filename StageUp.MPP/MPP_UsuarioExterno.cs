@@ -53,6 +53,39 @@ namespace StageUp.MPP
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
+        // CU-001-003 A8/A9: con confirmar = false solo evalúa las condiciones;
+        // con true, si no hay ninguna pendiente, pasa la cuenta a Inactiva.
+        public EvaluacionBajaCuenta BajaLogica(UsuarioExterno oUsuarioExterno, bool confirmar)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_UsuarioExterno_BajaLogica",
+                new Hashtable
+                {
+                    { "@idUsuarioExterno", oUsuarioExterno.IdUsuarioExterno },
+                    { "@confirmar", confirmar }
+                });
+
+            if (tabla.Rows.Count == 0)
+            {
+                return new EvaluacionBajaCuenta { Resultado = "NO_EXISTE" };
+            }
+
+            DataRow fila = tabla.Rows[0];
+            return new EvaluacionBajaCuenta
+            {
+                Resultado = Convert.ToString(fila["resultado"]),
+                ReservasPendientes = Convert.ToInt32(fila["reservasPendientes"]),
+                ReservasAceptadas = Convert.ToInt32(fila["reservasAceptadas"]),
+                PagosPendientes = Convert.ToInt32(fila["pagosPendientes"]),
+                SolicitudesRecibidas = Convert.ToInt32(fila["solicitudesRecibidas"]),
+                ReservasRecibidasAceptadas = Convert.ToInt32(fila["reservasRecibidasAceptadas"]),
+                CuentasConSaldo = Convert.ToInt32(fila["cuentasConSaldo"]),
+                EspaciosPublicados = Convert.ToInt32(fila["espaciosPublicados"]),
+                TicketsAbiertos = Convert.ToInt32(fila["ticketsAbiertos"]),
+                EspaciosPausados = Convert.ToInt32(fila["espaciosPausados"])
+            };
+        }
+
         public UsuarioExterno ObtenerPerfilPorId(UsuarioExterno oUsuarioExterno)
         {
             if (!PerfilCompletoHabilitado)

@@ -18,6 +18,9 @@ namespace StageUp.BLL
         private static readonly Regex PatronTelefono = new Regex(
             @"^[0-9+()\-\s]{6,30}$", RegexOptions.Compiled);
 
+        private const string MensajeCuentaNoActiva =
+            "Tu cuenta no está activa, por eso no podés modificarla. Cerrá sesión y volvé a ingresar.";
+
         private readonly MPP_UsuarioExterno _mppUsuario = new MPP_UsuarioExterno();
         private readonly BLL_CodigoActivacion _bllCodigoActivacion = new BLL_CodigoActivacion();
         private readonly BLL_CodigoRecuperacion _bllCodigoRecuperacion = new BLL_CodigoRecuperacion();
@@ -244,6 +247,12 @@ namespace StageUp.BLL
                     "Tu cuenta todavía no fue activada. Revisá tu correo electrónico para activarla.");
             }
 
+            if (usuario.EstadoCuenta == EstadoCuentaExterno.Inactiva.ToString())
+            {
+                return ResultadoOperacion<UsuarioExterno>.Error(
+                    "Esta cuenta fue dada de baja y ya no tiene acceso a StageUp. Si necesitás recuperarla, escribinos desde Contáctenos.");
+            }
+
             if (usuario.EstadoCuenta != EstadoCuentaExterno.Activa.ToString())
             {
                 return ResultadoOperacion<UsuarioExterno>.Error("Esta cuenta no se encuentra habilitada.");
@@ -279,8 +288,10 @@ namespace StageUp.BLL
                     CorreoElectronico = correoElectronico.Trim().ToLowerInvariant()
                 });
 
-                if (usuario == null)
+                if (usuario == null || usuario.EstadoCuenta == EstadoCuentaExterno.Inactiva.ToString())
                 {
+                    // Misma respuesta que para un correo inexistente: no se revela
+                    // si la cuenta existe o fue dada de baja (CU-001-003).
                     return ResultadoOperacion.Ok(
                         "Si el correo ingresado corresponde a una cuenta registrada, vas a recibir un código de recuperación.");
                 }
@@ -321,7 +332,7 @@ namespace StageUp.BLL
                 {
                     CorreoElectronico = correoElectronico.Trim().ToLowerInvariant()
                 });
-                if (usuario == null)
+                if (usuario == null || usuario.EstadoCuenta == EstadoCuentaExterno.Inactiva.ToString())
                 {
                     return ResultadoOperacion.Error("El código ingresado no es válido.", "A5");
                 }
@@ -378,6 +389,11 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
                 }
 
+                if (usuario.EstadoCuenta != EstadoCuentaExterno.Activa.ToString())
+                {
+                    return ResultadoOperacion.Error(MensajeCuentaNoActiva);
+                }
+
                 if (string.IsNullOrWhiteSpace(passwordActual) || !ProtectorDeCredenciales.VerificarPassword(usuario, passwordActual))
                 {
                     return ResultadoOperacion.Error("La contraseña actual ingresada es incorrecta.");
@@ -407,6 +423,181 @@ namespace StageUp.BLL
 
                 return ResultadoOperacion.Ok("Tu contraseña fue actualizada correctamente.");
             });
+        }
+
+        // CU-001-003 A8 (pasos 2 y 6): condiciones que impiden la baja lógica y
+        // avisos de lo que va a pasar, para mostrarlos antes de confirmar.
+        public ResultadoOperacion<EvaluacionBajaCuenta> EvaluarBajaCuenta(int idUsuarioExterno)
+        {
+            return EjecutarProtegido(() =>
+            {
+                EvaluacionBajaCuenta evaluacion = _mppUsuario.BajaLogica(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno }, false);
+
+                if (evaluacion.Resultado == "NO_EXISTE")
+                {
+                    return ResultadoOperacion<EvaluacionBajaCuenta>.Error("No se encontró la cuenta indicada.");
+                }
+
+                if (evaluacion.Resultado == "NO_ACTIVA")
+                {
+                    return ResultadoOperacion<EvaluacionBajaCuenta>.Error(MensajeCuentaNoActiva);
+                }
+
+                CompletarTextosBaja(idUsuarioExterno, evaluacion);
+                return ResultadoOperacion<EvaluacionBajaCuenta>.Ok(evaluacion);
+            });
+        }
+
+        // CU-001-003 A8 (pasos 6 a 10) y A9: vuelve a validar las condiciones
+        // dentro de la misma transacción que aplica la baja, así una reserva o
+        // un pago que entren entre la confirmación y la baja también la frenan.
+        // Cerrar la sesión y redirigir (pasos 12 y 13) lo hace la pantalla.
+        public ResultadoOperacion<EvaluacionBajaCuenta> DarDeBajaCuenta(int idUsuarioExterno)
+        {
+            return EjecutarProtegido(() =>
+            {
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
+                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
+                if (usuario == null)
+                {
+                    return ResultadoOperacion<EvaluacionBajaCuenta>.Error("No se encontró la cuenta indicada.");
+                }
+
+                EvaluacionBajaCuenta evaluacion = _mppUsuario.BajaLogica(usuario, true);
+
+                if (evaluacion.Resultado == "NO_ACTIVA" || evaluacion.Resultado == "NO_EXISTE")
+                {
+                    return ResultadoOperacion<EvaluacionBajaCuenta>.Error(MensajeCuentaNoActiva);
+                }
+
+                if (evaluacion.Resultado != "OK")
+                {
+                    // A9: la cuenta sigue activa. El detalle de lo que hay que
+                    // resolver lo da EvaluarBajaCuenta.
+                    return ResultadoOperacion<EvaluacionBajaCuenta>.Error(
+                        "No es posible dar de baja tu cuenta hasta resolver las condiciones pendientes. Tu cuenta sigue activa.");
+                }
+
+                string descripcion = "Baja lógica de la cuenta solicitada por el usuario desde Mi perfil.";
+                if (evaluacion.EspaciosPausados > 0)
+                {
+                    descripcion += " Se pausaron " + evaluacion.EspaciosPausados +
+                        (evaluacion.EspaciosPausados == 1 ? " espacio publicado." : " espacios publicados.");
+                }
+
+                _bitacora.Registrar(idUsuarioExterno, "BAJA", "UsuarioExterno", idUsuarioExterno, descripcion);
+
+                _servicioCorreo.EnviarConfirmacionBajaCuenta(usuario.CorreoElectronico, usuario.Nombre);
+
+                return ResultadoOperacion<EvaluacionBajaCuenta>.Ok(
+                    evaluacion,
+                    "Tu cuenta fue dada de baja correctamente. Ya no vas a poder ingresar a StageUp con ella; tu historial se conserva.");
+            });
+        }
+
+        private static string Plural(int cantidad, string singular, string plural)
+        {
+            return cantidad + " " + (cantidad == 1 ? singular : plural);
+        }
+
+        private static void CompletarTextosBaja(int idUsuarioExterno, EvaluacionBajaCuenta evaluacion)
+        {
+            evaluacion.Condiciones.Clear();
+            evaluacion.Avisos.Clear();
+
+            if (evaluacion.ReservasPendientes > 0)
+            {
+                evaluacion.Condiciones.Add(
+                    "Tenés " + Plural(evaluacion.ReservasPendientes, "solicitud de reserva pendiente", "solicitudes de reserva pendientes") +
+                    " de respuesta: " + (evaluacion.ReservasPendientes == 1 ? "cancelala" : "cancelalas") +
+                    " desde Mis reservas o esperá la respuesta del gestor.");
+            }
+
+            if (evaluacion.ReservasAceptadas > 0)
+            {
+                string texto = "Tenés " + Plural(evaluacion.ReservasAceptadas, "reserva aceptada", "reservas aceptadas") + " en curso";
+                if (evaluacion.PagosPendientes > 0)
+                {
+                    texto += " (" + Plural(evaluacion.PagosPendientes, "con el pago pendiente", "con el pago pendiente") + ")";
+                }
+
+                evaluacion.Condiciones.Add(texto + ": " + (evaluacion.ReservasAceptadas == 1 ? "cancelala" : "cancelalas") +
+                    " desde Mis reservas o esperá a que " + (evaluacion.ReservasAceptadas == 1 ? "finalice." : "finalicen."));
+            }
+
+            if (evaluacion.SolicitudesRecibidas > 0)
+            {
+                evaluacion.Condiciones.Add(
+                    "Tus espacios tienen " + Plural(evaluacion.SolicitudesRecibidas, "solicitud de reserva sin responder", "solicitudes de reserva sin responder") +
+                    ": " + (evaluacion.SolicitudesRecibidas == 1 ? "aceptala o rechazala" : "aceptalas o rechazalas") +
+                    " desde Solicitudes recibidas.");
+            }
+
+            if (evaluacion.ReservasRecibidasAceptadas > 0)
+            {
+                evaluacion.Condiciones.Add(
+                    "Tus espacios tienen " + Plural(evaluacion.ReservasRecibidasAceptadas, "reserva aceptada", "reservas aceptadas") +
+                    " en curso: " + (evaluacion.ReservasRecibidasAceptadas == 1 ? "tiene" : "tienen") + " que finalizar o cancelarse antes de la baja.");
+            }
+
+            if (evaluacion.CuentasConSaldo > 0)
+            {
+                BLL_CuentaCorriente bllCuenta = new BLL_CuentaCorriente();
+                List<SaldoCuentaCorriente> saldos = new List<SaldoCuentaCorriente>();
+                saldos.AddRange(bllCuenta.ObtenerSaldos(idUsuarioExterno, BLL_CuentaCorriente.RolCliente));
+                saldos.AddRange(bllCuenta.ObtenerSaldos(idUsuarioExterno, BLL_CuentaCorriente.RolGestor));
+
+                bool detallado = false;
+                foreach (SaldoCuentaCorriente saldo in saldos)
+                {
+                    if (saldo.Saldo == 0)
+                    {
+                        continue;
+                    }
+
+                    string importe = BLL_CuentaCorriente.FormatearImporte(Math.Abs(saldo.Saldo), saldo.Moneda);
+                    if (saldo.RolCuenta == BLL_CuentaCorriente.RolGestor)
+                    {
+                        evaluacion.Condiciones.Add(
+                            "Tu cuenta de gestor tiene un saldo de " + importe +
+                            " pendiente de liquidación: escribinos desde Soporte para liquidarlo.");
+                    }
+                    else if (saldo.Saldo < 0)
+                    {
+                        evaluacion.Condiciones.Add(
+                            "Tenés un saldo deudor de " + importe + ": podés pagarlo desde Mi cuenta corriente.");
+                    }
+                    else
+                    {
+                        evaluacion.Condiciones.Add(
+                            "Tenés un saldo a favor de " + importe +
+                            ": usalo en una reserva o pedí su devolución desde Soporte.");
+                    }
+
+                    detallado = true;
+                }
+
+                if (!detallado)
+                {
+                    evaluacion.Condiciones.Add(
+                        "Tu cuenta corriente tiene saldo pendiente: revisalo en Mi cuenta corriente.");
+                }
+            }
+
+            if (evaluacion.EspaciosPublicados > 0)
+            {
+                evaluacion.Avisos.Add(evaluacion.EspaciosPublicados == 1
+                    ? "Tu espacio publicado se va a pausar y dejará de verse en el catálogo."
+                    : "Tus " + evaluacion.EspaciosPublicados + " espacios publicados se van a pausar y dejarán de verse en el catálogo.");
+            }
+
+            if (evaluacion.TicketsAbiertos > 0)
+            {
+                evaluacion.Avisos.Add(
+                    "Tenés " + Plural(evaluacion.TicketsAbiertos, "consulta de soporte abierta", "consultas de soporte abiertas") +
+                    ": después de la baja no vas a poder seguirla" + (evaluacion.TicketsAbiertos == 1 ? "" : "s") + " desde StageUp.");
+            }
         }
 
         public ResultadoOperacion<int> SolicitarHabilitacionComoGestor(int idUsuarioExterno)
@@ -542,6 +733,22 @@ namespace StageUp.BLL
             }
         }
 
+        // CU-001-003: false si la cuenta ya no está activa (o no existe). Si la
+        // base no responde se devuelve true para no cortar la sesión por un
+        // problema momentáneo.
+        public bool CuentaSigueActiva(int idUsuarioExterno)
+        {
+            try
+            {
+                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
+                return usuario != null && usuario.EstadoCuenta == EstadoCuentaExterno.Activa.ToString();
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return true;
+            }
+        }
+
         public UsuarioExterno ObtenerPorId(int idUsuarioExterno)
         {
             try
@@ -638,6 +845,11 @@ namespace StageUp.BLL
                 if (actual == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
+                }
+
+                if (actual.EstadoCuenta != EstadoCuentaExterno.Activa.ToString())
+                {
+                    return ResultadoOperacion.Error(MensajeCuentaNoActiva);
                 }
 
                 UsuarioExterno usuarioConMismoCorreo = _mppUsuario.ObtenerPorCorreo(

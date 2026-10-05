@@ -13,6 +13,9 @@ namespace StageUp.Seguridad
         private const string ClaveIdIdioma = "StageUp.Sesion.IdIdioma";
         private const string ClaveCodigoIdioma = "StageUp.Sesion.CodigoIdioma";
 
+        private const string ClaveUltimaVerificacionCuenta = "StageUp.Sesion.UltimaVerificacionCuenta";
+        private const int MinutosEntreVerificacionesCuenta = 5;
+
         private const string ClaveIdUsuarioInterno = "StageUp.Sesion.IdUsuarioInterno";
         private const string ClaveNombreCompletoInterno = "StageUp.Sesion.NombreCompletoInterno";
         private const string ClaveIdRolInterno = "StageUp.Sesion.IdRolInterno";
@@ -28,6 +31,23 @@ namespace StageUp.Seguridad
             HttpContext.Current.Session[ClaveIdUsuario] = usuario.IdUsuarioExterno;
             HttpContext.Current.Session[ClaveNombreCompleto] = usuario.Nombre + " " + usuario.Apellido;
             HttpContext.Current.Session[ClavePerfil] = usuario.PerfilUsuario;
+            HttpContext.Current.Session[ClaveUltimaVerificacionCuenta] = DateTime.Now;
+        }
+
+        // CU-001-003: una cuenta dada de baja no puede seguir usando una sesión
+        // abierta en otro navegador. Site.Master vuelve a mirar el estado de la
+        // cuenta cada pocos minutos (no en cada página, para no sumar una
+        // consulta por request).
+        public static bool CorrespondeVerificarCuenta()
+        {
+            object valor = HttpContext.Current.Session[ClaveUltimaVerificacionCuenta];
+            return !(valor is DateTime) ||
+                (DateTime.Now - (DateTime)valor).TotalMinutes >= MinutosEntreVerificacionesCuenta;
+        }
+
+        public static void MarcarCuentaVerificada()
+        {
+            HttpContext.Current.Session[ClaveUltimaVerificacionCuenta] = DateTime.Now;
         }
 
         public static void CerrarSesion()
@@ -35,6 +55,7 @@ namespace StageUp.Seguridad
             HttpContext.Current.Session.Remove(ClaveIdUsuario);
             HttpContext.Current.Session.Remove(ClaveNombreCompleto);
             HttpContext.Current.Session.Remove(ClavePerfil);
+            HttpContext.Current.Session.Remove(ClaveUltimaVerificacionCuenta);
             HttpContext.Current.Session.Abandon();
         }
 

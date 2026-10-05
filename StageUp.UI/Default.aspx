@@ -1,6 +1,11 @@
 <%@ Page Title="Inicio | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="Default.aspx.cs" Inherits="StageUp.UI._Default" %>
 
 <asp:Content ID="HomeContent" ContentPlaceHolderID="MainContent" runat="server">
+    <asp:Panel ID="pnlAvisoBaja" runat="server" Visible="false" CssClass="container-wide" style="padding-top: 1.25rem;">
+        <div class="form-message form-message-success" role="status">
+            Tu cuenta fue dada de baja correctamente y el acceso a StageUp quedó restringido. Tu historial se conserva. Te enviamos un correo de confirmación.
+        </div>
+    </asp:Panel>
     <section class="hero-section">
         <div class="hero-decoration hero-decoration-one" aria-hidden="true"></div>
         <div class="hero-decoration hero-decoration-two" aria-hidden="true"></div>

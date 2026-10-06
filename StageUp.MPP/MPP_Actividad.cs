@@ -87,11 +87,59 @@ namespace StageUp.MPP
 
         public List<Actividad> ListarPorUsuarioGestor(UsuarioExterno usuarioGestor)
         {
-            DataTable tabla = Conexion.Instance.Leer(
-                "sp_Actividad_ListarPorUsuarioGestor",
-                new Hashtable { { "@idUsuarioGestor", usuarioGestor.IdUsuarioExterno } });
+            return ListarPorUsuarioGestor(usuarioGestor, "Activas", null);
+        }
 
-            return MapearFilas(tabla);
+        // CU-001-009 / ítem 36 (script 57): actividades del gestor con sus días
+        // y participantes en tres consultas en total, sin importar cuántas
+        // actividades haya (antes eran dos consultas extra por actividad).
+        // estado: "Activas", "Inactivas" o "Todas".
+        public List<Actividad> ListarPorUsuarioGestor(UsuarioExterno usuarioGestor, string estado, int? idEspacioArtistico)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_Actividad_ListarPorUsuarioGestorV2",
+                new Hashtable
+                {
+                    { "@idUsuarioGestor", usuarioGestor.IdUsuarioExterno },
+                    { "@estado", string.IsNullOrEmpty(estado) ? "Activas" : estado },
+                    { "@idEspacioArtistico", idEspacioArtistico.HasValue ? (object)idEspacioArtistico.Value : DBNull.Value }
+                });
+
+            List<Actividad> actividades = new List<Actividad>();
+            Dictionary<int, Actividad> porId = new Dictionary<int, Actividad>();
+            foreach (DataRow fila in tabla.Rows)
+            {
+                Actividad actividad = MapearFila(fila);
+                actividades.Add(actividad);
+                porId[actividad.IdActividad] = actividad;
+            }
+
+            if (actividades.Count == 0)
+            {
+                return actividades;
+            }
+
+            Hashtable parametrosGestor = new Hashtable { { "@idUsuarioGestor", usuarioGestor.IdUsuarioExterno } };
+            foreach (DataRow fila in Conexion.Instance.Leer("sp_ActividadDiaSemana_ListarPorUsuarioGestor", parametrosGestor).Rows)
+            {
+                Actividad actividad;
+                if (porId.TryGetValue(Convert.ToInt32(fila["idActividad"]), out actividad))
+                {
+                    actividad.DiasSemana.Add(Convert.ToInt32(fila["diaSemana"]));
+                }
+            }
+
+            parametrosGestor = new Hashtable { { "@idUsuarioGestor", usuarioGestor.IdUsuarioExterno } };
+            foreach (DataRow fila in Conexion.Instance.Leer("sp_ActividadParticipante_ListarPorUsuarioGestor", parametrosGestor).Rows)
+            {
+                Actividad actividad;
+                if (porId.TryGetValue(Convert.ToInt32(fila["idActividad"]), out actividad))
+                {
+                    actividad.Participantes.Add(MapearParticipante(fila));
+                }
+            }
+
+            return actividades;
         }
 
         private List<Actividad> MapearFilas(DataTable tabla)
@@ -129,7 +177,9 @@ namespace StageUp.MPP
                 FechaUltimaModificacion = fila["fechaUltimaModificacion"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(fila["fechaUltimaModificacion"]),
                 NombreEspacio = fila.Table.Columns.Contains("nombreEspacio") && fila["nombreEspacio"] != DBNull.Value
                     ? fila["nombreEspacio"].ToString()
-                    : null
+                    : null,
+                EspacioActivo = !fila.Table.Columns.Contains("espacioActivo") || fila["espacioActivo"] == DBNull.Value ||
+                    Convert.ToBoolean(fila["espacioActivo"])
             };
         }
 
@@ -220,18 +270,23 @@ namespace StageUp.MPP
             List<Participante> participantes = new List<Participante>();
             foreach (DataRow fila in tabla.Rows)
             {
-                participantes.Add(new Participante
-                {
-                    IdParticipante = Convert.ToInt32(fila["idParticipante"]),
-                    Nombre = fila["nombre"].ToString(),
-                    Apellido = fila["apellido"].ToString(),
-                    Dni = fila["dni"].ToString(),
-                    Notas = fila["notas"] == DBNull.Value ? null : fila["notas"].ToString(),
-                    Activo = Convert.ToBoolean(fila["activo"])
-                });
+                participantes.Add(MapearParticipante(fila));
             }
 
             return participantes;
+        }
+
+        private static Participante MapearParticipante(DataRow fila)
+        {
+            return new Participante
+            {
+                IdParticipante = Convert.ToInt32(fila["idParticipante"]),
+                Nombre = fila["nombre"].ToString(),
+                Apellido = fila["apellido"].ToString(),
+                Dni = fila["dni"].ToString(),
+                Notas = fila["notas"] == DBNull.Value ? null : fila["notas"].ToString(),
+                Activo = Convert.ToBoolean(fila["activo"])
+            };
         }
     }
 }

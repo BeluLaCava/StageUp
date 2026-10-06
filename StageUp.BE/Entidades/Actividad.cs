@@ -42,6 +42,14 @@ namespace StageUp.BE.Entidades
         // Solo lectura, completado por los listados por gestor.
         public string NombreEspacio { get; set; }
 
+        // Solo lectura (script 57): si el espacio de la actividad sigue activo.
+        public bool EspacioActivo { get; set; } = true;
+
+        public int DuracionMinutos
+        {
+            get { return MinutoHasta - MinutoDesde; }
+        }
+
         // Participantes asociados; se completa aparte, no viaja en el alta/modificación básica.
         public List<Participante> Participantes { get; set; } = new List<Participante>();
     }

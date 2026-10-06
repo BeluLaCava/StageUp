@@ -182,6 +182,18 @@
                         </div>
                     </section>
 
+                    <%-- CU-001-007: acceso a la solicitud de habilitación como gestor desde el perfil. --%>
+                    <section class="profile-card" aria-labelledby="manager-title">
+                        <div class="profile-card-header">
+                            <div>
+                                <span class="profile-card-eyebrow">Gestión de espacios</span>
+                                <h2 id="manager-title"><asp:Literal ID="litGestorTitulo" runat="server" Mode="Encode" /></h2>
+                            </div>
+                            <asp:HyperLink ID="lnkGestorAccion" runat="server" CssClass="button button-secondary button-small" />
+                        </div>
+                        <p><asp:Literal ID="litGestorTexto" runat="server" Mode="Encode" /></p>
+                    </section>
+
                     <section class="profile-card" aria-labelledby="security-title">
                         <div class="profile-card-header">
                             <div>

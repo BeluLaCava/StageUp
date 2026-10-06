@@ -61,8 +61,46 @@ namespace StageUp.UI
 
             if (pnlPanelGestor.Visible && !IsPostBack)
             {
+                CargarFiltroEspacios();
+
+                // CU-001-009 paso 7: llegada desde el detalle del espacio.
+                int idEspacio;
+                if (int.TryParse(Request.QueryString["espacio"], NumberStyles.Integer, CultureInfo.InvariantCulture, out idEspacio) &&
+                    ddlFiltroEspacio.Items.FindByValue(idEspacio.ToString(CultureInfo.InvariantCulture)) != null)
+                {
+                    ddlFiltroEspacio.SelectedValue = idEspacio.ToString(CultureInfo.InvariantCulture);
+                }
+
                 CargarPantallaGestor();
+
+                int idActividad;
+                if (int.TryParse(Request.QueryString["ver"], NumberStyles.Integer, CultureInfo.InvariantCulture, out idActividad))
+                {
+                    MostrarDetalle(idActividad);
+                }
+                else if (int.TryParse(Request.QueryString["editar"], NumberStyles.Integer, CultureInfo.InvariantCulture, out idActividad))
+                {
+                    AbrirEdicion(idActividad);
+                }
             }
+        }
+
+        private int? IdActividadEnEdicion
+        {
+            get { return ViewState["IdActividadEnEdicion"] as int?; }
+            set { ViewState["IdActividadEnEdicion"] = value; }
+        }
+
+        private int? IdActividadEnDetalle
+        {
+            get { return ViewState["IdActividadEnDetalle"] as int?; }
+            set { ViewState["IdActividadEnDetalle"] = value; }
+        }
+
+        protected void Filtros_Changed(object sender, EventArgs e)
+        {
+            pnlMensaje.Visible = false;
+            CargarPantallaGestor();
         }
 
         protected void lnkNuevaActividad_Click(object sender, EventArgs e)
@@ -76,13 +114,30 @@ namespace StageUp.UI
             CargarEspaciosEnSelector();
             CargarSugerenciasParticipantes();
             LimpiarFormulario();
+            IdActividadEnEdicion = null;
+            litTituloActividad.Text = "Nueva actividad interna";
+            btnGuardarActividad.Text = "Guardar actividad";
+            if (!string.IsNullOrEmpty(ddlFiltroEspacio.SelectedValue) && ddlEspacio.Items.FindByValue(ddlFiltroEspacio.SelectedValue) != null)
+            {
+                ddlEspacio.SelectedValue = ddlFiltroEspacio.SelectedValue;
+            }
+
             pnlMensaje.Visible = false;
+            pnlDetalleActividad.Visible = false;
             pnlFormularioActividad.Visible = true;
         }
 
         protected void lnkCerrarActividad_Click(object sender, EventArgs e)
         {
             pnlFormularioActividad.Visible = false;
+
+            // Al cancelar una edición se vuelve al detalle (A7).
+            if (IdActividadEnEdicion.HasValue)
+            {
+                int id = IdActividadEnEdicion.Value;
+                IdActividadEnEdicion = null;
+                MostrarDetalle(id);
+            }
         }
 
         protected void btnGuardarActividad_Click(object sender, EventArgs e)
@@ -96,26 +151,21 @@ namespace StageUp.UI
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
             ProgramacionActividadDto programacion = ObtenerProgramacion();
 
-            if (programacion == null || string.IsNullOrEmpty(programacion.Modo))
-            {
-                MostrarMensaje("Definí la programación de la actividad (cuándo se repite y el horario).", esError: true);
-                pnlFormularioActividad.Visible = true;
-                return;
-            }
-
             Actividad actividad = new Actividad
             {
+                IdActividad = IdActividadEnEdicion ?? 0,
                 IdEspacioArtistico = ConvertirEntero(ddlEspacio.SelectedValue),
                 Nombre = txtNombreActividad.Text.Trim(),
                 Tipo = string.IsNullOrWhiteSpace(txtTipoActividad.Text) ? null : txtTipoActividad.Text.Trim(),
-                MinutoDesde = ConvertirHoraAMinutos(txtHoraInicio.Text),
-                MinutoHasta = ConvertirHoraAMinutos(txtHoraFin.Text),
-                CupoMaximo = ConvertirEntero(txtCupoMaximo.Text),
-                ParticipantesEstimados = string.IsNullOrWhiteSpace(txtParticipantes.Text) ? (int?)null : ConvertirEntero(txtParticipantes.Text),
+                MinutoDesde = ConvertirHoraAMinutos(txtHoraInicio.Text, false),
+                MinutoHasta = ConvertirHoraAMinutos(txtHoraFin.Text, true),
+                CupoMaximo = string.IsNullOrWhiteSpace(txtCupoMaximo.Text) ? 0 : ConvertirEnteroOInvalido(txtCupoMaximo.Text),
+                ParticipantesEstimados = string.IsNullOrWhiteSpace(txtParticipantes.Text) ? (int?)null : ConvertirEnteroOInvalido(txtParticipantes.Text),
                 Notas = string.IsNullOrWhiteSpace(txtDescripcionActividad.Text) ? null : txtDescripcionActividad.Text.Trim()
             };
 
-            if (programacion.Modo == "weekly")
+            string modo = programacion == null ? null : programacion.Modo;
+            if (modo == "weekly")
             {
                 actividad.ModoRecurrencia = ModoRecurrenciaActividad.Semanal.ToString();
                 actividad.DiasSemana = cblDias.Items.Cast<ListItem>()
@@ -123,7 +173,7 @@ namespace StageUp.UI
                     .Select(item => DiaCodigoANumero[item.Value])
                     .ToList();
             }
-            else if (programacion.Modo == "monthly")
+            else if (modo == "monthly")
             {
                 actividad.ModoRecurrencia = ModoRecurrenciaActividad.Mensual.ToString();
                 actividad.SemanaDelMes = programacion.SemanaDelMes != null && SemanaDelMesCodigoANumero.ContainsKey(programacion.SemanaDelMes)
@@ -133,54 +183,247 @@ namespace StageUp.UI
                     ? DiaCodigoANumero[programacion.DiaDelMes]
                     : (int?)null;
             }
-            else if (programacion.Modo == "date")
+            else if (modo == "date")
             {
                 actividad.ModoRecurrencia = ModoRecurrenciaActividad.Fecha.ToString();
                 actividad.Fecha = programacion.Fecha;
             }
-            else
-            {
-                MostrarMensaje("El modo de recurrencia indicado no es válido.", esError: true);
-                pnlFormularioActividad.Visible = true;
-                return;
-            }
 
-            ResultadoOperacion<int> resultado = _bllActividad.Guardar(actividad, idUsuarioGestor);
-            if (!resultado.Exitoso)
-            {
-                MostrarMensaje(resultado.Mensaje, esError: true);
-                pnlFormularioActividad.Visible = true;
-                return;
-            }
-
+            List<int> idsParticipantes = new List<int>();
             foreach (string idTexto in (hdnParticipantesActividad.Value ?? string.Empty)
                 .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 int idParticipante;
                 if (int.TryParse(idTexto, out idParticipante))
                 {
-                    _bllActividad.AsociarParticipante(resultado.Valor, idParticipante, idUsuarioGestor);
+                    idsParticipantes.Add(idParticipante);
                 }
             }
 
+            ResultadoOperacion<int> resultado = _bllActividad.Guardar(actividad, idUsuarioGestor, idsParticipantes);
+            if (!resultado.Exitoso)
+            {
+                // A2 a A5 / A8: el formulario queda con lo cargado.
+                MostrarMensaje(resultado.Mensaje, esError: true);
+                CargarSugerenciasParticipantes();
+                pnlFormularioActividad.Visible = true;
+                return;
+            }
+
+            bool eraEdicion = IdActividadEnEdicion.HasValue;
+            IdActividadEnEdicion = null;
             pnlFormularioActividad.Visible = false;
             CargarPantallaGestor();
-            MostrarMensaje("Actividad guardada. El horario indicado ya bloquea ese espacio para reservas externas.", esError: false);
+            MostrarMensaje(resultado.Mensaje, esError: false);
+
+            // A7 paso 9: después de editar se vuelve a mostrar el detalle.
+            if (eraEdicion)
+            {
+                MostrarDetalle(resultado.Valor);
+                MostrarMensajeDetalle(resultado.Mensaje, false);
+            }
         }
 
         protected void rptActividades_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
-            if (e.CommandName != "Baja")
+            int idActividad = ConvertirEntero(Convert.ToString(e.CommandArgument, CultureInfo.InvariantCulture));
+            pnlMensaje.Visible = false;
+
+            if (e.CommandName == "Ver")
+            {
+                MostrarDetalle(idActividad);
+            }
+            else if (e.CommandName == "Editar")
+            {
+                AbrirEdicion(idActividad);
+            }
+            else if (e.CommandName == "Baja")
+            {
+                // A9 paso 2: la baja se confirma desde el detalle.
+                if (MostrarDetalle(idActividad))
+                {
+                    pnlConfirmarBajaActividad.Visible = true;
+                }
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // A6: detalle de la actividad
+        // ------------------------------------------------------------------
+        private bool MostrarDetalle(int idActividad)
+        {
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            Actividad actividad = _bllActividad.ObtenerDetalle(idActividad, idUsuarioGestor);
+            if (actividad == null)
+            {
+                pnlDetalleActividad.Visible = false;
+                IdActividadEnDetalle = null;
+                MostrarMensaje("No se encontró la actividad indicada.", esError: true);
+                return false;
+            }
+
+            IdActividadEnDetalle = actividad.IdActividad;
+            pnlFormularioActividad.Visible = false;
+            pnlDetalleActividad.Visible = true;
+            pnlConfirmarBajaActividad.Visible = false;
+            pnlDetalleMensaje.Visible = false;
+
+            CultureInfo cultura = CultureInfo.GetCultureInfo("es-AR");
+            litDetalleNombre.Text = actividad.Nombre;
+            lblDetalleEstado.Text = actividad.Activa ? "Activa" : "Dada de baja";
+            lblDetalleEstado.CssClass = "activities-status " + (actividad.Activa ? "activities-status-active" : "activities-status-inactive");
+            litDetalleTipo.Text = string.IsNullOrEmpty(actividad.Tipo) ? string.Empty : " · " + actividad.Tipo;
+            litDetalleEspacio.Text = actividad.NombreEspacio ?? "-";
+            litDetalleProgramacion.Text = BLL_Actividad.DescribirProgramacion(actividad);
+            litDetalleHorario.Text = BLL_Actividad.FormatearHorario(actividad.MinutoDesde, actividad.MinutoHasta);
+            litDetalleDuracion.Text = BLL_Actividad.FormatearDuracion(actividad.DuracionMinutos);
+            litDetalleCupo.Text = actividad.CupoMaximo + " participantes";
+            litDetalleEstimados.Text = actividad.ParticipantesEstimados.HasValue ? actividad.ParticipantesEstimados.Value.ToString(CultureInfo.InvariantCulture) : "Sin indicar";
+            litDetalleNotas.Text = string.IsNullOrEmpty(actividad.Notas) ? "Sin notas" : actividad.Notas;
+            litDetalleFechas.Text = "Creada el " + actividad.FechaCreacion.ToString("dd/MM/yyyy HH:mm", cultura) +
+                (actividad.FechaUltimaModificacion.HasValue
+                    ? " · última modificación el " + actividad.FechaUltimaModificacion.Value.ToString("dd/MM/yyyy HH:mm", cultura)
+                    : string.Empty);
+
+            if (actividad.Activa)
+            {
+                List<DateTime> proximas = BLL_Actividad.ProximasFechas(actividad, 6);
+                litDetalleProximas.Text = proximas.Count == 0
+                    ? "No tiene fechas próximas."
+                    : string.Join(" · ", proximas.Select(f => f.ToString("ddd dd/MM", cultura)));
+            }
+            else
+            {
+                litDetalleProximas.Text = "Ninguna: la actividad está dada de baja y ya no bloquea el espacio.";
+            }
+
+            litDetalleCantidadParticipantes.Text = "(" + actividad.Participantes.Count + " de " + actividad.CupoMaximo + ")";
+            litDetalleSinParticipantes.Visible = actividad.Participantes.Count == 0;
+            rptDetalleParticipantes.DataSource = actividad.Participantes;
+            rptDetalleParticipantes.DataBind();
+
+            btnEditarDesdeDetalle.Visible = actividad.Activa;
+            btnBajaDesdeDetalle.Visible = actividad.Activa;
+            return true;
+        }
+
+        protected void lnkCerrarDetalle_Click(object sender, EventArgs e)
+        {
+            pnlDetalleActividad.Visible = false;
+            IdActividadEnDetalle = null;
+        }
+
+        protected void btnEditarDesdeDetalle_Click(object sender, EventArgs e)
+        {
+            if (IdActividadEnDetalle.HasValue)
+            {
+                AbrirEdicion(IdActividadEnDetalle.Value);
+            }
+        }
+
+        protected void btnBajaDesdeDetalle_Click(object sender, EventArgs e)
+        {
+            if (IdActividadEnDetalle.HasValue && MostrarDetalle(IdActividadEnDetalle.Value))
+            {
+                pnlConfirmarBajaActividad.Visible = true;
+            }
+        }
+
+        // A11: se cancela la baja y se vuelve al detalle.
+        protected void lnkCancelarBajaActividad_Click(object sender, EventArgs e)
+        {
+            if (IdActividadEnDetalle.HasValue)
+            {
+                MostrarDetalle(IdActividadEnDetalle.Value);
+            }
+        }
+
+        protected void btnConfirmarBajaActividad_Click(object sender, EventArgs e)
+        {
+            if (!IdActividadEnDetalle.HasValue)
             {
                 return;
             }
 
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
-            int idActividad = ConvertirEntero((string)e.CommandArgument);
+            int idActividad = IdActividadEnDetalle.Value;
             ResultadoOperacion resultado = _bllActividad.DarDeBaja(idActividad, idUsuarioGestor);
+            if (!resultado.Exitoso)
+            {
+                // A10: la actividad mantiene su estado y se vuelve al detalle.
+                MostrarDetalle(idActividad);
+                MostrarMensajeDetalle(resultado.Mensaje, true);
+                return;
+            }
 
+            // A9 pasos 9 y 10.
+            pnlDetalleActividad.Visible = false;
+            IdActividadEnDetalle = null;
             CargarPantallaGestor();
-            MostrarMensaje(resultado.Mensaje ?? "Actividad dada de baja.", esError: !resultado.Exitoso);
+            MostrarMensaje(resultado.Mensaje, esError: false);
+        }
+
+        // ------------------------------------------------------------------
+        // A7: edición con los datos actuales
+        // ------------------------------------------------------------------
+        private void AbrirEdicion(int idActividad)
+        {
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            Actividad actividad = _bllActividad.ObtenerDetalle(idActividad, idUsuarioGestor);
+            if (actividad == null || !actividad.Activa)
+            {
+                MostrarMensaje(actividad == null ? "No se encontró la actividad indicada." : "La actividad está dada de baja: no se puede modificar.", esError: true);
+                return;
+            }
+
+            CargarEspaciosEnSelector();
+            CargarSugerenciasParticipantes();
+            LimpiarFormulario();
+
+            IdActividadEnEdicion = actividad.IdActividad;
+            litTituloActividad.Text = "Editar actividad interna";
+            btnGuardarActividad.Text = "Guardar cambios";
+
+            if (ddlEspacio.Items.FindByValue(actividad.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture)) != null)
+            {
+                ddlEspacio.SelectedValue = actividad.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture);
+            }
+
+            txtNombreActividad.Text = actividad.Nombre;
+            txtTipoActividad.Text = actividad.Tipo;
+            txtHoraInicio.Text = FormatearHora(actividad.MinutoDesde);
+            txtHoraFin.Text = actividad.MinutoHasta >= 1440 ? "00:00" : FormatearHora(actividad.MinutoHasta);
+            txtCupoMaximo.Text = actividad.CupoMaximo.ToString(CultureInfo.InvariantCulture);
+            txtParticipantes.Text = actividad.ParticipantesEstimados.HasValue ? actividad.ParticipantesEstimados.Value.ToString(CultureInfo.InvariantCulture) : string.Empty;
+            txtDescripcionActividad.Text = actividad.Notas;
+
+            string modo = actividad.ModoRecurrencia == ModoRecurrenciaActividad.Mensual.ToString() ? "monthly"
+                : actividad.ModoRecurrencia == ModoRecurrenciaActividad.Fecha.ToString() ? "date" : "weekly";
+            foreach (ListItem item in cblDias.Items)
+            {
+                item.Selected = modo == "weekly" && DiaCodigoANumero.ContainsKey(item.Value) &&
+                    actividad.DiasSemana.Contains(DiaCodigoANumero[item.Value]);
+            }
+
+            string semana = actividad.SemanaDelMes.HasValue
+                ? SemanaDelMesCodigoANumero.FirstOrDefault(par => par.Value == actividad.SemanaDelMes.Value).Key
+                : null;
+            string diaMes = actividad.DiaSemanaMensual.HasValue && NumeroADiaCodigo.ContainsKey(actividad.DiaSemanaMensual.Value)
+                ? NumeroADiaCodigo[actividad.DiaSemanaMensual.Value]
+                : null;
+            hdnProgramacionActividad.Value = new JavaScriptSerializer().Serialize(new
+            {
+                modo = modo,
+                fecha = actividad.Fecha ?? string.Empty,
+                semanaDelMes = semana ?? string.Empty,
+                diaDelMes = diaMes ?? string.Empty
+            });
+            hdnParticipantesActividad.Value = string.Join(",",
+                actividad.Participantes.Select(p => p.IdParticipante.ToString(CultureInfo.InvariantCulture)));
+
+            pnlMensaje.Visible = false;
+            pnlDetalleActividad.Visible = false;
+            pnlFormularioActividad.Visible = true;
         }
 
         protected void lnkNuevoParticipante_Click(object sender, EventArgs e)
@@ -264,12 +507,25 @@ namespace StageUp.UI
             pnlActividades.Visible = espacios.Count > 0;
             lnkNuevaActividad.Visible = espacios.Count > 0;
 
-            List<ActividadInternaVista> vistaActividades = actividades.Select(CrearVistaActividad).ToList();
+            // Paso 9: el listado aplica los filtros en la consulta. Si son los
+            // de siempre (activas de todos los espacios) se reusa la lista.
+            string estado = ddlFiltroEstado.SelectedValue;
+            int idEspacioFiltro;
+            int? espacioFiltro = int.TryParse(ddlFiltroEspacio.SelectedValue, out idEspacioFiltro) ? idEspacioFiltro : (int?)null;
+            List<Actividad> listado = estado == BLL_Actividad.FiltroActivas && !espacioFiltro.HasValue
+                ? actividades
+                : _bllActividad.Listar(idUsuarioGestor, estado, espacioFiltro);
+
+            List<ActividadInternaVista> vistaActividades = listado.Select(CrearVistaActividad).ToList();
+            phSinActividades.Visible = vistaActividades.Count == 0;
+            litSinActividades.Text = estado == BLL_Actividad.FiltroInactivas
+                ? "No hay actividades dadas de baja con estos filtros."
+                : "Todavía no hay actividades internas" + (espacioFiltro.HasValue ? " en este espacio" : string.Empty) + ". Usá «Nueva actividad» para cargar la primera.";
             List<ParticipanteVista> vistaParticipantes = participantes
                 .Select(participante => CrearVistaParticipante(participante, actividades))
                 .ToList();
 
-            litActividadesActivas.Text = vistaActividades.Count.ToString();
+            litActividadesActivas.Text = actividades.Count.ToString(CultureInfo.InvariantCulture);
             litHorasBloqueadas.Text = CalcularHorasBloqueadas(actividades) + " h";
             litEspaciosProgramados.Text = actividades.Select(a => a.IdEspacioArtistico).Distinct().Count().ToString();
             litParticipantesActivos.Text = vistaParticipantes.Count.ToString();
@@ -280,6 +536,17 @@ namespace StageUp.UI
             rptActividades.DataBind();
             rptParticipantes.DataSource = vistaParticipantes;
             rptParticipantes.DataBind();
+        }
+
+        private void CargarFiltroEspacios()
+        {
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            ddlFiltroEspacio.Items.Clear();
+            ddlFiltroEspacio.Items.Add(new ListItem("Todos los espacios", string.Empty));
+            foreach (EspacioArtistico espacio in _bllEspacio.ListarMisEspacios(idUsuarioGestor))
+            {
+                ddlFiltroEspacio.Items.Add(new ListItem(espacio.NombreEspacio, espacio.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture)));
+            }
         }
 
         private void CargarEspaciosEnSelector()
@@ -327,9 +594,10 @@ namespace StageUp.UI
                 Espacio = actividad.NombreEspacio,
                 Dias = FormatearDias(actividad),
                 Horario = FormatearHorario(actividad.MinutoDesde, actividad.MinutoHasta),
-                Cupo = actividad.CupoMaximo + " participantes",
-                Estado = "Activa",
-                ClaseEstado = "activities-status activities-status-active"
+                Cupo = actividad.Participantes.Count + " / " + actividad.CupoMaximo + " participantes",
+                Activa = actividad.Activa,
+                Estado = actividad.Activa ? "Activa" : "Dada de baja",
+                ClaseEstado = "activities-status " + (actividad.Activa ? "activities-status-active" : "activities-status-inactive")
             };
         }
 
@@ -429,10 +697,25 @@ namespace StageUp.UI
             }
         }
 
-        private static int ConvertirHoraAMinutos(string hora)
+        // -1 si está vacío o no es una hora válida (la BLL lo informa como
+        // dato faltante). Como fin, 00:00 es el cierre del día.
+        private static int ConvertirHoraAMinutos(string hora, bool esFin)
         {
-            TimeSpan valor;
-            return TimeSpan.TryParse(hora, CultureInfo.InvariantCulture, out valor) ? (int)valor.TotalMinutes : 0;
+            int minutos;
+            return BLL_DisponibilidadEspacio.TryLeerHora(hora, esFin, out minutos) ? minutos : -1;
+        }
+
+        private static int ConvertirEnteroOInvalido(string valor)
+        {
+            int resultado;
+            return int.TryParse((valor ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out resultado) ? resultado : -1;
+        }
+
+        private void MostrarMensajeDetalle(string mensaje, bool esError)
+        {
+            litDetalleMensaje.Text = mensaje;
+            pnlDetalleMensaje.CssClass = "form-message " + (esError ? "form-message-error" : "form-message-success");
+            pnlDetalleMensaje.Visible = !string.IsNullOrEmpty(mensaje);
         }
 
         private static int ConvertirEntero(string valor)
@@ -489,6 +772,7 @@ namespace StageUp.UI
             public string Dias { get; set; }
             public string Horario { get; set; }
             public string Cupo { get; set; }
+            public bool Activa { get; set; }
             public string Estado { get; set; }
             public string ClaseEstado { get; set; }
         }

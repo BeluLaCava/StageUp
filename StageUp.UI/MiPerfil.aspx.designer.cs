@@ -40,6 +40,9 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Repeater rptCalificacionesRecibidas;
         protected global::System.Web.UI.WebControls.Panel pnlSinCalificacionesRealizadas;
         protected global::System.Web.UI.WebControls.Repeater rptCalificacionesRealizadas;
+        protected global::System.Web.UI.WebControls.Literal litGestorTitulo;
+        protected global::System.Web.UI.WebControls.HyperLink lnkGestorAccion;
+        protected global::System.Web.UI.WebControls.Literal litGestorTexto;
         protected global::System.Web.UI.WebControls.LinkButton lnkCambiarPassword;
         protected global::System.Web.UI.WebControls.Panel pnlPasswordResumen;
         protected global::System.Web.UI.WebControls.Panel pnlCambiarPassword;

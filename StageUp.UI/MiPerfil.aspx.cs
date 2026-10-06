@@ -238,6 +238,51 @@ namespace StageUp.UI
                 : "Falta integrar los procedimientos de perfil en la base de datos";
         }
 
+        // CU-001-007: desde el perfil se pide la habilitación como gestor o se
+        // consulta su estado (la solicitud se completa en "Ofrecer espacio").
+        private void CargarEstadoGestor(UsuarioExterno usuario)
+        {
+            if (string.Equals(usuario.PerfilUsuario, "GestorEspacios", StringComparison.OrdinalIgnoreCase))
+            {
+                litGestorTitulo.Text = "Sos gestor de espacios";
+                litGestorTexto.Text = "Podés publicar y administrar tus espacios, su disponibilidad y sus actividades internas.";
+                lnkGestorAccion.Text = "Ir a Mis espacios";
+                lnkGestorAccion.NavigateUrl = "~/MisEspacios.aspx";
+                return;
+            }
+
+            SolicitudHabilitacionGestor ultima = null;
+            try
+            {
+                ultima = new BLL_SolicitudHabilitacionGestor().ObtenerUltima(usuario.IdUsuarioExterno);
+            }
+            catch (Exception)
+            {
+                ultima = null;
+            }
+
+            lnkGestorAccion.NavigateUrl = "~/OfrecerEspacio.aspx";
+            if (ultima != null && ultima.Estado == SolicitudHabilitacionGestor.EstadoPendienteRevision)
+            {
+                litGestorTitulo.Text = "Solicitud de habilitación pendiente";
+                litGestorTexto.Text = "Enviaste la solicitud el " + ultima.FechaSolicitud.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) +
+                    ". Un administrador la está revisando; te avisamos cuando se resuelva.";
+                lnkGestorAccion.Text = "Ver estado";
+            }
+            else if (ultima != null && ultima.Estado == SolicitudHabilitacionGestor.EstadoRechazada)
+            {
+                litGestorTitulo.Text = "Tu solicitud de habilitación fue rechazada";
+                litGestorTexto.Text = "Podés ver el motivo y enviar una nueva solicitud con los datos corregidos.";
+                lnkGestorAccion.Text = "Ver motivo y reenviar";
+            }
+            else
+            {
+                litGestorTitulo.Text = "¿Querés ofrecer un espacio?";
+                litGestorTexto.Text = "Para publicar espacios artísticos en StageUp, primero solicitá la habilitación como gestor. Un administrador revisa cada solicitud.";
+                lnkGestorAccion.Text = "Solicitar habilitación como gestor";
+            }
+        }
+
         private void CargarPerfil()
         {
             int idUsuario = GestorDeSesion.ObtenerIdUsuarioActual().Value;
@@ -255,6 +300,7 @@ namespace StageUp.UI
             litNombreResumen.Text = (usuario.Nombre + " " + usuario.Apellido).Trim();
             litCorreoResumen.Text = usuario.CorreoElectronico;
             litPerfilUsuario.Text = ObtenerNombrePerfil(usuario.PerfilUsuario);
+            CargarEstadoGestor(usuario);
             litIniciales.Text = ObtenerIniciales(usuario.Nombre, usuario.Apellido);
             litNombre.Text = usuario.Nombre;
             litApellido.Text = usuario.Apellido;

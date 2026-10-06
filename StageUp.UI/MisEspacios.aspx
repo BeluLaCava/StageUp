@@ -43,6 +43,7 @@
                             <div class="managed-space-actions">
                                 <a class="text-link" href='<%# "Explorar/DetalleEspacio.aspx?id=" + Eval("IdEspacioArtistico") %>'>Ver detalle</a>
                                 <a class="text-link" href='<%# "DisponibilidadEspacio.aspx?id=" + Eval("IdEspacioArtistico") %>'>Disponibilidad</a>
+                                <a class="text-link" href='<%# "MisActividades.aspx?espacio=" + Eval("IdEspacioArtistico") %>'>Actividades</a>
                                 <a class="text-link" href='<%# "Explorar/DetalleEspacio.aspx?id=" + Eval("IdEspacioArtistico") + "#space-reviews-title" %>' data-i18n="Calificacion_VerResenas">Ver reseñas</a>
                                 <asp:LinkButton ID="lnkEditar" runat="server" CssClass="text-link" CausesValidation="false"
                                     CommandName="Editar" CommandArgument='<%# Eval("IdEspacioArtistico") %>' Text="Editar" />

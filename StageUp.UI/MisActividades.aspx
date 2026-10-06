@@ -48,12 +48,17 @@
                             <header class="activities-board-header">
                                 <div>
                                     <h2 id="activities-board-title">Programación cargada</h2>
-                                    <p>Actividades activas y el horario que bloquean para reservas externas.</p>
+                                    <p>Actividades internas y el horario que bloquean para reservas externas. Tocá «Ver» para el detalle.</p>
                                 </div>
-                                <div class="activities-board-filter" aria-label="Filtros visuales">
-                                    <span>Todo</span>
-                                    <span>Esta semana</span>
-                                    <span>Activas</span>
+                                <div class="activities-board-filter activities-board-filters" aria-label="Filtros del listado">
+                                    <label for="<%= ddlFiltroEstado.ClientID %>">Estado</label>
+                                    <asp:DropDownList ID="ddlFiltroEstado" runat="server" AutoPostBack="true" OnSelectedIndexChanged="Filtros_Changed">
+                                        <asp:ListItem Value="Activas" Selected="True">Activas</asp:ListItem>
+                                        <asp:ListItem Value="Inactivas">Dadas de baja</asp:ListItem>
+                                        <asp:ListItem Value="Todas">Todas</asp:ListItem>
+                                    </asp:DropDownList>
+                                    <label for="<%= ddlFiltroEspacio.ClientID %>">Espacio</label>
+                                    <asp:DropDownList ID="ddlFiltroEspacio" runat="server" AutoPostBack="true" OnSelectedIndexChanged="Filtros_Changed" />
                                 </div>
                             </header>
 
@@ -71,6 +76,9 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        <asp:PlaceHolder ID="phSinActividades" runat="server" Visible="false">
+                                            <tr><td colspan="7"><asp:Literal ID="litSinActividades" runat="server" Mode="Encode" /></td></tr>
+                                        </asp:PlaceHolder>
                                         <asp:Repeater ID="rptActividades" runat="server" OnItemCommand="rptActividades_ItemCommand">
                                             <ItemTemplate>
                                                 <tr>
@@ -84,11 +92,12 @@
                                                     <td><%#: Eval("Cupo") %></td>
                                                     <td><span class='<%# Eval("ClaseEstado") %>'><%#: Eval("Estado") %></span></td>
                                                     <td class="activities-row-actions">
-                                                        <a class="text-link" href="#" onclick="return false;">Ver</a>
-                                                        <a class="text-link" href="#" onclick="return false;">Editar</a>
-                                                        <asp:LinkButton runat="server" CssClass="text-link text-link-danger" CausesValidation="false"
-                                                            CommandName="Baja" CommandArgument='<%# Eval("IdActividad") %>' Text="Dar de baja"
-                                                            OnClientClick="return confirm('¿Seguro que querés dar de baja esta actividad? Se libera el horario que tenía bloqueado.');" />
+                                                        <asp:LinkButton runat="server" CssClass="text-link" CausesValidation="false"
+                                                            CommandName="Ver" CommandArgument='<%# Eval("IdActividad") %>' Text="Ver" />
+                                                        <asp:LinkButton runat="server" CssClass="text-link" CausesValidation="false" Visible='<%# (bool)Eval("Activa") %>'
+                                                            CommandName="Editar" CommandArgument='<%# Eval("IdActividad") %>' Text="Editar" />
+                                                        <asp:LinkButton runat="server" CssClass="text-link text-link-danger" CausesValidation="false" Visible='<%# (bool)Eval("Activa") %>'
+                                                            CommandName="Baja" CommandArgument='<%# Eval("IdActividad") %>' Text="Dar de baja" />
                                                     </td>
                                                 </tr>
                                             </ItemTemplate>
@@ -180,7 +189,7 @@
                 <dialog class="activity-editor" open aria-labelledby="activity-form-title">
                     <asp:LinkButton ID="lnkCerrarActividad" runat="server" CssClass="activity-editor-close" CausesValidation="false" OnClick="lnkCerrarActividad_Click" aria-label="Cerrar">×</asp:LinkButton>
                     <div class="auth-card-header">
-                        <h2 id="activity-form-title">Nueva actividad interna</h2>
+                        <h2 id="activity-form-title"><asp:Literal ID="litTituloActividad" runat="server" Text="Nueva actividad interna" /></h2>
                         <p>Cargá la programación estable del espacio. Estos horarios se usarán luego para bloquear disponibilidad frente a reservas externas.</p>
                     </div>
 
@@ -325,6 +334,57 @@
                 </dialog>
             </asp:Panel>
 
+            <%-- CU-001-009 A6: detalle de la actividad interna, con editar y baja (A9 a A11). --%>
+            <asp:Panel ID="pnlDetalleActividad" runat="server" Visible="false" CssClass="activity-dialog-layer">
+                <dialog class="activity-editor activity-detail" open aria-labelledby="activity-detail-title">
+                    <asp:LinkButton ID="lnkCerrarDetalle" runat="server" CssClass="activity-editor-close" CausesValidation="false" OnClick="lnkCerrarDetalle_Click" aria-label="Cerrar">×</asp:LinkButton>
+                    <div class="auth-card-header">
+                        <span class="section-label">Detalle de actividad interna</span>
+                        <h2 id="activity-detail-title"><asp:Literal ID="litDetalleNombre" runat="server" Mode="Encode" /></h2>
+                        <p><asp:Label ID="lblDetalleEstado" runat="server" /> <asp:Literal ID="litDetalleTipo" runat="server" Mode="Encode" /></p>
+                    </div>
+
+                    <asp:Panel ID="pnlDetalleMensaje" runat="server" Visible="false" CssClass="form-message" role="status">
+                        <asp:Literal ID="litDetalleMensaje" runat="server" Mode="Encode" />
+                    </asp:Panel>
+
+                    <dl class="activity-detail-grid">
+                        <div><dt>Espacio</dt><dd><asp:Literal ID="litDetalleEspacio" runat="server" Mode="Encode" /></dd></div>
+                        <div><dt>Programación</dt><dd><asp:Literal ID="litDetalleProgramacion" runat="server" Mode="Encode" /></dd></div>
+                        <div><dt>Horario</dt><dd><asp:Literal ID="litDetalleHorario" runat="server" Mode="Encode" /></dd></div>
+                        <div><dt>Duración</dt><dd><asp:Literal ID="litDetalleDuracion" runat="server" Mode="Encode" /></dd></div>
+                        <div><dt>Cupo máximo</dt><dd><asp:Literal ID="litDetalleCupo" runat="server" Mode="Encode" /></dd></div>
+                        <div><dt>Participantes estimados</dt><dd><asp:Literal ID="litDetalleEstimados" runat="server" Mode="Encode" /></dd></div>
+                        <div class="activity-detail-wide"><dt>Próximas fechas en que bloquea el espacio</dt><dd><asp:Literal ID="litDetalleProximas" runat="server" Mode="Encode" /></dd></div>
+                        <div class="activity-detail-wide"><dt>Notas internas</dt><dd><asp:Literal ID="litDetalleNotas" runat="server" Mode="Encode" /></dd></div>
+                        <div class="activity-detail-wide"><dt>Alta y última modificación</dt><dd><asp:Literal ID="litDetalleFechas" runat="server" Mode="Encode" /></dd></div>
+                    </dl>
+
+                    <h3 class="activity-detail-subtitle">Participantes <asp:Literal ID="litDetalleCantidadParticipantes" runat="server" Mode="Encode" /></h3>
+                    <asp:Literal ID="litDetalleSinParticipantes" runat="server" Visible="false" Text="&lt;p class=&quot;activity-detail-empty&quot;&gt;Todavía no tiene participantes asociados.&lt;/p&gt;" />
+                    <ul class="activity-detail-people">
+                        <asp:Repeater ID="rptDetalleParticipantes" runat="server">
+                            <ItemTemplate>
+                                <li><strong><%# Server.HtmlEncode(Convert.ToString(Eval("NombreCompleto"))) %></strong> <span>DNI <%# Server.HtmlEncode(Convert.ToString(Eval("Dni"))) %></span></li>
+                            </ItemTemplate>
+                        </asp:Repeater>
+                    </ul>
+
+                    <div class="form-actions activity-editor-actions">
+                        <asp:Button ID="btnEditarDesdeDetalle" runat="server" CssClass="button button-primary" Text="Editar actividad" CausesValidation="false" OnClick="btnEditarDesdeDetalle_Click" />
+                        <asp:Button ID="btnBajaDesdeDetalle" runat="server" CssClass="button button-secondary" Text="Dar de baja actividad" CausesValidation="false" OnClick="btnBajaDesdeDetalle_Click" />
+                        <asp:LinkButton ID="lnkVolverListado" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCerrarDetalle_Click">Volver al listado</asp:LinkButton>
+                    </div>
+
+                    <%-- A9 paso 2 y A11. --%>
+                    <asp:Panel ID="pnlConfirmarBajaActividad" runat="server" Visible="false" CssClass="activity-confirm" role="alertdialog">
+                        <p><strong>¿Dar de baja esta actividad?</strong> Va a dejar de considerarse dentro de la programación activa del espacio y en el cálculo de disponibilidad, pero se conserva su información histórica.</p>
+                        <asp:Button ID="btnConfirmarBajaActividad" runat="server" CssClass="button button-primary" Text="Sí, dar de baja" CausesValidation="false" OnClick="btnConfirmarBajaActividad_Click" />
+                        <asp:LinkButton ID="lnkCancelarBajaActividad" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCancelarBajaActividad_Click">Cancelar</asp:LinkButton>
+                    </asp:Panel>
+                </dialog>
+            </asp:Panel>
+
             <asp:Panel ID="pnlFormularioParticipante" runat="server" Visible="false" CssClass="activity-dialog-layer">
                 <dialog class="activity-editor participant-editor" open aria-labelledby="participant-form-title">
                     <asp:LinkButton ID="lnkCerrarParticipante" runat="server" CssClass="activity-editor-close" CausesValidation="false" OnClick="lnkCerrarParticipante_Click" aria-label="Cerrar">×</asp:LinkButton>
@@ -407,6 +467,23 @@
         .activities-board-filter { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
         .activities-board-filter span { padding: 8px 12px; color: var(--color-primary); background: var(--color-nude-light); border: 1px solid rgba(109,16,33,.16); border-radius: 999px; font-size: 13px; font-weight: 700; }
         .activities-table-wrap { overflow-x: auto; }
+        .activities-board-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+        .activities-board-filters label { font-size: 13px; color: var(--color-text-muted); font-weight: 600; }
+        .activities-board-filters select { min-width: 150px; }
+        .activities-status-inactive { background: rgba(118, 95, 85, .12); color: var(--color-text-muted); }
+        .activity-detail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 20px; margin: 0 0 18px; }
+        .activity-detail-grid > div { min-width: 0; }
+        .activity-detail-grid dt { color: var(--color-text-muted); font-size: 13px; }
+        .activity-detail-grid dd { margin: 2px 0 0; font-weight: 600; color: var(--color-text); overflow-wrap: anywhere; }
+        .activity-detail-wide { grid-column: 1 / -1; }
+        .activity-detail-subtitle { margin: 0 0 8px; font-size: 1.05rem; }
+        .activity-detail-people { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+        .activity-detail-people li { padding: 6px 12px; border-radius: 999px; background: rgba(243,223,209,.45); }
+        .activity-detail-people span { color: var(--color-text-muted); font-size: 13px; }
+        .activity-detail-empty { color: var(--color-text-muted); margin: 0 0 16px; }
+        .activity-confirm { margin-top: 14px; padding: 14px 16px; border-radius: 12px; border: 2px solid var(--color-primary); }
+        .activity-confirm p { margin: 0 0 12px; }
+        @media (max-width: 700px) { .activity-detail-grid { grid-template-columns: 1fr; } }
         .activities-table { width: 100%; border-collapse: collapse; min-width: 880px; }
         .activities-table th { padding: 14px 18px; color: var(--color-brown-dark); background: rgba(243,223,209,.36); font-size: 13px; text-align: left; }
         .activities-table td { padding: 18px; border-top: 1px solid var(--color-border); color: var(--color-text-muted); vertical-align: top; }
@@ -574,7 +651,31 @@
                 }
             }
 
+            // CU-001-009 A7: al editar (o al volver de un error) la programación
+            // guardada llega en el campo oculto y se vuelve a mostrar.
+            function restoreActivitySchedule() {
+                if (!repeatMode || !scheduleHidden || !scheduleHidden.value) {
+                    return;
+                }
+                var saved;
+                try { saved = JSON.parse(scheduleHidden.value); } catch (e) { return; }
+                if (!saved) {
+                    return;
+                }
+                var mode = saved.modo || saved.Modo;
+                if (mode === 'weekly' || mode === 'monthly' || mode === 'date') {
+                    repeatMode.value = mode;
+                }
+                var savedDate = saved.fecha || saved.Fecha;
+                if (dateInput && savedDate) { dateInput.value = savedDate; }
+                var savedWeek = saved.semanaDelMes || saved.SemanaDelMes;
+                if (monthWeek && savedWeek) { monthWeek.value = savedWeek; }
+                var savedDay = saved.diaDelMes || saved.DiaDelMes;
+                if (monthDay && savedDay) { monthDay.value = savedDay; }
+            }
+
             if (repeatMode) {
+                restoreActivitySchedule();
                 repeatMode.addEventListener('change', updateActivitySchedule);
                 if (dateInput) { dateInput.addEventListener('change', updateActivitySchedule); }
                 if (monthWeek) { monthWeek.addEventListener('change', updateActivitySchedule); }
@@ -659,6 +760,18 @@
                     picker.classList.remove('is-open');
                 }
             });
+
+            // Participantes ya asociados (edición o vuelta de un error).
+            if (hidden && hidden.value) {
+                var initialIds = hidden.value.split(',');
+                for (var n = 0; n < initialIds.length; n++) {
+                    for (var o = 0; o < options.length; o++) {
+                        if (options[o].getAttribute('data-participant-id') === initialIds[n]) {
+                            addParticipant(initialIds[n], options[o].getAttribute('data-participant-name'));
+                        }
+                    }
+                }
+            }
         })();
     </script>
 </asp:Content>

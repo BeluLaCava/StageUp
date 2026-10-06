@@ -77,6 +77,8 @@ namespace StageUp.UI.Explorar
             lnkEditarGestion.NavigateUrl = "~/MisEspacios.aspx?editar=" + espacio.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture);
             // CU-001-008 paso 7.
             lnkDisponibilidadGestion.NavigateUrl = "~/DisponibilidadEspacio.aspx?id=" + espacio.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture);
+            // CU-001-009 paso 7.
+            lnkActividadesGestion.NavigateUrl = "~/MisActividades.aspx?espacio=" + espacio.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture);
             lnkPublicarGestion.Visible = !espacio.Publicado;
             lnkPausarGestion.Visible = espacio.Publicado;
         }

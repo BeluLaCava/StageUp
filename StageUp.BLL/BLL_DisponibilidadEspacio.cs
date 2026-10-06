@@ -851,7 +851,7 @@ namespace StageUp.BLL
         }
 
         // ¿Hay algún día en que rijan las dos franjas?
-        private static bool CompartenDias(FranjaEspacio a, FranjaEspacio b)
+        internal static bool CompartenDias(FranjaEspacio a, FranjaEspacio b)
         {
             bool aFecha = EsDeFechaConcreta(a);
             bool bFecha = EsDeFechaConcreta(b);
@@ -889,7 +889,7 @@ namespace StageUp.BLL
             return desde1 < hasta2 && desde2 < hasta1;
         }
 
-        private static bool YaPaso(FranjaEspacio franja)
+        internal static bool YaPaso(FranjaEspacio franja)
         {
             DateTime fecha;
             return EsDeFechaConcreta(franja) &&

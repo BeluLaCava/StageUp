@@ -290,6 +290,13 @@
     <Compile Include="Pagar.aspx.designer.cs">
       <DependentUpon>Pagar.aspx</DependentUpon>
     </Compile>
+    <Compile Include="DetalleReserva.aspx.cs">
+      <DependentUpon>DetalleReserva.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="DetalleReserva.aspx.designer.cs">
+      <DependentUpon>DetalleReserva.aspx</DependentUpon>
+    </Compile>
     <Compile Include="MiCuentaCorriente.aspx.cs">
       <DependentUpon>MiCuentaCorriente.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -429,6 +436,7 @@
     <Content Include="Interno\BusquedaInterna.aspx" />
     <Content Include="Interno\Reportes.aspx" />
     <Content Include="Pagar.aspx" />
+    <Content Include="DetalleReserva.aspx" />
     <Content Include="MiCuentaCorriente.aspx" />
     <Content Include="Interno\GestionCuentasCorrientes.aspx" />
     <Content Include="Interno\ParametrosPlataforma.aspx" />

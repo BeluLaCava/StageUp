@@ -3,6 +3,12 @@ namespace StageUp.UI
 {
     public partial class SolicitudesRecibidas
     {
+        protected global::System.Web.UI.WebControls.DropDownList ddlFiltroEstado;
+
+        protected global::System.Web.UI.WebControls.Literal litCantidadFiltrada;
+
+        protected global::System.Web.UI.WebControls.Panel pnlSinResultadosFiltro;
+
         protected global::System.Web.UI.WebControls.Panel pnlMensaje;
         protected global::System.Web.UI.WebControls.Literal litMensaje;
 

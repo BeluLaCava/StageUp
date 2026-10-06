@@ -14,7 +14,7 @@
         <div class="static-page-header internal-page-hero">
             <span class="section-label">Administración</span>
             <h1>Parámetros de la plataforma</h1>
-            <p>Comisión de StageUp, plazo de pago de las reservas y penalidad por cancelación. Los cambios se aplican a las operaciones nuevas.</p>
+            <p>Comisión de StageUp, plazo de pago de las reservas y política de cancelación (plazos y cargos). La comisión y el plazo de pago se aplican a las operaciones nuevas; la política de cancelación, a las cancelaciones que se hagan desde ahora.</p>
         </div>
 
         <asp:Panel ID="pnlMensaje" runat="server" Visible="false" CssClass="form-message">

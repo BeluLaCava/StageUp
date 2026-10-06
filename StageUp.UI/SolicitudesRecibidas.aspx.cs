@@ -39,6 +39,7 @@ namespace StageUp.UI
 
             if (!IsPostBack)
             {
+                CargarFiltros();
                 CargarSolicitudesRecibidas();
             }
         }
@@ -148,10 +149,31 @@ namespace StageUp.UI
             txtComentarioCalificacionSolicitante.Text = string.Empty;
         }
 
+        // CU-001-005 A7: filtro por estado para el gestor.
+        private void CargarFiltros()
+        {
+            ddlFiltroEstado.Items.Clear();
+            ddlFiltroEstado.Items.Add(new ListItem("Todas", BLL_Reserva.FiltroTodas));
+            ddlFiltroEstado.Items.Add(new ListItem("Pendientes de respuesta", BLL_Reserva.FiltroPendientes));
+            ddlFiltroEstado.Items.Add(new ListItem("Aceptadas", BLL_Reserva.FiltroProximas));
+            ddlFiltroEstado.Items.Add(new ListItem("Aceptadas con pago pendiente", BLL_Reserva.FiltroPendientesDePago));
+            ddlFiltroEstado.Items.Add(new ListItem("Finalizadas", BLL_Reserva.FiltroFinalizadas));
+            ddlFiltroEstado.Items.Add(new ListItem("Rechazadas", BLL_Reserva.FiltroRechazadas));
+            ddlFiltroEstado.Items.Add(new ListItem("Canceladas", BLL_Reserva.FiltroCanceladas));
+        }
+
+        protected void ddlFiltroEstado_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            pnlMensaje.Visible = false;
+            CargarSolicitudesRecibidas();
+        }
+
         private void CargarSolicitudesRecibidas()
         {
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
             List<Reserva> solicitudes = _bllReserva.ListarSolicitudesRecibidas(idUsuarioGestor);
+            string filtro = ddlFiltroEstado.SelectedValue;
+            List<Reserva> filtradas = solicitudes.FindAll(r => BLL_Reserva.CumpleFiltroHistorial(r, filtro));
 
             int cantidadPendientes = 0;
             foreach (Reserva solicitud in solicitudes)
@@ -166,7 +188,10 @@ namespace StageUp.UI
             litCantidadResueltas.Text = (solicitudes.Count - cantidadPendientes).ToString(CultureInfo.InvariantCulture);
             litCantidadTotal.Text = solicitudes.Count.ToString(CultureInfo.InvariantCulture);
             pnlSinSolicitudes.Visible = solicitudes.Count == 0;
-            rptSolicitudes.DataSource = solicitudes;
+            pnlSinResultadosFiltro.Visible = solicitudes.Count > 0 && filtradas.Count == 0;
+            litCantidadFiltrada.Text = solicitudes.Count == 0 ? string.Empty
+                : HttpUtility.HtmlEncode(filtradas.Count + (filtradas.Count == 1 ? " solicitud" : " solicitudes"));
+            rptSolicitudes.DataSource = filtradas;
             rptSolicitudes.DataBind();
         }
 

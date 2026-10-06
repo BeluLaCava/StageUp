@@ -93,6 +93,7 @@ namespace StageUp.UI
             Panel pnlCalificacionRealizada = (Panel)e.Item.FindControl("pnlCalificacionEspacioRealizada");
             bool puedeCancelar = reserva.EstadoReserva == "Pendiente" || reserva.EstadoReserva == "Aceptada";
             lnkCancelar.Visible = puedeCancelar;
+            lnkCancelar.Text = reserva.EstadoReserva == "Pendiente" ? "Cancelar solicitud" : "Cancelar reserva";
             if (puedeCancelar)
             {
                 lnkCancelar.Attributes["onclick"] =

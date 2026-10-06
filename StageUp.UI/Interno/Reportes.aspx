@@ -162,7 +162,7 @@
                         <div class="rep-tile">
                             <span class="rep-tile-label">Comisiones por cancelación</span>
                             <span class="rep-tile-valor"><asp:Literal ID="litKpiComisiones" runat="server" /></span>
-                            <span class="rep-tile-sub">Cancelaciones con menos de 24 hs</span>
+                            <span class="rep-tile-sub">Cargos por cancelar fuera del plazo sin cargo</span>
                         </div>
                         <div class="rep-tile">
                             <span class="rep-tile-label">Reservas solicitadas</span>

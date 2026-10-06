@@ -210,7 +210,7 @@ namespace StageUp.Servicios
                 },
                 EsperaPago(reserva)
                     ? "Podés pagar con tarjeta, con tu saldo a favor o combinando los dos. Si no se paga a tiempo, la reserva se cancela sola, sin cargo."
-                    : "Si necesitás cancelarla, hacelo desde Mis reservas. Cancelar con poca anticipación tiene una comisión.",
+                    : "Si necesitás cancelarla, hacelo desde Mis reservas. Según la anticipación con la que canceles puede corresponder un cargo: lo ves en el detalle de la reserva antes de confirmar.",
                 "Tu reserva fue aceptada: " + reserva.NombreEspacio);
         }
 
@@ -331,7 +331,7 @@ namespace StageUp.Servicios
                     "Podés ver el detalle del pago y tus movimientos en Mi cuenta corriente."
                 },
                 Detalles = detalles,
-                Nota = "Si cancelás la reserva, lo que pagaste vuelve como saldo a favor (con penalidad si cancelás con poca anticipación)."
+                Nota = "Si cancelás la reserva, lo que pagaste vuelve como saldo a favor, descontando el cargo por cancelación que corresponda según la anticipación."
             });
 
             return Enviar(destinatario, "Comprobante de pago: " + reserva.NombreEspacio, cuerpo);

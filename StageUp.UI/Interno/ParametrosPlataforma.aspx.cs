@@ -33,31 +33,26 @@ namespace StageUp.UI.Interno
             }
 
             int idResponsable = GestorDeSesion.ObtenerIdUsuarioInternoActual().Value;
-            List<string> errores = new List<string>();
-            int cambios = 0;
+            Dictionary<string, string> valores = new Dictionary<string, string>();
 
             foreach (RepeaterItem item in rptParametros.Items)
             {
                 HiddenField hfClave = (HiddenField)item.FindControl("hfClave");
                 TextBox txtValor = (TextBox)item.FindControl("txtValor");
-                ResultadoOperacion resultado = _bllParametros.Actualizar(hfClave.Value, txtValor.Text, idResponsable);
-                if (!resultado.Exitoso)
-                {
-                    errores.Add(resultado.Mensaje);
-                }
-                else if (!string.IsNullOrEmpty(resultado.Mensaje))
-                {
-                    cambios++;
-                }
+                valores[hfClave.Value] = txtValor.Text;
             }
 
-            if (errores.Count > 0)
+            // Se validan y guardan todos juntos: los plazos y porcentajes de
+            // cancelación dependen unos de otros.
+            ResultadoOperacion resultado = _bllParametros.ActualizarVarios(valores, idResponsable);
+            if (!resultado.Exitoso)
             {
-                MostrarMensaje(string.Join(" ", errores), true);
+                MostrarMensaje(resultado.Mensaje, true);
                 return;
             }
 
-            MostrarMensaje(cambios == 0 ? "No había cambios para guardar." : "Se guardaron los cambios.", false);
+            bool hayCambios = !string.IsNullOrEmpty(resultado.Mensaje);
+            MostrarMensaje(hayCambios ? "Se guardaron los cambios." : "No había cambios para guardar.", false);
             CargarParametros();
         }
 

@@ -73,7 +73,7 @@
                     <span class="legal-section-number" aria-hidden="true">05</span>
                     <div>
                         <h2 data-i18n="Terms_PreciosTitulo">Precios y cancelaciones</h2>
-                        <p data-i18n="Terms_PreciosTexto">El valor estimado se calcula a partir del precio por hora publicado y la duración solicitada. Las condiciones de pago deben ser informadas con claridad. Si una reserva aceptada se cancela con menos de 24 horas de anticipación, la plataforma puede calcular una comisión del 10 por ciento del valor total.</p>
+                        <p data-i18n="Terms_PreciosTexto">El valor estimado se calcula a partir del precio por hora publicado y la duración solicitada. Una solicitud pendiente se puede cancelar sin cargo. Una reserva aceptada se cancela sin cargo con al menos 14 días de anticipación; con menos de 14 y al menos 7 días se cobra el 50 % de su valor, y con menos de 7 días, el 100 %. Lo pagado vuelve como saldo a favor, descontando el cargo que corresponda.</p>
                     </div>
                 </section>
 

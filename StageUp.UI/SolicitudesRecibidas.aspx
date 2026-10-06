@@ -32,8 +32,18 @@
                 </article>
             </div>
 
+            <div class="requests-filter" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin: 0 0 1rem;">
+                <label for="<%= ddlFiltroEstado.ClientID %>">Mostrar</label>
+                <asp:DropDownList ID="ddlFiltroEstado" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ddlFiltroEstado_SelectedIndexChanged" />
+                <asp:Literal ID="litCantidadFiltrada" runat="server" />
+            </div>
+
             <asp:Panel ID="pnlMensaje" runat="server" Visible="false" CssClass="form-message requests-message">
                 <asp:Literal ID="litMensaje" runat="server" />
+            </asp:Panel>
+
+            <asp:Panel ID="pnlSinResultadosFiltro" runat="server" CssClass="requests-empty" Visible="false">
+                <p>No hay solicitudes con ese estado.</p>
             </asp:Panel>
 
             <asp:Panel ID="pnlSinSolicitudes" runat="server" CssClass="requests-empty" Visible="false">
@@ -136,6 +146,8 @@
                                     </ol>
                                 </details>
                             </section>
+
+                            <p style="margin: 0.75rem 0 0;"><a class="text-link" href='<%#: "DetalleReserva.aspx?id=" + Eval("IdReserva") %>'>Ver detalle de la solicitud</a></p>
 
                             <asp:Panel ID="pnlAcciones" runat="server" CssClass="request-card-actions">
                                 <span>¿Querés aceptar esta solicitud?</span>

@@ -81,6 +81,49 @@ namespace StageUp.MPP
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
+        // CU-001-005 A8/A9: reserva con los datos del espacio, del gestor y del
+        // solicitante para la pantalla de detalle.
+        public Reserva ObtenerDetalle(Reserva oReserva)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_Reserva_ObtenerDetalle",
+                new Hashtable { { "@idReserva", oReserva.IdReserva } });
+            if (tabla.Rows.Count == 0)
+            {
+                return null;
+            }
+
+            DataRow fila = tabla.Rows[0];
+            Reserva reserva = MapearDesdeFila(fila);
+            reserva.TipoEspacio = LeerTexto(fila, "tipoEspacio");
+            reserva.ProvinciaEspacio = LeerTexto(fila, "provinciaEspacio");
+            reserva.CiudadEspacio = LeerTexto(fila, "ciudadEspacio");
+            reserva.DireccionEspacio = LeerTexto(fila, "direccionEspacio");
+            reserva.TipoPiso = LeerTexto(fila, "tipoPiso");
+            reserva.DetalleEquipamiento = LeerTexto(fila, "detalleEquipamiento");
+            reserva.CapacidadMaxima = fila.Table.Columns.Contains("capacidadMaxima") && fila["capacidadMaxima"] != DBNull.Value
+                ? Convert.ToInt32(fila["capacidadMaxima"]) : (int?)null;
+            return reserva;
+        }
+
+        // CU-001-005 A10/A11: false si la solicitud ya no estaba pendiente.
+        public bool Rechazar(Reserva oReserva)
+        {
+            object filas = Conexion.Instance.LeerEscalar(
+                "sp_Reserva_Rechazar",
+                new Hashtable
+                {
+                    { "@idReserva", oReserva.IdReserva },
+                    { "@comentarioResolucion", (object)oReserva.ComentarioResolucion ?? DBNull.Value }
+                });
+            return filas != null && filas != DBNull.Value && Convert.ToInt32(filas) > 0;
+        }
+
+        private static string LeerTexto(DataRow fila, string columna)
+        {
+            return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value ? fila[columna].ToString() : null;
+        }
+
         public void Resolver(Reserva oReserva)
         {
             Conexion.Instance.Guardar(

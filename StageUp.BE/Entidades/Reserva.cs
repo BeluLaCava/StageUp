@@ -45,5 +45,25 @@ namespace StageUp.BE.Entidades
         public bool CalificacionEspacioRealizada { get; set; }
         public bool CalificacionSolicitanteRealizada { get; set; }
         public List<Calificacion> CalificacionesSolicitante { get; set; } = new List<Calificacion>();
+
+        // Detalle de reserva (CU-001-005 A8): datos del espacio que muestra
+        // la pantalla DetalleReserva.aspx (sp_Reserva_ObtenerDetalle).
+        public string TipoEspacio { get; set; }
+        public string ProvinciaEspacio { get; set; }
+        public string CiudadEspacio { get; set; }
+        public string DireccionEspacio { get; set; }
+        public int? CapacidadMaxima { get; set; }
+        public string TipoPiso { get; set; }
+        public string DetalleEquipamiento { get; set; }
+    }
+
+    // Política de cancelación vigente (CU-001-005 A14 a A16), tomada de los
+    // parámetros de la plataforma.
+    public class PoliticaCancelacion
+    {
+        public int DiasSinCargo { get; set; }
+        public int DiasCargoParcial { get; set; }
+        public decimal PorcentajeCargoParcial { get; set; }
+        public decimal PorcentajeCargoTotal { get; set; }
     }
 }

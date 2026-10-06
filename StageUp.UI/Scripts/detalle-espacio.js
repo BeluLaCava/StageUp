@@ -228,7 +228,12 @@
         });
 
         var disponibles = franjasParaFecha(disponibilidadRows, dateValue, weekday);
-        var bloqueadosDelDia = franjasParaFecha(bloqueadoRows, dateValue, weekday);
+        // CU-001-008: los bloqueos (manuales o de actividades) rigen siempre
+        // en su fecha y también los semanales de ese día; un bloqueo de una
+        // fecha no reemplaza a los semanales.
+        var bloqueadosDelDia = bloqueadoRows.filter(function (row) {
+            return row.Fecha === dateValue || (!row.Fecha && row.DiaSemana === weekday);
+        });
         var ocupadosDelDia = occupiedRows.filter(function (occupied) {
             return occupied.Fecha === dateValue;
         });

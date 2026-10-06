@@ -42,6 +42,7 @@
                             </div>
                             <div class="managed-space-actions">
                                 <a class="text-link" href='<%# "Explorar/DetalleEspacio.aspx?id=" + Eval("IdEspacioArtistico") %>'>Ver detalle</a>
+                                <a class="text-link" href='<%# "DisponibilidadEspacio.aspx?id=" + Eval("IdEspacioArtistico") %>'>Disponibilidad</a>
                                 <a class="text-link" href='<%# "Explorar/DetalleEspacio.aspx?id=" + Eval("IdEspacioArtistico") + "#space-reviews-title" %>' data-i18n="Calificacion_VerResenas">Ver reseñas</a>
                                 <asp:LinkButton ID="lnkEditar" runat="server" CssClass="text-link" CausesValidation="false"
                                     CommandName="Editar" CommandArgument='<%# Eval("IdEspacioArtistico") %>' Text="Editar" />
@@ -140,8 +141,15 @@
                     </section>
                     <section class="space-form-section">
                         <h3>04 · Disponibilidad</h3>
-                        <p>Agregá uno o varios horarios. Las excepciones reemplazan el horario habitual de esa fecha. Las reservas y actividades ocupadas se controlarán por separado.</p>
                         <asp:HiddenField ID="hdnDisponibilidad" runat="server" ClientIDMode="Static" Value="[]" />
+                        <%-- CU-001-008: al editar un espacio la disponibilidad se gestiona desde su propia pantalla. --%>
+                        <asp:Panel ID="pnlDisponibilidadGestionada" runat="server" CssClass="space-assist" Visible="false">
+                            <p><asp:Literal ID="litResumenDisponibilidad" runat="server" Mode="Encode" /></p>
+                            <asp:HyperLink ID="lnkConfigurarDisponibilidad" runat="server" CssClass="button button-secondary button-small" Text="Configurar disponibilidad" />
+                            <small>Desde ahí podés agregar, editar o eliminar horarios y bloquear fechas, con los controles sobre reservas, solicitudes y actividades.</small>
+                        </asp:Panel>
+                        <div id="divEditorDisponibilidad" runat="server">
+                        <p>Definí los horarios iniciales del espacio. Las excepciones reemplazan el horario habitual de esa fecha. Después vas a poder ajustarlos desde «Configurar disponibilidad».</p>
                         <div class="space-fields-grid">
                             <div class="form-field"><label for="schedule-mode">¿Cuándo se repite?</label><select id="schedule-mode"><option value="weekly">Todas las semanas</option><option value="date">Una fecha concreta</option><option value="closed">Cerrar el día completo</option></select></div>
                             <div class="form-field" id="schedule-date-wrap" hidden><label for="schedule-date">Fecha</label><input id="schedule-date" type="date" /></div>
@@ -158,6 +166,7 @@
                         <p id="schedule-error" role="alert"></p>
                         <ul id="schedule-list" class="space-schedule-list"></ul>
                         <small>Para horarios que cruzan medianoche, cargá dos franjas en días consecutivos.</small>
+                        </div>
                     </section>
                     <section class="space-form-section">
                         <h3>05 · Características y equipamiento</h3>

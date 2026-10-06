@@ -44,6 +44,7 @@
     <Compile Include="MPP_CodigoRecuperacion.cs" />
     <Compile Include="MPP_Bitacora.cs" />
     <Compile Include="MPP_EspacioArtistico.cs" />
+    <Compile Include="MPP_FranjaEspacio.cs" />
     <Compile Include="MPP_Reserva.cs" />
     <Compile Include="MPP_Calificacion.cs" />
     <Compile Include="MPP_Faq.cs" />

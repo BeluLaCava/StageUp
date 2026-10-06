@@ -82,6 +82,11 @@ namespace StageUp.BLL
             foreach (string codigo in ficha.Equipamiento)
                 if (!permitidos.Contains(codigo) || !seleccionados.Add(codigo))
                     return ResultadoOperacion.Error("Hay características no válidas o repetidas.");
+            // CU-001-008: al editar un espacio existente la disponibilidad no
+            // viaja con la ficha (null): se gestiona desde "Disponibilidad del
+            // espacio" y se conserva tal cual.
+            if (ficha.Disponibilidad == null && espacio.IdEspacioArtistico != 0)
+                return ResultadoOperacion.Ok();
             if (ficha.Disponibilidad == null || ficha.Disponibilidad.Count == 0 || ficha.Disponibilidad.Count > 100)
                 return ResultadoOperacion.Error("Agregá al menos una franja de disponibilidad (máximo 100).");
             bool tieneHorario = false;
@@ -353,7 +358,8 @@ namespace StageUp.BLL
             // no se tocan. Por las dudas, si el formulario mandara alguna
             // franja de actividad, se descarta antes de guardar para que no
             // quede duplicada como manual.
-            espacio.Ficha.Disponibilidad = ObtenerFranjasEditables(espacio.Ficha);
+            if (espacio.Ficha.Disponibilidad != null)
+                espacio.Ficha.Disponibilidad = ObtenerFranjasEditables(espacio.Ficha);
 
             // La regeneración de bloqueos de actividad se mantiene: es
             // idempotente (borra y recrea solo las franjas de cada actividad

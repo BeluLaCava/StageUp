@@ -54,6 +54,7 @@
     <Compile Include="Entidades\PermisoInterno.cs" />
     <Compile Include="Entidades\UsuarioInterno.cs" />
     <Compile Include="Entidades\EspacioArtistico.cs" />
+    <Compile Include="Entidades\DisponibilidadEspacio.cs" />
     <Compile Include="Entidades\Faq.cs" />
     <Compile Include="Entidades\Encuesta.cs" />
     <Compile Include="Entidades\PreguntaEncuesta.cs" />

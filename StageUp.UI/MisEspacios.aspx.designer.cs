@@ -15,6 +15,10 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.DropDownList ddlMoneda;
         protected global::System.Web.UI.WebControls.CheckBoxList cblEquipamiento;
         protected global::System.Web.UI.WebControls.HiddenField hdnDisponibilidad;
+        protected global::System.Web.UI.WebControls.Panel pnlDisponibilidadGestionada;
+        protected global::System.Web.UI.WebControls.Literal litResumenDisponibilidad;
+        protected global::System.Web.UI.WebControls.HyperLink lnkConfigurarDisponibilidad;
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl divEditorDisponibilidad;
         protected global::System.Web.UI.WebControls.LinkButton lnkNuevoEspacio;
         protected global::System.Web.UI.WebControls.Panel pnlFormularioMensaje;
         protected global::System.Web.UI.WebControls.Literal litFormularioMensaje;

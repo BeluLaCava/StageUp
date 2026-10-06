@@ -53,10 +53,18 @@ namespace StageUp.MPP
                 });
 
             // Solo se limpia lo que el formulario vuelve a mandar completo:
-            // equipamiento, fotos y franjas con origen 'Manual'.
+            // equipamiento, fotos y (al crear el espacio) franjas con origen
+            // 'Manual'. CU-001-008: al editar un espacio la ficha llega sin
+            // disponibilidad (null) y las franjas se conservan, porque se
+            // gestionan desde "Disponibilidad del espacio".
+            bool reemplazarFranjas = ficha.Disponibilidad != null;
             Conexion.Instance.Guardar(
                 "sp_FichaEspacio_LimpiarDatosEditables",
-                new Hashtable { { "@idEspacioArtistico", idEspacioArtistico } });
+                new Hashtable
+                {
+                    { "@idEspacioArtistico", idEspacioArtistico },
+                    { "@incluirFranjas", reemplazarFranjas }
+                });
 
             foreach (string codigo in ficha.Equipamiento ?? new List<string>())
             {
@@ -352,6 +360,13 @@ namespace StageUp.MPP
             return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value ? Convert.ToDecimal(fila[columna]) : (decimal?)null;
         }
 
+        private static int? LeerEnteroOpcional(DataRow fila, string columna)
+        {
+            return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value
+                ? Convert.ToInt32(fila[columna], CultureInfo.InvariantCulture)
+                : (int?)null;
+        }
+
         private static string LeerTexto(DataRow fila, string columna)
         {
             return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value ? fila[columna].ToString() : null;
@@ -429,7 +444,13 @@ namespace StageUp.MPP
                         Bloqueado = Convert.ToBoolean(fila["bloqueado"]),
                         Origen = fila.Table.Columns.Contains("origen") && fila["origen"] != DBNull.Value
                             ? fila["origen"].ToString()
-                            : "Manual"
+                            : "Manual",
+                        // CU-001-008 (script 56): solo los listados del gestor
+                        // traen estas columnas; los públicos no.
+                        IdFranjaEspacio = LeerEnteroOpcional(fila, "idFranjaEspacio"),
+                        MotivoBloqueo = LeerTexto(fila, "motivoBloqueo"),
+                        IdActividad = LeerEnteroOpcional(fila, "idActividad"),
+                        NombreActividad = LeerTexto(fila, "nombreActividad")
                     });
                 }
             }

@@ -38,6 +38,7 @@
                     </asp:Panel>
                     <div class="space-owner-actions">
                         <asp:HyperLink ID="lnkEditarGestion" runat="server" CssClass="button button-primary button-small" Text="Editar espacio" />
+                        <asp:HyperLink ID="lnkDisponibilidadGestion" runat="server" CssClass="button button-secondary button-small" Text="Configurar disponibilidad" />
                         <asp:LinkButton ID="lnkPublicarGestion" runat="server" CssClass="button button-secondary button-small" CausesValidation="false" OnClick="lnkPublicarGestion_Click">Publicar</asp:LinkButton>
                         <asp:LinkButton ID="lnkPausarGestion" runat="server" CssClass="button button-secondary button-small" CausesValidation="false" OnClick="lnkPausarGestion_Click">Pausar</asp:LinkButton>
                         <asp:LinkButton ID="lnkBajaGestion" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkBajaGestion_Click">Dar de baja espacio</asp:LinkButton>

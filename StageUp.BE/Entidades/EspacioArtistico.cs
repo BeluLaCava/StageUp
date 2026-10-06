@@ -66,6 +66,11 @@ namespace StageUp.BE.Entidades
 
     public class FranjaEspacio
     {
+        // CU-001-008 (script 56): identificación de la franja para editarla o
+        // eliminarla de a una desde "Disponibilidad del espacio". Null en las
+        // franjas que todavía no se guardaron.
+        public int? IdFranjaEspacio { get; set; }
+
         public int? DiaSemana { get; set; }
         public string Fecha { get; set; }
         public int MinutoDesde { get; set; }
@@ -75,6 +80,13 @@ namespace StageUp.BE.Entidades
         // "Manual" (cargada desde la ficha en Mis espacios) o "Actividad"
         // (bloqueo generado desde Mis actividades). Null se trata como Manual.
         public string Origen { get; set; }
+
+        // CU-001-008 A8: motivo del bloqueo manual (solo lo ve el gestor).
+        public string MotivoBloqueo { get; set; }
+
+        // Bloqueos generados por una actividad interna (origen "Actividad").
+        public int? IdActividad { get; set; }
+        public string NombreActividad { get; set; }
     }
 
     public class FiltroBusquedaEspacios

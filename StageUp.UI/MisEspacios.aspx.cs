@@ -67,6 +67,12 @@ namespace StageUp.UI
                     {
                         CargarEspacioEnFormulario(idEditar);
                     }
+                    else if (Request.QueryString["nuevo"] == "1")
+                    {
+                        // CU-001-008 A1: llegada desde "Disponibilidad del espacio" sin espacios.
+                        LimpiarFormulario();
+                        pnlFormularioEspacio.Visible = true;
+                    }
                     else if (Request.QueryString["baja"] == "1")
                     {
                         MostrarMensaje("El espacio fue dado de baja. Ya no está disponible para nuevas reservas y su información histórica se conserva.", false);
@@ -305,6 +311,34 @@ namespace StageUp.UI
             // Solo las franjas manuales: los bloqueos de "Mis actividades" no se
             // editan desde la ficha (si se mandaran, volverían como manuales).
             hdnDisponibilidad.Value = new JavaScriptSerializer().Serialize(BLL_EspacioArtistico.ObtenerFranjasEditables(ficha));
+            ConfigurarSeccionDisponibilidad(espacio);
+        }
+
+        // CU-001-008: al crear un espacio se cargan los horarios iniciales en
+        // la ficha; al editarlo, la disponibilidad se gestiona desde
+        // "Disponibilidad del espacio" (con sus validaciones) y la ficha no
+        // la modifica. El editor queda oculto pero en la página, porque el
+        // script de la ficha también maneja el precio y las fotos.
+        private void ConfigurarSeccionDisponibilidad(EspacioArtistico espacio)
+        {
+            bool editando = espacio.IdEspacioArtistico != 0;
+            pnlDisponibilidadGestionada.Visible = editando;
+            if (editando)
+            {
+                divEditorDisponibilidad.Attributes["hidden"] = "hidden";
+                int abiertas = BLL_DisponibilidadEspacio.ListarDisponibilidad(espacio).Count;
+                int bloqueos = BLL_DisponibilidadEspacio.ListarBloqueos(espacio).Count;
+                litResumenDisponibilidad.Text = abiertas == 0
+                    ? "Este espacio todavía no tiene horarios disponibles configurados."
+                    : "Tiene " + abiertas + (abiertas == 1 ? " franja disponible" : " franjas disponibles") +
+                      (bloqueos > 0 ? " y " + bloqueos + (bloqueos == 1 ? " bloqueo" : " bloqueos") : string.Empty) + " configurados.";
+                lnkConfigurarDisponibilidad.NavigateUrl = "~/DisponibilidadEspacio.aspx?id=" +
+                    espacio.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                divEditorDisponibilidad.Attributes.Remove("hidden");
+            }
         }
 
         private void GuardarFichaCompleta(int idUsuarioGestor)
@@ -529,7 +563,8 @@ namespace StageUp.UI
                     AlturaM = alturaOk ? altura : (decimal?)null,
                     CondicionesUso = txtCondicionesUso.Text.Trim(),
                     ReglasUso = txtReglasUso.Text.Trim(),
-                    Disponibilidad = disponibilidad
+                    // CU-001-008: al editar, la ficha no toca la disponibilidad.
+                    Disponibilidad = IdEspacioEnEdicion.HasValue ? null : disponibilidad
                 }
             };
 

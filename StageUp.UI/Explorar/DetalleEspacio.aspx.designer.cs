@@ -69,6 +69,7 @@ namespace StageUp.UI.Explorar
         protected global::System.Web.UI.WebControls.Panel pnlMensajeGestion;
         protected global::System.Web.UI.WebControls.Literal litMensajeGestion;
         protected global::System.Web.UI.WebControls.HyperLink lnkEditarGestion;
+        protected global::System.Web.UI.WebControls.HyperLink lnkDisponibilidadGestion;
         protected global::System.Web.UI.WebControls.LinkButton lnkPublicarGestion;
         protected global::System.Web.UI.WebControls.LinkButton lnkPausarGestion;
         protected global::System.Web.UI.WebControls.LinkButton lnkBajaGestion;

@@ -46,6 +46,7 @@
     <Compile Include="BLL_CodigoRecuperacion.cs" />
     <Compile Include="BLL_UsuarioExterno.cs" />
     <Compile Include="BLL_EspacioArtistico.cs" />
+    <Compile Include="BLL_DisponibilidadEspacio.cs" />
     <Compile Include="BLL_Reserva.cs" />
     <Compile Include="BLL_Calificacion.cs" />
     <Compile Include="BLL_Faq.cs" />

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 using System.Web.UI;
@@ -74,6 +75,8 @@ namespace StageUp.UI.Explorar
                 ? "Se muestra en el catálogo y recibe solicitudes de reserva."
                 : "No se muestra en el catálogo mientras no lo publiques.";
             lnkEditarGestion.NavigateUrl = "~/MisEspacios.aspx?editar=" + espacio.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture);
+            // CU-001-008 paso 7.
+            lnkDisponibilidadGestion.NavigateUrl = "~/DisponibilidadEspacio.aspx?id=" + espacio.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture);
             lnkPublicarGestion.Visible = !espacio.Publicado;
             lnkPausarGestion.Visible = espacio.Publicado;
         }
@@ -389,7 +392,17 @@ namespace StageUp.UI.Explorar
             pnlPlanificadorDisponible.Visible = puedePlanificar;
             pnlPlanificadorNoDisponible.Visible = !puedePlanificar;
             litPrecioReserva.Text = ficha.PrecioHora.HasValue ? FormatearPrecio(ficha) : "Valor a consultar";
-            hdnDisponibilidadDetalle.Value = new JavaScriptSerializer().Serialize(disponibilidad);
+            // Solo lo que necesita el planificador: el motivo de un bloqueo y
+            // el nombre de una actividad son datos internos del gestor.
+            hdnDisponibilidadDetalle.Value = new JavaScriptSerializer().Serialize(
+                disponibilidad.Where(f => f != null).Select(f => new
+                {
+                    f.DiaSemana,
+                    f.Fecha,
+                    f.MinutoDesde,
+                    f.MinutoHasta,
+                    f.Bloqueado
+                }).ToList());
             hdnReservasOcupadasDetalle.Value = new JavaScriptSerializer().Serialize(
                 ObtenerHorariosOcupados(espacio.IdEspacioArtistico));
             hdnPrecioHoraDetalle.Value = ficha.PrecioHora.HasValue

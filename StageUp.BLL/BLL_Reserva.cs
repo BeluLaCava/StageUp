@@ -183,25 +183,14 @@ namespace StageUp.BLL
 
             FichaEspacio ficha = espacio.Ficha ?? new FichaEspacio();
             List<FranjaEspacio> franjas = ficha.Disponibilidad ?? new List<FranjaEspacio>();
-            string fechaTexto = fecha.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-            bool tieneExcepcionParaFecha = franjas.Exists(franja =>
-                franja != null && string.Equals(franja.Fecha, fechaTexto, StringComparison.Ordinal));
-            int diaSemana = fecha.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)fecha.DayOfWeek;
 
-            // Misma regla para decidir qué franjas aplican a esta fecha
-            // (si hay una franja de fecha puntual para ese día, manda por
-            // sobre la recurrencia semanal) — se usa tanto para ver si hay
-            // disponibilidad como para ver si hay un bloqueo, así las dos
-            // lecturas quedan consistentes entre sí.
-            Func<FranjaEspacio, bool> aplicaAEstaFecha = franja =>
-                tieneExcepcionParaFecha
-                    ? string.Equals(franja.Fecha, fechaTexto, StringComparison.Ordinal)
-                    : string.IsNullOrEmpty(franja.Fecha) && franja.DiaSemana == diaSemana;
-
+            // CU-001-008: mismas reglas que la pantalla "Disponibilidad del
+            // espacio", la búsqueda y el planificador del detalle. Una franja
+            // abierta de fecha concreta reemplaza el horario semanal de ese
+            // día; los bloqueos (manuales o de actividades) rigen siempre en
+            // su fecha o en su día de la semana.
             bool estaDisponible = franjas.Exists(franja =>
-                franja != null &&
-                !franja.Bloqueado &&
-                aplicaAEstaFecha(franja) &&
+                BLL_DisponibilidadEspacio.AbiertaRigeEnFecha(franja, franjas, fecha) &&
                 minutoDesde >= franja.MinutoDesde &&
                 minutoHasta <= franja.MinutoHasta);
 
@@ -210,21 +199,15 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("La franja elegida no está dentro de la disponibilidad informada para esa fecha.");
             }
 
-            // Ítem 27 del checklist de correcciones: no alcanza con que el
-            // horario esté contenido en una franja disponible más amplia
-            // (ej. disponible miércoles 9 a 22) — también hay que rechazar
-            // si se superpone con una franja bloqueada por una actividad
-            // dentro de esa misma ventana (ej. actividad miércoles 10 a
-            // 12), que antes se podía pisar igual (reservando 10 a 11).
+            // Ítem 27: tampoco puede superponerse con un horario bloqueado
+            // dentro de esa ventana (actividad interna o bloqueo del gestor).
             bool existeBloqueoSuperpuesto = franjas.Exists(franja =>
-                franja != null &&
-                franja.Bloqueado &&
-                aplicaAEstaFecha(franja) &&
+                BLL_DisponibilidadEspacio.BloqueoRigeEnFecha(franja, fecha) &&
                 minutoDesde < franja.MinutoHasta &&
                 franja.MinutoDesde < minutoHasta);
 
             return existeBloqueoSuperpuesto
-                ? ResultadoOperacion.Error("Ese horario ya está bloqueado por una actividad de este espacio. Elegí otro horario.")
+                ? ResultadoOperacion.Error("Ese horario está bloqueado en este espacio (por una actividad o un bloqueo del gestor). Elegí otro horario.")
                 : ResultadoOperacion.Ok();
         }
 

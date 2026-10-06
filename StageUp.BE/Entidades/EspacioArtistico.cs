@@ -52,6 +52,12 @@ namespace StageUp.BE.Entidades
         public string Moneda { get; set; } = "ARS";
         public string TipoPiso { get; set; }
         public string DetalleEquipamiento { get; set; }
+
+        // CU-001-007 (script 55): medidas y condiciones del espacio.
+        public decimal? SuperficieM2 { get; set; }
+        public decimal? AlturaM { get; set; }
+        public string CondicionesUso { get; set; }
+        public string ReglasUso { get; set; }
         public List<string> Equipamiento { get; set; } = new List<string>();
         public List<FranjaEspacio> Disponibilidad { get; set; } = new List<FranjaEspacio>();
 
@@ -86,5 +92,17 @@ namespace StageUp.BE.Entidades
         public int? MinutoHasta { get; set; }
 
         public List<string> Equipamiento { get; set; } = new List<string>();
+    }
+
+    // CU-001-007 A13: rango orientativo de precio por hora calculado con
+    // espacios publicados parecidos.
+    public class SugerenciaPrecio
+    {
+        public string Moneda { get; set; }
+        public decimal Minimo { get; set; }
+        public decimal Maximo { get; set; }
+        public decimal Mediana { get; set; }
+        public int CantidadComparados { get; set; }
+        public string Criterio { get; set; }
     }
 }

@@ -63,5 +63,21 @@ namespace StageUp.UI.Explorar
         protected global::System.Web.UI.WebControls.Panel pnlReservarFormulario;
         protected global::System.Web.UI.WebControls.TextBox txtComentarioReserva;
         protected global::System.Web.UI.WebControls.Button btnSolicitarReserva;
+        protected global::System.Web.UI.WebControls.Panel pnlGestion;
+        protected global::System.Web.UI.WebControls.Label lblEstadoGestion;
+        protected global::System.Web.UI.WebControls.Literal litAvisoGestion;
+        protected global::System.Web.UI.WebControls.Panel pnlMensajeGestion;
+        protected global::System.Web.UI.WebControls.Literal litMensajeGestion;
+        protected global::System.Web.UI.WebControls.HyperLink lnkEditarGestion;
+        protected global::System.Web.UI.WebControls.LinkButton lnkPublicarGestion;
+        protected global::System.Web.UI.WebControls.LinkButton lnkPausarGestion;
+        protected global::System.Web.UI.WebControls.LinkButton lnkBajaGestion;
+        protected global::System.Web.UI.WebControls.Panel pnlConfirmarBaja;
+        protected global::System.Web.UI.WebControls.Button btnConfirmarBaja;
+        protected global::System.Web.UI.WebControls.LinkButton lnkCancelarBaja;
+        protected global::System.Web.UI.WebControls.Literal litMedidas;
+        protected global::System.Web.UI.WebControls.Panel pnlCondiciones;
+        protected global::System.Web.UI.WebControls.Literal litCondicionesUso;
+        protected global::System.Web.UI.WebControls.Literal litReglasUso;
     }
 }

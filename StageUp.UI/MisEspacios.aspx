@@ -14,25 +14,6 @@
                 <asp:Literal ID="litMensaje" runat="server" />
             </asp:Panel>
 
-            <asp:Panel ID="pnlPendienteGestor" runat="server" Visible="false" CssClass="auth-card">
-                <div class="auth-card-header">
-                    <h2>Tu solicitud está pendiente de aprobación</h2>
-                    <p>Pediste habilitarte como gestor de espacios. En cuanto un administrador de StageUp la revise vas a poder publicar y administrar tus propios espacios acá.</p>
-                </div>
-            </asp:Panel>
-
-            <asp:Panel ID="pnlNoGestor" runat="server" Visible="false" CssClass="auth-card">
-                <div class="auth-card-header">
-                    <h2>Todavía no sos gestor de espacios</h2>
-                    <p>Esta sección es para administrar espacios artísticos propios. Si querés publicar y ofrecer un espacio, primero tenés que solicitar la habilitación como gestor.</p>
-                </div>
-                <div class="form-actions">
-                    <asp:Button ID="btnSolicitarGestor" runat="server" CssClass="button button-primary" Text="Solicitar ser gestor de espacios"
-                        CausesValidation="false" OnClick="btnSolicitarGestor_Click" />
-                    <a id="lnkVerMisReservas" class="text-link" href="~/MisReservas.aspx" runat="server">Ver mis reservas</a>
-                </div>
-            </asp:Panel>
-
             <asp:Panel ID="pnlPanelGestor" runat="server" Visible="false">
 
             <nav class="gestor-subnav" aria-label="Navegación de gestor de espacios">
@@ -60,6 +41,7 @@
                                 <p class="managed-space-description"><%#: Eval("Descripcion") %></p>
                             </div>
                             <div class="managed-space-actions">
+                                <a class="text-link" href='<%# "Explorar/DetalleEspacio.aspx?id=" + Eval("IdEspacioArtistico") %>'>Ver detalle</a>
                                 <a class="text-link" href='<%# "Explorar/DetalleEspacio.aspx?id=" + Eval("IdEspacioArtistico") + "#space-reviews-title" %>' data-i18n="Calificacion_VerResenas">Ver reseñas</a>
                                 <asp:LinkButton ID="lnkEditar" runat="server" CssClass="text-link" CausesValidation="false"
                                     CommandName="Editar" CommandArgument='<%# Eval("IdEspacioArtistico") %>' Text="Editar" />
@@ -69,7 +51,7 @@
                                     CommandName="Pausar" CommandArgument='<%# Eval("IdEspacioArtistico") %>' Text="Pausar" />
                                 <asp:LinkButton ID="lnkDarDeBaja" runat="server" CssClass="text-link" CausesValidation="false"
                                     CommandName="BajaLogica" CommandArgument='<%# Eval("IdEspacioArtistico") %>' Text="Dar de baja"
-                                    OnClientClick="return confirm('¿Seguro que querés dar de baja este espacio?');" />
+                                    OnClientClick="return confirm('¿Dar de baja este espacio? Va a dejar de estar disponible para nuevas reservas, pero su información histórica (reservas y reseñas) se conserva.');" />
                             </div>
                         </article>
                     </ItemTemplate>
@@ -104,8 +86,13 @@
 
                 <div class="form-field">
                     <datalist id="tipos-espacio"><option value="Teatro"></option><option value="Salón de danza"></option><option value="Estudio"></option><option value="Sala de ensayo"></option><option value="Espacio multifunción"></option></datalist>
-                    <label for="<%= txtDescripcion.ClientID %>">Descripción</label>
+                    <label for="<%= txtDescripcion.ClientID %>">Descripción *</label>
                     <asp:TextBox ID="txtDescripcion" runat="server" TextMode="MultiLine" Rows="4" MaxLength="2000" placeholder="Contá brevemente qué ofrece el espacio." />
+                    <div class="space-assist">
+                        <asp:LinkButton ID="lnkGenerarDescripcion" runat="server" CssClass="button button-secondary button-small" CausesValidation="false"
+                            OnClick="lnkGenerarDescripcion_Click">Generar descripción automática</asp:LinkButton>
+                        <small>La armamos con los datos que cargaste abajo (tipo, ubicación, medidas, capacidad y equipamiento). Después podés cambiarla.</small>
+                    </div>
                 </div>
 
                 <fieldset class="space-extra-fields" <%= FichaCompletaActiva ? "" : "disabled" %>>
@@ -130,6 +117,8 @@
                             <div class="form-field"><label for="<%= txtCiudad.ClientID %>">Ciudad / localidad *</label><asp:TextBox ID="txtCiudad" runat="server" MaxLength="150" placeholder="Ej: La Plata" /></div>
                             <div class="form-field space-field-wide"><label for="<%= txtDireccion.ClientID %>">Dirección *</label><asp:TextBox ID="txtDireccion" runat="server" MaxLength="300" placeholder="Calle, número y piso o unidad" /></div>
                             <div class="form-field"><label for="<%= txtCapacidad.ClientID %>">Capacidad máxima *</label><asp:TextBox ID="txtCapacidad" runat="server" TextMode="Number" min="1" max="100000" step="1" placeholder="Cantidad de personas" /><small>Indicá cuántas personas pueden utilizar el espacio.</small></div>
+                            <div class="form-field"><label for="<%= txtSuperficie.ClientID %>">Superficie (m²) *</label><asp:TextBox ID="txtSuperficie" runat="server" inputmode="decimal" MaxLength="10" placeholder="Ej: 80" /></div>
+                            <div class="form-field"><label for="<%= txtAltura.ClientID %>">Altura (m)</label><asp:TextBox ID="txtAltura" runat="server" inputmode="decimal" MaxLength="6" placeholder="Ej: 3,5" /></div>
                             <div class="form-field"><label for="<%= txtTipoPiso.ClientID %>">Tipo de piso</label><asp:TextBox ID="txtTipoPiso" runat="server" MaxLength="100" list="tipos-piso" placeholder="Ej: Madera" /><datalist id="tipos-piso"><option value="Madera"></option><option value="Vinílico"></option><option value="Cerámica"></option><option value="Cemento"></option><option value="Alfombra"></option></datalist></div>
                         </div>
                     </section>
@@ -140,6 +129,14 @@
                             <div class="form-field"><label for="<%= txtPrecioHora.ClientID %>">Valor por hora *</label><asp:TextBox ID="txtPrecioHora" runat="server" ClientIDMode="Static" inputmode="decimal" MaxLength="12" placeholder="Ej: 10000,00" /></div>
                         </div>
                         <div class="space-price-example" id="price-example" aria-live="polite">El importe se calcula según la duración: precio por hora × minutos ÷ 60.</div>
+                        <div class="space-assist">
+                            <asp:LinkButton ID="lnkSugerirValores" runat="server" CssClass="button button-secondary button-small" CausesValidation="false"
+                                OnClick="lnkSugerirValores_Click">Sugerir valores</asp:LinkButton>
+                            <small>Compara con espacios publicados parecidos (tipo, provincia y capacidad). Es orientativo: el valor lo decidís vos.</small>
+                        </div>
+                        <asp:Panel ID="pnlSugerencia" runat="server" CssClass="space-suggestion" Visible="false" role="status">
+                            <asp:Literal ID="litSugerencia" runat="server" Mode="Encode" />
+                        </asp:Panel>
                     </section>
                     <section class="space-form-section">
                         <h3>04 · Disponibilidad</h3>
@@ -169,6 +166,20 @@
                             <asp:ListItem Value="ESPEJOS">Espejos</asp:ListItem><asp:ListItem Value="SONIDO">Sonido</asp:ListItem><asp:ListItem Value="INSTRUMENTOS">Instrumentos</asp:ListItem><asp:ListItem Value="EQUIPAMIENTO">Equipamiento</asp:ListItem><asp:ListItem Value="ESCENARIO">Escenario</asp:ListItem><asp:ListItem Value="ILUMINACION">Iluminación</asp:ListItem>
                         </asp:CheckBoxList>
                         <div class="form-field"><label for="<%= txtEquipamientoDetalle.ClientID %>">Detalles del equipamiento</label><asp:TextBox ID="txtEquipamientoDetalle" runat="server" TextMode="MultiLine" Rows="3" MaxLength="1000" placeholder="Ej: piano vertical, dos micrófonos, consola y luces regulables." /></div>
+                    </section>
+                    <section class="space-form-section">
+                        <h3>06 · Condiciones y reglas de uso</h3>
+                        <div class="form-field"><label for="<%= txtCondicionesUso.ClientID %>">Condiciones de uso *</label><asp:TextBox ID="txtCondicionesUso" runat="server" TextMode="MultiLine" Rows="3" MaxLength="1000" placeholder="Ej: reserva mínima de 2 horas, el armado y desarme se incluyen en el horario, se entrega limpio." /></div>
+                        <div class="form-field"><label for="<%= txtReglasUso.ClientID %>">Reglas de uso *</label><asp:TextBox ID="txtReglasUso" runat="server" TextMode="MultiLine" Rows="3" MaxLength="1000" placeholder="Ej: no se permite fumar ni comer en la sala, calzado limpio, volumen máximo después de las 22 h." /></div>
+                    </section>
+                    <section class="space-form-section">
+                        <h3>07 · Estado</h3>
+                        <div class="form-field"><label for="<%= ddlEstadoPublicacion.ClientID %>">¿Qué hacemos al guardar?</label>
+                            <asp:DropDownList ID="ddlEstadoPublicacion" runat="server">
+                                <asp:ListItem Value="Publicar">Publicarlo (visible en el catálogo)</asp:ListItem>
+                                <asp:ListItem Value="NoPublicar">Dejarlo sin publicar (lo publicás después)</asp:ListItem>
+                            </asp:DropDownList>
+                        </div>
                     </section>
                 </fieldset>
                 <div class="form-actions">
@@ -237,6 +248,9 @@
         .space-schedule-list { padding: 0; list-style: none; }
         .space-schedule-list li { display: flex; align-items: center; justify-content: space-between; padding: 12px; margin-bottom: 8px; background: var(--color-nude-light); border-radius: 10px; gap: 12px; }
         .space-schedule-list button { border: 0; background: none; color: var(--color-primary); cursor: pointer; }
+        .space-assist { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 8px; }
+        .space-assist small { color: var(--color-text-muted); }
+        .space-suggestion { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: #e8f5ec; border-left: 4px solid #1e6b37; }
         .space-price-example, .space-form-notice { padding: 16px; border-radius: 12px; background: var(--color-nude-light); font-size: 14px; line-height: 1.6; }
         .space-form-notice { border-left: 3px solid var(--color-primary); }
         .space-photo-upload { display: grid; grid-template-columns: 180px 1fr; align-items: center; gap: 20px; }

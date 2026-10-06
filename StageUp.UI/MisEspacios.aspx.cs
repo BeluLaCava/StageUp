@@ -18,7 +18,6 @@ namespace StageUp.UI
     {
         private readonly BLL_EspacioArtistico _bllEspacio = new BLL_EspacioArtistico();
         private readonly BLL_Calificacion _bllCalificacion = new BLL_Calificacion();
-        private readonly BLL_UsuarioExterno _bllUsuario = new BLL_UsuarioExterno();
         private readonly BLL_Reserva _bllReserva = new BLL_Reserva();
 
         protected bool FichaCompletaActiva { get { return _bllEspacio.FichaCompletaHabilitada; } }
@@ -44,16 +43,34 @@ namespace StageUp.UI
 
             string perfil = GestorDeSesion.ObtenerPerfilActual();
 
-            pnlPendienteGestor.Visible = perfil == PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString();
-            pnlNoGestor.Visible = perfil == PerfilUsuarioExterno.ExternoSolicitante.ToString();
-            pnlPanelGestor.Visible = perfil == PerfilUsuarioExterno.GestorEspacios.ToString();
-            lnkNuevoEspacio.Visible = pnlPanelGestor.Visible;
+            // CU-001-007 (A1, A3 a A6): quien todavía no es gestor pide la
+            // habilitación o consulta su estado en "Ofrecer espacio".
+            if (perfil != PerfilUsuarioExterno.GestorEspacios.ToString())
+            {
+                Response.Redirect("~/OfrecerEspacio.aspx", false);
+                Context.ApplicationInstance.CompleteRequest();
+                return;
+            }
+
+            pnlPanelGestor.Visible = true;
+            lnkNuevoEspacio.Visible = true;
 
             if (pnlPanelGestor.Visible)
             {
                 if (!IsPostBack)
                 {
                     CargarMisEspacios();
+
+                    // CU-001-007 A8/A9 y A10: llegadas desde el detalle del espacio.
+                    int idEditar;
+                    if (int.TryParse(Request.QueryString["editar"], out idEditar))
+                    {
+                        CargarEspacioEnFormulario(idEditar);
+                    }
+                    else if (Request.QueryString["baja"] == "1")
+                    {
+                        MostrarMensaje("El espacio fue dado de baja. Ya no está disponible para nuevas reservas y su información histórica se conserva.", false);
+                    }
                 }
 
                 CantidadSolicitudesPendientes = ContarSolicitudesPendientes();
@@ -61,24 +78,6 @@ namespace StageUp.UI
                     ? " <span class=\"gestor-subnav-badge\">" + CantidadSolicitudesPendientes + "</span>"
                     : string.Empty;
             }
-        }
-
-        protected void btnSolicitarGestor_Click(object sender, EventArgs e)
-        {
-            int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
-            ResultadoOperacion<int> resultado = _bllUsuario.SolicitarHabilitacionComoGestor(idUsuarioExterno);
-
-            if (!resultado.Exitoso)
-            {
-                MostrarMensaje(resultado.Mensaje, esError: true);
-                return;
-            }
-
-            GestorDeSesion.ActualizarPerfilEnSesion(PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString());
-
-            pnlNoGestor.Visible = false;
-            pnlPendienteGestor.Visible = true;
-            MostrarMensaje(resultado.Mensaje, esError: false);
         }
 
         protected void lnkNuevoEspacio_Click(object sender, EventArgs e)
@@ -294,6 +293,13 @@ namespace StageUp.UI
             ddlMoneda.SelectedValue = ficha.Moneda == "USD" ? "USD" : "ARS";
             txtTipoPiso.Text = ficha.TipoPiso;
             txtEquipamientoDetalle.Text = ficha.DetalleEquipamiento;
+            txtSuperficie.Text = ficha.SuperficieM2.HasValue ? ficha.SuperficieM2.Value.ToString("0.##", CultureInfo.InvariantCulture) : "";
+            txtAltura.Text = ficha.AlturaM.HasValue ? ficha.AlturaM.Value.ToString("0.##", CultureInfo.InvariantCulture) : "";
+            txtCondicionesUso.Text = ficha.CondicionesUso;
+            txtReglasUso.Text = ficha.ReglasUso;
+            // Alta: se publica al guardar. Edición: se mantiene el estado actual.
+            ddlEstadoPublicacion.SelectedValue = espacio.IdEspacioArtistico == 0 || espacio.Publicado ? "Publicar" : "NoPublicar";
+            pnlSugerencia.Visible = false;
             foreach (ListItem item in cblEquipamiento.Items)
                 item.Selected = ficha.Equipamiento != null && ficha.Equipamiento.Contains(item.Value);
             // Solo las franjas manuales: los bloqueos de "Mis actividades" no se
@@ -305,72 +311,12 @@ namespace StageUp.UI
         {
             try
             {
-                int capacidad;
-                decimal precio;
-                if (!int.TryParse(txtCapacidad.Text, out capacidad) ||
-                    !decimal.TryParse(txtPrecioHora.Text.Trim().Replace(',', '.'), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out precio))
+                string error;
+                EspacioArtistico espacio = ArmarEspacioDesdeFormulario(out error);
+                if (espacio == null)
                 {
-                    ErrorFormulario("Revisá la capacidad y el precio por hora. Usá coma o punto para los decimales, sin separador de miles.");
+                    ErrorFormulario(error);
                     return;
-                }
-                if (hdnDisponibilidad.Value.Length > 64000)
-                {
-                    ErrorFormulario("Hay demasiados horarios cargados.");
-                    return;
-                }
-
-                List<string> fotos;
-                try
-                {
-                    fotos = new JavaScriptSerializer().Deserialize<List<string>>(hdnFotosActuales.Value) ?? new List<string>();
-                }
-                catch (ArgumentException)
-                {
-                    fotos = new List<string>();
-                }
-
-                int cantidadNuevas = archivoFoto.HasFiles ? archivoFoto.PostedFiles.Count : 0;
-                if (fotos.Count + cantidadNuevas > MaxFotosPorEspacio)
-                {
-                    ErrorFormulario("Podés cargar hasta " + MaxFotosPorEspacio + " fotos por espacio. Quitá alguna antes de agregar más.");
-                    return;
-                }
-
-                EspacioArtistico espacio = new EspacioArtistico
-                {
-                    IdEspacioArtistico = IdEspacioEnEdicion ?? 0,
-                    NombreEspacio = txtNombreEspacio.Text,
-                    TipoEspacio = txtTipoEspacio.Text,
-                    Descripcion = txtDescripcion.Text,
-                    Ficha = new FichaEspacio
-                    {
-                        FotoRuta = fotos.Count > 0 ? fotos[0] : null,
-                        Fotos = fotos,
-                        Provincia = txtProvincia.Text.Trim(),
-                        Ciudad = txtCiudad.Text.Trim(),
-                        Direccion = txtDireccion.Text.Trim(),
-                        CapacidadMaxima = capacidad,
-                        PrecioHora = precio,
-                        Moneda = ddlMoneda.SelectedValue,
-                        TipoPiso = txtTipoPiso.Text.Trim(),
-                        DetalleEquipamiento = txtEquipamientoDetalle.Text.Trim(),
-                        Disponibilidad = new JavaScriptSerializer().Deserialize<List<FranjaEspacio>>(hdnDisponibilidad.Value)
-                    }
-                };
-                foreach (ListItem item in cblEquipamiento.Items)
-                    if (item.Selected) espacio.Ficha.Equipamiento.Add(item.Value);
-
-                if (archivoFoto.HasFiles)
-                {
-                    foreach (HttpPostedFile archivo in archivoFoto.PostedFiles)
-                    {
-                        if (archivo == null || archivo.ContentLength == 0) continue;
-                        espacio.Ficha.Fotos.Add(GuardarFoto(archivo));
-                    }
-                    if (espacio.Ficha.Fotos.Count > 0)
-                    {
-                        espacio.Ficha.FotoRuta = espacio.Ficha.Fotos[0];
-                    }
                 }
 
                 ResultadoOperacion validacion = _bllEspacio.ValidarFicha(espacio);
@@ -380,14 +326,40 @@ namespace StageUp.UI
                     return;
                 }
 
+                bool publicadoAntes = false;
+                if (espacio.IdEspacioArtistico != 0)
+                {
+                    EspacioArtistico anterior = _bllEspacio.ObtenerDetalleParaGestor(espacio.IdEspacioArtistico, idUsuarioGestor);
+                    publicadoAntes = anterior != null && anterior.Publicado;
+                }
+
                 ResultadoOperacion<int> resultado = _bllEspacio.GuardarFicha(espacio, idUsuarioGestor);
                 if (!resultado.Exitoso)
                 {
                     ErrorFormulario(resultado.Mensaje);
                     return;
                 }
+
+                // Paso 14 / A9: el estado elegido en el formulario.
+                string mensaje = resultado.Mensaje;
+                bool publicar = ddlEstadoPublicacion.SelectedValue == "Publicar";
+                ResultadoOperacion cambioEstado = null;
+                if (publicar && !publicadoAntes)
+                {
+                    cambioEstado = _bllEspacio.Publicar(resultado.Valor, idUsuarioGestor);
+                }
+                else if (!publicar && publicadoAntes)
+                {
+                    cambioEstado = _bllEspacio.Pausar(resultado.Valor, idUsuarioGestor);
+                }
+
+                if (cambioEstado != null)
+                {
+                    mensaje += " " + cambioEstado.Mensaje;
+                }
+
                 LimpiarFormulario();
-                MostrarMensaje(resultado.Mensaje, false);
+                MostrarMensaje(mensaje, cambioEstado != null && !cambioEstado.Exitoso);
                 CargarMisEspacios();
             }
             catch (ArgumentException ex)
@@ -400,6 +372,177 @@ namespace StageUp.UI
                 ErrorFormulario("No se pudo completar el guardado. Revisá si el espacio aparece en la lista antes de volver a intentar.");
                 System.Diagnostics.Trace.TraceError(ex.ToString());
             }
+        }
+
+        // CU-001-007 A12: "Generar descripción automática".
+        protected void lnkGenerarDescripcion_Click(object sender, EventArgs e)
+        {
+            if (!EsGestorEspacios())
+            {
+                Response.Redirect("~/MisEspacios.aspx");
+                return;
+            }
+
+            string error;
+            EspacioArtistico espacio = ArmarEspacioDesdeFormulario(out error, exigirNumeros: false);
+            if (espacio == null)
+            {
+                ErrorFormulario(error);
+                return;
+            }
+
+            txtDescripcion.Text = BLL_EspacioArtistico.GenerarDescripcion(espacio);
+            pnlFormularioMensaje.Visible = false;
+            pnlFormularioEspacio.Visible = true;
+        }
+
+        // CU-001-007 A13: "Sugerir valores".
+        protected void lnkSugerirValores_Click(object sender, EventArgs e)
+        {
+            if (!EsGestorEspacios())
+            {
+                Response.Redirect("~/MisEspacios.aspx");
+                return;
+            }
+
+            string error;
+            EspacioArtistico espacio = ArmarEspacioDesdeFormulario(out error, exigirNumeros: false);
+            pnlFormularioEspacio.Visible = true;
+            if (espacio == null)
+            {
+                ErrorFormulario(error);
+                return;
+            }
+
+            ResultadoOperacion<SugerenciaPrecio> resultado = _bllEspacio.SugerirValores(espacio);
+            pnlFormularioMensaje.Visible = false;
+            pnlSugerencia.Visible = true;
+            if (!resultado.Exitoso)
+            {
+                litSugerencia.Text = resultado.Mensaje;
+                return;
+            }
+
+            SugerenciaPrecio sugerencia = resultado.Valor;
+            string simbolo = sugerencia.Moneda == "USD" ? "US$ " : "$ ";
+            litSugerencia.Text = "Valor sugerido por hora: entre " + simbolo + sugerencia.Minimo.ToString("N2", CultureInfo.CurrentCulture) +
+                " y " + simbolo + sugerencia.Maximo.ToString("N2", CultureInfo.CurrentCulture) +
+                " (valor medio " + simbolo + sugerencia.Mediana.ToString("N2", CultureInfo.CurrentCulture) + "), según " +
+                sugerencia.CantidadComparados + " " + sugerencia.Criterio + ". Es orientativo: el valor final lo definís vos.";
+        }
+
+        // Arma el espacio con lo que hay en el formulario. Las fotos nuevas se
+        // guardan y se suman a la lista del formulario, así no se pierden si
+        // la validación falla o si se usa una de las ayudas (A12, A13).
+        private EspacioArtistico ArmarEspacioDesdeFormulario(out string error, bool exigirNumeros = true)
+        {
+            error = null;
+            int capacidad;
+            decimal precio;
+            bool capacidadOk = int.TryParse(txtCapacidad.Text, out capacidad);
+            bool precioOk = TryLeerDecimal(txtPrecioHora.Text, out precio);
+            if (exigirNumeros && (!capacidadOk || !precioOk))
+            {
+                error = "Revisá la capacidad y el precio por hora. Usá coma o punto para los decimales, sin separador de miles.";
+                return null;
+            }
+
+            decimal superficie;
+            decimal altura;
+            bool superficieOk = TryLeerDecimal(txtSuperficie.Text, out superficie);
+            bool alturaOk = TryLeerDecimal(txtAltura.Text, out altura);
+            if (exigirNumeros && !string.IsNullOrWhiteSpace(txtSuperficie.Text) && !superficieOk)
+            {
+                error = "La superficie tiene que ser un número (por ejemplo 80 o 80,5).";
+                return null;
+            }
+
+            if (exigirNumeros && !string.IsNullOrWhiteSpace(txtAltura.Text) && !alturaOk)
+            {
+                error = "La altura tiene que ser un número en metros (por ejemplo 3,5).";
+                return null;
+            }
+
+            if (hdnDisponibilidad.Value.Length > 64000)
+            {
+                error = "Hay demasiados horarios cargados.";
+                return null;
+            }
+
+            List<string> fotos;
+            try
+            {
+                fotos = new JavaScriptSerializer().Deserialize<List<string>>(hdnFotosActuales.Value) ?? new List<string>();
+            }
+            catch (ArgumentException)
+            {
+                fotos = new List<string>();
+            }
+
+            int cantidadNuevas = archivoFoto.HasFiles ? archivoFoto.PostedFiles.Count : 0;
+            if (fotos.Count + cantidadNuevas > MaxFotosPorEspacio)
+            {
+                error = "Podés cargar hasta " + MaxFotosPorEspacio + " fotos por espacio. Quitá alguna antes de agregar más.";
+                return null;
+            }
+
+            if (archivoFoto.HasFiles)
+            {
+                foreach (HttpPostedFile archivo in archivoFoto.PostedFiles)
+                {
+                    if (archivo == null || archivo.ContentLength == 0) continue;
+                    fotos.Add(GuardarFoto(archivo));
+                }
+
+                hdnFotosActuales.Value = new JavaScriptSerializer().Serialize(fotos);
+            }
+
+            List<FranjaEspacio> disponibilidad;
+            try
+            {
+                disponibilidad = new JavaScriptSerializer().Deserialize<List<FranjaEspacio>>(hdnDisponibilidad.Value) ?? new List<FranjaEspacio>();
+            }
+            catch (ArgumentException)
+            {
+                disponibilidad = new List<FranjaEspacio>();
+            }
+
+            EspacioArtistico espacio = new EspacioArtistico
+            {
+                IdEspacioArtistico = IdEspacioEnEdicion ?? 0,
+                NombreEspacio = txtNombreEspacio.Text,
+                TipoEspacio = txtTipoEspacio.Text,
+                Descripcion = txtDescripcion.Text,
+                Ficha = new FichaEspacio
+                {
+                    FotoRuta = fotos.Count > 0 ? fotos[0] : null,
+                    Fotos = fotos,
+                    Provincia = txtProvincia.Text.Trim(),
+                    Ciudad = txtCiudad.Text.Trim(),
+                    Direccion = txtDireccion.Text.Trim(),
+                    CapacidadMaxima = capacidadOk ? capacidad : (int?)null,
+                    PrecioHora = precioOk ? precio : (decimal?)null,
+                    Moneda = ddlMoneda.SelectedValue,
+                    TipoPiso = txtTipoPiso.Text.Trim(),
+                    DetalleEquipamiento = txtEquipamientoDetalle.Text.Trim(),
+                    SuperficieM2 = superficieOk ? superficie : (decimal?)null,
+                    AlturaM = alturaOk ? altura : (decimal?)null,
+                    CondicionesUso = txtCondicionesUso.Text.Trim(),
+                    ReglasUso = txtReglasUso.Text.Trim(),
+                    Disponibilidad = disponibilidad
+                }
+            };
+
+            foreach (ListItem item in cblEquipamiento.Items)
+                if (item.Selected) espacio.Ficha.Equipamiento.Add(item.Value);
+
+            return espacio;
+        }
+
+        private static bool TryLeerDecimal(string texto, out decimal valor)
+        {
+            return decimal.TryParse((texto ?? string.Empty).Trim().Replace(',', '.'), NumberStyles.AllowDecimalPoint,
+                CultureInfo.InvariantCulture, out valor);
         }
 
         private string GuardarFoto(HttpPostedFile archivo)

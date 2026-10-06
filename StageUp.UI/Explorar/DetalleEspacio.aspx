@@ -1,6 +1,15 @@
 <%@ Page Title="Detalle del espacio | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="DetalleEspacio.aspx.cs" Inherits="StageUp.UI.Explorar.DetalleEspacio" %>
 
 <asp:Content ID="SpaceDetailContent" ContentPlaceHolderID="MainContent" runat="server">
+    <style type="text/css">
+        .space-owner-panel { margin: 0 0 18px; padding: 16px 18px; border-radius: 16px; border: 1px dashed var(--color-primary, #6d1021); background: var(--color-surface, #fffcfa); }
+        .space-owner-heading { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 10px; }
+        .space-owner-state { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.8em; font-weight: 700; border: 1px solid var(--color-border, #e2e2e2); }
+        .space-owner-note { color: var(--color-text-muted, #765f55); font-size: 0.9em; }
+        .space-owner-actions { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+        .space-owner-confirm { margin-top: 12px; padding: 12px 14px; border-radius: 12px; border: 2px solid #b3261e; }
+        .space-owner-confirm p { margin: 0 0 10px; }
+    </style>
     <section class="space-detail-page">
         <div class="space-detail-container">
             <a class="back-to-results" href="ResultadosBusqueda.aspx"><span aria-hidden="true">←</span> Volver a resultados</a>
@@ -17,6 +26,30 @@
             </asp:Panel>
 
             <asp:Panel ID="pnlDetalleEspacio" runat="server" CssClass="space-detail" Visible="false">
+                <%-- CU-001-007 A8 a A11: el gestor ve su espacio (aunque no esté publicado) con sus acciones. --%>
+                <asp:Panel ID="pnlGestion" runat="server" CssClass="space-owner-panel" Visible="false">
+                    <div class="space-owner-heading">
+                        <strong>Estás viendo tu espacio</strong>
+                        <asp:Label ID="lblEstadoGestion" runat="server" CssClass="space-owner-state" />
+                        <span class="space-owner-note"><asp:Literal ID="litAvisoGestion" runat="server" Mode="Encode" /></span>
+                    </div>
+                    <asp:Panel ID="pnlMensajeGestion" runat="server" Visible="false" CssClass="form-message" role="status">
+                        <asp:Literal ID="litMensajeGestion" runat="server" Mode="Encode" />
+                    </asp:Panel>
+                    <div class="space-owner-actions">
+                        <asp:HyperLink ID="lnkEditarGestion" runat="server" CssClass="button button-primary button-small" Text="Editar espacio" />
+                        <asp:LinkButton ID="lnkPublicarGestion" runat="server" CssClass="button button-secondary button-small" CausesValidation="false" OnClick="lnkPublicarGestion_Click">Publicar</asp:LinkButton>
+                        <asp:LinkButton ID="lnkPausarGestion" runat="server" CssClass="button button-secondary button-small" CausesValidation="false" OnClick="lnkPausarGestion_Click">Pausar</asp:LinkButton>
+                        <asp:LinkButton ID="lnkBajaGestion" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkBajaGestion_Click">Dar de baja espacio</asp:LinkButton>
+                        <a class="text-link" href="../MisEspacios.aspx">Volver a Mis espacios</a>
+                    </div>
+                    <asp:Panel ID="pnlConfirmarBaja" runat="server" CssClass="space-owner-confirm" Visible="false" role="alertdialog">
+                        <p><strong>¿Dar de baja este espacio?</strong> Va a dejar de estar disponible para nuevas reservas y búsquedas. Su información histórica (reservas, pagos y reseñas) se conserva.</p>
+                        <asp:Button ID="btnConfirmarBaja" runat="server" CssClass="button button-primary button-small" Text="Sí, dar de baja" CausesValidation="false" OnClick="btnConfirmarBaja_Click" />
+                        <asp:LinkButton ID="lnkCancelarBaja" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCancelarBaja_Click">Cancelar</asp:LinkButton>
+                    </asp:Panel>
+                </asp:Panel>
+
                 <asp:Panel ID="pnlGaleria" runat="server" CssClass="space-gallery" data-space-gallery="true">
                     <div class="space-gallery-stage">
                         <asp:Image ID="imgGaleriaPrincipal" runat="server" CssClass="space-gallery-main-image" data-gallery-main="true" />
@@ -85,6 +118,7 @@
                                 <div class="space-information-grid">
                                     <article><span class="space-information-icon" aria-hidden="true">⌖</span><small>Ubicación</small><strong><asp:Literal ID="litDireccion" runat="server" /></strong></article>
                                     <article><span class="space-information-icon" aria-hidden="true">♙</span><small>Capacidad</small><strong><asp:Literal ID="litCapacidad" runat="server" /></strong></article>
+                                    <article><span class="space-information-icon" aria-hidden="true">⬚</span><small>Medidas</small><strong><asp:Literal ID="litMedidas" runat="server" /></strong></article>
                                     <article><span class="space-information-icon" aria-hidden="true">▦</span><small>Tipo de piso</small><strong><asp:Literal ID="litTipoPiso" runat="server" /></strong></article>
                                     <article><span class="space-information-icon" aria-hidden="true">$</span><small>Precio</small><strong><asp:Literal ID="litPrecioHora" runat="server" /></strong></article>
                                 </div>
@@ -102,6 +136,21 @@
                                     <p><asp:Literal ID="litDetalleEquipamiento" runat="server" /></p>
                                 </asp:Panel>
                             </section>
+
+                            <asp:Panel ID="pnlCondiciones" runat="server">
+                                <section class="space-detail-section" aria-labelledby="space-rules-title">
+                                    <span class="eyebrow">Antes de reservar</span>
+                                    <h2 id="space-rules-title">Condiciones y reglas de uso</h2>
+                                    <div class="space-equipment-detail">
+                                        <strong>Condiciones de uso</strong>
+                                        <p><asp:Literal ID="litCondicionesUso" runat="server" /></p>
+                                    </div>
+                                    <div class="space-equipment-detail">
+                                        <strong>Reglas de uso</strong>
+                                        <p><asp:Literal ID="litReglasUso" runat="server" /></p>
+                                    </div>
+                                </section>
+                            </asp:Panel>
 
                             <section class="space-detail-section" aria-labelledby="space-availability-title">
                                 <span class="eyebrow">Horarios habituales</span>

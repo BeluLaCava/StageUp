@@ -87,6 +87,7 @@
     <Compile Include="Permisos\PermisoComponente.cs" />
     <Compile Include="Permisos\PermisoHoja.cs" />
     <Compile Include="Permisos\GrupoPermisos.cs" />
+    <Compile Include="Entidades\SolicitudHabilitacionGestor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

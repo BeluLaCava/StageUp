@@ -600,117 +600,8 @@ namespace StageUp.BLL
             }
         }
 
-        public ResultadoOperacion<int> SolicitarHabilitacionComoGestor(int idUsuarioExterno)
-        {
-            return EjecutarProtegido(() =>
-            {
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
-                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
-                if (usuario == null)
-                {
-                    return ResultadoOperacion<int>.Error("No se encontró la cuenta indicada.");
-                }
-
-                if (usuario.PerfilUsuario == PerfilUsuarioExterno.GestorEspacios.ToString())
-                {
-                    return ResultadoOperacion<int>.Error("Tu cuenta ya está habilitada como gestor de espacios.");
-                }
-
-                if (usuario.PerfilUsuario == PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString())
-                {
-                    return ResultadoOperacion<int>.Error("Ya tenés una solicitud de habilitación como gestor pendiente de aprobación.");
-                }
-
-                usuario.PerfilUsuario = PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString();
-                _mppUsuario.ActualizarPerfil(usuario);
-
-                _bitacora.Registrar(
-                    idUsuarioExterno, "MODIFICACION", "UsuarioExterno", idUsuarioExterno,
-                    "Solicitud de habilitación como gestor de espacios (queda pendiente de aprobación).");
-
-                return ResultadoOperacion<int>.Ok(idUsuarioExterno,
-                    "Tu solicitud para ser gestor de espacios quedó registrada. Un administrador la va a revisar.");
-            });
-        }
-
-        public List<UsuarioExterno> ListarPendientesHabilitacionGestor()
-        {
-            try
-            {
-                return _mppUsuario.ListarPorPerfil(new UsuarioExterno
-                {
-                    PerfilUsuario = PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString()
-                });
-            }
-            catch (ErrorAccesoDatosException)
-            {
-                return new List<UsuarioExterno>();
-            }
-        }
-
-        public ResultadoOperacion AprobarHabilitacionComoGestor(int idUsuarioExterno, int idUsuarioInternoResponsable)
-        {
-            return EjecutarProtegido(() =>
-            {
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
-                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
-                if (usuario == null)
-                {
-                    return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
-                }
-
-                if (usuario.PerfilUsuario != PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString())
-                {
-                    return ResultadoOperacion.Error("Esta cuenta no tiene una solicitud de habilitación pendiente.");
-                }
-
-                usuario.PerfilUsuario = PerfilUsuarioExterno.GestorEspacios.ToString();
-                _mppUsuario.ActualizarPerfil(usuario);
-
-                _bitacora.RegistrarInterno(
-                    idUsuarioInternoResponsable, "APROBACION", "UsuarioExterno", idUsuarioExterno,
-                    "Aprobación de solicitud de habilitación como gestor de espacios.");
-
-                _notificacion.Notificar(
-                    idUsuarioExterno, TipoNotificacion.HabilitacionGestorAprobada,
-                    "Tu cuenta fue habilitada como gestor de espacios. ¡Ya podés publicar tus espacios artísticos!",
-                    "~/MisEspacios.aspx");
-
-                return ResultadoOperacion.Ok("La cuenta fue habilitada como gestora de espacios.");
-            });
-        }
-
-        public ResultadoOperacion RechazarHabilitacionComoGestor(int idUsuarioExterno, int idUsuarioInternoResponsable)
-        {
-            return EjecutarProtegido(() =>
-            {
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
-                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
-                if (usuario == null)
-                {
-                    return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
-                }
-
-                if (usuario.PerfilUsuario != PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString())
-                {
-                    return ResultadoOperacion.Error("Esta cuenta no tiene una solicitud de habilitación pendiente.");
-                }
-
-                usuario.PerfilUsuario = PerfilUsuarioExterno.ExternoSolicitante.ToString();
-                _mppUsuario.ActualizarPerfil(usuario);
-
-                _bitacora.RegistrarInterno(
-                    idUsuarioInternoResponsable, "RECHAZO", "UsuarioExterno", idUsuarioExterno,
-                    "Rechazo de solicitud de habilitación como gestor de espacios.");
-
-                _notificacion.Notificar(
-                    idUsuarioExterno, TipoNotificacion.HabilitacionGestorRechazada,
-                    "Tu solicitud para ser gestor de espacios fue rechazada.",
-                    "~/MisEspacios.aspx");
-
-                return ResultadoOperacion.Ok("La solicitud fue rechazada.");
-            });
-        }
+        // La solicitud de habilitación como gestor y su revisión están en
+        // BLL_SolicitudHabilitacionGestor (CU-001-007, script 54).
 
         public int? ObtenerIdPorCorreo(string correoElectronico)
         {
@@ -738,10 +629,26 @@ namespace StageUp.BLL
         // problema momentáneo.
         public bool CuentaSigueActiva(int idUsuarioExterno)
         {
+            string perfil;
+            return CuentaSigueActiva(idUsuarioExterno, out perfil);
+        }
+
+        // CU-001-007: además devuelve el perfil actual, para que la sesión se
+        // entere si un administrador aprobó o rechazó la habilitación como
+        // gestor (null si no se pudo leer).
+        public bool CuentaSigueActiva(int idUsuarioExterno, out string perfilActual)
+        {
+            perfilActual = null;
             try
             {
                 UsuarioExterno usuario = _mppUsuario.ObtenerPorId(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
-                return usuario != null && usuario.EstadoCuenta == EstadoCuentaExterno.Activa.ToString();
+                if (usuario == null)
+                {
+                    return false;
+                }
+
+                perfilActual = usuario.PerfilUsuario;
+                return usuario.EstadoCuenta == EstadoCuentaExterno.Activa.ToString();
             }
             catch (ErrorAccesoDatosException)
             {

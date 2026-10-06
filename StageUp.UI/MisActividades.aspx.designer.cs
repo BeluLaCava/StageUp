@@ -10,7 +10,6 @@
 namespace StageUp.UI
 {
 
-
     public partial class MisActividades
     {
 
@@ -40,42 +39,6 @@ namespace StageUp.UI
         /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Literal litMensaje;
-
-        /// <summary>
-        /// Control pnlPendienteGestor.
-        /// </summary>
-        /// <remarks>
-        /// Campo generado automáticamente.
-        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlPendienteGestor;
-
-        /// <summary>
-        /// Control pnlNoGestor.
-        /// </summary>
-        /// <remarks>
-        /// Campo generado automáticamente.
-        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlNoGestor;
-
-        /// <summary>
-        /// Control btnSolicitarGestor.
-        /// </summary>
-        /// <remarks>
-        /// Campo generado automáticamente.
-        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnSolicitarGestor;
-
-        /// <summary>
-        /// Control lnkVerMisReservas.
-        /// </summary>
-        /// <remarks>
-        /// Campo generado automáticamente.
-        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor lnkVerMisReservas;
 
         /// <summary>
         /// Control pnlPanelGestor.

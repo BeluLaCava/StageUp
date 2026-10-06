@@ -21,11 +21,19 @@ namespace StageUp.UI
             int? idUsuario = GestorDeSesion.ObtenerIdUsuarioActual();
             if (idUsuario.HasValue && GestorDeSesion.CorrespondeVerificarCuenta())
             {
-                if (!new BLL_UsuarioExterno().CuentaSigueActiva(idUsuario.Value))
+                string perfilActual;
+                if (!new BLL_UsuarioExterno().CuentaSigueActiva(idUsuario.Value, out perfilActual))
                 {
                     GestorDeSesion.CerrarSesion();
                     Response.Redirect("~/Default.aspx?cuenta=baja", true);
                     return;
+                }
+
+                // CU-001-007: si un administrador resolvió la habilitación como
+                // gestor, el menú se actualiza sin volver a iniciar sesión.
+                if (perfilActual != null && perfilActual != GestorDeSesion.ObtenerPerfilActual())
+                {
+                    GestorDeSesion.ActualizarPerfilEnSesion(perfilActual);
                 }
 
                 GestorDeSesion.MarcarCuentaVerificada();
@@ -50,6 +58,15 @@ namespace StageUp.UI
                 // puntual fue que el botón ni aparezca para el perfil ExternoSolicitante.
                 bool esGestorEspacios = GestorDeSesion.ObtenerPerfilActual() == PerfilUsuarioExterno.GestorEspacios.ToString();
                 MisActividadesLink.Visible = esGestorEspacios;
+
+                // CU-001-007: quien todavía no es gestor ve "Ofrecer espacio"
+                // (solicitud de habilitación y su estado) en lugar de "Mis espacios".
+                if (!esGestorEspacios)
+                {
+                    MisEspaciosLink.InnerText = "Ofrecer espacio";
+                    MisEspaciosLink.HRef = "~/OfrecerEspacio.aspx";
+                    MisEspaciosLink.Attributes.Remove("data-i18n");
+                }
 
                 // No hay SQL Server Agent en la edición Express para un job
                 // programado, así que el chequeo de recordatorios se

@@ -21,12 +21,6 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Panel pnlMensaje;
         protected global::System.Web.UI.WebControls.Literal litMensaje;
 
-        protected global::System.Web.UI.WebControls.Panel pnlPendienteGestor;
-
-        protected global::System.Web.UI.WebControls.Panel pnlNoGestor;
-        protected global::System.Web.UI.WebControls.Button btnSolicitarGestor;
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor lnkVerMisReservas;
-
         protected global::System.Web.UI.WebControls.Panel pnlPanelGestor;
         protected global::System.Web.UI.WebControls.Literal litBadgeSolicitudes;
 
@@ -46,5 +40,14 @@ namespace StageUp.UI
 
         protected global::System.Web.UI.WebControls.Literal litSinEspacios;
         protected global::System.Web.UI.WebControls.Repeater rptMisEspacios;
+        protected global::System.Web.UI.WebControls.LinkButton lnkGenerarDescripcion;
+        protected global::System.Web.UI.WebControls.TextBox txtSuperficie;
+        protected global::System.Web.UI.WebControls.TextBox txtAltura;
+        protected global::System.Web.UI.WebControls.LinkButton lnkSugerirValores;
+        protected global::System.Web.UI.WebControls.Panel pnlSugerencia;
+        protected global::System.Web.UI.WebControls.Literal litSugerencia;
+        protected global::System.Web.UI.WebControls.TextBox txtCondicionesUso;
+        protected global::System.Web.UI.WebControls.TextBox txtReglasUso;
+        protected global::System.Web.UI.WebControls.DropDownList ddlEstadoPublicacion;
     }
 }

@@ -14,25 +14,6 @@
                 <asp:Literal ID="litMensaje" runat="server" />
             </asp:Panel>
 
-            <asp:Panel ID="pnlPendienteGestor" runat="server" Visible="false" CssClass="auth-card">
-                <div class="auth-card-header">
-                    <h2>Tu solicitud está pendiente de aprobación</h2>
-                    <p>Cuando un administrador habilite tu perfil de gestor vas a poder registrar actividades internas para tus espacios.</p>
-                </div>
-            </asp:Panel>
-
-            <asp:Panel ID="pnlNoGestor" runat="server" Visible="false" CssClass="auth-card">
-                <div class="auth-card-header">
-                    <h2>Esta sección es para gestores de espacios</h2>
-                    <p>Las actividades internas se cargan sobre espacios propios. Primero solicitá la habilitación como gestor para publicar y administrar tus espacios.</p>
-                </div>
-                <div class="form-actions">
-                    <asp:Button ID="btnSolicitarGestor" runat="server" CssClass="button button-primary" Text="Solicitar ser gestor de espacios"
-                        CausesValidation="false" OnClick="btnSolicitarGestor_Click" />
-                    <a id="lnkVerMisReservas" class="text-link" href="~/MisReservas.aspx" runat="server">Ver mis reservas</a>
-                </div>
-            </asp:Panel>
-
             <asp:Panel ID="pnlPanelGestor" runat="server" Visible="false">
                 <asp:Panel ID="pnlSinEspacios" runat="server" Visible="false" CssClass="managed-activities-empty">
                     <span aria-hidden="true">◇</span>

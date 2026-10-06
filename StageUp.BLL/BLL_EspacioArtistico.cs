@@ -24,6 +24,19 @@ namespace StageUp.BLL
         private static readonly HashSet<string> EquipamientoPermitido =
             new HashSet<string> { "ESPEJOS", "SONIDO", "INSTRUMENTOS", "EQUIPAMIENTO", "ESCENARIO", "ILUMINACION" };
 
+        // Nombres del equipamiento para la descripción automática (A12).
+        private static readonly Dictionary<string, string> NombresEquipamiento = new Dictionary<string, string>
+        {
+            { "ESPEJOS", "espejos" }, { "SONIDO", "equipo de sonido" }, { "INSTRUMENTOS", "instrumentos" },
+            { "EQUIPAMIENTO", "equipamiento técnico" }, { "ESCENARIO", "escenario" }, { "ILUMINACION", "iluminación" }
+        };
+
+        // CU-001-007: mínimos para considerar que la información alcanza para
+        // presentar el espacio (A18).
+        private const int LongitudMinimaDescripcionFicha = 30;
+        private const int LongitudMinimaCondiciones = 10;
+        private const int LongitudMaximaCondiciones = 1000;
+
         public bool FichaCompletaHabilitada
         {
             get { return MPP_EspacioArtistico.FichaCompletaHabilitada; }
@@ -60,6 +73,8 @@ namespace StageUp.BLL
             }
             if ((ficha.TipoPiso ?? "").Length > 100 || (ficha.DetalleEquipamiento ?? "").Length > 1000)
                 return ResultadoOperacion.Error("Revisá la extensión del tipo de piso y el detalle de equipamiento.");
+            ResultadoOperacion completitud = ValidarDatosDePresentacion(espacio);
+            if (!completitud.Exitoso) return completitud;
             HashSet<string> permitidos = EquipamientoPermitido;
             if (ficha.Equipamiento == null || ficha.Equipamiento.Count > permitidos.Count)
                 return ResultadoOperacion.Error("Revisá las características seleccionadas.");
@@ -102,6 +117,213 @@ namespace StageUp.BLL
                 }
             }
             return tieneHorario ? ResultadoOperacion.Ok() : ResultadoOperacion.Error("Agregá al menos un horario abierto.");
+        }
+
+        // CU-001-007 A14, A16, A17 y A18: datos que el documento pide para
+        // poder presentar el espacio (descripción, medidas, condiciones y
+        // reglas de uso, al menos una imagen).
+        private static ResultadoOperacion ValidarDatosDePresentacion(EspacioArtistico espacio)
+        {
+            FichaEspacio ficha = espacio.Ficha;
+
+            if (string.IsNullOrWhiteSpace(espacio.Descripcion) || espacio.Descripcion.Trim().Length < LongitudMinimaDescripcionFicha)
+                return ResultadoOperacion.Error(
+                    "Contá un poco más del espacio en la descripción (al menos " + LongitudMinimaDescripcionFicha +
+                    " caracteres). Si querés, usá «Generar descripción automática».", "A18");
+
+            if (!ficha.SuperficieM2.HasValue)
+                return ResultadoOperacion.Error("Ingresá la superficie del espacio en metros cuadrados.", "A14");
+            if (ficha.SuperficieM2 <= 0 || ficha.SuperficieM2 > 100000m || decimal.Round(ficha.SuperficieM2.Value, 2) != ficha.SuperficieM2.Value)
+                return ResultadoOperacion.Error("La superficie tiene que ser un número mayor a 0 (hasta 100.000 m², con hasta dos decimales).", "A16");
+            if (ficha.AlturaM.HasValue &&
+                (ficha.AlturaM <= 0 || ficha.AlturaM > 50m || decimal.Round(ficha.AlturaM.Value, 2) != ficha.AlturaM.Value))
+                return ResultadoOperacion.Error("La altura tiene que ser un número mayor a 0 y de hasta 50 metros, con hasta dos decimales.", "A16");
+
+            string condiciones = (ficha.CondicionesUso ?? string.Empty).Trim();
+            if (condiciones.Length < LongitudMinimaCondiciones)
+                return ResultadoOperacion.Error("Completá las condiciones de uso del espacio (al menos " + LongitudMinimaCondiciones + " caracteres).", "A14");
+            if (condiciones.Length > LongitudMaximaCondiciones)
+                return ResultadoOperacion.Error("Las condiciones de uso no pueden superar los " + LongitudMaximaCondiciones + " caracteres.", "A15");
+
+            string reglas = (ficha.ReglasUso ?? string.Empty).Trim();
+            if (reglas.Length < LongitudMinimaCondiciones)
+                return ResultadoOperacion.Error("Completá las reglas de uso del espacio (al menos " + LongitudMinimaCondiciones + " caracteres).", "A14");
+            if (reglas.Length > LongitudMaximaCondiciones)
+                return ResultadoOperacion.Error("Las reglas de uso no pueden superar los " + LongitudMaximaCondiciones + " caracteres.", "A15");
+
+            if (ficha.Fotos == null || ficha.Fotos.Count == 0)
+                return ResultadoOperacion.Error("Cargá al menos una foto del espacio (JPG o PNG).", "A17");
+
+            return ResultadoOperacion.Ok();
+        }
+
+        // CU-001-007 A12: descripción redactada a partir de los datos cargados.
+        // Es una ayuda opcional: el gestor la puede cambiar antes de guardar.
+        public static string GenerarDescripcion(EspacioArtistico espacio)
+        {
+            if (espacio == null)
+            {
+                return string.Empty;
+            }
+
+            FichaEspacio ficha = espacio.Ficha ?? new FichaEspacio();
+            CultureInfo cultura = new CultureInfo("es-AR");
+            List<string> oraciones = new List<string>();
+
+            string tipo = string.IsNullOrWhiteSpace(espacio.TipoEspacio) ? "artístico" : espacio.TipoEspacio.Trim();
+            string nombre = string.IsNullOrWhiteSpace(espacio.NombreEspacio) ? null : espacio.NombreEspacio.Trim();
+            string lugar = string.Join(", ", new[] { ficha.Ciudad, ficha.Provincia }.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p.Trim()));
+
+            // Redacción neutra para cualquier tipo ("un teatro", "una galería"...).
+            oraciones.Add((nombre != null ? "«" + nombre + "» es un espacio" : "Espacio") +
+                " de tipo " + tipo.ToLower(cultura) + (lugar.Length > 0 ? ", en " + lugar : string.Empty) + ".");
+
+            List<string> medidas = new List<string>();
+            if (ficha.SuperficieM2.HasValue)
+                medidas.Add(ficha.SuperficieM2.Value.ToString("0.##", cultura) + " m²");
+            if (ficha.AlturaM.HasValue)
+                medidas.Add(ficha.AlturaM.Value.ToString("0.##", cultura) + " m de altura");
+            if (ficha.CapacidadMaxima.HasValue)
+                medidas.Add("capacidad para " + ficha.CapacidadMaxima.Value.ToString("N0", cultura) + " personas");
+            if (medidas.Count > 0)
+                oraciones.Add("Cuenta con " + UnirConY(medidas) + ".");
+
+            if (!string.IsNullOrWhiteSpace(ficha.TipoPiso))
+                oraciones.Add("El piso es de " + ficha.TipoPiso.Trim().ToLower(cultura) + ".");
+
+            List<string> equipamiento = (ficha.Equipamiento ?? new List<string>())
+                .Where(codigo => NombresEquipamiento.ContainsKey(codigo))
+                .Select(codigo => NombresEquipamiento[codigo]).ToList();
+            if (equipamiento.Count > 0)
+                oraciones.Add("Incluye " + UnirConY(equipamiento) + ".");
+
+            if (!string.IsNullOrWhiteSpace(ficha.DetalleEquipamiento))
+                oraciones.Add(TerminarConPunto(ficha.DetalleEquipamiento.Trim()));
+
+            oraciones.Add("Ideal para ensayos, clases, presentaciones y producciones artísticas.");
+
+            if (ficha.PrecioHora.HasValue)
+                oraciones.Add("Valor de referencia: " + (ficha.Moneda == "USD" ? "US$ " : "$ ") +
+                    ficha.PrecioHora.Value.ToString("N2", cultura) + " por hora.");
+
+            string descripcion = string.Join(" ", oraciones);
+            return descripcion.Length > LongitudMaximaDescripcion ? descripcion.Substring(0, LongitudMaximaDescripcion) : descripcion;
+        }
+
+        // CU-001-007 A13: rango orientativo de precio por hora comparando con
+        // espacios publicados en la misma moneda. Se busca primero lo más
+        // parecido (mismo tipo, misma provincia y capacidad cercana) y, si no
+        // hay al menos 3 espacios para comparar, se amplía el criterio.
+        public ResultadoOperacion<SugerenciaPrecio> SugerirValores(EspacioArtistico borrador)
+        {
+            if (borrador == null || borrador.Ficha == null)
+                return ResultadoOperacion<SugerenciaPrecio>.Error("Completá los datos del espacio para pedir una sugerencia.");
+
+            FichaEspacio ficha = borrador.Ficha;
+            if (string.IsNullOrWhiteSpace(borrador.TipoEspacio) || string.IsNullOrWhiteSpace(ficha.Provincia))
+                return ResultadoOperacion<SugerenciaPrecio>.Error("Para sugerirte un valor necesitamos al menos el tipo de espacio y la provincia.");
+
+            if (ficha.Moneda != "ARS" && ficha.Moneda != "USD")
+                ficha.Moneda = "ARS";
+
+            List<EspacioArtistico> referencias;
+            try
+            {
+                referencias = _mppEspacio.ListarPreciosReferencia(borrador);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion<SugerenciaPrecio>.Error(ex.Message);
+            }
+
+            string tipo = borrador.TipoEspacio.Trim();
+            string provincia = ficha.Provincia.Trim();
+            int? capacidad = ficha.CapacidadMaxima;
+
+            Func<EspacioArtistico, bool> mismoTipo = e => string.Equals((e.TipoEspacio ?? "").Trim(), tipo, StringComparison.OrdinalIgnoreCase);
+            Func<EspacioArtistico, bool> mismaProvincia = e => string.Equals((e.Ficha.Provincia ?? "").Trim(), provincia, StringComparison.OrdinalIgnoreCase);
+            Func<EspacioArtistico, bool> capacidadCercana = e => !capacidad.HasValue || !e.Ficha.CapacidadMaxima.HasValue ||
+                (e.Ficha.CapacidadMaxima.Value >= capacidad.Value * 0.5 && e.Ficha.CapacidadMaxima.Value <= capacidad.Value * 1.5);
+
+            var criterios = new List<KeyValuePair<string, Func<EspacioArtistico, bool>>>
+            {
+                new KeyValuePair<string, Func<EspacioArtistico, bool>>(
+                    "espacios del mismo tipo, en " + provincia + " y con capacidad parecida", e => mismoTipo(e) && mismaProvincia(e) && capacidadCercana(e)),
+                new KeyValuePair<string, Func<EspacioArtistico, bool>>("espacios del mismo tipo en " + provincia, e => mismoTipo(e) && mismaProvincia(e)),
+                new KeyValuePair<string, Func<EspacioArtistico, bool>>("espacios del mismo tipo en todo el país", mismoTipo),
+                new KeyValuePair<string, Func<EspacioArtistico, bool>>("espacios de " + provincia, mismaProvincia),
+                new KeyValuePair<string, Func<EspacioArtistico, bool>>("todos los espacios publicados", e => true)
+            };
+
+            foreach (var criterio in criterios)
+            {
+                List<decimal> precios = referencias.Where(criterio.Value)
+                    .Select(e => e.Ficha.PrecioHora.Value).OrderBy(p => p).ToList();
+                if (precios.Count < 3 && criterio.Key != criterios[criterios.Count - 1].Key)
+                {
+                    continue;
+                }
+
+                if (precios.Count == 0)
+                {
+                    break;
+                }
+
+                // Con 4 o más precios se usa el rango intercuartil (deja afuera
+                // los extremos); con menos, el mínimo y el máximo.
+                decimal minimo = precios.Count >= 4 ? Percentil(precios, 0.25m) : precios[0];
+                decimal maximo = precios.Count >= 4 ? Percentil(precios, 0.75m) : precios[precios.Count - 1];
+
+                return ResultadoOperacion<SugerenciaPrecio>.Ok(new SugerenciaPrecio
+                {
+                    Moneda = ficha.Moneda,
+                    Minimo = decimal.Round(minimo, 2),
+                    Maximo = decimal.Round(maximo, 2),
+                    Mediana = decimal.Round(Percentil(precios, 0.5m), 2),
+                    CantidadComparados = precios.Count,
+                    Criterio = criterio.Key
+                });
+            }
+
+            return ResultadoOperacion<SugerenciaPrecio>.Error(
+                "Todavía no hay espacios publicados en " + ficha.Moneda + " para comparar. Definí el valor según tus costos.");
+        }
+
+        private static decimal Percentil(List<decimal> ordenados, decimal p)
+        {
+            if (ordenados.Count == 1)
+                return ordenados[0];
+            decimal posicion = (ordenados.Count - 1) * p;
+            int inferior = (int)Math.Floor(posicion);
+            int superior = (int)Math.Ceiling(posicion);
+            return ordenados[inferior] + (ordenados[superior] - ordenados[inferior]) * (posicion - inferior);
+        }
+
+        private static string UnirConY(List<string> partes)
+        {
+            if (partes.Count == 1)
+                return partes[0];
+            return string.Join(", ", partes.Take(partes.Count - 1)) + " y " + partes[partes.Count - 1];
+        }
+
+        private static string TerminarConPunto(string texto)
+        {
+            return texto.EndsWith(".") || texto.EndsWith("!") || texto.EndsWith("?") ? texto : texto + ".";
+        }
+
+        // CU-001-007 A8: el gestor ve el detalle de su espacio aunque no esté
+        // publicado (borrador o pausado). null si no es suyo o está dado de baja.
+        public EspacioArtistico ObtenerDetalleParaGestor(int idEspacioArtistico, int idUsuarioGestor)
+        {
+            try
+            {
+                EspacioArtistico espacio = _mppEspacio.ObtenerPorId(new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
+                return espacio != null && espacio.Activo && espacio.IdUsuarioGestor == idUsuarioGestor ? espacio : null;
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return null;
+            }
         }
 
         public ResultadoOperacion<int> GuardarFicha(EspacioArtistico espacio, int idUsuarioGestor)

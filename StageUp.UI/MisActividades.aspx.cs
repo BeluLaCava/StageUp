@@ -15,7 +15,6 @@ namespace StageUp.UI
     public partial class MisActividades : Page
     {
         private readonly BLL_EspacioArtistico _bllEspacio = new BLL_EspacioArtistico();
-        private readonly BLL_UsuarioExterno _bllUsuario = new BLL_UsuarioExterno();
         private readonly BLL_Actividad _bllActividad = new BLL_Actividad();
         private readonly BLL_Participante _bllParticipante = new BLL_Participante();
 
@@ -48,34 +47,22 @@ namespace StageUp.UI
 
             string perfil = GestorDeSesion.ObtenerPerfilActual();
 
-            pnlPendienteGestor.Visible = perfil == PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString();
-            pnlNoGestor.Visible = perfil == PerfilUsuarioExterno.ExternoSolicitante.ToString();
-            pnlPanelGestor.Visible = perfil == PerfilUsuarioExterno.GestorEspacios.ToString();
-            lnkNuevaActividad.Visible = pnlPanelGestor.Visible;
+            // CU-001-007 (A1, A3 a A6): quien todavía no es gestor pide la
+            // habilitación o consulta su estado en "Ofrecer espacio".
+            if (perfil != PerfilUsuarioExterno.GestorEspacios.ToString())
+            {
+                Response.Redirect("~/OfrecerEspacio.aspx", false);
+                Context.ApplicationInstance.CompleteRequest();
+                return;
+            }
+
+            pnlPanelGestor.Visible = true;
+            lnkNuevaActividad.Visible = true;
 
             if (pnlPanelGestor.Visible && !IsPostBack)
             {
                 CargarPantallaGestor();
             }
-        }
-
-        protected void btnSolicitarGestor_Click(object sender, EventArgs e)
-        {
-            int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
-            ResultadoOperacion<int> resultado = _bllUsuario.SolicitarHabilitacionComoGestor(idUsuarioExterno);
-
-            if (!resultado.Exitoso)
-            {
-                MostrarMensaje(resultado.Mensaje, esError: true);
-                return;
-            }
-
-            GestorDeSesion.ActualizarPerfilEnSesion(PerfilUsuarioExterno.PendienteHabilitacionGestor.ToString());
-
-            pnlNoGestor.Visible = false;
-            pnlPendienteGestor.Visible = true;
-            lnkNuevaActividad.Visible = false;
-            MostrarMensaje(resultado.Mensaje, esError: false);
         }
 
         protected void lnkNuevaActividad_Click(object sender, EventArgs e)

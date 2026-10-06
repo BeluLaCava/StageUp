@@ -45,7 +45,11 @@ namespace StageUp.MPP
                     { "@precioHora", ficha.PrecioHora.Value },
                     { "@moneda", ficha.Moneda },
                     { "@tipoPiso", (object)ficha.TipoPiso ?? DBNull.Value },
-                    { "@detalleEquipamiento", (object)ficha.DetalleEquipamiento ?? DBNull.Value }
+                    { "@detalleEquipamiento", (object)ficha.DetalleEquipamiento ?? DBNull.Value },
+                    { "@superficieM2", ficha.SuperficieM2.HasValue ? (object)ficha.SuperficieM2.Value : DBNull.Value },
+                    { "@alturaM", ficha.AlturaM.HasValue ? (object)ficha.AlturaM.Value : DBNull.Value },
+                    { "@condicionesUso", (object)ficha.CondicionesUso ?? DBNull.Value },
+                    { "@reglasUso", (object)ficha.ReglasUso ?? DBNull.Value }
                 });
 
             // Solo se limpia lo que el formulario vuelve a mandar completo:
@@ -333,8 +337,57 @@ namespace StageUp.MPP
                 PrecioHora = Convert.ToDecimal(fila["precioHora"]),
                 Moneda = fila["moneda"].ToString(),
                 TipoPiso = fila["tipoPiso"] == DBNull.Value ? null : fila["tipoPiso"].ToString(),
-                DetalleEquipamiento = fila["detalleEquipamiento"] == DBNull.Value ? null : fila["detalleEquipamiento"].ToString()
+                DetalleEquipamiento = fila["detalleEquipamiento"] == DBNull.Value ? null : fila["detalleEquipamiento"].ToString(),
+                SuperficieM2 = LeerDecimal(fila, "superficieM2"),
+                AlturaM = LeerDecimal(fila, "alturaM"),
+                CondicionesUso = LeerTexto(fila, "condicionesUso"),
+                ReglasUso = LeerTexto(fila, "reglasUso")
             };
+        }
+
+        // Las columnas del script 55 solo vienen en los SP que se recrearon
+        // ahí; en los demás quedan en null.
+        private static decimal? LeerDecimal(DataRow fila, string columna)
+        {
+            return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value ? Convert.ToDecimal(fila[columna]) : (decimal?)null;
+        }
+
+        private static string LeerTexto(DataRow fila, string columna)
+        {
+            return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value ? fila[columna].ToString() : null;
+        }
+
+        // CU-001-007 A13: precios de los espacios publicados en una moneda.
+        public List<EspacioArtistico> ListarPreciosReferencia(EspacioArtistico oEspacio)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_EspacioArtistico_ListarPreciosReferencia",
+                new Hashtable
+                {
+                    { "@moneda", oEspacio.Ficha.Moneda },
+                    { "@idEspacioExcluido", oEspacio.IdEspacioArtistico > 0 ? (object)oEspacio.IdEspacioArtistico : DBNull.Value }
+                });
+
+            List<EspacioArtistico> lista = new List<EspacioArtistico>();
+            foreach (DataRow fila in tabla.Rows)
+            {
+                lista.Add(new EspacioArtistico
+                {
+                    IdEspacioArtistico = Convert.ToInt32(fila["idEspacioArtistico"]),
+                    TipoEspacio = fila["tipoEspacio"].ToString(),
+                    Ficha = new FichaEspacio
+                    {
+                        Provincia = LeerTexto(fila, "provincia"),
+                        Ciudad = LeerTexto(fila, "ciudad"),
+                        CapacidadMaxima = fila["capacidadMaxima"] == DBNull.Value ? (int?)null : Convert.ToInt32(fila["capacidadMaxima"]),
+                        SuperficieM2 = LeerDecimal(fila, "superficieM2"),
+                        PrecioHora = Convert.ToDecimal(fila["precioHora"]),
+                        Moneda = oEspacio.Ficha.Moneda
+                    }
+                });
+            }
+
+            return lista;
         }
 
         private static void CompletarDatosHijosDeFicha(

@@ -37,6 +37,12 @@ namespace StageUp.UI.Explorar
             }
 
             EspacioArtistico espacio = _bllEspacio.ObtenerDetallePublicado(idEspacioArtistico);
+            if (espacio == null && GestorDeSesion.EstaAutenticado())
+            {
+                // CU-001-007 A8: el gestor puede ver su espacio sin publicar.
+                espacio = _bllEspacio.ObtenerDetalleParaGestor(idEspacioArtistico, GestorDeSesion.ObtenerIdUsuarioActual().Value);
+            }
+
             if (espacio == null)
             {
                 MostrarNoEncontrado(
@@ -47,6 +53,100 @@ namespace StageUp.UI.Explorar
 
             IdEspacioArtistico = idEspacioArtistico;
             MostrarDetalle(espacio);
+            ConfigurarGestion(espacio);
+        }
+
+        // ------------------------------------------------------------------
+        // CU-001-007 A8 a A11: acciones del gestor sobre su espacio.
+        // ------------------------------------------------------------------
+        private void ConfigurarGestion(EspacioArtistico espacio)
+        {
+            bool esPropio = GestorDeSesion.EstaAutenticado() &&
+                GestorDeSesion.ObtenerIdUsuarioActual() == espacio.IdUsuarioGestor;
+            pnlGestion.Visible = esPropio;
+            if (!esPropio)
+            {
+                return;
+            }
+
+            lblEstadoGestion.Text = Server.HtmlEncode(espacio.EstadoEspacio);
+            litAvisoGestion.Text = espacio.Publicado
+                ? "Se muestra en el catálogo y recibe solicitudes de reserva."
+                : "No se muestra en el catálogo mientras no lo publiques.";
+            lnkEditarGestion.NavigateUrl = "~/MisEspacios.aspx?editar=" + espacio.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture);
+            lnkPublicarGestion.Visible = !espacio.Publicado;
+            lnkPausarGestion.Visible = espacio.Publicado;
+        }
+
+        protected void lnkPublicarGestion_Click(object sender, EventArgs e)
+        {
+            EjecutarAccionGestion(id => _bllEspacio.Publicar(id, GestorDeSesion.ObtenerIdUsuarioActual().Value));
+        }
+
+        protected void lnkPausarGestion_Click(object sender, EventArgs e)
+        {
+            EjecutarAccionGestion(id => _bllEspacio.Pausar(id, GestorDeSesion.ObtenerIdUsuarioActual().Value));
+        }
+
+        // A10 paso 2: confirmación que avisa que se conserva el historial.
+        protected void lnkBajaGestion_Click(object sender, EventArgs e)
+        {
+            pnlConfirmarBaja.Visible = true;
+            pnlMensajeGestion.Visible = false;
+        }
+
+        // A11: cancelar la baja deja todo como estaba.
+        protected void lnkCancelarBaja_Click(object sender, EventArgs e)
+        {
+            pnlConfirmarBaja.Visible = false;
+        }
+
+        protected void btnConfirmarBaja_Click(object sender, EventArgs e)
+        {
+            if (!GestorDeSesion.EstaAutenticado() || IdEspacioArtistico == null)
+            {
+                Response.Redirect("~/IniciarSesion.aspx");
+                return;
+            }
+
+            ResultadoOperacion resultado = _bllEspacio.DarDeBaja(IdEspacioArtistico.Value, GestorDeSesion.ObtenerIdUsuarioActual().Value);
+            if (!resultado.Exitoso)
+            {
+                pnlConfirmarBaja.Visible = false;
+                MostrarMensajeGestion(resultado.Mensaje, true);
+                return;
+            }
+
+            // A10 pasos 7 y 8.
+            Response.Redirect("~/MisEspacios.aspx?baja=1", false);
+            Context.ApplicationInstance.CompleteRequest();
+        }
+
+        private void EjecutarAccionGestion(Func<int, ResultadoOperacion> accion)
+        {
+            if (!GestorDeSesion.EstaAutenticado() || IdEspacioArtistico == null)
+            {
+                Response.Redirect("~/IniciarSesion.aspx");
+                return;
+            }
+
+            ResultadoOperacion resultado = accion(IdEspacioArtistico.Value);
+            EspacioArtistico espacio = _bllEspacio.ObtenerDetalleParaGestor(IdEspacioArtistico.Value, GestorDeSesion.ObtenerIdUsuarioActual().Value);
+            if (espacio != null)
+            {
+                MostrarDetalle(espacio);
+                ConfigurarGestion(espacio);
+            }
+
+            pnlConfirmarBaja.Visible = false;
+            MostrarMensajeGestion(resultado.Mensaje, !resultado.Exitoso);
+        }
+
+        private void MostrarMensajeGestion(string mensaje, bool esError)
+        {
+            litMensajeGestion.Text = mensaje;
+            pnlMensajeGestion.CssClass = "form-message " + (esError ? "form-message-error" : "form-message-success");
+            pnlMensajeGestion.Visible = !string.IsNullOrEmpty(mensaje);
         }
 
         protected void btnSolicitarReserva_Click(object sender, EventArgs e)
@@ -235,6 +335,16 @@ namespace StageUp.UI.Explorar
                 ? "Hasta " + ficha.CapacidadMaxima.Value + " personas"
                 : "No informada";
             litTipoPiso.Text = Server.HtmlEncode(string.IsNullOrWhiteSpace(ficha.TipoPiso) ? "No informado" : ficha.TipoPiso);
+            litMedidas.Text = Server.HtmlEncode(FormatearMedidas(ficha));
+
+            bool tieneCondiciones = !string.IsNullOrWhiteSpace(ficha.CondicionesUso) || !string.IsNullOrWhiteSpace(ficha.ReglasUso);
+            pnlCondiciones.Visible = tieneCondiciones;
+            litCondicionesUso.Text = string.IsNullOrWhiteSpace(ficha.CondicionesUso)
+                ? "No informadas."
+                : Server.HtmlEncode(ficha.CondicionesUso).Replace("\r\n", "<br />").Replace("\n", "<br />");
+            litReglasUso.Text = string.IsNullOrWhiteSpace(ficha.ReglasUso)
+                ? "No informadas."
+                : Server.HtmlEncode(ficha.ReglasUso).Replace("\r\n", "<br />").Replace("\n", "<br />");
             litPrecioHora.Text = ficha.PrecioHora.HasValue ? FormatearPrecio(ficha) : "A consultar";
 
             List<string> equipamiento = new List<string>();
@@ -256,6 +366,18 @@ namespace StageUp.UI.Explorar
             pnlSinDisponibilidad.Visible = disponibilidad.Count == 0;
             rptDisponibilidad.DataSource = disponibilidad;
             rptDisponibilidad.DataBind();
+        }
+
+        private static string FormatearMedidas(FichaEspacio ficha)
+        {
+            if (!ficha.SuperficieM2.HasValue)
+            {
+                return "No informadas";
+            }
+
+            CultureInfo cultura = new CultureInfo("es-AR");
+            string texto = ficha.SuperficieM2.Value.ToString("0.##", cultura) + " m²";
+            return ficha.AlturaM.HasValue ? texto + " · " + ficha.AlturaM.Value.ToString("0.##", cultura) + " m de altura" : texto;
         }
 
         private void CargarReserva(EspacioArtistico espacio, FichaEspacio ficha)

@@ -66,6 +66,7 @@
     <Compile Include="MPP_RolInternoComponentePermiso.cs" />
     <Compile Include="MPP_Idioma.cs" />
     <Compile Include="MPP_Traduccion.cs" />
+    <Compile Include="MPP_SolicitudHabilitacionGestor.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

@@ -4,6 +4,7 @@ namespace StageUp.UI.Interno
     {
         protected global::System.Web.UI.WebControls.Panel pnlMensaje;
         protected global::System.Web.UI.WebControls.Literal litMensaje;
+        protected global::System.Web.UI.WebControls.DropDownList ddlEstado;
         protected global::System.Web.UI.WebControls.Repeater rptSolicitudes;
         protected global::System.Web.UI.WebControls.Panel pnlSinSolicitudes;
     }

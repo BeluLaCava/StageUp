@@ -79,7 +79,7 @@ namespace StageUp.UI.Interno
 
             if (!GestorDeSesion.TienePermisoInterno("CONFIGURAR_PARAMETROS"))
             {
-                Response.Redirect("~/Interno/PanelAdministrador.aspx");
+                Response.Redirect("~/Interno/PanelAdministrador.aspx?acceso=denegado");
                 return false;
             }
 

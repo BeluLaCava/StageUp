@@ -21,6 +21,7 @@ namespace StageUp.BLL
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly BLL_PermisoInterno _bllPermiso = new BLL_PermisoInterno();
         private readonly ServicioRecaptcha _servicioRecaptcha = new ServicioRecaptcha();
+        private readonly BLL_ControlAdministradores _control = new BLL_ControlAdministradores();
 
         public ResultadoOperacion<UsuarioInterno> IniciarSesion(
             string correoElectronico, string password, string respuestaCaptcha)
@@ -86,6 +87,12 @@ namespace StageUp.BLL
             return ResultadoOperacion<UsuarioInterno>.Ok(usuario);
         }
 
+        public const string FiltroActivos = "Activos";
+        public const string FiltroInactivos = "Inactivos";
+        public const string FiltroTodos = "Todos";
+
+        private const string TipoEntidadBitacora = "UsuarioInterno";
+
         public List<UsuarioInterno> Listar()
         {
             try
@@ -96,6 +103,38 @@ namespace StageUp.BLL
             {
                 return new List<UsuarioInterno>();
             }
+        }
+
+        // Pasos 4 y 5 del escenario principal: listado con búsqueda por
+        // nombre, apellido o correo y filtros de rol y estado.
+        public List<UsuarioInterno> Buscar(string texto, int? idRolInterno, string estado)
+        {
+            string busqueda = (texto ?? string.Empty).Trim().ToLowerInvariant();
+            List<UsuarioInterno> resultado = new List<UsuarioInterno>();
+            foreach (UsuarioInterno usuario in Listar())
+            {
+                if (estado == FiltroActivos && !usuario.Activo || estado == FiltroInactivos && usuario.Activo)
+                {
+                    continue;
+                }
+
+                if (idRolInterno.HasValue && usuario.IdRolInterno != idRolInterno.Value)
+                {
+                    continue;
+                }
+
+                if (busqueda.Length > 0 &&
+                    ((usuario.Nombre + " " + usuario.Apellido).ToLowerInvariant().IndexOf(busqueda, StringComparison.Ordinal) < 0) &&
+                    ((usuario.Apellido + " " + usuario.Nombre).ToLowerInvariant().IndexOf(busqueda, StringComparison.Ordinal) < 0) &&
+                    (usuario.CorreoElectronico ?? string.Empty).ToLowerInvariant().IndexOf(busqueda, StringComparison.Ordinal) < 0)
+                {
+                    continue;
+                }
+
+                resultado.Add(usuario);
+            }
+
+            return resultado;
         }
 
         public UsuarioInterno ObtenerPorId(int idUsuarioInterno)
@@ -111,6 +150,24 @@ namespace StageUp.BLL
             }
         }
 
+        // A10 paso 4 y A16: en cada página del panel interno se vuelve a leer
+        // la cuenta, para que una baja o un cambio de rol o de permisos rija
+        // enseguida aunque la persona ya tenga la sesión abierta. Devuelve
+        // null si la cuenta ya no está activa.
+        public UsuarioInterno ObtenerParaSesion(int idUsuarioInterno, out List<string> codigosPermisos)
+        {
+            codigosPermisos = null;
+            UsuarioInterno usuario = _mppUsuarioInterno.ObtenerPorId(
+                new UsuarioInterno { IdUsuarioInterno = idUsuarioInterno });
+            if (usuario == null || !usuario.Activo || usuario.EstadoCuenta != EstadoCuentaInterno.Activa.ToString())
+            {
+                return null;
+            }
+
+            codigosPermisos = _bllPermiso.ListarCodigosPermisosDeRol(usuario.IdRolInterno);
+            return usuario;
+        }
+
         public ResultadoOperacion<int> Registrar(
             string nombre, string apellido, string correoElectronico, int idAreaInterna,
             int idRolInterno, string estadoCuenta, string password, string confirmacionPassword,
@@ -124,7 +181,7 @@ namespace StageUp.BLL
 
                 if (!validacion.Exitoso)
                 {
-                    return ResultadoOperacion<int>.Error(validacion.Mensaje);
+                    return ResultadoOperacion<int>.Error(validacion.Mensaje, validacion.CodigoAlternativo);
                 }
 
                 string correoNormalizado = correoElectronico.Trim().ToLowerInvariant();
@@ -144,11 +201,18 @@ namespace StageUp.BLL
 
                 int idUsuarioInterno = _mppUsuarioInterno.Insertar(usuario);
 
+                RolInterno rol = _mppRolInterno.ObtenerPorId(new RolInterno { IdRolInterno = idRolInterno });
+                AreaInterna area = _mppAreaInterna.ObtenerPorId(new AreaInterna { IdAreaInterna = idAreaInterna });
                 _bitacora.RegistrarInterno(
-                    idUsuarioInternoResponsable, "ALTA", "UsuarioInterno", idUsuarioInterno,
-                    "Alta de usuario interno: " + correoNormalizado + ".");
+                    idUsuarioInternoResponsable, "ALTA", TipoEntidadBitacora, idUsuarioInterno,
+                    "Alta del usuario interno " + usuario.Nombre + " " + usuario.Apellido + " (" + correoNormalizado + ")" +
+                    ", área " + (area != null ? area.NombreArea : "#" + idAreaInterna) +
+                    ", rol " + (rol != null ? rol.NombreRol : "#" + idRolInterno) +
+                    ", estado " + estadoCuenta + ".");
 
-                return ResultadoOperacion<int>.Ok(idUsuarioInterno, "El usuario interno se creó correctamente.");
+                return ResultadoOperacion<int>.Ok(idUsuarioInterno,
+                    "El usuario interno " + usuario.Nombre + " " + usuario.Apellido +
+                    " fue registrado correctamente con los permisos del rol " + (rol != null ? rol.NombreRol : string.Empty) + ".");
             });
         }
 
@@ -178,7 +242,20 @@ namespace StageUp.BLL
 
                 if (idUsuarioInterno == idUsuarioInternoResponsable && actual.IdRolInterno != idRolInterno)
                 {
-                    return ResultadoOperacion.Error("No podés cambiar tu propio rol mientras tu sesión está iniciada.");
+                    return ResultadoOperacion.Error("No podés cambiar tu propio rol mientras tu sesión está iniciada.", "A9");
+                }
+
+                bool quedaInactivo = estadoCuenta == EstadoCuentaInterno.Inactiva.ToString();
+                if ((quedaInactivo || actual.IdRolInterno != idRolInterno) &&
+                    _control.CambioDejaSinAdministradores(new BLL_ControlAdministradores.Cambio
+                    {
+                        IdUsuario = idUsuarioInterno,
+                        UsuarioQuedaInactivo = quedaInactivo,
+                        NuevoRolUsuario = idRolInterno
+                    }))
+                {
+                    return ResultadoOperacion.Error(
+                        "No se puede guardar el cambio: " + BLL_ControlAdministradores.MensajeSinAdministradores, "A9");
                 }
 
                 UsuarioInterno usuarioModificado = new UsuarioInterno
@@ -192,124 +269,160 @@ namespace StageUp.BLL
                     EstadoCuenta = estadoCuenta
                 };
 
-                if (!string.IsNullOrWhiteSpace(password))
+                bool cambiaPassword = !string.IsNullOrWhiteSpace(password);
+                if (cambiaPassword)
                 {
                     ProtectorDeCredenciales.ProtegerPassword(usuarioModificado, password);
                 }
 
                 _mppUsuarioInterno.Modificar(usuarioModificado);
 
+                string cambios = DescribirCambios(actual, usuarioModificado, cambiaPassword);
                 _bitacora.RegistrarInterno(
-                    idUsuarioInternoResponsable, "MODIFICACION", "UsuarioInterno", idUsuarioInterno,
-                    "Modificación de usuario interno: " + correoElectronico.Trim().ToLowerInvariant() + ".");
+                    idUsuarioInternoResponsable, "MODIFICACION", TipoEntidadBitacora, idUsuarioInterno,
+                    "Modificación del usuario interno " + usuarioModificado.CorreoElectronico +
+                    (cambios.Length > 0 ? ": " + cambios : " (sin cambios en sus datos)") + ".");
 
-                return ResultadoOperacion.Ok("El usuario interno se actualizó correctamente.");
+                string mensaje = "El usuario interno fue actualizado correctamente.";
+                if (actual.IdRolInterno != idRolInterno)
+                {
+                    mensaje += " Sus permisos ahora son los del rol nuevo.";
+                }
+
+                return ResultadoOperacion.Ok(mensaje);
             });
         }
 
+        // A10: baja lógica (deja de tener acceso y se conserva su historial).
         public ResultadoOperacion DarDeBaja(int idUsuarioInterno, int idUsuarioInternoResponsable)
         {
             return EjecutarProtegido(() =>
             {
                 if (idUsuarioInterno == idUsuarioInternoResponsable)
                 {
-                    return ResultadoOperacion.Error("No podés dar de baja tu propia cuenta mientras la estás usando.");
+                    return ResultadoOperacion.Error("No podés dar de baja tu propia cuenta mientras la estás usando.", "A10");
                 }
 
                 UsuarioInterno usuario = _mppUsuarioInterno.ObtenerPorId(
                     new UsuarioInterno { IdUsuarioInterno = idUsuarioInterno });
                 if (usuario == null)
                 {
-                    return ResultadoOperacion.Error("No se encontró el usuario interno seleccionado.");
+                    return ResultadoOperacion.Error("No se encontró el usuario interno seleccionado.", "A10");
                 }
 
                 if (!usuario.Activo)
                 {
-                    return ResultadoOperacion.Error("El usuario interno ya se encuentra inactivo.");
+                    return ResultadoOperacion.Error("El usuario interno ya se encuentra inactivo.", "A10");
+                }
+
+                if (_control.CambioDejaSinAdministradores(new BLL_ControlAdministradores.Cambio
+                    {
+                        IdUsuario = idUsuarioInterno,
+                        UsuarioQuedaInactivo = true
+                    }))
+                {
+                    return ResultadoOperacion.Error(
+                        "No se puede dar de baja a " + usuario.Nombre + " " + usuario.Apellido + ": " +
+                        BLL_ControlAdministradores.MensajeSinAdministradores, "A10");
                 }
 
                 _mppUsuarioInterno.DarDeBaja(usuario);
 
                 _bitacora.RegistrarInterno(
-                    idUsuarioInternoResponsable, "BAJA", "UsuarioInterno", idUsuarioInterno,
-                    "Baja lógica de usuario interno: " + usuario.CorreoElectronico + ".");
+                    idUsuarioInternoResponsable, "BAJA", TipoEntidadBitacora, idUsuarioInterno,
+                    "Baja lógica del usuario interno " + usuario.Nombre + " " + usuario.Apellido +
+                    " (" + usuario.CorreoElectronico + "), rol " + usuario.NombreRol + ". Se conserva su historial.");
 
-                return ResultadoOperacion.Ok("El usuario interno se dio de baja correctamente.");
+                return ResultadoOperacion.Ok(
+                    "El usuario interno " + usuario.Nombre + " " + usuario.Apellido +
+                    " fue dado de baja correctamente. Ya no puede ingresar al entorno administrativo y se conserva su historial.");
             });
         }
 
+        private string DescribirCambios(UsuarioInterno anterior, UsuarioInterno nuevo, bool cambiaPassword)
+        {
+            List<string> cambios = new List<string>();
+            if (anterior.Nombre != nuevo.Nombre || anterior.Apellido != nuevo.Apellido)
+            {
+                cambios.Add("nombre " + anterior.Nombre + " " + anterior.Apellido + " → " + nuevo.Nombre + " " + nuevo.Apellido);
+            }
+
+            if (!string.Equals(anterior.CorreoElectronico, nuevo.CorreoElectronico, StringComparison.OrdinalIgnoreCase))
+            {
+                cambios.Add("correo " + anterior.CorreoElectronico + " → " + nuevo.CorreoElectronico);
+            }
+
+            if (anterior.IdAreaInterna != nuevo.IdAreaInterna)
+            {
+                AreaInterna area = _mppAreaInterna.ObtenerPorId(new AreaInterna { IdAreaInterna = nuevo.IdAreaInterna });
+                cambios.Add("área " + anterior.NombreArea + " → " + (area != null ? area.NombreArea : "#" + nuevo.IdAreaInterna));
+            }
+
+            if (anterior.IdRolInterno != nuevo.IdRolInterno)
+            {
+                RolInterno rol = _mppRolInterno.ObtenerPorId(new RolInterno { IdRolInterno = nuevo.IdRolInterno });
+                cambios.Add("rol " + anterior.NombreRol + " → " + (rol != null ? rol.NombreRol : "#" + nuevo.IdRolInterno));
+            }
+
+            if (anterior.EstadoCuenta != nuevo.EstadoCuenta)
+            {
+                cambios.Add("estado " + anterior.EstadoCuenta + " → " + nuevo.EstadoCuenta);
+            }
+
+            if (cambiaPassword)
+            {
+                cambios.Add("se cambió la contraseña");
+            }
+
+            return string.Join("; ", cambios);
+        }
+
+        // Paso 12 del escenario principal y A8 paso 5: A3 (obligatorios),
+        // A4 (formato del correo), A5 (correo repetido) y A6 (rol válido). En
+        // la modificación todos se informan como A9.
         private ResultadoOperacion ValidarDatos(
             string nombre, string apellido, string correoElectronico, int idAreaInterna,
             int idRolInterno, string estadoCuenta, string password, string confirmacionPassword,
             bool passwordObligatoria, int? idUsuarioInternoExcluido, int idUsuarioInternoResponsable)
         {
-            if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(apellido) ||
-                string.IsNullOrWhiteSpace(correoElectronico))
-            {
-                return ResultadoOperacion.Error("Completá todos los campos obligatorios del usuario interno.");
-            }
-
-            if (nombre.Trim().Length > 200 || apellido.Trim().Length > 200)
-            {
-                return ResultadoOperacion.Error("El nombre y el apellido no pueden superar los 200 caracteres.");
-            }
-
-            string correoNormalizado = correoElectronico.Trim().ToLowerInvariant();
-            if (correoNormalizado.Length > 300 || !PatronCorreo.IsMatch(correoNormalizado))
-            {
-                return ResultadoOperacion.Error("El correo electrónico ingresado no tiene un formato válido.");
-            }
-
-            AreaInterna area = _mppAreaInterna.ObtenerPorId(
-                new AreaInterna { IdAreaInterna = idAreaInterna });
-            if (area == null || !area.Activo || area.EstadoArea != "Activa")
-            {
-                return ResultadoOperacion.Error("Seleccioná un área interna activa.");
-            }
-
-            RolInterno rol = _mppRolInterno.ObtenerPorId(
-                new RolInterno { IdRolInterno = idRolInterno });
-            if (rol == null || !rol.Activo || rol.EstadoRol != "Activo")
-            {
-                return ResultadoOperacion.Error("Seleccioná un rol interno activo.");
-            }
-
-            if (estadoCuenta != EstadoCuentaInterno.Activa.ToString() &&
-                estadoCuenta != EstadoCuentaInterno.Inactiva.ToString())
-            {
-                return ResultadoOperacion.Error("Seleccioná un estado de cuenta válido.");
-            }
-
-            if (idUsuarioInternoExcluido == idUsuarioInternoResponsable &&
-                estadoCuenta == EstadoCuentaInterno.Inactiva.ToString())
-            {
-                return ResultadoOperacion.Error("No podés desactivar tu propia cuenta mientras la estás usando.");
-            }
+            bool esAlta = !idUsuarioInternoExcluido.HasValue;
+            Func<string, string> codigo = c => esAlta ? c : "A9";
 
             bool seIngresoPassword = !string.IsNullOrWhiteSpace(password) ||
                                      !string.IsNullOrWhiteSpace(confirmacionPassword);
 
-            if (passwordObligatoria && !seIngresoPassword)
+            // A3: se informan juntos todos los datos que faltan.
+            List<string> faltantes = new List<string>();
+            if (string.IsNullOrWhiteSpace(nombre)) faltantes.Add("el nombre");
+            if (string.IsNullOrWhiteSpace(apellido)) faltantes.Add("el apellido");
+            if (string.IsNullOrWhiteSpace(correoElectronico)) faltantes.Add("el correo electrónico");
+            if (idAreaInterna <= 0) faltantes.Add("el área interna");
+            if (idRolInterno <= 0) faltantes.Add("el rol");
+            if (string.IsNullOrWhiteSpace(estadoCuenta)) faltantes.Add("el estado de la cuenta");
+            if (passwordObligatoria && !seIngresoPassword) faltantes.Add("la contraseña inicial");
+
+            if (faltantes.Count > 0)
             {
-                return ResultadoOperacion.Error("Ingresá una contraseña inicial para el usuario interno.");
+                string lista = faltantes.Count == 1
+                    ? faltantes[0]
+                    : string.Join(", ", faltantes.GetRange(0, faltantes.Count - 1)) + " y " + faltantes[faltantes.Count - 1];
+                return ResultadoOperacion.Error("Completá " + lista + " del usuario interno.", codigo("A3"));
             }
 
-            if (seIngresoPassword)
+            if (nombre.Trim().Length > 200 || apellido.Trim().Length > 200)
             {
-                if (password != confirmacionPassword)
-                {
-                    return ResultadoOperacion.Error("La contraseña y su confirmación no coinciden.");
-                }
-
-                if (!CumpleCriteriosDeSeguridad(password))
-                {
-                    return ResultadoOperacion.Error(
-                        string.Format(
-                            "La contraseña debe tener al menos {0} caracteres e incluir letras y números.",
-                            ConfiguracionSeguridad.LongitudMinimaPassword));
-                }
+                return ResultadoOperacion.Error("El nombre y el apellido no pueden superar los 200 caracteres.", codigo("A3"));
             }
 
+            // A4.
+            string correoNormalizado = correoElectronico.Trim().ToLowerInvariant();
+            if (correoNormalizado.Length > 300 || !PatronCorreo.IsMatch(correoNormalizado))
+            {
+                return ResultadoOperacion.Error(
+                    "El correo electrónico no tiene un formato válido (por ejemplo, persona@artera.com). Corregilo para continuar.", codigo("A4"));
+            }
+
+            // A5.
             UsuarioInterno usuarioBuscado = new UsuarioInterno
             {
                 IdUsuarioInterno = idUsuarioInternoExcluido ?? 0,
@@ -318,7 +431,70 @@ namespace StageUp.BLL
 
             if (_mppUsuarioInterno.ExisteCorreo(usuarioBuscado))
             {
-                return ResultadoOperacion.Error("Ya existe un usuario interno registrado con ese correo electrónico.");
+                UsuarioInterno existente = _mppUsuarioInterno.Listar().Find(u =>
+                    string.Equals(u.CorreoElectronico, correoNormalizado, StringComparison.OrdinalIgnoreCase) &&
+                    u.IdUsuarioInterno != (idUsuarioInternoExcluido ?? 0));
+
+                string detalle = existente == null
+                    ? string.Empty
+                    : existente.Activo
+                        ? " (" + existente.Nombre + " " + existente.Apellido + ")"
+                        : " (" + existente.Nombre + " " + existente.Apellido + ", dado de baja: si vuelve al equipo, reactivá esa cuenta desde su detalle)";
+
+                return ResultadoOperacion.Error(
+                    "No es posible registrar otro usuario interno con el mismo correo electrónico: ese correo ya está asociado a otro usuario" +
+                    detalle + ".", codigo("A5"));
+            }
+
+            AreaInterna area = _mppAreaInterna.ObtenerPorId(
+                new AreaInterna { IdAreaInterna = idAreaInterna });
+            if (area == null || !area.Activo || area.EstadoArea != "Activa")
+            {
+                return ResultadoOperacion.Error("El área interna seleccionada no existe o no está activa. Seleccioná un área válida.", codigo("A3"));
+            }
+
+            // A6: el rol existe, está activo y tiene permisos.
+            RolInterno rol = _mppRolInterno.ObtenerPorId(
+                new RolInterno { IdRolInterno = idRolInterno });
+            if (rol == null || !rol.Activo || rol.EstadoRol != "Activo")
+            {
+                return ResultadoOperacion.Error("El rol seleccionado no existe o no está disponible. Seleccioná un rol válido.", codigo("A6"));
+            }
+
+            if (_bllPermiso.ListarCodigosPermisosDeRol(idRolInterno).Count == 0)
+            {
+                return ResultadoOperacion.Error(
+                    "El rol \"" + rol.NombreRol + "\" no tiene permisos configurados, así que el usuario no podría operar. Seleccioná otro rol o configurá sus permisos en Roles y permisos.",
+                    codigo("A6"));
+            }
+
+            if (estadoCuenta != EstadoCuentaInterno.Activa.ToString() &&
+                estadoCuenta != EstadoCuentaInterno.Inactiva.ToString())
+            {
+                return ResultadoOperacion.Error("Seleccioná un estado de cuenta válido.", codigo("A3"));
+            }
+
+            if (idUsuarioInternoExcluido == idUsuarioInternoResponsable &&
+                estadoCuenta == EstadoCuentaInterno.Inactiva.ToString())
+            {
+                return ResultadoOperacion.Error("No podés desactivar tu propia cuenta mientras la estás usando.", codigo("A3"));
+            }
+
+            if (seIngresoPassword)
+            {
+                if (password != confirmacionPassword)
+                {
+                    return ResultadoOperacion.Error("La contraseña y su confirmación no coinciden.", codigo("A3"));
+                }
+
+                if (!CumpleCriteriosDeSeguridad(password))
+                {
+                    return ResultadoOperacion.Error(
+                        string.Format(
+                            "La contraseña debe tener al menos {0} caracteres e incluir letras y números.",
+                            ConfiguracionSeguridad.LongitudMinimaPassword),
+                        codigo("A3"));
+                }
             }
 
             return ResultadoOperacion.Ok();

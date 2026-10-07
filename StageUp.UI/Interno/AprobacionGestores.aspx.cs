@@ -25,7 +25,7 @@ namespace StageUp.UI.Interno
 
             if (!GestorDeSesion.TienePermisoInterno("APROBAR_GESTORES"))
             {
-                Response.Redirect("~/Interno/PanelAdministrador.aspx");
+                Response.Redirect("~/Interno/PanelAdministrador.aspx?acceso=denegado");
                 return;
             }
 

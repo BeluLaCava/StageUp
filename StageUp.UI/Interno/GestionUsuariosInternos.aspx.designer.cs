@@ -2,11 +2,26 @@ namespace StageUp.UI.Interno
 {
     public partial class GestionUsuariosInternos
     {
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor lnkGestionarRoles;
         protected global::System.Web.UI.WebControls.Panel pnlMensaje;
         protected global::System.Web.UI.WebControls.Literal litMensaje;
+        protected global::System.Web.UI.WebControls.Button btnAgregarUsuario;
+        protected global::System.Web.UI.WebControls.Panel pnlFiltros;
+        protected global::System.Web.UI.WebControls.TextBox txtBuscar;
+        protected global::System.Web.UI.WebControls.DropDownList ddlFiltroRol;
+        protected global::System.Web.UI.WebControls.DropDownList ddlFiltroEstado;
+        protected global::System.Web.UI.WebControls.Button btnBuscar;
+        protected global::System.Web.UI.WebControls.LinkButton lnkLimpiarFiltros;
+        protected global::System.Web.UI.WebControls.Panel pnlSinUsuarios;
+        protected global::System.Web.UI.WebControls.Panel pnlSinResultados;
+        protected global::System.Web.UI.WebControls.Literal litCantidad;
+        protected global::System.Web.UI.WebControls.Repeater rptUsuarios;
         protected global::System.Web.UI.WebControls.Panel pnlFormularioUsuario;
+        protected global::System.Web.UI.WebControls.LinkButton lnkCerrarFormulario;
         protected global::System.Web.UI.WebControls.Literal litTituloFormulario;
         protected global::System.Web.UI.WebControls.Literal litAyudaFormulario;
+        protected global::System.Web.UI.WebControls.Panel pnlMensajeFormulario;
+        protected global::System.Web.UI.WebControls.Literal litMensajeFormulario;
         protected global::System.Web.UI.WebControls.TextBox txtNombre;
         protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvNombre;
         protected global::System.Web.UI.WebControls.TextBox txtApellido;
@@ -16,21 +31,39 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.RegularExpressionValidator revCorreo;
         protected global::System.Web.UI.WebControls.DropDownList ddlAreaInterna;
         protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvArea;
+        protected global::System.Web.UI.WebControls.DropDownList ddlEstadoCuenta;
         protected global::System.Web.UI.WebControls.DropDownList ddlRolInterno;
         protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvRol;
-        protected global::System.Web.UI.WebControls.DropDownList ddlEstadoCuenta;
+        protected global::System.Web.UI.WebControls.HiddenField hdnPermisosPorRol;
         protected global::System.Web.UI.WebControls.Literal litTituloPassword;
         protected global::System.Web.UI.WebControls.Literal litAyudaPassword;
         protected global::System.Web.UI.WebControls.TextBox txtPassword;
         protected global::System.Web.UI.WebControls.TextBox txtConfirmacionPassword;
         protected global::System.Web.UI.WebControls.CompareValidator cvPassword;
-        protected global::System.Web.UI.WebControls.Panel pnlPermisosRol;
-        protected global::System.Web.UI.WebControls.Repeater rptPermisosRol;
-        protected global::System.Web.UI.WebControls.Literal litSinPermisosRol;
-        protected global::System.Web.UI.WebControls.Button btnGuardarUsuario;
         protected global::System.Web.UI.WebControls.LinkButton lnkCancelarEdicion;
-        protected global::System.Web.UI.WebControls.Panel pnlSinUsuarios;
-        protected global::System.Web.UI.HtmlControls.HtmlAnchor lnkGestionarRoles;
-        protected global::System.Web.UI.WebControls.Repeater rptUsuarios;
+        protected global::System.Web.UI.WebControls.Button btnGuardarUsuario;
+        protected global::System.Web.UI.WebControls.Panel pnlDetalleUsuario;
+        protected global::System.Web.UI.WebControls.LinkButton lnkCerrarDetalle;
+        protected global::System.Web.UI.WebControls.Literal litDetalleNombreCompleto;
+        protected global::System.Web.UI.WebControls.Label lblDetalleEstado;
+        protected global::System.Web.UI.WebControls.Panel pnlDetalleMensaje;
+        protected global::System.Web.UI.WebControls.Literal litDetalleMensaje;
+        protected global::System.Web.UI.WebControls.Literal litDetalleNombre;
+        protected global::System.Web.UI.WebControls.Literal litDetalleApellido;
+        protected global::System.Web.UI.WebControls.Literal litDetalleCorreo;
+        protected global::System.Web.UI.WebControls.Literal litDetalleArea;
+        protected global::System.Web.UI.WebControls.Literal litDetalleRol;
+        protected global::System.Web.UI.WebControls.Literal litDetalleEstadoDato;
+        protected global::System.Web.UI.WebControls.Literal litDetalleFechas;
+        protected global::System.Web.UI.WebControls.Literal litDetalleCantidadPermisos;
+        protected global::System.Web.UI.WebControls.Literal litDetalleSinPermisos;
+        protected global::System.Web.UI.WebControls.Repeater rptDetallePermisos;
+        protected global::System.Web.UI.WebControls.LinkButton lnkVolverListado;
+        protected global::System.Web.UI.WebControls.Button btnBajaDesdeDetalle;
+        protected global::System.Web.UI.WebControls.Button btnEditarDesdeDetalle;
+        protected global::System.Web.UI.WebControls.Panel pnlConfirmarBaja;
+        protected global::System.Web.UI.WebControls.Literal litConfirmarBajaNombre;
+        protected global::System.Web.UI.WebControls.Button btnConfirmarBaja;
+        protected global::System.Web.UI.WebControls.LinkButton lnkCancelarBaja;
     }
 }

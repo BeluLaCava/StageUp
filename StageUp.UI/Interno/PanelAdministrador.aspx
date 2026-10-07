@@ -9,6 +9,9 @@
         </div>
 
         <div class="static-page-body internal-dashboard-body">
+            <asp:Panel ID="pnlAccesoDenegado" runat="server" Visible="false" CssClass="form-message form-message-error" role="alert">
+                No contás con permisos para acceder a esa sección o ejecutar esa acción. Si lo necesitás para tu trabajo, pedile a un administrador que revise los permisos de tu rol.
+            </asp:Panel>
             <div class="internal-section-heading">
                 <div>
                     <span class="internal-section-kicker" data-i18n="AdminUI_HerramientasDisponibles">Herramientas disponibles</span>

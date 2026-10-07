@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using StageUp.BE.Entidades;
 using StageUp.BE.Menu;
 using StageUp.BLL;
 using StageUp.Seguridad;
@@ -16,7 +17,44 @@ namespace StageUp.UI.Interno
         protected override void OnInit(EventArgs e)
         {
             base.OnInit(e);
+            ActualizarSesionInterna();
             InicializarMultidioma(ddlIdioma, hdnDiccionarioIdioma, HtmlRoot, LanguageSelector);
+        }
+
+        // CU-001-012 A10 paso 4 y A16: antes de que cada página del panel
+        // valide sus permisos, se vuelve a leer la cuenta interna. Si la
+        // dieron de baja (o la desactivaron) mientras tenía la sesión abierta,
+        // se cierra la sesión; si le cambiaron el rol o los permisos del rol,
+        // la sesión toma los nuevos en ese mismo momento.
+        private void ActualizarSesionInterna()
+        {
+            int? idUsuarioInterno = GestorDeSesion.ObtenerIdUsuarioInternoActual();
+            if (!idUsuarioInterno.HasValue)
+            {
+                return;
+            }
+
+            List<string> permisos;
+            UsuarioInterno usuario;
+            try
+            {
+                usuario = new BLL_UsuarioInterno().ObtenerParaSesion(idUsuarioInterno.Value, out permisos);
+            }
+            catch (Exception)
+            {
+                // Si la base no responde se mantiene la sesión tal como estaba;
+                // cada página igual valida sus permisos.
+                return;
+            }
+
+            if (usuario == null)
+            {
+                GestorDeSesion.CerrarSesionInterna();
+                Response.Redirect("~/IniciarSesion.aspx?motivo=cuenta_interna_inactiva");
+                return;
+            }
+
+            GestorDeSesion.IniciarSesionInterna(usuario, permisos);
         }
 
         protected void Page_Load(object sender, EventArgs e)

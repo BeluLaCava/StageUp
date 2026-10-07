@@ -23,6 +23,10 @@ namespace StageUp.UI.Interno
 
             if (!IsPostBack)
             {
+                // CU-001-012 A1 y A16: la página a la que quiso entrar no
+                // está entre los permisos de su rol.
+                pnlAccesoDenegado.Visible = Request.QueryString["acceso"] == "denegado";
+
                 int idRolInterno = GestorDeSesion.ObtenerIdRolInternoActual().Value;
                 GrupoMenu menu = _bllPermiso.ConstruirMenuParaRol(idRolInterno);
                 List<ItemMenu> accesos = menu.ObtenerItems();

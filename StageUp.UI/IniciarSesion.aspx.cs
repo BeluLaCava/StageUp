@@ -38,6 +38,14 @@ namespace StageUp.UI
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            // CU-001-012 A10: la cuenta interna se dio de baja (o se
+            // desactivó) mientras tenía la sesión abierta.
+            if (!IsPostBack && Request.QueryString["motivo"] == "cuenta_interna_inactiva")
+            {
+                MostrarMensaje(pnlMensajeLogin, litMensajeLogin,
+                    "Tu cuenta interna fue dada de baja o desactivada, por eso se cerró la sesión. Si creés que es un error, consultalo con un administrador de StageUp.",
+                    esError: true);
+            }
         }
 
         protected void btnIniciarSesion_Click(object sender, EventArgs e)

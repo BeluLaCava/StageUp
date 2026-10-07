@@ -222,7 +222,7 @@ namespace StageUp.UI.Interno
 
             if (!GestorDeSesion.TienePermisoInterno("GESTIONAR_FAQ"))
             {
-                Response.Redirect("~/Interno/PanelAdministrador.aspx");
+                Response.Redirect("~/Interno/PanelAdministrador.aspx?acceso=denegado");
                 return false;
             }
 

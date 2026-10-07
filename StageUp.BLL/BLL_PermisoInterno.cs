@@ -289,34 +289,59 @@ namespace StageUp.BLL
             }
         }
 
-        public ResultadoOperacion AsignarComponentesARol(int idRolInterno, List<int> idsComponentesSeleccionados, int idUsuarioInternoResponsable)
-        {
-            InvalidarCacheRol(idRolInterno);
-            RolInterno rol = new RolInterno { IdRolInterno = idRolInterno };
+        // CU-001-012: la asignación de permisos a un rol ahora se guarda desde
+        // BLL_RolInterno.Guardar (rol y permisos juntos, con las validaciones
+        // A13, A15 y la de no dejar el sistema sin administradores).
 
+        // A7 paso 3 y A12 paso 2: permisos (hojas) que resultan del rol.
+        public List<PermisoHoja> ListarPermisosDeRol(int idRolInterno)
+        {
+            return ObtenerHojasAsignadas(idRolInterno);
+        }
+
+        // Lo tildado en el rol (grupos o permisos sueltos), tal como se guardó.
+        public List<int> ListarIdsAsignados(int idRolInterno)
+        {
             try
             {
-                _mppRolComponente.EliminarPorRol(rol);
+                return _mppRolComponente.ListarIdsPorRol(new RolInterno { IdRolInterno = idRolInterno });
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return new List<int>();
+            }
+        }
 
-                if (idsComponentesSeleccionados != null)
+        // Permisos (hojas, sin repetir) que resultan de tildar esos
+        // componentes en el árbol dado. Da lo mismo si cada id es un grupo o
+        // un permiso suelto: Listar() del Composite resuelve los dos casos.
+        internal static List<PermisoHoja> HojasDeSeleccion(GrupoPermisos raiz, IEnumerable<int> idsComponentes)
+        {
+            HashSet<int> seleccion = new HashSet<int>(idsComponentes ?? new int[0]);
+            List<PermisoHoja> hojas = new List<PermisoHoja>();
+            HashSet<int> agregadas = new HashSet<int>();
+            foreach (PermisoComponente nodo in RecorrerTodos(raiz))
+            {
+                if (nodo.IdComponentePermiso == 0 || !seleccion.Contains(nodo.IdComponentePermiso))
                 {
-                    foreach (int idComponentePermiso in idsComponentesSeleccionados)
-                    {
-                        PermisoHoja permiso = new PermisoHoja(idComponentePermiso, null, null, null, null);
-                        _mppRolComponente.Insertar(rol, permiso);
-                    }
+                    continue;
                 }
 
-                _bitacora.RegistrarInterno(
-                    idUsuarioInternoResponsable, "ASIGNACION_PERMISOS", "RolInterno", idRolInterno,
-                    "Actualización de permisos asignados al rol.");
+                foreach (PermisoHoja hoja in nodo.Listar())
+                {
+                    if (agregadas.Add(hoja.IdComponentePermiso))
+                    {
+                        hojas.Add(hoja);
+                    }
+                }
+            }
 
-                return ResultadoOperacion.Ok("Los permisos del rol se actualizaron correctamente.");
-            }
-            catch (ErrorAccesoDatosException ex)
-            {
-                return ResultadoOperacion.Error(ex.Message);
-            }
+            return hojas;
+        }
+
+        internal static PermisoComponente BuscarEnArbol(GrupoPermisos raiz, int idComponentePermiso)
+        {
+            return idComponentePermiso == 0 ? null : BuscarComponente(raiz, idComponentePermiso);
         }
 
         private List<PermisoHoja> ObtenerHojasAsignadas(int idRolInterno)
@@ -375,7 +400,7 @@ namespace StageUp.BLL
             return new List<PermisoHoja>(hojasAsignadas);
         }
 
-        private static void InvalidarCacheRol(int idRolInterno)
+        internal static void InvalidarCacheRol(int idRolInterno)
         {
             lock (CacheLock)
             {

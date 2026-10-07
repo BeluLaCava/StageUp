@@ -24,7 +24,7 @@ namespace StageUp.UI.Interno
 
             if (!GestorDeSesion.TienePermisoInterno("VER_BITACORA"))
             {
-                Response.Redirect("~/Interno/PanelAdministrador.aspx");
+                Response.Redirect("~/Interno/PanelAdministrador.aspx?acceso=denegado");
                 return;
             }
 

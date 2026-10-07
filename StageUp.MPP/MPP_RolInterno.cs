@@ -56,6 +56,53 @@ namespace StageUp.MPP
             return lista;
         }
 
+        // CU-001-012 A11 paso 4: listado con área, estado y cantidades.
+        public List<RolInterno> ListarResumen(string estado)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_RolInterno_ListarResumen",
+                new Hashtable { { "@estado", estado } });
+            List<RolInterno> lista = new List<RolInterno>();
+            foreach (DataRow fila in tabla.Rows)
+            {
+                RolInterno rol = MapearDesdeFila(fila);
+                rol.CantidadUsuariosActivos = Convert.ToInt32(fila["cantidadUsuariosActivos"]);
+                rol.CantidadComponentes = Convert.ToInt32(fila["cantidadComponentes"]);
+                lista.Add(rol);
+            }
+            return lista;
+        }
+
+        // A14: otro rol activo con el mismo nombre.
+        public bool ExisteNombreActivo(RolInterno oRolInterno)
+        {
+            object resultado = Conexion.Instance.LeerEscalar(
+                "sp_RolInterno_ExisteNombreActivo",
+                new Hashtable
+                {
+                    { "@nombreRol", oRolInterno.NombreRol },
+                    { "@idRolInternoExcluido", oRolInterno.IdRolInterno == 0 ? (object)DBNull.Value : oRolInterno.IdRolInterno }
+                });
+            return resultado != null && resultado != DBNull.Value && Convert.ToInt32(resultado) > 0;
+        }
+
+        // A11 pasos 11 y 12 / A12 pasos 8 y 9: rol y permisos en una sola
+        // transacción. Devuelve el id del rol (nuevo o modificado).
+        public int GuardarConPermisos(RolInterno oRolInterno, IEnumerable<int> idsComponentes)
+        {
+            object resultado = Conexion.Instance.LeerEscalar(
+                "sp_RolInterno_GuardarConPermisos",
+                new Hashtable
+                {
+                    { "@idRolInterno", oRolInterno.IdRolInterno == 0 ? (object)DBNull.Value : oRolInterno.IdRolInterno },
+                    { "@idAreaInterna", (object)oRolInterno.IdAreaInterna ?? DBNull.Value },
+                    { "@nombreRol", oRolInterno.NombreRol },
+                    { "@descripcion", (object)oRolInterno.Descripcion ?? DBNull.Value },
+                    { "@idsComponentes", string.Join(",", idsComponentes) }
+                });
+            return Convert.ToInt32(resultado);
+        }
+
         public void Baja(RolInterno oRolInterno)
         {
             Conexion.Instance.Guardar(

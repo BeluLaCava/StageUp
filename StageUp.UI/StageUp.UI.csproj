@@ -304,6 +304,13 @@
     <Compile Include="DisponibilidadEspacio.aspx.designer.cs">
       <DependentUpon>DisponibilidadEspacio.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Notificaciones.aspx.cs">
+      <DependentUpon>Notificaciones.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Notificaciones.aspx.designer.cs">
+      <DependentUpon>Notificaciones.aspx</DependentUpon>
+    </Compile>
     <Compile Include="DetalleReserva.aspx.cs">
       <DependentUpon>DetalleReserva.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -392,6 +399,7 @@
     <Compile Include="Novedades.aspx.designer.cs">
       <DependentUpon>Novedades.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Infraestructura\AperturaNotificacion.cs" />
     <Compile Include="Infraestructura\MasterPageMultidioma.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
@@ -451,6 +459,7 @@
     <Content Include="Interno\Reportes.aspx" />
     <Content Include="Pagar.aspx" />
     <Content Include="DetalleReserva.aspx" />
+    <Content Include="Notificaciones.aspx" />
     <Content Include="DisponibilidadEspacio.aspx" />
     <Content Include="OfrecerEspacio.aspx" />
     <Content Include="MiCuentaCorriente.aspx" />

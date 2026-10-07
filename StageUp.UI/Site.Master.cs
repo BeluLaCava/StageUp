@@ -106,25 +106,22 @@ namespace StageUp.UI
                 return;
             }
 
-            string argumento = (string)e.CommandArgument;
-            int separador = argumento.IndexOf('|');
-            if (separador < 0)
-            {
-                return;
-            }
-
+            // CU-001-011 pasos 7 a 9: el destino sale de la notificación
+            // guardada (no del navegador). Si el elemento ya no se puede
+            // consultar (A9) se muestra el motivo en el centro de notificaciones.
             int idNotificacion;
-            if (!int.TryParse(argumento.Substring(0, separador), out idNotificacion))
+            if (!int.TryParse(Convert.ToString(e.CommandArgument), out idNotificacion))
             {
                 return;
             }
 
-            string urlDestino = argumento.Substring(separador + 1);
             int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
-
-            _bllNotificacion.MarcarLeida(idNotificacion, idUsuarioExterno);
-
-            Response.Redirect(string.IsNullOrEmpty(urlDestino) ? "~/Default.aspx" : ResolveUrl(urlDestino));
+            string error;
+            string destino = AperturaNotificacion.ObtenerDestino(idNotificacion, idUsuarioExterno, out error);
+            Response.Redirect(destino != null
+                ? ResolveUrl(destino)
+                : "~/Notificaciones.aspx?no_disponible=" + idNotificacion, false);
+            Context.ApplicationInstance.CompleteRequest();
         }
 
         protected void lnkMarcarTodasLeidas_Click(object sender, EventArgs e)
@@ -132,6 +129,16 @@ namespace StageUp.UI
             int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
             _bllNotificacion.MarcarTodasLeidas(idUsuarioExterno);
             CargarNotificaciones();
+        }
+
+        // Para páginas que cambian el estado de las notificaciones después de
+        // que el menú ya se cargó (centro de notificaciones).
+        public void ActualizarNotificaciones()
+        {
+            if (GestorDeSesion.EstaAutenticado())
+            {
+                CargarNotificaciones();
+            }
         }
 
         private void CargarNotificaciones()

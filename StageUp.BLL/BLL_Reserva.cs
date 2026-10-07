@@ -1094,13 +1094,18 @@ namespace StageUp.BLL
                 {
                     try
                     {
-                        string momento = reserva.MinutoDesde.HasValue
-                            ? reserva.FechaSolicitada.Date.ToString("dd/MM/yyyy") + " a las " + FormatearHora(reserva.MinutoDesde.Value)
+                        // CU-001-011 A8: espacio, fecha, franja y datos básicos.
+                        string momento = reserva.MinutoDesde.HasValue && reserva.MinutoHasta.HasValue
+                            ? reserva.FechaSolicitada.Date.ToString("dd/MM/yyyy") + " de " + FormatearHora(reserva.MinutoDesde.Value) +
+                              " a " + FormatearHora(reserva.MinutoHasta.Value)
                             : reserva.FechaSolicitada.Date.ToString("dd/MM/yyyy");
 
                         _notificacion.Notificar(
                             reserva.IdUsuarioExternoSolicitante, TipoNotificacion.RecordatorioReserva,
-                            "Recordatorio: tu reserva para \"" + reserva.NombreEspacio + "\" es el " + momento + ".",
+                            "Tu reserva N° " + reserva.IdReserva + " en \"" + reserva.NombreEspacio + "\" es el " + momento +
+                            (reserva.ImporteEstimado.HasValue && reserva.ImporteEstimado.Value > 0
+                                ? " (" + (reserva.Moneda ?? "ARS") + " " + reserva.ImporteEstimado.Value.ToString("N2", CultureInfo.GetCultureInfo("es-AR")) + ")"
+                                : string.Empty) + ".",
                             UrlDetalle(reserva.IdReserva));
 
                         // Un solo intento de mail: se marca como enviado igual,

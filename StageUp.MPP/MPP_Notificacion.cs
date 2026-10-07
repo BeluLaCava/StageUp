@@ -18,32 +18,63 @@ namespace StageUp.MPP
                     { "@idUsuarioExterno", notificacion.IdUsuarioExterno },
                     { "@tipo", notificacion.Tipo },
                     { "@mensaje", notificacion.Mensaje },
-                    { "@urlDestino", (object)notificacion.UrlDestino ?? DBNull.Value }
+                    { "@urlDestino", (object)notificacion.UrlDestino ?? DBNull.Value },
+                    { "@titulo", (object)notificacion.Titulo ?? DBNull.Value }
                 });
         }
 
         public List<Notificacion> ListarPorUsuario(UsuarioExterno usuarioExterno, int cantidad)
         {
+            return ListarPorUsuario(usuarioExterno, cantidad, "Todas");
+        }
+
+        // estado: "Todas", "NoLeidas" o "Leidas" (script 59).
+        public List<Notificacion> ListarPorUsuario(UsuarioExterno usuarioExterno, int cantidad, string estado)
+        {
             DataTable tabla = Conexion.Instance.Leer(
                 "sp_Notificacion_ListarPorUsuario",
-                new Hashtable { { "@idUsuarioExterno", usuarioExterno.IdUsuarioExterno }, { "@cantidad", cantidad } });
+                new Hashtable
+                {
+                    { "@idUsuarioExterno", usuarioExterno.IdUsuarioExterno },
+                    { "@cantidad", cantidad },
+                    { "@estado", string.IsNullOrEmpty(estado) ? "Todas" : estado }
+                });
 
             List<Notificacion> notificaciones = new List<Notificacion>();
             foreach (DataRow fila in tabla.Rows)
             {
-                notificaciones.Add(new Notificacion
-                {
-                    IdNotificacion = Convert.ToInt32(fila["idNotificacion"]),
-                    IdUsuarioExterno = Convert.ToInt32(fila["idUsuarioExterno"]),
-                    Tipo = fila["tipo"].ToString(),
-                    Mensaje = fila["mensaje"].ToString(),
-                    UrlDestino = fila["urlDestino"] == DBNull.Value ? null : fila["urlDestino"].ToString(),
-                    Leida = Convert.ToBoolean(fila["leida"]),
-                    FechaCreacion = Convert.ToDateTime(fila["fechaCreacion"])
-                });
+                notificaciones.Add(MapearFila(fila));
             }
 
             return notificaciones;
+        }
+
+        public Notificacion ObtenerPorId(Notificacion notificacion)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_Notificacion_ObtenerPorId",
+                new Hashtable
+                {
+                    { "@idNotificacion", notificacion.IdNotificacion },
+                    { "@idUsuarioExterno", notificacion.IdUsuarioExterno }
+                });
+
+            return tabla.Rows.Count == 0 ? null : MapearFila(tabla.Rows[0]);
+        }
+
+        private static Notificacion MapearFila(DataRow fila)
+        {
+            return new Notificacion
+            {
+                IdNotificacion = Convert.ToInt32(fila["idNotificacion"]),
+                IdUsuarioExterno = Convert.ToInt32(fila["idUsuarioExterno"]),
+                Tipo = fila["tipo"].ToString(),
+                Titulo = fila.Table.Columns.Contains("titulo") && fila["titulo"] != DBNull.Value ? fila["titulo"].ToString() : null,
+                Mensaje = fila["mensaje"].ToString(),
+                UrlDestino = fila["urlDestino"] == DBNull.Value ? null : fila["urlDestino"].ToString(),
+                Leida = Convert.ToBoolean(fila["leida"]),
+                FechaCreacion = Convert.ToDateTime(fila["fechaCreacion"])
+            };
         }
 
         // Ítem 36 del checklist de correcciones: antes, validar que la

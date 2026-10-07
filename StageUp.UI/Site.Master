@@ -67,11 +67,12 @@
                                     <asp:Repeater ID="rptNotificaciones" runat="server" OnItemCommand="rptNotificaciones_ItemCommand">
                                         <ItemTemplate>
                                             <asp:LinkButton runat="server" CssClass='<%# "notification-item " + (Eval("Leida").Equals(true) ? "is-read" : "is-unread") %>'
-                                                CausesValidation="false" CommandName="Ir" CommandArgument='<%# Eval("IdNotificacion") + "|" + Eval("UrlDestino") %>'>
+                                                CausesValidation="false" CommandName="Ir" CommandArgument='<%# Eval("IdNotificacion") %>'>
                                                 <span class="notification-state" aria-label='<%#: Eval("Leida").Equals(true) ? "Leída" : "No leída" %>'></span>
                                                 <span class="notification-copy">
-                                                    <strong><%#: Eval("Mensaje") %></strong>
-                                                    <small><%#: FormatearFechaNotificacion((DateTime)Eval("FechaCreacion")) %></small>
+                                                    <strong><%#: Eval("Titulo") %></strong>
+                                                    <span><%#: Eval("Mensaje") %></span>
+                                                    <small><%#: StageUp.BLL.BLL_Notificacion.CategoriaPorTipo((string)Eval("Tipo")) + " · " + FormatearFechaNotificacion((DateTime)Eval("FechaCreacion")) + (Eval("Leida").Equals(true) ? string.Empty : " · Nueva") %></small>
                                                 </span>
                                             </asp:LinkButton>
                                         </ItemTemplate>
@@ -81,7 +82,7 @@
                                     </asp:Panel>
                                 </div>
                                 <footer class="notifications-footer">
-                                    <a href="#" onclick="return false;">Ver todas</a>
+                                    <asp:HyperLink ID="lnkVerTodasNotificaciones" runat="server" NavigateUrl="~/Notificaciones.aspx" Text="Ver todas" />
                                 </footer>
                             </section>
                         </div>

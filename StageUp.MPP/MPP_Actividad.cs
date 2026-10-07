@@ -284,6 +284,8 @@ namespace StageUp.MPP
                 Nombre = fila["nombre"].ToString(),
                 Apellido = fila["apellido"].ToString(),
                 Dni = fila["dni"].ToString(),
+                Correo = fila.Table.Columns.Contains("correo") && fila["correo"] != DBNull.Value ? fila["correo"].ToString() : null,
+                Telefono = fila.Table.Columns.Contains("telefono") && fila["telefono"] != DBNull.Value ? fila["telefono"].ToString() : null,
                 Notas = fila["notas"] == DBNull.Value ? null : fila["notas"].ToString(),
                 Activo = Convert.ToBoolean(fila["activo"])
             };

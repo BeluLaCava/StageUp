@@ -314,24 +314,32 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("La actividad está dada de baja: no se le pueden asociar participantes.");
                 }
 
+                // CU-001-010 A7 paso 4: participante del gestor y activo.
                 Participante participante = _mppParticipante.ObtenerPorId(new Participante { IdParticipante = idParticipante });
                 if (participante == null || participante.IdUsuarioGestor != idUsuarioGestor)
                 {
                     return ResultadoOperacion.Error("El participante indicado no existe o no te pertenece.");
                 }
 
-                List<Participante> participantesActuales = _mppActividad.ListarParticipantesDeActividad(actividad);
-                bool yaAsociado = participantesActuales.Exists(p => p.IdParticipante == idParticipante);
-                if (yaAsociado)
+                if (!participante.Activo)
                 {
-                    return ResultadoOperacion.Ok();
+                    return ResultadoOperacion.Error("El participante está dado de baja: no se puede asociar a actividades.");
                 }
 
+                // A8: ya forma parte de la actividad.
+                List<Participante> participantesActuales = _mppActividad.ListarParticipantesDeActividad(actividad);
+                if (participantesActuales.Exists(p => p.IdParticipante == idParticipante))
+                {
+                    return ResultadoOperacion.Error(
+                        participante.NombreCompleto + " ya forma parte de la actividad \"" + actividad.Nombre + "\".", "A8");
+                }
+
+                // A6 / A9: cupo máximo.
                 if (participantesActuales.Count >= actividad.CupoMaximo)
                 {
                     return ResultadoOperacion.Error(
                         "No es posible asociar más participantes a la actividad seleccionada: se alcanzó el cupo máximo (" +
-                        actividad.CupoMaximo + ").");
+                        actividad.CupoMaximo + ").", "A9");
                 }
 
                 _mppActividad.AsociarParticipante(actividad, participante);
@@ -340,7 +348,7 @@ namespace StageUp.BLL
                     idUsuarioGestor, "ASOCIACION", TipoEntidadBitacora, idActividad,
                     "Se asoció a " + participante.NombreCompleto + " a la actividad \"" + actividad.Nombre + "\".");
 
-                return ResultadoOperacion.Ok();
+                return ResultadoOperacion.Ok("Se asoció correctamente a " + participante.NombreCompleto + " a la actividad \"" + actividad.Nombre + "\".");
             });
         }
 
@@ -356,15 +364,26 @@ namespace StageUp.BLL
                 }
 
                 Participante participante = _mppParticipante.ObtenerPorId(new Participante { IdParticipante = idParticipante });
+                if (participante == null || participante.IdUsuarioGestor != idUsuarioGestor)
+                {
+                    return ResultadoOperacion.Error("El participante indicado no existe o no te pertenece.");
+                }
 
-                _mppActividad.DesasociarParticipante(actividad, new Participante { IdParticipante = idParticipante });
+                if (!_mppActividad.ListarParticipantesDeActividad(actividad).Exists(p => p.IdParticipante == idParticipante))
+                {
+                    return ResultadoOperacion.Error(participante.NombreCompleto + " no forma parte de la actividad \"" + actividad.Nombre + "\".");
+                }
+
+                // CU-001-010 A13: la asociación queda como historial (no se
+                // borra) y el participante sigue registrado.
+                _mppActividad.DesasociarParticipante(actividad, participante);
 
                 _bitacora.Registrar(
                     idUsuarioGestor, "DESVINCULACION", TipoEntidadBitacora, idActividad,
-                    "Se desvinculó a " + (participante != null ? participante.NombreCompleto : "un participante") +
-                    " de la actividad \"" + actividad.Nombre + "\".");
+                    "Se desvinculó a " + participante.NombreCompleto + " de la actividad \"" + actividad.Nombre + "\".");
 
-                return ResultadoOperacion.Ok();
+                return ResultadoOperacion.Ok("Se desvinculó correctamente a " + participante.NombreCompleto + " de \"" + actividad.Nombre +
+                    "\". Su registro se conserva y se puede volver a asociar.");
             });
         }
 

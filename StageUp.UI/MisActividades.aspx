@@ -23,6 +23,7 @@
                 </asp:Panel>
 
                 <asp:Panel ID="pnlActividades" runat="server" Visible="false">
+                    <asp:HiddenField ID="hdnTabActividades" runat="server" ClientIDMode="Static" Value="programacion" />
                     <div class="activities-module-tabs gestor-subnav" role="tablist" aria-label="Secciones de Mis actividades">
                         <button type="button" class="active" data-activities-tab-trigger="programacion" aria-selected="true">Mis actividades</button>
                         <button type="button" data-activities-tab-trigger="participantes" aria-selected="false">Participantes</button>
@@ -139,10 +140,18 @@
                                     <h2 id="participants-board-title">Listado de participantes</h2>
                                     <p>Alta, baja y asociación a tus actividades internas.</p>
                                 </div>
-                                <div class="participants-search-preview">
-                                    <span aria-hidden="true">⌕</span>
-                                    <input type="search" placeholder="Buscar participante" aria-label="Buscar participante" />
-                                </div>
+                                <asp:Panel ID="pnlBuscarParticipantes" runat="server" CssClass="participants-filters" DefaultButton="btnBuscarParticipantes">
+                                    <div class="participants-search-preview">
+                                        <span aria-hidden="true">⌕</span>
+                                        <asp:TextBox ID="txtBuscarParticipante" runat="server" MaxLength="100" placeholder="Nombre, apellido, DNI o correo" aria-label="Buscar participante" />
+                                    </div>
+                                    <asp:DropDownList ID="ddlEstadoParticipantes" runat="server" aria-label="Estado de los participantes">
+                                        <asp:ListItem Value="Activos" Selected="True">Activos</asp:ListItem>
+                                        <asp:ListItem Value="Inactivos">Dados de baja</asp:ListItem>
+                                        <asp:ListItem Value="Todos">Todos</asp:ListItem>
+                                    </asp:DropDownList>
+                                    <asp:Button ID="btnBuscarParticipantes" runat="server" CssClass="button button-secondary button-small" Text="Buscar" CausesValidation="false" OnClick="btnBuscarParticipantes_Click" />
+                                </asp:Panel>
                             </header>
 
                             <div class="activities-table-wrap">
@@ -157,22 +166,26 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        <asp:PlaceHolder ID="phSinParticipantes" runat="server" Visible="false">
+                                            <tr><td colspan="5"><asp:Literal ID="litSinParticipantes" runat="server" Mode="Encode" /></td></tr>
+                                        </asp:PlaceHolder>
                                         <asp:Repeater ID="rptParticipantes" runat="server" OnItemCommand="rptParticipantes_ItemCommand">
                                             <ItemTemplate>
                                                 <tr>
                                                     <td>
-                                                        <strong><%#: Eval("NombreCompleto") %></strong>
-                                                        <span><%#: Eval("Iniciales") %></span>
+                                                        <strong><%# Server.HtmlEncode(Convert.ToString(Eval("NombreCompleto"))) %></strong>
+                                                        <span><%# Server.HtmlEncode(Convert.ToString(Eval("Contacto"))) %></span>
                                                     </td>
-                                                    <td><%#: Eval("Dni") %></td>
-                                                    <td><%#: Eval("Actividades") %></td>
-                                                    <td><span class='<%# Eval("ClaseEstado") %>'><%#: Eval("Estado") %></span></td>
+                                                    <td><%# Server.HtmlEncode(Convert.ToString(Eval("Dni"))) %></td>
+                                                    <td><%# Server.HtmlEncode(Convert.ToString(Eval("Actividades"))) %></td>
+                                                    <td><span class='<%# Eval("ClaseEstado") %>'><%# Server.HtmlEncode(Convert.ToString(Eval("Estado"))) %></span></td>
                                                     <td class="activities-row-actions">
-                                                        <a class="text-link" href="#" onclick="return false;">Ver</a>
-                                                        <a class="text-link" href="#" onclick="return false;">Editar</a>
-                                                        <asp:LinkButton runat="server" CssClass="text-link text-link-danger" CausesValidation="false"
-                                                            CommandName="Baja" CommandArgument='<%# Eval("IdParticipante") %>' Text="Dar de baja"
-                                                            OnClientClick="return confirm('¿Seguro que querés dar de baja este participante?');" />
+                                                        <asp:LinkButton runat="server" CssClass="text-link" CausesValidation="false"
+                                                            CommandName="Ver" CommandArgument='<%# Eval("IdParticipante") %>' Text="Ver" />
+                                                        <asp:LinkButton runat="server" CssClass="text-link" CausesValidation="false" Visible='<%# (bool)Eval("Activo") %>'
+                                                            CommandName="Editar" CommandArgument='<%# Eval("IdParticipante") %>' Text="Editar" />
+                                                        <asp:LinkButton runat="server" CssClass="text-link text-link-danger" CausesValidation="false" Visible='<%# (bool)Eval("Activo") %>'
+                                                            CommandName="Baja" CommandArgument='<%# Eval("IdParticipante") %>' Text="Dar de baja" />
                                                     </td>
                                                 </tr>
                                             </ItemTemplate>
@@ -362,13 +375,37 @@
 
                     <h3 class="activity-detail-subtitle">Participantes <asp:Literal ID="litDetalleCantidadParticipantes" runat="server" Mode="Encode" /></h3>
                     <asp:Literal ID="litDetalleSinParticipantes" runat="server" Visible="false" Text="&lt;p class=&quot;activity-detail-empty&quot;&gt;Todavía no tiene participantes asociados.&lt;/p&gt;" />
-                    <ul class="activity-detail-people">
-                        <asp:Repeater ID="rptDetalleParticipantes" runat="server">
+                    <ul class="activity-detail-people activity-detail-people-list">
+                        <asp:Repeater ID="rptDetalleParticipantes" runat="server" OnItemCommand="rptDetalleParticipantes_ItemCommand">
                             <ItemTemplate>
-                                <li><strong><%# Server.HtmlEncode(Convert.ToString(Eval("NombreCompleto"))) %></strong> <span>DNI <%# Server.HtmlEncode(Convert.ToString(Eval("Dni"))) %></span></li>
+                                <li>
+                                    <div><strong><%# Server.HtmlEncode(Convert.ToString(Eval("NombreCompleto"))) %></strong> <span>DNI <%# Server.HtmlEncode(Convert.ToString(Eval("Dni"))) %></span></div>
+                                    <div class="activity-detail-person-actions">
+                                        <asp:LinkButton runat="server" CssClass="text-link" CausesValidation="false" CommandName="VerParticipante" CommandArgument='<%# Eval("IdParticipante") %>' Text="Ver" />
+                                        <asp:LinkButton runat="server" CssClass="text-link text-link-danger" CausesValidation="false" Visible='<%# PuedeGestionarParticipantesDeActividad %>'
+                                            CommandName="Desvincular" CommandArgument='<%# Eval("IdParticipante") %>' Text="Desvincular" />
+                                    </div>
+                                </li>
                             </ItemTemplate>
                         </asp:Repeater>
                     </ul>
+
+                    <%-- CU-001-010 A13 desde el detalle de la actividad. --%>
+                    <asp:Panel ID="pnlConfirmarDesvincularActividad" runat="server" Visible="false" CssClass="activity-confirm" role="alertdialog">
+                        <p><asp:Literal ID="litConfirmarDesvincularActividad" runat="server" Mode="Encode" /></p>
+                        <asp:Button ID="btnConfirmarDesvincularActividad" runat="server" CssClass="button button-primary" Text="Sí, desvincular" CausesValidation="false" OnClick="btnConfirmarDesvincular_Click" />
+                        <asp:LinkButton ID="lnkCancelarDesvincularActividad" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCancelarDesvincular_Click">Cancelar</asp:LinkButton>
+                    </asp:Panel>
+
+                    <%-- CU-001-010 pasos 13 y 14 y A7: agregar o asociar participantes. --%>
+                    <asp:Panel ID="pnlParticipantesActividad" runat="server" CssClass="activity-detail-add">
+                        <asp:Button ID="btnAgregarParticipanteActividad" runat="server" CssClass="button button-secondary button-small" Text="＋ Agregar participante" CausesValidation="false" OnClick="btnAgregarParticipanteActividad_Click" />
+                        <div class="activity-detail-associate">
+                            <label for="<%= ddlAsociarExistente.ClientID %>">Asociar participante existente</label>
+                            <asp:DropDownList ID="ddlAsociarExistente" runat="server" />
+                            <asp:Button ID="btnAsociarExistente" runat="server" CssClass="button button-secondary button-small" Text="Asociar" CausesValidation="false" OnClick="btnAsociarExistente_Click" />
+                        </div>
+                    </asp:Panel>
 
                     <div class="form-actions activity-editor-actions">
                         <asp:Button ID="btnEditarDesdeDetalle" runat="server" CssClass="button button-primary" Text="Editar actividad" CausesValidation="false" OnClick="btnEditarDesdeDetalle_Click" />
@@ -385,13 +422,98 @@
                 </dialog>
             </asp:Panel>
 
+            <%-- CU-001-010 A10: detalle del participante (A11, A13 y A14). --%>
+            <asp:Panel ID="pnlDetalleParticipante" runat="server" Visible="false" CssClass="activity-dialog-layer">
+                <dialog class="activity-editor activity-detail" open aria-labelledby="participant-detail-title">
+                    <asp:LinkButton ID="lnkCerrarDetalleParticipante" runat="server" CssClass="activity-editor-close" CausesValidation="false" OnClick="lnkCerrarDetalleParticipante_Click" aria-label="Cerrar">×</asp:LinkButton>
+                    <div class="auth-card-header">
+                        <span class="section-label">Detalle de participante</span>
+                        <h2 id="participant-detail-title"><asp:Literal ID="litParticipanteNombre" runat="server" Mode="Encode" /></h2>
+                        <p><asp:Label ID="lblParticipanteEstado" runat="server" /></p>
+                    </div>
+
+                    <asp:Panel ID="pnlParticipanteMensaje" runat="server" Visible="false" CssClass="form-message" role="status">
+                        <asp:Literal ID="litParticipanteMensaje" runat="server" Mode="Encode" />
+                    </asp:Panel>
+
+                    <dl class="activity-detail-grid">
+                        <div><dt>Nombre</dt><dd><asp:Literal ID="litParticipanteNombreDato" runat="server" Mode="Encode" /></dd></div>
+                        <div><dt>Apellido</dt><dd><asp:Literal ID="litParticipanteApellido" runat="server" Mode="Encode" /></dd></div>
+                        <div><dt>DNI</dt><dd><asp:Literal ID="litParticipanteDni" runat="server" Mode="Encode" /></dd></div>
+                        <div><dt>Correo</dt><dd><asp:Literal ID="litParticipanteCorreo" runat="server" Mode="Encode" /></dd></div>
+                        <div><dt>Teléfono</dt><dd><asp:Literal ID="litParticipanteTelefono" runat="server" Mode="Encode" /></dd></div>
+                        <div><dt>Registro</dt><dd><asp:Literal ID="litParticipanteFechas" runat="server" Mode="Encode" /></dd></div>
+                        <div class="activity-detail-wide"><dt>Notas internas</dt><dd><asp:Literal ID="litParticipanteNotas" runat="server" Mode="Encode" /></dd></div>
+                    </dl>
+
+                    <h3 class="activity-detail-subtitle">Actividades asociadas</h3>
+                    <asp:Literal ID="litParticipanteSinActividades" runat="server" Visible="false" Text="&lt;p class=&quot;activity-detail-empty&quot;&gt;No está asociado a ninguna actividad vigente.&lt;/p&gt;" />
+                    <ul class="activity-detail-people activity-detail-people-list">
+                        <asp:Repeater ID="rptParticipanteActividades" runat="server" OnItemCommand="rptParticipanteActividades_ItemCommand">
+                            <ItemTemplate>
+                                <li>
+                                    <div><strong><%# Server.HtmlEncode(Convert.ToString(Eval("NombreActividad"))) %></strong> <span><%# Server.HtmlEncode(Convert.ToString(Eval("NombreEspacio"))) %> · desde el <%# ((DateTime)Eval("FechaAsociacion")).ToString("dd/MM/yyyy") %></span></div>
+                                    <div class="activity-detail-person-actions">
+                                        <asp:LinkButton runat="server" CssClass="text-link" CausesValidation="false" CommandName="VerActividad" CommandArgument='<%# Eval("IdActividad") %>' Text="Ver actividad" />
+                                        <asp:LinkButton runat="server" CssClass="text-link text-link-danger" CausesValidation="false" Visible='<%# ParticipanteEnDetalleActivo %>'
+                                            CommandName="Desvincular" CommandArgument='<%# Eval("IdActividad") %>' Text="Desvincular" />
+                                    </div>
+                                </li>
+                            </ItemTemplate>
+                        </asp:Repeater>
+                    </ul>
+
+                    <asp:PlaceHolder ID="phParticipanteHistorial" runat="server" Visible="false">
+                        <h3 class="activity-detail-subtitle">Historial</h3>
+                        <ul class="activity-detail-history">
+                            <asp:Repeater ID="rptParticipanteHistorial" runat="server">
+                                <ItemTemplate>
+                                    <li><strong><%# Server.HtmlEncode(Convert.ToString(Eval("NombreActividad"))) %></strong> · <%# Server.HtmlEncode(DescribirHistorial(Container.DataItem)) %></li>
+                                </ItemTemplate>
+                            </asp:Repeater>
+                        </ul>
+                    </asp:PlaceHolder>
+
+                    <%-- A13 desde el detalle del participante. --%>
+                    <asp:Panel ID="pnlConfirmarDesvincularParticipante" runat="server" Visible="false" CssClass="activity-confirm" role="alertdialog">
+                        <p><asp:Literal ID="litConfirmarDesvincularParticipante" runat="server" Mode="Encode" /></p>
+                        <asp:Button ID="btnConfirmarDesvincularParticipante" runat="server" CssClass="button button-primary" Text="Sí, desvincular" CausesValidation="false" OnClick="btnConfirmarDesvincular_Click" />
+                        <asp:LinkButton ID="lnkCancelarDesvincularParticipante" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCancelarDesvincular_Click">Cancelar</asp:LinkButton>
+                    </asp:Panel>
+
+                    <div class="form-actions activity-editor-actions">
+                        <asp:Button ID="btnEditarParticipante" runat="server" CssClass="button button-primary" Text="Editar participante" CausesValidation="false" OnClick="btnEditarParticipante_Click" />
+                        <asp:Button ID="btnBajaParticipante" runat="server" CssClass="button button-secondary" Text="Dar de baja participante" CausesValidation="false" OnClick="btnBajaParticipante_Click" />
+                        <asp:LinkButton ID="lnkVolverParticipantes" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCerrarDetalleParticipante_Click">Volver</asp:LinkButton>
+                    </div>
+
+                    <%-- A14 pasos 2 y 3. --%>
+                    <asp:Panel ID="pnlConfirmarBajaParticipante" runat="server" Visible="false" CssClass="activity-confirm" role="alertdialog">
+                        <p><strong>¿Dar de baja este participante?</strong> Va a dejar de figurar como activo y no se va a poder asociar a nuevas actividades, pero conserva su información histórica y sus asociaciones anteriores.</p>
+                        <asp:Button ID="btnConfirmarBajaParticipante" runat="server" CssClass="button button-primary" Text="Sí, dar de baja" CausesValidation="false" OnClick="btnConfirmarBajaParticipante_Click" />
+                        <asp:LinkButton ID="lnkCancelarBajaParticipante" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCancelarBajaParticipante_Click">Cancelar</asp:LinkButton>
+                    </asp:Panel>
+                </dialog>
+            </asp:Panel>
+
             <asp:Panel ID="pnlFormularioParticipante" runat="server" Visible="false" CssClass="activity-dialog-layer">
                 <dialog class="activity-editor participant-editor" open aria-labelledby="participant-form-title">
                     <asp:LinkButton ID="lnkCerrarParticipante" runat="server" CssClass="activity-editor-close" CausesValidation="false" OnClick="lnkCerrarParticipante_Click" aria-label="Cerrar">×</asp:LinkButton>
                     <div class="auth-card-header">
-                        <h2 id="participant-form-title">Nuevo participante</h2>
-                        <p>Registrá a una persona para asociarla luego a una o más actividades internas.</p>
+                        <h2 id="participant-form-title"><asp:Literal ID="litTituloParticipante" runat="server" Text="Nuevo participante" /></h2>
+                        <p>Registrá a una persona para asociarla a una o más actividades internas. Los campos con * son obligatorios.</p>
                     </div>
+
+                    <asp:Panel ID="pnlFormularioParticipanteMensaje" runat="server" Visible="false" CssClass="form-message form-message-error" role="alert">
+                        <asp:Literal ID="litFormularioParticipanteMensaje" runat="server" Mode="Encode" />
+                    </asp:Panel>
+
+                    <%-- A5: el DNI ya pertenece a un participante activo. --%>
+                    <asp:Panel ID="pnlParticipanteExistente" runat="server" Visible="false" CssClass="activity-confirm">
+                        <p><asp:Literal ID="litParticipanteExistente" runat="server" Mode="Encode" /></p>
+                        <asp:Button ID="btnAsociarExistenteFormulario" runat="server" CssClass="button button-primary button-small" Text="Asociar el participante existente" CausesValidation="false" OnClick="btnAsociarExistenteFormulario_Click" />
+                        <asp:LinkButton ID="lnkNoAsociarExistente" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkNoAsociarExistente_Click">No, gracias</asp:LinkButton>
+                    </asp:Panel>
 
                     <div class="activity-form-grid">
                         <div class="form-field">
@@ -410,17 +532,28 @@
 
                         <div class="form-field">
                             <label for="<%= txtDniParticipante.ClientID %>">DNI *</label>
-                            <asp:TextBox ID="txtDniParticipante" runat="server" MaxLength="20" placeholder="Ej: 42111222" />
+                            <asp:TextBox ID="txtDniParticipante" runat="server" MaxLength="20" placeholder="Ej: 42.111.222" inputmode="numeric" />
                             <asp:RequiredFieldValidator ID="rfvDniParticipante" runat="server" ControlToValidate="txtDniParticipante"
                                 ValidationGroup="Participante" Display="Dynamic" CssClass="field-error-text" ErrorMessage="Ingresá el DNI." />
                         </div>
 
                         <div class="form-field">
+                            <label for="<%= txtCorreoParticipante.ClientID %>">Correo electrónico</label>
+                            <asp:TextBox ID="txtCorreoParticipante" runat="server" MaxLength="254" TextMode="Email" placeholder="Opcional" />
+                        </div>
+
+                        <div class="form-field">
+                            <label for="<%= txtTelefonoParticipante.ClientID %>">Teléfono</label>
+                            <asp:TextBox ID="txtTelefonoParticipante" runat="server" MaxLength="30" placeholder="Opcional" />
+                        </div>
+
+                        <asp:Panel ID="pnlAsociarActividadParticipante" runat="server" CssClass="form-field">
                             <label for="<%= ddlActividadParticipante.ClientID %>">Asociar a actividad</label>
                             <asp:DropDownList ID="ddlActividadParticipante" runat="server">
                                 <asp:ListItem Value="">Sin asociar por ahora</asp:ListItem>
                             </asp:DropDownList>
-                        </div>
+                            <asp:Literal ID="litSinActividadesParticipante" runat="server" Visible="false" Text="&lt;small&gt;Todavía no tenés actividades internas: el participante queda registrado y lo asociás después.&lt;/small&gt;" />
+                        </asp:Panel>
 
                         <div class="form-field activity-field-wide">
                             <label for="<%= txtNotasParticipante.ClientID %>">Notas internas</label>
@@ -429,7 +562,7 @@
                     </div>
 
                     <div class="activity-editor-note">
-                        <strong>Nota:</strong> no podés repetir el mismo DNI entre tus participantes.
+                        <strong>Nota:</strong> no podés repetir el mismo DNI ni el mismo correo entre tus participantes activos.
                     </div>
 
                     <div class="form-actions activity-editor-actions">
@@ -504,6 +637,16 @@
         .participants-search-preview span { color: var(--color-primary); font-size: 18px; }
         .participants-search-preview input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: inherit; }
         .participants-table { min-width: 760px; }
+        .participants-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        .participants-filters select { min-width: 140px; }
+        .activity-detail-people-list { display: block; }
+        .activity-detail-people-list li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; margin: 0 0 8px; border-radius: 14px; }
+        .activity-detail-person-actions { display: flex; gap: 12px; }
+        .activity-detail-add { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 18px; margin: 0 0 16px; padding: 12px 14px; border: 1px dashed var(--color-border); border-radius: 14px; }
+        .activity-detail-associate { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; flex: 1 1 320px; }
+        .activity-detail-associate select { width: auto; flex: 1 1 200px; min-width: 0; }
+        .activity-detail-associate label { width: 100%; font-size: 13px; font-weight: 600; color: var(--color-text-muted); }
+        .activity-detail-history { margin: 0 0 16px; padding-left: 18px; color: var(--color-text-muted); }
         .managed-activities-empty { padding: 58px 24px; text-align: center; border: 1px dashed var(--color-border); border-radius: 20px; background: var(--color-surface); }
         .managed-activities-empty span { color: var(--color-primary); font-size: 44px; }
         .managed-activities-empty h2 { margin: 10px 0 8px; color: var(--color-primary); }
@@ -561,18 +704,32 @@
         (function () {
             var tabButtons = document.querySelectorAll('[data-activities-tab-trigger]');
             var tabPanels = document.querySelectorAll('[data-activities-tab-panel]');
+            var tabHidden = document.getElementById('hdnTabActividades');
+
+            // La solapa elegida se conserva entre postbacks (búsqueda,
+            // detalle de participante, etc.).
+            function activateTab(target) {
+                for (var b = 0; b < tabButtons.length; b++) {
+                    var isActiveButton = tabButtons[b].getAttribute('data-activities-tab-trigger') === target;
+                    tabButtons[b].classList.toggle('active', isActiveButton);
+                    tabButtons[b].setAttribute('aria-selected', isActiveButton ? 'true' : 'false');
+                }
+                for (var p = 0; p < tabPanels.length; p++) {
+                    tabPanels[p].classList.toggle('active', tabPanels[p].getAttribute('data-activities-tab-panel') === target);
+                }
+                if (tabHidden) {
+                    tabHidden.value = target;
+                }
+            }
+
             for (var i = 0; i < tabButtons.length; i++) {
                 tabButtons[i].addEventListener('click', function () {
-                    var target = this.getAttribute('data-activities-tab-trigger');
-                    for (var b = 0; b < tabButtons.length; b++) {
-                        var isActiveButton = tabButtons[b] === this;
-                        tabButtons[b].classList.toggle('active', isActiveButton);
-                        tabButtons[b].setAttribute('aria-selected', isActiveButton ? 'true' : 'false');
-                    }
-                    for (var p = 0; p < tabPanels.length; p++) {
-                        tabPanels[p].classList.toggle('active', tabPanels[p].getAttribute('data-activities-tab-panel') === target);
-                    }
+                    activateTab(this.getAttribute('data-activities-tab-trigger'));
                 });
+            }
+
+            if (tabHidden && tabHidden.value === 'participantes') {
+                activateTab('participantes');
             }
 
             var picker = document.querySelector('[data-participant-picker]');

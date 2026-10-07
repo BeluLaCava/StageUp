@@ -82,6 +82,11 @@ namespace StageUp.UI
                 {
                     AbrirEdicion(idActividad);
                 }
+                else if (int.TryParse(Request.QueryString["participante"], NumberStyles.Integer, CultureInfo.InvariantCulture, out idActividad))
+                {
+                    hdnTabActividades.Value = "participantes";
+                    MostrarDetalleParticipante(idActividad);
+                }
             }
         }
 
@@ -299,8 +304,30 @@ namespace StageUp.UI
 
             litDetalleCantidadParticipantes.Text = "(" + actividad.Participantes.Count + " de " + actividad.CupoMaximo + ")";
             litDetalleSinParticipantes.Visible = actividad.Participantes.Count == 0;
+            PuedeGestionarParticipantesDeActividad = actividad.Activa;
             rptDetalleParticipantes.DataSource = actividad.Participantes;
             rptDetalleParticipantes.DataBind();
+            pnlConfirmarDesvincularActividad.Visible = false;
+            pnlDetalleParticipante.Visible = false;
+
+            // CU-001-010 pasos 13 y 14 y A7: agregar o asociar participantes.
+            pnlParticipantesActividad.Visible = actividad.Activa;
+            if (actividad.Activa)
+            {
+                List<Participante> disponibles = _bllParticipante.ListarPorUsuarioGestor(GestorDeSesion.ObtenerIdUsuarioActual().Value)
+                    .Where(p => !actividad.Participantes.Exists(a => a.IdParticipante == p.IdParticipante))
+                    .ToList();
+                ddlAsociarExistente.Items.Clear();
+                ddlAsociarExistente.Items.Add(new ListItem(disponibles.Count == 0 ? "No hay otros participantes activos" : "Elegí un participante", string.Empty));
+                foreach (Participante disponible in disponibles)
+                {
+                    ddlAsociarExistente.Items.Add(new ListItem(disponible.NombreCompleto + " (DNI " + disponible.Dni + ")",
+                        disponible.IdParticipante.ToString(CultureInfo.InvariantCulture)));
+                }
+
+                ddlAsociarExistente.Enabled = disponibles.Count > 0;
+                btnAsociarExistente.Enabled = disponibles.Count > 0;
+            }
 
             btnEditarDesdeDetalle.Visible = actividad.Activa;
             btnBajaDesdeDetalle.Visible = actividad.Activa;
@@ -426,6 +453,59 @@ namespace StageUp.UI
             pnlFormularioActividad.Visible = true;
         }
 
+        // ------------------------------------------------------------------
+        // CU-001-010: participantes
+        // ------------------------------------------------------------------
+        private int? IdParticipanteEnEdicion
+        {
+            get { return ViewState["IdParticipanteEnEdicion"] as int?; }
+            set { ViewState["IdParticipanteEnEdicion"] = value; }
+        }
+
+        private int? IdParticipanteEnDetalle
+        {
+            get { return ViewState["IdParticipanteEnDetalle"] as int?; }
+            set { ViewState["IdParticipanteEnDetalle"] = value; }
+        }
+
+        // Actividad desde cuyo detalle se abrió el formulario (paso 14): al
+        // guardar se asocia y se vuelve a ese detalle (pasos 20 a 24).
+        private int? IdActividadOrigenParticipante
+        {
+            get { return ViewState["IdActividadOrigenParticipante"] as int?; }
+            set { ViewState["IdActividadOrigenParticipante"] = value; }
+        }
+
+        // A5: participante activo con el mismo DNI.
+        private int? IdParticipanteExistente
+        {
+            get { return ViewState["IdParticipanteExistente"] as int?; }
+            set { ViewState["IdParticipanteExistente"] = value; }
+        }
+
+        // A13: qué se desvincula y desde dónde se pidió.
+        private int? IdActividadDesvincular
+        {
+            get { return ViewState["IdActividadDesvincular"] as int?; }
+            set { ViewState["IdActividadDesvincular"] = value; }
+        }
+
+        private int? IdParticipanteDesvincular
+        {
+            get { return ViewState["IdParticipanteDesvincular"] as int?; }
+            set { ViewState["IdParticipanteDesvincular"] = value; }
+        }
+
+        private string OrigenDesvincular
+        {
+            get { return ViewState["OrigenDesvincular"] as string; }
+            set { ViewState["OrigenDesvincular"] = value; }
+        }
+
+        protected bool PuedeGestionarParticipantesDeActividad { get; private set; }
+
+        protected bool ParticipanteEnDetalleActivo { get; private set; }
+
         protected void lnkNuevoParticipante_Click(object sender, EventArgs e)
         {
             if (!EsGestorEspacios())
@@ -434,15 +514,87 @@ namespace StageUp.UI
                 return;
             }
 
+            hdnTabActividades.Value = "participantes";
+            AbrirFormularioParticipante(null);
+        }
+
+        // Paso 14: "Agregar participante" desde el detalle de la actividad.
+        protected void btnAgregarParticipanteActividad_Click(object sender, EventArgs e)
+        {
+            if (IdActividadEnDetalle.HasValue)
+            {
+                AbrirFormularioParticipante(IdActividadEnDetalle.Value);
+            }
+        }
+
+        private void AbrirFormularioParticipante(int? idActividadOrigen)
+        {
             CargarActividadesEnSelector();
             LimpiarFormularioParticipante();
+            IdParticipanteEnEdicion = null;
+            IdActividadOrigenParticipante = idActividadOrigen;
+            litTituloParticipante.Text = "Nuevo participante";
+            btnGuardarParticipante.Text = "Guardar participante";
+            pnlAsociarActividadParticipante.Visible = true;
+            if (idActividadOrigen.HasValue &&
+                ddlActividadParticipante.Items.FindByValue(idActividadOrigen.Value.ToString(CultureInfo.InvariantCulture)) != null)
+            {
+                ddlActividadParticipante.SelectedValue = idActividadOrigen.Value.ToString(CultureInfo.InvariantCulture);
+            }
+
             pnlMensaje.Visible = false;
+            pnlDetalleActividad.Visible = false;
+            pnlDetalleParticipante.Visible = false;
+            pnlFormularioParticipante.Visible = true;
+        }
+
+        private void AbrirEdicionParticipante(int idParticipante)
+        {
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            Participante participante = _bllParticipante.ObtenerParaEditar(idParticipante, idUsuarioGestor);
+            if (participante == null)
+            {
+                MostrarMensaje("El participante no existe o está dado de baja: no se puede editar.", esError: true);
+                return;
+            }
+
+            LimpiarFormularioParticipante();
+            IdParticipanteEnEdicion = participante.IdParticipante;
+            IdActividadOrigenParticipante = null;
+            litTituloParticipante.Text = "Editar participante";
+            btnGuardarParticipante.Text = "Guardar cambios";
+            pnlAsociarActividadParticipante.Visible = false;
+            txtNombreParticipante.Text = participante.Nombre;
+            txtApellidoParticipante.Text = participante.Apellido;
+            txtDniParticipante.Text = participante.Dni;
+            txtCorreoParticipante.Text = participante.Correo;
+            txtTelefonoParticipante.Text = participante.Telefono;
+            txtNotasParticipante.Text = participante.Notas;
+
+            pnlMensaje.Visible = false;
+            pnlDetalleActividad.Visible = false;
+            pnlDetalleParticipante.Visible = false;
             pnlFormularioParticipante.Visible = true;
         }
 
         protected void lnkCerrarParticipante_Click(object sender, EventArgs e)
         {
             pnlFormularioParticipante.Visible = false;
+
+            // A11: al cancelar la edición se vuelve al detalle del participante;
+            // si se abrió desde una actividad, al detalle de la actividad.
+            if (IdParticipanteEnEdicion.HasValue)
+            {
+                int id = IdParticipanteEnEdicion.Value;
+                IdParticipanteEnEdicion = null;
+                MostrarDetalleParticipante(id);
+            }
+            else if (IdActividadOrigenParticipante.HasValue)
+            {
+                int id = IdActividadOrigenParticipante.Value;
+                IdActividadOrigenParticipante = null;
+                MostrarDetalle(id);
+            }
         }
 
         protected void btnGuardarParticipante_Click(object sender, EventArgs e)
@@ -454,46 +606,390 @@ namespace StageUp.UI
             }
 
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            bool esEdicion = IdParticipanteEnEdicion.HasValue;
             Participante participante = new Participante
             {
-                Nombre = txtNombreParticipante.Text.Trim(),
-                Apellido = txtApellidoParticipante.Text.Trim(),
-                Dni = txtDniParticipante.Text.Trim(),
-                Notas = string.IsNullOrWhiteSpace(txtNotasParticipante.Text) ? null : txtNotasParticipante.Text.Trim()
+                IdParticipante = IdParticipanteEnEdicion ?? 0,
+                Nombre = txtNombreParticipante.Text,
+                Apellido = txtApellidoParticipante.Text,
+                Dni = txtDniParticipante.Text,
+                Correo = txtCorreoParticipante.Text,
+                Telefono = txtTelefonoParticipante.Text,
+                Notas = txtNotasParticipante.Text
             };
+
+            pnlParticipanteExistente.Visible = false;
+            IdParticipanteExistente = null;
 
             ResultadoOperacion<int> resultado = _bllParticipante.Guardar(participante, idUsuarioGestor);
             if (!resultado.Exitoso)
             {
-                MostrarMensaje(resultado.Mensaje, esError: true);
+                // A3, A4, A12 o A5. En A5 se ofrece asociar el existente.
+                MostrarMensajeFormularioParticipante(resultado.Mensaje);
+                if (!esEdicion && resultado.CodigoAlternativo == "A5")
+                {
+                    OfrecerAsociarExistente(idUsuarioGestor);
+                }
+
                 pnlFormularioParticipante.Visible = true;
                 return;
             }
 
-            if (!string.IsNullOrEmpty(ddlActividadParticipante.SelectedValue))
+            pnlFormularioParticipante.Visible = false;
+            IdParticipanteEnEdicion = null;
+
+            if (esEdicion)
             {
-                int idActividadSeleccionada = ConvertirEntero(ddlActividadParticipante.SelectedValue);
-                _bllActividad.AsociarParticipante(idActividadSeleccionada, resultado.Valor, idUsuarioGestor);
+                // A11 pasos 7 y 8.
+                CargarPantallaGestor();
+                MostrarDetalleParticipante(resultado.Valor);
+                MostrarMensajeParticipante(resultado.Mensaje, false);
+                return;
             }
 
+            string mensaje = resultado.Mensaje;
+            bool advertencia = false;
+            int idActividad = ConvertirEntero(ddlActividadParticipante.SelectedValue);
+            if (idActividad > 0)
+            {
+                // Pasos 20 y 21 / A6: si la actividad está completa, el
+                // participante queda registrado pero sin asociar.
+                ResultadoOperacion asociacion = _bllActividad.AsociarParticipante(idActividad, resultado.Valor, idUsuarioGestor);
+                mensaje = asociacion.Exitoso
+                    ? "El participante fue registrado y asociado correctamente a la actividad."
+                    : "El participante quedó registrado, pero no se asoció a la actividad: " + asociacion.Mensaje;
+                advertencia = !asociacion.Exitoso;
+            }
+
+            CargarPantallaGestor();
+            int? origen = IdActividadOrigenParticipante;
+            IdActividadOrigenParticipante = null;
+            if (origen.HasValue || idActividad > 0)
+            {
+                // Paso 24.
+                MostrarDetalle(origen ?? idActividad);
+                MostrarMensajeDetalle(mensaje, advertencia);
+            }
+            else
+            {
+                hdnTabActividades.Value = "participantes";
+                MostrarMensaje(mensaje, esError: advertencia);
+            }
+        }
+
+        private void OfrecerAsociarExistente(int idUsuarioGestor)
+        {
+            Participante existente = _bllParticipante.BuscarActivoPorDni(txtDniParticipante.Text, idUsuarioGestor);
+            int idActividad = ConvertirEntero(ddlActividadParticipante.SelectedValue);
+            if (existente == null || idActividad <= 0)
+            {
+                return;
+            }
+
+            IdParticipanteExistente = existente.IdParticipante;
+            string actividad = ddlActividadParticipante.SelectedItem != null ? ddlActividadParticipante.SelectedItem.Text : "la actividad";
+            litParticipanteExistente.Text = existente.NombreCompleto + " (DNI " + existente.Dni + ") ya está registrado. " +
+                "¿Querés asociarlo a \"" + actividad + "\" en lugar de registrarlo de nuevo?";
+            pnlParticipanteExistente.Visible = true;
+        }
+
+        // A5 paso 4: se asocia el existente (continúa en el paso 20).
+        protected void btnAsociarExistenteFormulario_Click(object sender, EventArgs e)
+        {
+            int idActividad = ConvertirEntero(ddlActividadParticipante.SelectedValue);
+            if (!IdParticipanteExistente.HasValue || idActividad <= 0)
+            {
+                pnlFormularioParticipante.Visible = true;
+                return;
+            }
+
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            ResultadoOperacion resultado = _bllActividad.AsociarParticipante(idActividad, IdParticipanteExistente.Value, idUsuarioGestor);
+            IdParticipanteExistente = null;
+            IdActividadOrigenParticipante = null;
             pnlFormularioParticipante.Visible = false;
             CargarPantallaGestor();
-            MostrarMensaje("Participante guardado correctamente.", esError: false);
+            MostrarDetalle(idActividad);
+            MostrarMensajeDetalle(resultado.Mensaje, !resultado.Exitoso);
+        }
+
+        // A5 paso 5: no se registra un participante nuevo.
+        protected void lnkNoAsociarExistente_Click(object sender, EventArgs e)
+        {
+            IdParticipanteExistente = null;
+            pnlParticipanteExistente.Visible = false;
+            pnlFormularioParticipante.Visible = true;
         }
 
         protected void rptParticipantes_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
-            if (e.CommandName != "Baja")
+            int idParticipante = ConvertirEntero(Convert.ToString(e.CommandArgument, CultureInfo.InvariantCulture));
+            hdnTabActividades.Value = "participantes";
+            pnlMensaje.Visible = false;
+
+            if (e.CommandName == "Ver")
+            {
+                MostrarDetalleParticipante(idParticipante);
+            }
+            else if (e.CommandName == "Editar")
+            {
+                AbrirEdicionParticipante(idParticipante);
+            }
+            else if (e.CommandName == "Baja" && MostrarDetalleParticipante(idParticipante))
+            {
+                pnlConfirmarBajaParticipante.Visible = true;
+            }
+        }
+
+        protected void btnBuscarParticipantes_Click(object sender, EventArgs e)
+        {
+            hdnTabActividades.Value = "participantes";
+            pnlMensaje.Visible = false;
+            CargarPantallaGestor();
+        }
+
+        // A10: detalle del participante.
+        private bool MostrarDetalleParticipante(int idParticipante)
+        {
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            Participante participante = _bllParticipante.ObtenerDetalle(idParticipante, idUsuarioGestor);
+            if (participante == null)
+            {
+                pnlDetalleParticipante.Visible = false;
+                IdParticipanteEnDetalle = null;
+                MostrarMensaje("No se encontró el participante indicado.", esError: true);
+                return false;
+            }
+
+            CultureInfo cultura = CultureInfo.GetCultureInfo("es-AR");
+            IdParticipanteEnDetalle = participante.IdParticipante;
+            ParticipanteEnDetalleActivo = participante.Activo;
+            pnlDetalleActividad.Visible = false;
+            pnlFormularioParticipante.Visible = false;
+            pnlDetalleParticipante.Visible = true;
+            pnlConfirmarBajaParticipante.Visible = false;
+            pnlConfirmarDesvincularParticipante.Visible = false;
+            pnlParticipanteMensaje.Visible = false;
+
+            litParticipanteNombre.Text = participante.NombreCompleto;
+            lblParticipanteEstado.Text = participante.Activo ? "Activo" : "Dado de baja";
+            lblParticipanteEstado.CssClass = "activities-status " + (participante.Activo ? "activities-status-active" : "activities-status-inactive");
+            litParticipanteNombreDato.Text = participante.Nombre;
+            litParticipanteApellido.Text = participante.Apellido;
+            litParticipanteDni.Text = participante.Dni;
+            litParticipanteCorreo.Text = string.IsNullOrEmpty(participante.Correo) ? "No informado" : participante.Correo;
+            litParticipanteTelefono.Text = string.IsNullOrEmpty(participante.Telefono) ? "No informado" : participante.Telefono;
+            litParticipanteNotas.Text = string.IsNullOrEmpty(participante.Notas) ? "Sin notas" : participante.Notas;
+            litParticipanteFechas.Text = "Alta el " + participante.FechaCreacion.ToString("dd/MM/yyyy", cultura) +
+                (participante.FechaUltimaModificacion.HasValue ? " · modificado el " + participante.FechaUltimaModificacion.Value.ToString("dd/MM/yyyy", cultura) : string.Empty) +
+                (participante.FechaBaja.HasValue ? " · baja el " + participante.FechaBaja.Value.ToString("dd/MM/yyyy", cultura) : string.Empty);
+
+            List<ParticipacionActividad> vigentes = participante.Activo
+                ? participante.Actividades.Where(a => a.Vigente).ToList()
+                : new List<ParticipacionActividad>();
+            List<ParticipacionActividad> historial = participante.Actividades.Where(a => !vigentes.Contains(a)).ToList();
+            litParticipanteSinActividades.Visible = vigentes.Count == 0;
+            rptParticipanteActividades.DataSource = vigentes;
+            rptParticipanteActividades.DataBind();
+            phParticipanteHistorial.Visible = historial.Count > 0;
+            rptParticipanteHistorial.DataSource = historial;
+            rptParticipanteHistorial.DataBind();
+
+            btnEditarParticipante.Visible = participante.Activo;
+            btnBajaParticipante.Visible = participante.Activo;
+            return true;
+        }
+
+        protected string DescribirHistorial(object dato)
+        {
+            ParticipacionActividad participacion = (ParticipacionActividad)dato;
+            CultureInfo cultura = CultureInfo.GetCultureInfo("es-AR");
+            string texto = "asociado el " + participacion.FechaAsociacion.ToString("dd/MM/yyyy", cultura);
+            if (!participacion.AsociacionActiva && participacion.FechaDesvinculacion.HasValue)
+            {
+                return texto + ", desvinculado el " + participacion.FechaDesvinculacion.Value.ToString("dd/MM/yyyy", cultura);
+            }
+
+            return texto + (participacion.ActividadActiva ? " (participante dado de baja)" : " (actividad dada de baja)");
+        }
+
+        protected void lnkCerrarDetalleParticipante_Click(object sender, EventArgs e)
+        {
+            pnlDetalleParticipante.Visible = false;
+            IdParticipanteEnDetalle = null;
+            hdnTabActividades.Value = "participantes";
+        }
+
+        protected void btnEditarParticipante_Click(object sender, EventArgs e)
+        {
+            if (IdParticipanteEnDetalle.HasValue)
+            {
+                AbrirEdicionParticipante(IdParticipanteEnDetalle.Value);
+            }
+        }
+
+        protected void btnBajaParticipante_Click(object sender, EventArgs e)
+        {
+            if (IdParticipanteEnDetalle.HasValue && MostrarDetalleParticipante(IdParticipanteEnDetalle.Value))
+            {
+                pnlConfirmarBajaParticipante.Visible = true;
+            }
+        }
+
+        protected void lnkCancelarBajaParticipante_Click(object sender, EventArgs e)
+        {
+            if (IdParticipanteEnDetalle.HasValue)
+            {
+                MostrarDetalleParticipante(IdParticipanteEnDetalle.Value);
+            }
+        }
+
+        // A14 pasos 3 a 7.
+        protected void btnConfirmarBajaParticipante_Click(object sender, EventArgs e)
+        {
+            if (!IdParticipanteEnDetalle.HasValue)
             {
                 return;
             }
 
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
-            int idParticipante = ConvertirEntero((string)e.CommandArgument);
+            int idParticipante = IdParticipanteEnDetalle.Value;
             ResultadoOperacion resultado = _bllParticipante.DarDeBaja(idParticipante, idUsuarioGestor);
-
             CargarPantallaGestor();
-            MostrarMensaje(resultado.Exitoso ? "Participante dado de baja." : resultado.Mensaje, esError: !resultado.Exitoso);
+            MostrarDetalleParticipante(idParticipante);
+            MostrarMensajeParticipante(resultado.Mensaje, !resultado.Exitoso);
+        }
+
+        // A7: asociar un participante existente desde el detalle de la actividad.
+        protected void btnAsociarExistente_Click(object sender, EventArgs e)
+        {
+            if (!IdActividadEnDetalle.HasValue)
+            {
+                return;
+            }
+
+            int idActividad = IdActividadEnDetalle.Value;
+            int idParticipante = ConvertirEntero(ddlAsociarExistente.SelectedValue);
+            if (idParticipante <= 0)
+            {
+                MostrarDetalle(idActividad);
+                MostrarMensajeDetalle("Elegí el participante que querés asociar.", true);
+                return;
+            }
+
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            ResultadoOperacion resultado = _bllActividad.AsociarParticipante(idActividad, idParticipante, idUsuarioGestor);
+            CargarPantallaGestor();
+            MostrarDetalle(idActividad);
+            MostrarMensajeDetalle(resultado.Mensaje, !resultado.Exitoso);
+        }
+
+        protected void rptDetalleParticipantes_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            int idParticipante = ConvertirEntero(Convert.ToString(e.CommandArgument, CultureInfo.InvariantCulture));
+            if (e.CommandName == "VerParticipante")
+            {
+                MostrarDetalleParticipante(idParticipante);
+            }
+            else if (e.CommandName == "Desvincular" && IdActividadEnDetalle.HasValue && MostrarDetalle(IdActividadEnDetalle.Value))
+            {
+                PedirConfirmacionDesvincular(IdActividadEnDetalle.Value, idParticipante, "Actividad");
+            }
+        }
+
+        protected void rptParticipanteActividades_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            int idActividad = ConvertirEntero(Convert.ToString(e.CommandArgument, CultureInfo.InvariantCulture));
+            if (e.CommandName == "VerActividad")
+            {
+                MostrarDetalle(idActividad);
+            }
+            else if (e.CommandName == "Desvincular" && IdParticipanteEnDetalle.HasValue && MostrarDetalleParticipante(IdParticipanteEnDetalle.Value))
+            {
+                PedirConfirmacionDesvincular(idActividad, IdParticipanteEnDetalle.Value, "Participante");
+            }
+        }
+
+        // A13 paso 2.
+        private void PedirConfirmacionDesvincular(int idActividad, int idParticipante, string origen)
+        {
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            Actividad actividad = _bllActividad.ObtenerDetalle(idActividad, idUsuarioGestor);
+            Participante participante = actividad == null ? null : actividad.Participantes.Find(p => p.IdParticipante == idParticipante);
+            if (actividad == null || participante == null)
+            {
+                return;
+            }
+
+            IdActividadDesvincular = idActividad;
+            IdParticipanteDesvincular = idParticipante;
+            OrigenDesvincular = origen;
+            string texto = "¿Desvincular a " + participante.NombreCompleto + " de \"" + actividad.Nombre + "\"? " +
+                "Va a dejar de formar parte de esta actividad, pero sigue registrado para futuras asociaciones o consultas.";
+            if (origen == "Actividad")
+            {
+                litConfirmarDesvincularActividad.Text = texto;
+                pnlConfirmarDesvincularActividad.Visible = true;
+            }
+            else
+            {
+                litConfirmarDesvincularParticipante.Text = texto;
+                pnlConfirmarDesvincularParticipante.Visible = true;
+            }
+        }
+
+        // A13 pasos 3 a 7: se vuelve al detalle de la actividad.
+        protected void btnConfirmarDesvincular_Click(object sender, EventArgs e)
+        {
+            if (!IdActividadDesvincular.HasValue || !IdParticipanteDesvincular.HasValue)
+            {
+                return;
+            }
+
+            int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            int idActividad = IdActividadDesvincular.Value;
+            ResultadoOperacion resultado = _bllActividad.DesasociarParticipante(idActividad, IdParticipanteDesvincular.Value, idUsuarioGestor);
+            LimpiarDesvincular();
+            CargarPantallaGestor();
+            MostrarDetalle(idActividad);
+            MostrarMensajeDetalle(resultado.Mensaje, !resultado.Exitoso);
+        }
+
+        // Si se cancela, no hay cambios y se vuelve a donde estaba.
+        protected void lnkCancelarDesvincular_Click(object sender, EventArgs e)
+        {
+            string origen = OrigenDesvincular;
+            int? idActividad = IdActividadDesvincular;
+            int? idParticipante = IdParticipanteDesvincular;
+            LimpiarDesvincular();
+            if (origen == "Participante" && idParticipante.HasValue)
+            {
+                MostrarDetalleParticipante(idParticipante.Value);
+            }
+            else if (idActividad.HasValue)
+            {
+                MostrarDetalle(idActividad.Value);
+            }
+        }
+
+        private void LimpiarDesvincular()
+        {
+            IdActividadDesvincular = null;
+            IdParticipanteDesvincular = null;
+            OrigenDesvincular = null;
+        }
+
+        private void MostrarMensajeParticipante(string mensaje, bool esError)
+        {
+            litParticipanteMensaje.Text = mensaje;
+            pnlParticipanteMensaje.CssClass = "form-message " + (esError ? "form-message-error" : "form-message-success");
+            pnlParticipanteMensaje.Visible = !string.IsNullOrEmpty(mensaje);
+        }
+
+        private void MostrarMensajeFormularioParticipante(string mensaje)
+        {
+            litFormularioParticipanteMensaje.Text = mensaje;
+            pnlFormularioParticipanteMensaje.Visible = !string.IsNullOrEmpty(mensaje);
         }
 
         private void CargarPantallaGestor()
@@ -502,6 +998,11 @@ namespace StageUp.UI
             List<EspacioArtistico> espacios = _bllEspacio.ListarMisEspacios(idUsuarioGestor);
             List<Actividad> actividades = _bllActividad.ListarPorUsuarioGestor(idUsuarioGestor);
             List<Participante> participantes = _bllParticipante.ListarPorUsuarioGestor(idUsuarioGestor);
+            string estadoParticipantes = ddlEstadoParticipantes.SelectedValue;
+            string textoParticipantes = txtBuscarParticipante.Text.Trim();
+            List<Participante> listadoParticipantes = estadoParticipantes == BLL_Participante.FiltroActivos && textoParticipantes.Length == 0
+                ? participantes
+                : _bllParticipante.Buscar(idUsuarioGestor, estadoParticipantes, textoParticipantes);
 
             pnlSinEspacios.Visible = espacios.Count == 0;
             pnlActividades.Visible = espacios.Count > 0;
@@ -521,16 +1022,23 @@ namespace StageUp.UI
             litSinActividades.Text = estado == BLL_Actividad.FiltroInactivas
                 ? "No hay actividades dadas de baja con estos filtros."
                 : "Todavía no hay actividades internas" + (espacioFiltro.HasValue ? " en este espacio" : string.Empty) + ". Usá «Nueva actividad» para cargar la primera.";
-            List<ParticipanteVista> vistaParticipantes = participantes
+            List<ParticipanteVista> vistaActivos = participantes
                 .Select(participante => CrearVistaParticipante(participante, actividades))
                 .ToList();
+            List<ParticipanteVista> vistaParticipantes = listadoParticipantes
+                .Select(participante => CrearVistaParticipante(participante, actividades))
+                .ToList();
+            phSinParticipantes.Visible = vistaParticipantes.Count == 0;
+            litSinParticipantes.Text = textoParticipantes.Length > 0 || estadoParticipantes != BLL_Participante.FiltroActivos
+                ? "No hay participantes con estos filtros."
+                : "Todavía no cargaste participantes. Usá «Nuevo participante».";
 
             litActividadesActivas.Text = actividades.Count.ToString(CultureInfo.InvariantCulture);
             litHorasBloqueadas.Text = CalcularHorasBloqueadas(actividades) + " h";
             litEspaciosProgramados.Text = actividades.Select(a => a.IdEspacioArtistico).Distinct().Count().ToString();
-            litParticipantesActivos.Text = vistaParticipantes.Count.ToString();
-            litParticipantesAsignados.Text = vistaParticipantes.Count(p => p.Actividades != "Sin asignar").ToString();
-            litParticipantesSinAsignar.Text = vistaParticipantes.Count(p => p.Actividades == "Sin asignar").ToString();
+            litParticipantesActivos.Text = vistaActivos.Count.ToString(CultureInfo.InvariantCulture);
+            litParticipantesAsignados.Text = vistaActivos.Count(p => p.Actividades != "Sin asignar").ToString(CultureInfo.InvariantCulture);
+            litParticipantesSinAsignar.Text = vistaActivos.Count(p => p.Actividades == "Sin asignar").ToString(CultureInfo.InvariantCulture);
 
             rptActividades.DataSource = vistaActividades;
             rptActividades.DataBind();
@@ -573,8 +1081,12 @@ namespace StageUp.UI
 
             foreach (Actividad actividad in actividades)
             {
-                ddlActividadParticipante.Items.Add(new ListItem(actividad.Nombre, actividad.IdActividad.ToString()));
+                ddlActividadParticipante.Items.Add(new ListItem(
+                    actividad.Nombre + " (" + actividad.NombreEspacio + ")", actividad.IdActividad.ToString(CultureInfo.InvariantCulture)));
             }
+
+            // A2: sin actividades internas no hay a qué asociarlo todavía.
+            litSinActividadesParticipante.Visible = actividades.Count == 0;
         }
 
         private void CargarSugerenciasParticipantes()
@@ -608,15 +1120,21 @@ namespace StageUp.UI
                 .Select(actividad => actividad.Nombre)
                 .ToList();
 
+            List<string> contacto = new List<string>();
+            if (!string.IsNullOrEmpty(participante.Correo)) contacto.Add(participante.Correo);
+            if (!string.IsNullOrEmpty(participante.Telefono)) contacto.Add(participante.Telefono);
+
             return new ParticipanteVista
             {
                 IdParticipante = participante.IdParticipante,
                 NombreCompleto = participante.NombreCompleto,
                 Iniciales = ObtenerIniciales(participante.Nombre, participante.Apellido),
+                Contacto = contacto.Count == 0 ? "Sin datos de contacto" : string.Join(" · ", contacto),
                 Dni = participante.Dni,
-                Actividades = nombresActividades.Count == 0 ? "Sin asignar" : string.Join(", ", nombresActividades),
-                Estado = "Activo",
-                ClaseEstado = "activities-status activities-status-active"
+                Actividades = !participante.Activo ? "-" : nombresActividades.Count == 0 ? "Sin asignar" : string.Join(", ", nombresActividades),
+                Activo = participante.Activo,
+                Estado = participante.Activo ? "Activo" : "Dado de baja",
+                ClaseEstado = "activities-status " + (participante.Activo ? "activities-status-active" : "activities-status-inactive")
             };
         }
 
@@ -747,8 +1265,17 @@ namespace StageUp.UI
             txtNombreParticipante.Text = string.Empty;
             txtApellidoParticipante.Text = string.Empty;
             txtDniParticipante.Text = string.Empty;
-            ddlActividadParticipante.SelectedIndex = 0;
+            txtCorreoParticipante.Text = string.Empty;
+            txtTelefonoParticipante.Text = string.Empty;
+            if (ddlActividadParticipante.Items.Count > 0)
+            {
+                ddlActividadParticipante.SelectedIndex = 0;
+            }
+
             txtNotasParticipante.Text = string.Empty;
+            pnlFormularioParticipanteMensaje.Visible = false;
+            pnlParticipanteExistente.Visible = false;
+            IdParticipanteExistente = null;
         }
 
         private void MostrarMensaje(string mensaje, bool esError)
@@ -782,7 +1309,9 @@ namespace StageUp.UI
             public int IdParticipante { get; set; }
             public string NombreCompleto { get; set; }
             public string Iniciales { get; set; }
+            public string Contacto { get; set; }
             public string Dni { get; set; }
+            public bool Activo { get; set; }
             public string Actividades { get; set; }
             public string Estado { get; set; }
             public string ClaseEstado { get; set; }

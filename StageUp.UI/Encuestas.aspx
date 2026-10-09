@@ -44,7 +44,7 @@
                                     <strong><%#: Eval("Titulo") %></strong><br />
                                     <span class="encuesta-vencimiento">Vence el <%#: Eval("FechaVencimiento", "{0:dd/MM/yyyy HH:mm}") %></span>
                                 </div>
-                                <a class="button button-primary button-small" href='<%#: "Encuestas.aspx?responder=" + Eval("IdEncuesta") %>'>Responder</a>
+                                <a class="button button-primary button-small" href='<%#: ObtenerUrlRespuesta(Eval("IdEncuesta")) %>'><%#: ObtenerTextoRespuesta() %></a>
                             </div>
                         </ItemTemplate>
                     </asp:Repeater>

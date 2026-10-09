@@ -612,11 +612,11 @@ namespace StageUp.BLL
         {
             List<ResultadoPreguntaEncuesta> resultados = new List<ResultadoPreguntaEncuesta>();
 
-            var preguntasAgrupadas = filas
+            IOrderedEnumerable<IGrouping<int, FilaResultadoEncuesta>> preguntasAgrupadas = filas
                 .GroupBy(f => f.IdPreguntaEncuesta)
                 .OrderBy(g => g.First().OrdenPregunta);
 
-            foreach (var grupoPregunta in preguntasAgrupadas)
+            foreach (IGrouping<int, FilaResultadoEncuesta> grupoPregunta in preguntasAgrupadas)
             {
                 FilaResultadoEncuesta primeraFila = grupoPregunta.First();
                 int totalRespuestas = primeraFila.TotalRespuestasPregunta;

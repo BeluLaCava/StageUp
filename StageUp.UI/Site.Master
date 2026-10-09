@@ -33,6 +33,7 @@
                         <a id="HomeLink" runat="server" class="nav-link" href="~/Default.aspx" data-i18n="Nav_Inicio">Inicio</a>
                         <a id="ExploreLink" runat="server" class="nav-link" href="~/Explorar/ResultadosBusqueda.aspx" data-i18n="Nav_ExplorarEspacios">Explorar espacios</a>
                         <a id="NewsLink" runat="server" class="nav-link" href="~/Novedades.aspx">Novedades</a>
+                        <a id="EncuestasLink" runat="server" class="nav-link" href="~/Encuestas.aspx">Encuestas</a>
                         <a id="HelpLink" runat="server" class="nav-link" href="~/Ayuda/CentroAyuda.aspx" data-i18n="Nav_Ayuda">Ayuda</a>
                         <a id="SearchLink" runat="server" class="nav-link" href="~/Buscar.aspx">Buscar</a>
                     </nav>
@@ -104,7 +105,6 @@
                     <a id="ProfileSidebarLink" runat="server" class="sidebar-link" href="~/MiPerfil.aspx" data-i18n="Nav_MiPerfil">Mi perfil</a>
                     <a id="MisEspaciosLink" runat="server" class="sidebar-link" href="~/MisEspacios.aspx" data-i18n="Nav_MisEspacios">Mis espacios</a>
                     <a id="MisActividadesLink" runat="server" class="sidebar-link" href="~/MisActividades.aspx" data-i18n="Nav_MisActividades">Mis actividades</a>
-                    <a id="EncuestasLink" runat="server" class="sidebar-link" href="~/Encuestas.aspx">Encuestas</a>
                     <a id="SoporteLink" runat="server" class="sidebar-link" href="~/Soporte.aspx">Soporte</a>
                 </nav>
             </aside>

@@ -250,7 +250,7 @@ namespace StageUp.BLL
             Func<EspacioArtistico, bool> capacidadCercana = e => !capacidad.HasValue || !e.Ficha.CapacidadMaxima.HasValue ||
                 (e.Ficha.CapacidadMaxima.Value >= capacidad.Value * 0.5 && e.Ficha.CapacidadMaxima.Value <= capacidad.Value * 1.5);
 
-            var criterios = new List<KeyValuePair<string, Func<EspacioArtistico, bool>>>
+            List<KeyValuePair<string, Func<EspacioArtistico, bool>>> criterios = new List<KeyValuePair<string, Func<EspacioArtistico, bool>>>
             {
                 new KeyValuePair<string, Func<EspacioArtistico, bool>>(
                     "espacios del mismo tipo, en " + provincia + " y con capacidad parecida", e => mismoTipo(e) && mismaProvincia(e) && capacidadCercana(e)),
@@ -260,7 +260,7 @@ namespace StageUp.BLL
                 new KeyValuePair<string, Func<EspacioArtistico, bool>>("todos los espacios publicados", e => true)
             };
 
-            foreach (var criterio in criterios)
+            foreach (KeyValuePair<string, Func<EspacioArtistico, bool>> criterio in criterios)
             {
                 List<decimal> precios = referencias.Where(criterio.Value)
                     .Select(e => e.Ficha.PrecioHora.Value).OrderBy(p => p).ToList();

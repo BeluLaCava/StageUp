@@ -22,12 +22,6 @@
         .dr-texto { margin: 0 0 10px; }
         .dr-nota { color: var(--color-text-muted, #765f55); font-size: 0.9em; margin: 0; }
         .dr-politica-ahora { margin-top: 10px; padding: 10px 14px; border-radius: 10px; background: var(--color-nude-light, #f6eee8); }
-        .dr-seguimiento { list-style: none; margin: 0; padding: 0; }
-        .dr-seguimiento li { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--color-border, #e2e2e2); }
-        .dr-seguimiento time { color: var(--color-text-muted, #765f55); font-size: 0.85em; }
-        .dr-seguimiento span { display: block; color: var(--color-text-muted, #765f55); font-size: 0.9em; }
-        .dr-paso-pendiente strong { color: var(--color-text-muted, #765f55); font-weight: 500; }
-        .dr-paso-interrumpido strong { color: #8c1d18; }
         .dr-acciones { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
         .dr-confirmacion { margin-top: 14px; padding: 14px 16px; border-radius: 12px; border: 2px solid var(--color-primary, #6d1021); }
         .dr-confirmacion p { margin: 0 0 12px; }
@@ -37,7 +31,6 @@
         @media (max-width: 800px) { .dr-grid { grid-template-columns: 1fr; } }
         @media (max-width: 520px) {
             .dr-datos { grid-template-columns: 1fr; }
-            .dr-seguimiento li { grid-template-columns: 1fr; gap: 2px; }
             .dr-acciones { flex-direction: column; align-items: stretch; }
         }
     </style>
@@ -131,12 +124,12 @@
                             </asp:Panel>
                         </asp:Panel>
 
-                        <div class="auth-card">
+                        <div class="auth-card dr-tracking-card">
                             <div class="auth-card-header"><h2>Seguimiento</h2></div>
-                            <ol class="dr-seguimiento">
+                            <ol class="booking-progress-detail-list booking-progress-detail-list-standalone">
                                 <asp:Repeater ID="rptSeguimiento" runat="server">
                                     <ItemTemplate>
-                                        <li class='<%# "dr-paso-" + Eval("Estado").ToString().ToLowerInvariant() %>'>
+                                        <li class='<%# "booking-progress-detail booking-progress-detail-" + Eval("Estado").ToString().ToLowerInvariant() %>'>
                                             <time><%#: Eval("Fecha", "{0:dd/MM/yyyy HH:mm}") %></time>
                                             <div>
                                                 <strong><%#: Eval("Titulo") %></strong>

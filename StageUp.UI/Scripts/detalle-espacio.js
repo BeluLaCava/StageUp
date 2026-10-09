@@ -9,9 +9,29 @@
         var next = gallery.querySelector("[data-gallery-next]");
         var counter = gallery.querySelector("[data-gallery-counter]");
         var expand = gallery.querySelector("[data-gallery-expand]");
+        var expandImage = gallery.querySelector("[data-gallery-expand-image]");
         var lightbox = document.getElementById("space-gallery-lightbox");
         var lightboxImage = lightbox ? lightbox.querySelector("[data-gallery-lightbox-image]") : null;
+        var lightboxPrevious = lightbox ? lightbox.querySelector("[data-gallery-lightbox-previous]") : null;
+        var lightboxNext = lightbox ? lightbox.querySelector("[data-gallery-lightbox-next]") : null;
+        var lightboxCounter = lightbox ? lightbox.querySelector("[data-gallery-lightbox-counter]") : null;
         var current = 0;
+
+        function lightboxIsOpen() {
+            return !!(lightbox && lightbox.hasAttribute("open"));
+        }
+
+        function updateLightbox() {
+            if (!lightboxImage || !thumbnails.length) {
+                return;
+            }
+
+            lightboxImage.src = thumbnails[current].getAttribute("data-src");
+            lightboxImage.alt = "Fotografía " + (current + 1) + " de " + thumbnails.length + " del espacio";
+            if (lightboxCounter) {
+                lightboxCounter.textContent = (current + 1) + " / " + thumbnails.length;
+            }
+        }
 
         function show(index) {
             if (!thumbnails.length) {
@@ -26,6 +46,9 @@
                 thumbnail.setAttribute("aria-current", active ? "true" : "false");
             });
             counter.textContent = (current + 1) + " / " + thumbnails.length;
+            if (lightboxIsOpen()) {
+                updateLightbox();
+            }
         }
 
         thumbnails.forEach(function (thumbnail, index) {
@@ -42,32 +65,83 @@
             show(current + 1);
         });
 
-        expand.addEventListener("click", function () {
+        function openLightbox() {
             if (!lightbox || !lightboxImage) {
                 return;
             }
 
-            lightboxImage.src = mainImage.src;
+            updateLightbox();
             if (typeof lightbox.showModal === "function") {
                 lightbox.showModal();
             } else {
                 lightbox.setAttribute("open", "open");
             }
-        });
+
+            lightbox.querySelector("[data-gallery-close]").focus();
+        }
+
+        function closeLightbox() {
+            if (!lightbox) {
+                return;
+            }
+
+            if (typeof lightbox.close === "function" && lightbox.open) {
+                lightbox.close();
+            } else {
+                lightbox.removeAttribute("open");
+            }
+        }
+
+        expand.addEventListener("click", openLightbox);
+        if (expandImage) {
+            expandImage.addEventListener("click", openLightbox);
+        }
 
         if (lightbox) {
             lightbox.querySelector("[data-gallery-close]").addEventListener("click", function () {
-                lightbox.close();
+                closeLightbox();
             });
             lightbox.addEventListener("click", function (event) {
                 if (event.target === lightbox) {
-                    lightbox.close();
+                    closeLightbox();
+                }
+            });
+
+            if (lightboxPrevious) {
+                lightboxPrevious.addEventListener("click", function () {
+                    show(current - 1);
+                });
+            }
+
+            if (lightboxNext) {
+                lightboxNext.addEventListener("click", function () {
+                    show(current + 1);
+                });
+            }
+
+            document.addEventListener("keydown", function (event) {
+                if (!lightboxIsOpen()) {
+                    return;
+                }
+
+                if (event.key === "Escape") {
+                    event.preventDefault();
+                    closeLightbox();
+                } else if (event.key === "ArrowLeft") {
+                    event.preventDefault();
+                    show(current - 1);
+                } else if (event.key === "ArrowRight") {
+                    event.preventDefault();
+                    show(current + 1);
                 }
             });
         }
 
         if (thumbnails.length < 2) {
             gallery.classList.add("has-single-image");
+            if (lightbox) {
+                lightbox.classList.add("has-single-image");
+            }
         }
 
         show(0);

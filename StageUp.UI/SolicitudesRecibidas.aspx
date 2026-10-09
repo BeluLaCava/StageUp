@@ -1,9 +1,9 @@
 <%@ Page Title="Solicitudes recibidas | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="SolicitudesRecibidas.aspx.cs" Inherits="StageUp.UI.SolicitudesRecibidas" %>
 
 <asp:Content ID="SolicitudesRecibidasContent" ContentPlaceHolderID="MainContent" runat="server">
-    <section class="requests-page">
+    <section class="static-page user-module-page requests-page">
         <div class="container">
-            <header class="requests-header">
+            <header class="static-page-header requests-header">
                 <div>
                     <span class="section-label">Panel del gestor</span>
                     <h1>Solicitudes de reserva</h1>
@@ -18,24 +18,26 @@
             </nav>
 
             <div class="requests-summary" aria-label="Resumen de solicitudes">
-                <article>
+                <article class="requests-summary-card requests-summary-card-pending">
                     <span class="requests-summary-icon requests-summary-pending" aria-hidden="true">◷</span>
                     <div><small>Pendientes</small><strong><asp:Literal ID="litCantidadPendientes" runat="server" /></strong></div>
                 </article>
-                <article>
+                <article class="requests-summary-card requests-summary-card-resolved">
                     <span class="requests-summary-icon requests-summary-resolved" aria-hidden="true">✓</span>
                     <div><small>Resueltas</small><strong><asp:Literal ID="litCantidadResueltas" runat="server" /></strong></div>
                 </article>
-                <article>
+                <article class="requests-summary-card requests-summary-card-total">
                     <span class="requests-summary-icon requests-summary-total" aria-hidden="true">≡</span>
                     <div><small>Total recibidas</small><strong><asp:Literal ID="litCantidadTotal" runat="server" /></strong></div>
                 </article>
             </div>
 
-            <div class="requests-filter" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin: 0 0 1rem;">
-                <label for="<%= ddlFiltroEstado.ClientID %>">Mostrar</label>
-                <asp:DropDownList ID="ddlFiltroEstado" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ddlFiltroEstado_SelectedIndexChanged" />
-                <asp:Literal ID="litCantidadFiltrada" runat="server" />
+            <div class="requests-filter">
+                <div class="requests-filter-control">
+                    <label for="<%= ddlFiltroEstado.ClientID %>">Mostrar</label>
+                    <asp:DropDownList ID="ddlFiltroEstado" runat="server" CssClass="requests-filter-select" AutoPostBack="true" OnSelectedIndexChanged="ddlFiltroEstado_SelectedIndexChanged" />
+                </div>
+                <span class="requests-filter-count"><asp:Literal ID="litCantidadFiltrada" runat="server" /></span>
             </div>
 
             <asp:Panel ID="pnlMensaje" runat="server" Visible="false" CssClass="form-message requests-message">
@@ -147,7 +149,7 @@
                                 </details>
                             </section>
 
-                            <p style="margin: 0.75rem 0 0;"><a class="text-link" href='<%#: "DetalleReserva.aspx?id=" + Eval("IdReserva") %>'>Ver detalle de la solicitud</a></p>
+                            <p class="request-detail-link"><a class="text-link" href='<%#: "DetalleReserva.aspx?id=" + Eval("IdReserva") %>'>Ver detalle de la solicitud</a></p>
 
                             <asp:Panel ID="pnlAcciones" runat="server" CssClass="request-card-actions">
                                 <span>¿Querés aceptar esta solicitud?</span>

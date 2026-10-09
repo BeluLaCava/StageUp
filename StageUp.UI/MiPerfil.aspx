@@ -51,7 +51,7 @@
                 </aside>
 
                 <div class="profile-content-stack">
-                    <section class="profile-card" aria-labelledby="personal-data-title">
+                    <section class="profile-card profile-personal-card" aria-labelledby="personal-data-title">
                         <div class="profile-card-header">
                             <div>
                                 <span class="profile-card-eyebrow">Información personal</span>
@@ -60,7 +60,7 @@
                             <asp:LinkButton ID="lnkEditarDatos" runat="server" CssClass="button button-secondary button-small" CausesValidation="false" OnClick="lnkEditarDatos_Click">Editar perfil</asp:LinkButton>
                         </div>
 
-                        <asp:Panel ID="pnlVistaDatos" runat="server">
+                        <asp:Panel ID="pnlVistaDatos" runat="server" CssClass="profile-personal-view">
                             <dl class="profile-data-list">
                                 <div>
                                     <dt>Nombre</dt>
@@ -141,45 +141,70 @@
                         </asp:Panel>
                     </section>
 
-                    <section class="profile-card" aria-labelledby="profile-reviews-title">
+                    <section class="profile-card profile-reviews-card" aria-labelledby="profile-reviews-title">
                         <div class="profile-card-header">
                             <div>
                                 <span class="profile-card-eyebrow" data-i18n="Calificacion_Historial">Experiencias verificadas</span>
                                 <h2 id="profile-reviews-title" data-i18n="Calificacion_MisCalificaciones">Mis calificaciones</h2>
                             </div>
                         </div>
-                        <div class="profile-reviews-grid">
-                            <section aria-labelledby="received-reviews-title">
-                                <h3 id="received-reviews-title" data-i18n="Calificacion_Recibidas">Recibidas como solicitante</h3>
-                                <asp:Panel ID="pnlSinCalificacionesRecibidas" runat="server" CssClass="profile-reviews-empty">
-                                    Todavía no recibiste calificaciones. Aparecerán después de tus reservas finalizadas.
-                                </asp:Panel>
-                                <asp:Repeater ID="rptCalificacionesRecibidas" runat="server">
-                                    <ItemTemplate>
-                                        <article class="profile-review-item">
-                                            <header><strong><%#: Eval("NombreEspacio") %></strong><span><%#: ObtenerEstrellas(Convert.ToInt32(Eval("Puntaje"))) %></span></header>
-                                            <p><%#: Eval("Comentario") %></p>
-                                            <small>Reserva del <%# Eval("FechaReserva", "{0:dd/MM/yyyy}") %> · Por <%#: Eval("NombreAutor") %></small>
-                                        </article>
-                                    </ItemTemplate>
-                                </asp:Repeater>
-                            </section>
-                            <section aria-labelledby="made-reviews-title">
-                                <h3 id="made-reviews-title" data-i18n="Calificacion_Realizadas">Realizadas</h3>
-                                <asp:Panel ID="pnlSinCalificacionesRealizadas" runat="server" CssClass="profile-reviews-empty">
-                                    Todavía no realizaste calificaciones.
-                                </asp:Panel>
-                                <asp:Repeater ID="rptCalificacionesRealizadas" runat="server">
-                                    <ItemTemplate>
-                                        <article class="profile-review-item">
-                                            <header><strong><%#: ObtenerDestinoCalificacion((StageUp.BE.Entidades.Calificacion)Container.DataItem) %></strong><span><%#: ObtenerEstrellas(Convert.ToInt32(Eval("Puntaje"))) %></span></header>
-                                            <p><%#: Eval("Comentario") %></p>
-                                            <small>Reserva del <%# Eval("FechaReserva", "{0:dd/MM/yyyy}") %></small>
-                                        </article>
-                                    </ItemTemplate>
-                                </asp:Repeater>
-                            </section>
-                        </div>
+
+                        <asp:Panel ID="pnlUltimaCalificacion" runat="server" CssClass="profile-review-latest">
+                            <span class="profile-review-latest-label"><asp:Literal ID="litTipoUltimaCalificacion" runat="server" Mode="Encode" /></span>
+                            <article class="profile-review-item profile-review-item-latest">
+                                <header>
+                                    <strong><asp:Literal ID="litTituloUltimaCalificacion" runat="server" Mode="Encode" /></strong>
+                                    <span><asp:Literal ID="litEstrellasUltimaCalificacion" runat="server" Mode="Encode" /></span>
+                                </header>
+                                <p><asp:Literal ID="litComentarioUltimaCalificacion" runat="server" Mode="Encode" /></p>
+                                <small><asp:Literal ID="litDetalleUltimaCalificacion" runat="server" Mode="Encode" /></small>
+                            </article>
+                        </asp:Panel>
+
+                        <asp:Panel ID="pnlSinCalificaciones" runat="server" CssClass="profile-reviews-empty profile-reviews-empty-summary">
+                            Todavía no tenés calificaciones. Aparecerán después de tus primeras reservas finalizadas.
+                        </asp:Panel>
+
+                        <asp:Panel ID="pnlHistorialCalificaciones" runat="server">
+                            <details class="profile-reviews-disclosure">
+                                <summary>
+                                    <span>Ver historial completo</span>
+                                    <span class="profile-reviews-disclosure-meta"><asp:Literal ID="litResumenHistorialCalificaciones" runat="server" Mode="Encode" /></span>
+                                </summary>
+                                <div class="profile-reviews-grid">
+                                    <section aria-labelledby="received-reviews-title">
+                                        <h3 id="received-reviews-title" data-i18n="Calificacion_Recibidas">Recibidas como solicitante</h3>
+                                        <asp:Panel ID="pnlSinCalificacionesRecibidas" runat="server" CssClass="profile-reviews-empty">
+                                            Todavía no recibiste calificaciones. Aparecerán después de tus reservas finalizadas.
+                                        </asp:Panel>
+                                        <asp:Repeater ID="rptCalificacionesRecibidas" runat="server">
+                                            <ItemTemplate>
+                                                <article class="profile-review-item">
+                                                    <header><strong><%#: Eval("NombreEspacio") %></strong><span><%#: ObtenerEstrellas(Convert.ToInt32(Eval("Puntaje"))) %></span></header>
+                                                    <p><%#: Eval("Comentario") %></p>
+                                                    <small>Reserva del <%# Eval("FechaReserva", "{0:dd/MM/yyyy}") %> · Por <%#: Eval("NombreAutor") %></small>
+                                                </article>
+                                            </ItemTemplate>
+                                        </asp:Repeater>
+                                    </section>
+                                    <section aria-labelledby="made-reviews-title">
+                                        <h3 id="made-reviews-title" data-i18n="Calificacion_Realizadas">Realizadas</h3>
+                                        <asp:Panel ID="pnlSinCalificacionesRealizadas" runat="server" CssClass="profile-reviews-empty">
+                                            Todavía no realizaste calificaciones.
+                                        </asp:Panel>
+                                        <asp:Repeater ID="rptCalificacionesRealizadas" runat="server">
+                                            <ItemTemplate>
+                                                <article class="profile-review-item">
+                                                    <header><strong><%#: ObtenerDestinoCalificacion((StageUp.BE.Entidades.Calificacion)Container.DataItem) %></strong><span><%#: ObtenerEstrellas(Convert.ToInt32(Eval("Puntaje"))) %></span></header>
+                                                    <p><%#: Eval("Comentario") %></p>
+                                                    <small>Reserva del <%# Eval("FechaReserva", "{0:dd/MM/yyyy}") %></small>
+                                                </article>
+                                            </ItemTemplate>
+                                        </asp:Repeater>
+                                    </section>
+                                </div>
+                            </details>
+                        </asp:Panel>
                     </section>
 
                     <%-- CU-001-007: acceso a la solicitud de habilitación como gestor desde el perfil. --%>

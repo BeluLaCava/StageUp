@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><asp:ContentPlaceHolder ID="TitleContent" runat="server">StageUp</asp:ContentPlaceHolder></title>
     <link rel="icon" type="image/png" href="<%= ResolveUrl("~/Content/Images/favicon.png") %>" />
-    <link id="SiteStyles" href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20261001-6" rel="stylesheet" />
+    <link id="SiteStyles" href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20261008-15" rel="stylesheet" />
     <asp:ContentPlaceHolder ID="HeadContent" runat="server" />
 </head>
 <body>
@@ -30,7 +30,6 @@
 
                 <div id="public-navigation" class="navbar-panel" data-nav-panel>
                     <nav class="primary-navigation" aria-label="Navegación principal">
-                        <a id="HomeLink" runat="server" class="nav-link" href="~/Default.aspx" data-i18n="Nav_Inicio">Inicio</a>
                         <a id="ExploreLink" runat="server" class="nav-link" href="~/Explorar/ResultadosBusqueda.aspx" data-i18n="Nav_ExplorarEspacios">Explorar espacios</a>
                         <a id="NewsLink" runat="server" class="nav-link" href="~/Novedades.aspx">Novedades</a>
                         <a id="EncuestasLink" runat="server" class="nav-link" href="~/Encuestas.aspx">Encuestas</a>
@@ -51,8 +50,14 @@
 
                     <div id="AuthenticatedTools" runat="server" class="authenticated-tools">
                         <div class="notifications-menu" data-notifications-menu>
-                            <button type="button" class="auth-tool notifications-trigger" aria-expanded="false" aria-controls="notifications-panel" data-notifications-trigger>
-                                <span data-i18n="Nav_Notificaciones">Notificaciones</span>
+                            <button type="button" class="auth-tool notifications-trigger" aria-expanded="false" aria-controls="notifications-panel" aria-label="Notificaciones" title="Notificaciones" data-notifications-trigger>
+                                <span class="auth-tool-icon notifications-bell" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" focusable="false">
+                                        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                                        <path d="M10 21h4"></path>
+                                    </svg>
+                                </span>
+                                <span class="sr-only" data-i18n="Nav_Notificaciones">Notificaciones</span>
                                 <asp:Literal ID="litNotificacionesCount" runat="server" />
                             </button>
                             <section id="notifications-panel" class="notifications-panel" hidden data-notifications-panel aria-label="Notificaciones">
@@ -87,10 +92,25 @@
                                 </footer>
                             </section>
                         </div>
-                        <a id="ProfileHeaderLink" runat="server" class="auth-tool" href="~/MiPerfil.aspx" data-i18n="Nav_MiPerfil">Mi perfil</a>
-                        <span id="UserSummary" runat="server" class="user-summary" aria-label="Datos del usuario"></span>
-                        <asp:LinkButton ID="lnkCerrarSesion" runat="server" CssClass="auth-tool text-link" CausesValidation="false"
-                            Text="Cerrar sesión" data-i18n="Nav_CerrarSesion" OnClick="lnkCerrarSesion_Click" />
+                        <a id="ProfileHeaderLink" runat="server" class="auth-tool user-profile-link" href="~/MiPerfil.aspx" aria-label="Ir a Mi perfil" title="Mi perfil">
+                            <span class="auth-tool-icon user-profile-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <circle cx="12" cy="8" r="4"></circle>
+                                    <path d="M4.5 20c.8-4 3.3-6 7.5-6s6.7 2 7.5 6"></path>
+                                </svg>
+                            </span>
+                            <span id="UserSummary" runat="server" class="user-profile-name"></span>
+                        </a>
+                        <asp:LinkButton ID="lnkCerrarSesion" runat="server" CssClass="auth-tool logout-tool" CausesValidation="false"
+                            OnClick="lnkCerrarSesion_Click" aria-label="Cerrar sesión" title="Cerrar sesión">
+                            <span class="auth-tool-icon logout-tool-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <path d="M12 3v9"></path>
+                                    <path d="M7.2 5.8a8 8 0 1 0 9.6 0"></path>
+                                </svg>
+                            </span>
+                            <span class="sr-only" data-i18n="Nav_CerrarSesion">Cerrar sesión</span>
+                        </asp:LinkButton>
                     </div>
                 </div>
             </div>
@@ -102,7 +122,6 @@
                 <nav class="sidebar-navigation">
                     <a id="MisReservasLink" runat="server" class="sidebar-link" href="~/MisReservas.aspx" data-i18n="Nav_MisReservas">Mis reservas</a>
                     <a id="MiCuentaCorrienteLink" runat="server" class="sidebar-link" href="~/MiCuentaCorriente.aspx">Mi cuenta corriente</a>
-                    <a id="ProfileSidebarLink" runat="server" class="sidebar-link" href="~/MiPerfil.aspx" data-i18n="Nav_MiPerfil">Mi perfil</a>
                     <a id="MisEspaciosLink" runat="server" class="sidebar-link" href="~/MisEspacios.aspx" data-i18n="Nav_MisEspacios">Mis espacios</a>
                     <a id="MisActividadesLink" runat="server" class="sidebar-link" href="~/MisActividades.aspx" data-i18n="Nav_MisActividades">Mis actividades</a>
                     <a id="SoporteLink" runat="server" class="sidebar-link" href="~/Soporte.aspx">Soporte</a>
@@ -134,6 +153,8 @@
         <asp:ContentPlaceHolder ID="PageScripts" runat="server" />
         <script src="<%= ResolveUrl("~/Scripts/site.js") %>?v=20260930-1"></script>
         <script src="<%= ResolveUrl("~/Scripts/multidioma.js") %>?v=20260910-2"></script>
+        <script src="<%= ResolveUrl("~/Scripts/charts-stageup.js") %>?v=20261008-1"></script>
+        <script src="<%= ResolveUrl("~/Scripts/ui-motion.js") %>?v=20261008-1"></script>
     </form>
 </body>
 </html>

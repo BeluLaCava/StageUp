@@ -235,6 +235,7 @@ namespace StageUp.BLL
                     ". Se emitió la factura simulada.");
 
                 AvisarPagoAprobado(reserva, pago);
+                RegistrarTransaccionEconomica(pago.IdPago);
 
                 return ResultadoOperacion<Pago>.Ok(pago, "¡Listo! Recibimos el pago y tu reserva quedó confirmada. Ya tenés la factura del pago.");
             }
@@ -612,6 +613,7 @@ namespace StageUp.BLL
                     ". Comisión " + pago.PorcentajeComisionPlataforma.Value.ToString("0.##", CultureInfo.InvariantCulture) + " %. Se emitió la factura simulada.");
 
                 AvisarPagoAprobado(reserva, pago);
+                RegistrarTransaccionEconomica(pago.IdPago);
 
                 return ResultadoOperacion<int>.Ok(pago.IdPago,
                     "Pago confirmado. La reserva N° " + reserva.IdReserva + " quedó pagada, se registraron los movimientos y se emitió la factura simulada.");
@@ -783,6 +785,20 @@ namespace StageUp.BLL
                 _mpp.RegistrarRechazado(pago);
             }
             catch (ErrorAccesoDatosException)
+            {
+            }
+        }
+
+        // CU-002-002: el pago confirmado genera la transacción económica con
+        // la comisión de StageUp y el importe del gestor. Si falla, el pago ya
+        // quedó registrado y la transacción se puede revisar después.
+        private static void RegistrarTransaccionEconomica(int idPago)
+        {
+            try
+            {
+                new BLL_TransaccionEconomica().RegistrarPorPagoAprobado(idPago);
+            }
+            catch (Exception)
             {
             }
         }

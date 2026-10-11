@@ -148,6 +148,55 @@ namespace StageUp.BE.Entidades
         public string Leyenda { get; set; }
     }
 
+    // CU-002-002: transacción económica generada por una reserva abonada o
+    // por el cargo de cancelación de una reserva aceptada.
+    public class TransaccionEconomica
+    {
+        public int IdTransaccion { get; set; }
+        public string Codigo { get; set; }
+        public string TipoOperacion { get; set; }         // ReservaAbonada | CargoCancelacion
+        public int? IdReserva { get; set; }
+        public int? IdPago { get; set; }
+        public int? IdComprobante { get; set; }
+        public string Moneda { get; set; }
+        public decimal MontoTotal { get; set; }
+        public decimal? PorcentajeComision { get; set; }
+        public decimal? ImporteComision { get; set; }
+        public decimal? ImporteGestor { get; set; }
+        public decimal? PorcentajeCargo { get; set; }
+        public string EstadoPago { get; set; }            // Pagado | Cobrado | Devuelto | Pendiente
+        public string ReferenciaPago { get; set; }
+        public string EstadoRegistro { get; set; }        // Registrada | PendienteControl
+        public string Observacion { get; set; }
+        public DateTime FechaGeneracion { get; set; }
+
+        public string NombreSolicitante { get; set; }
+        public string CorreoSolicitante { get; set; }
+        public string NombreGestor { get; set; }
+        public string CorreoGestor { get; set; }
+        public string NombreEspacio { get; set; }
+        public string NumeroFactura { get; set; }
+        public string NumeroComprobante { get; set; }
+
+        // Solo en el detalle.
+        public DateTime? FechaSolicitada { get; set; }
+        public int? MinutoDesde { get; set; }
+        public int? MinutoHasta { get; set; }
+        public decimal? ImporteReserva { get; set; }
+        public string EstadoReserva { get; set; }
+        public DateTime? FechaCancelacion { get; set; }
+        public string MedioPago { get; set; }
+    }
+
+    public class FiltroTransacciones
+    {
+        public string TipoOperacion { get; set; }
+        public string EstadoPago { get; set; }
+        public DateTime? Desde { get; set; }
+        public DateTime? Hasta { get; set; }
+        public string Texto { get; set; }
+    }
+
     // Nota de crédito (NC) o de débito (ND).
     public class Comprobante
     {

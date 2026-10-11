@@ -66,6 +66,7 @@
     <Compile Include="BLL_Backup.cs" />
     <Compile Include="BLL_Reporte.cs" />
     <Compile Include="BLL_Pago.cs" />
+    <Compile Include="BLL_TransaccionEconomica.cs" />
     <Compile Include="BLL_CuentaCorriente.cs" />
     <Compile Include="BLL_ParametroPlataforma.cs" />
     <Compile Include="ValidadorTarjeta.cs" />

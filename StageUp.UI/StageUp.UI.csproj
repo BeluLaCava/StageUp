@@ -311,6 +311,13 @@
     <Compile Include="DetallePago.aspx.designer.cs">
       <DependentUpon>DetallePago.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Interno\TransaccionesEconomicas.aspx.cs">
+      <DependentUpon>TransaccionesEconomicas.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\TransaccionesEconomicas.aspx.designer.cs">
+      <DependentUpon>TransaccionesEconomicas.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Interno\PagosReservas.aspx.cs">
       <DependentUpon>PagosReservas.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -475,6 +482,7 @@
     <Content Include="DetalleReserva.aspx" />
     <Content Include="DetallePago.aspx" />
     <Content Include="Interno\PagosReservas.aspx" />
+    <Content Include="Interno\TransaccionesEconomicas.aspx" />
     <Content Include="Notificaciones.aspx" />
     <Content Include="DisponibilidadEspacio.aspx" />
     <Content Include="OfrecerEspacio.aspx" />

@@ -983,6 +983,16 @@ namespace StageUp.BLL
                     (comisionAplicada ? " Se aplicó " + textoCargo + "." : " Sin cargo.") +
                     (estabaPagada ? " Se emitió nota de crédito por el importe pagado." : string.Empty));
 
+                // CU-002-002 A1 y A2: transacción del cargo por cancelación (o
+                // actualización de la transacción de la reserva abonada).
+                try
+                {
+                    new BLL_TransaccionEconomica().RegistrarPorCancelacion(idReserva, resultado.IdNotaDebito);
+                }
+                catch (Exception)
+                {
+                }
+
                 if (resultado.IdNotaDebito.HasValue)
                 {
                     // Generación del cargo de cancelación (reglas del CU-001-005).

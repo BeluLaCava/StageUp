@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Web.UI.WebControls;
+using StageUp.BE.Entidades;
 using StageUp.BE.Enumerados;
 using StageUp.BLL;
 using StageUp.Seguridad;
@@ -145,7 +147,7 @@ namespace StageUp.UI
         {
             int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
 
-            var notificaciones = _bllNotificacion.ListarPorUsuario(idUsuarioExterno);
+            List<Notificacion> notificaciones = _bllNotificacion.ListarPorUsuario(idUsuarioExterno);
             int noLeidas = _bllNotificacion.ContarNoLeidas(idUsuarioExterno);
 
             rptNotificaciones.DataSource = notificaciones;

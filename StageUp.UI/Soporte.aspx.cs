@@ -137,7 +137,7 @@ namespace StageUp.UI
             MostrarSolo(pnlDashboard);
 
             int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
-            var tickets = _bllTicket.ListarTicketsUsuario(idUsuarioExterno);
+            List<Ticket> tickets = _bllTicket.ListarTicketsUsuario(idUsuarioExterno);
             pnlSinTickets.Visible = tickets.Count == 0;
             rptMisTickets.DataSource = tickets;
             rptMisTickets.DataBind();

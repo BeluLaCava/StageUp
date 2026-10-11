@@ -1,27 +1,7 @@
 <%@ Page Title="Ofrecer espacio | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="OfrecerEspacio.aspx.cs" Inherits="StageUp.UI.OfrecerEspacio" %>
 
 <asp:Content ID="OfrecerEspacioContent" ContentPlaceHolderID="MainContent" runat="server">
-    <style type="text/css">
-        .oe-estado { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 0.85em; font-weight: 700; border: 1px solid var(--color-border, #e2e2e2); }
-        .oe-estado-pendienterevision { background: #fff4e5; border-color: #f5c27a; color: #8a4b08; }
-        .oe-estado-aprobada { background: #e8f5ec; border-color: #9fd3ae; color: #1e6b37; }
-        .oe-estado-rechazada { background: #fdecea; border-color: #f0b4ae; color: #8c1d18; }
-        .oe-datos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 20px; margin: 12px 0 0; }
-        .oe-datos div { min-width: 0; }
-        .oe-datos dt { color: var(--color-text-muted, #765f55); font-size: 0.82em; }
-        .oe-datos dd { margin: 2px 0 0; font-weight: 600; overflow-wrap: anywhere; }
-        .oe-motivo { margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: #fdecea; border-left: 4px solid #b3261e; }
-        .oe-grupo { border: 1px solid var(--color-border, #e2e2e2); border-radius: 14px; padding: 14px 16px 4px; margin: 0 0 14px; }
-        .oe-grupo legend { padding: 0 6px; font-weight: 700; }
-        .oe-grupo p.oe-ayuda { margin: 0 0 10px; color: var(--color-text-muted, #765f55); font-size: 0.9em; }
-        .oe-campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
-        .oe-campos > * { min-width: 0; }
-        .oe-campos input, .oe-campos select, .oe-grupo textarea { width: 100%; box-sizing: border-box; }
-        .oe-ancho { grid-column: 1 / -1; }
-        @media (max-width: 600px) { .oe-campos, .oe-datos { grid-template-columns: 1fr; } }
-    </style>
-
-    <section class="static-page">
+    <section class="static-page user-module-page offer-space-page">
         <div class="static-page-header">
             <span class="section-label">Gestores de espacios</span>
             <h1>Ofrecer espacio</h1>
@@ -33,7 +13,7 @@
                 <asp:Literal ID="litMensaje" runat="server" Mode="Encode" />
             </asp:Panel>
 
-            <asp:Panel ID="pnlEstado" runat="server" Visible="false" CssClass="auth-card">
+            <asp:Panel ID="pnlEstado" runat="server" Visible="false" CssClass="auth-card offer-space-card offer-space-status-card">
                 <div class="auth-card-header">
                     <h2>Tu solicitud de habilitación</h2>
                 </div>
@@ -46,7 +26,7 @@
 
                 <asp:Panel ID="pnlMotivoRechazo" runat="server" CssClass="oe-motivo" Visible="false">
                     <strong>Motivo del rechazo</strong>
-                    <p style="margin: 4px 0 0;"><asp:Literal ID="litMotivoRechazo" runat="server" Mode="Encode" /></p>
+                    <p class="oe-motivo-text"><asp:Literal ID="litMotivoRechazo" runat="server" Mode="Encode" /></p>
                 </asp:Panel>
 
                 <dl class="oe-datos">
@@ -64,7 +44,7 @@
                 </div>
             </asp:Panel>
 
-            <asp:Panel ID="pnlFormulario" runat="server" Visible="false" CssClass="auth-card" DefaultButton="btnEnviar">
+            <asp:Panel ID="pnlFormulario" runat="server" Visible="false" CssClass="auth-card offer-space-card offer-space-form-card" DefaultButton="btnEnviar">
                 <div class="auth-card-header">
                     <h2>Solicitud de habilitación como gestor</h2>
                     <p>Completá los datos para que podamos revisar tu solicitud. Los campos con * son obligatorios.</p>

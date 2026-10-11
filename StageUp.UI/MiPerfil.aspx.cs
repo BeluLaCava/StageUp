@@ -352,6 +352,43 @@ namespace StageUp.UI
             pnlSinCalificacionesRealizadas.Visible = realizadas.Count == 0;
             rptCalificacionesRealizadas.DataSource = realizadas;
             rptCalificacionesRealizadas.DataBind();
+
+            Calificacion ultimaCalificacion = null;
+            bool ultimaEsRecibida = false;
+
+            if (recibidas.Count > 0)
+            {
+                ultimaCalificacion = recibidas[0];
+                ultimaEsRecibida = true;
+            }
+
+            if (realizadas.Count > 0 &&
+                (ultimaCalificacion == null || realizadas[0].FechaAlta > ultimaCalificacion.FechaAlta))
+            {
+                ultimaCalificacion = realizadas[0];
+                ultimaEsRecibida = false;
+            }
+
+            bool tieneCalificaciones = ultimaCalificacion != null;
+            pnlUltimaCalificacion.Visible = tieneCalificaciones;
+            pnlSinCalificaciones.Visible = !tieneCalificaciones;
+            pnlHistorialCalificaciones.Visible = tieneCalificaciones;
+            litResumenHistorialCalificaciones.Text =
+                recibidas.Count + (recibidas.Count == 1 ? " recibida" : " recibidas") + " · " +
+                realizadas.Count + (realizadas.Count == 1 ? " realizada" : " realizadas");
+
+            if (tieneCalificaciones)
+            {
+                litTipoUltimaCalificacion.Text = ultimaEsRecibida ? "Última calificación recibida" : "Última calificación realizada";
+                litTituloUltimaCalificacion.Text = ultimaEsRecibida
+                    ? ultimaCalificacion.NombreEspacio
+                    : ObtenerDestinoCalificacion(ultimaCalificacion);
+                litEstrellasUltimaCalificacion.Text = ObtenerEstrellas(ultimaCalificacion.Puntaje);
+                litComentarioUltimaCalificacion.Text = ultimaCalificacion.Comentario;
+                litDetalleUltimaCalificacion.Text = ultimaEsRecibida
+                    ? "Reserva del " + ultimaCalificacion.FechaReserva.ToString("dd/MM/yyyy") + " · Por " + ultimaCalificacion.NombreAutor
+                    : "Reserva del " + ultimaCalificacion.FechaReserva.ToString("dd/MM/yyyy");
+            }
         }
 
         protected string ObtenerEstrellas(int puntaje)

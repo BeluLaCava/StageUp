@@ -54,7 +54,9 @@
 
                 <asp:Panel ID="pnlGaleria" runat="server" CssClass="space-gallery" data-space-gallery="true">
                     <div class="space-gallery-stage">
-                        <asp:Image ID="imgGaleriaPrincipal" runat="server" CssClass="space-gallery-main-image" data-gallery-main="true" />
+                        <button type="button" class="space-gallery-image-button" aria-label="Ampliar fotografía" data-gallery-expand-image>
+                            <asp:Image ID="imgGaleriaPrincipal" runat="server" CssClass="space-gallery-main-image" data-gallery-main="true" />
+                        </button>
                         <button class="space-gallery-control space-gallery-previous" type="button" aria-label="Ver fotografía anterior" data-gallery-previous>‹</button>
                         <button class="space-gallery-control space-gallery-next" type="button" aria-label="Ver fotografía siguiente" data-gallery-next>›</button>
                         <span class="space-gallery-counter" data-gallery-counter></span>
@@ -270,10 +272,15 @@
 
     <dialog id="space-gallery-lightbox" class="space-gallery-lightbox" aria-label="Fotografía ampliada">
         <button type="button" class="space-lightbox-close" aria-label="Cerrar fotografía" data-gallery-close>×</button>
-        <img data-gallery-lightbox-image alt="Fotografía ampliada del espacio" />
+        <div class="space-lightbox-stage">
+            <button type="button" class="space-lightbox-control space-lightbox-previous" aria-label="Ver fotografía anterior" data-gallery-lightbox-previous>‹</button>
+            <img data-gallery-lightbox-image alt="Fotografía ampliada del espacio" />
+            <button type="button" class="space-lightbox-control space-lightbox-next" aria-label="Ver fotografía siguiente" data-gallery-lightbox-next>›</button>
+            <span class="space-lightbox-counter" data-gallery-lightbox-counter></span>
+        </div>
     </dialog>
 </asp:Content>
 
 <asp:Content ID="SpaceDetailScripts" ContentPlaceHolderID="PageScripts" runat="server">
-    <script src="<%= ResolveUrl("~/Scripts/detalle-espacio.js") %>?v=20260924-1"></script>
+    <script src="<%= ResolveUrl("~/Scripts/detalle-espacio.js") %>?v=20261008-2"></script>
 </asp:Content>

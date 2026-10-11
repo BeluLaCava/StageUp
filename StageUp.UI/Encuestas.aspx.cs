@@ -18,28 +18,35 @@ namespace StageUp.UI
     public partial class Encuestas : Page
     {
         private readonly BLL_Encuesta _bllEncuesta = new BLL_Encuesta();
+        protected bool UsuarioAutenticado { get; private set; }
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            if (!GestorDeSesion.EstaAutenticado())
-            {
-                Response.Redirect("~/IniciarSesion.aspx");
-                return;
-            }
+            UsuarioAutenticado = GestorDeSesion.EstaAutenticado();
 
             if (IsPostBack)
             {
                 return;
             }
 
-            int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
-            string perfilUsuario = GestorDeSesion.ObtenerPerfilActual();
+            int idUsuarioExterno = UsuarioAutenticado
+                ? GestorDeSesion.ObtenerIdUsuarioActual().Value
+                : 0;
+            string perfilUsuario = UsuarioAutenticado
+                ? GestorDeSesion.ObtenerPerfilActual()
+                : string.Empty;
 
             int idResponder;
             int idVer;
 
             if (int.TryParse(Request.QueryString["responder"], out idResponder))
             {
+                if (!UsuarioAutenticado)
+                {
+                    Response.Redirect("~/IniciarSesion.aspx");
+                    return;
+                }
+
                 CargarResponder(idResponder, idUsuarioExterno, perfilUsuario);
             }
             else if (int.TryParse(Request.QueryString["ver"], out idVer))
@@ -50,6 +57,21 @@ namespace StageUp.UI
             {
                 CargarDashboard(idUsuarioExterno, perfilUsuario);
             }
+        }
+
+        protected string ObtenerUrlRespuesta(object idEncuesta)
+        {
+            if (!UsuarioAutenticado)
+            {
+                return ResolveUrl("~/IniciarSesion.aspx");
+            }
+
+            return ResolveUrl("~/Encuestas.aspx?responder=" + Convert.ToString(idEncuesta, CultureInfo.InvariantCulture));
+        }
+
+        protected string ObtenerTextoRespuesta()
+        {
+            return UsuarioAutenticado ? "Responder" : "Iniciar sesión para responder";
         }
 
         protected void btnEnviarRespuestas_Click(object sender, EventArgs e)

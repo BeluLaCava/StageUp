@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -116,7 +117,7 @@ namespace StageUp.UI.Interno
         {
             MostrarSolo(pnlListado);
 
-            var tickets = _bllTicket.ListarTicketsInternos(ddlFiltroEstado.SelectedValue, ddlFiltroCategoria.SelectedValue);
+            List<Ticket> tickets = _bllTicket.ListarTicketsInternos(ddlFiltroEstado.SelectedValue, ddlFiltroCategoria.SelectedValue);
             pnlSinTickets.Visible = tickets.Count == 0;
             rptTickets.DataSource = tickets;
             rptTickets.DataBind();

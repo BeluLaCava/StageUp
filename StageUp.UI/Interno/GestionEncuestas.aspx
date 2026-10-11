@@ -204,22 +204,44 @@
                         <p class="encuesta-resultado-total"><asp:Literal ID="litTotalRespuestas" runat="server" /></p>
                         <asp:Repeater ID="rptResultados" runat="server" OnItemDataBound="rptResultados_ItemDataBound">
                             <ItemTemplate>
-                                <div class="encuesta-resultado-pregunta">
-                                    <h4><%#: Eval("TextoPregunta") %></h4>
-                                    <asp:Repeater ID="rptOpcionesResultado" runat="server">
-                                        <ItemTemplate>
-                                            <div class="encuesta-resultado-opcion">
-                                                <div class="encuesta-resultado-opcion-etiqueta">
-                                                    <span><%#: Eval("TextoOpcion") %></span>
-                                                    <span><%#: Eval("CantidadRespuestas") %> (<%#: Eval("Porcentaje") %>%)</span>
+                                <article class="su-chart-question" data-su-survey-chart>
+                                    <div class="su-chart-heading">
+                                        <h4><%#: Eval("TextoPregunta") %></h4>
+                                        <div class="su-chart-mode-switch" role="group" aria-label="Tipo de gráfico">
+                                            <button type="button" class="su-chart-mode-button" data-su-chart-mode="bars" aria-pressed="true">Barras</button>
+                                            <button type="button" class="su-chart-mode-button" data-su-chart-mode="donut" aria-pressed="false">Torta</button>
+                                        </div>
+                                    </div>
+                                    <div class="su-chart-bars" data-su-chart-bars>
+                                        <asp:Repeater ID="rptOpcionesResultado" runat="server">
+                                            <ItemTemplate>
+                                                <div class="su-chart-option"
+                                                    data-su-chart-option
+                                                    data-label='<%#: Eval("TextoOpcion") %>'
+                                                    data-percentage='<%# Eval("Porcentaje").ToString().Replace(",", ".") %>'
+                                                    data-count='<%# Eval("CantidadRespuestas") %>'
+                                                    tabindex="0">
+                                                    <div class="su-chart-option-label">
+                                                        <span><%#: Eval("TextoOpcion") %></span>
+                                                        <strong><%#: Eval("CantidadRespuestas") %> · <%#: Eval("Porcentaje") %> %</strong>
+                                                    </div>
+                                                    <div class="su-chart-track">
+                                                        <div class="su-chart-fill" style='<%# "--su-chart-value:" + Eval("Porcentaje").ToString().Replace(",", ".") + "%;" %>'></div>
+                                                    </div>
                                                 </div>
-                                                <div class="encuesta-resultado-barra-track">
-                                                    <div class="encuesta-resultado-barra-fill" style='<%# "width:" + Eval("Porcentaje").ToString().Replace(",", ".") + "%;" %>'></div>
-                                                </div>
+                                            </ItemTemplate>
+                                        </asp:Repeater>
+                                    </div>
+                                    <div class="su-chart-donut-panel" data-su-chart-donut-panel hidden>
+                                        <div class="su-chart-donut" data-su-chart-donut tabindex="0" role="img" aria-label='<%#: "Distribución de respuestas para " + Eval("TextoPregunta") %>'>
+                                            <div class="su-chart-donut-center">
+                                                <strong><%#: Eval("TotalRespuestas") %></strong>
+                                                <span>respuestas</span>
                                             </div>
-                                        </ItemTemplate>
-                                    </asp:Repeater>
-                                </div>
+                                        </div>
+                                        <div class="su-chart-legend" data-su-chart-legend aria-label="Leyenda del gráfico"></div>
+                                    </div>
+                                </article>
                             </ItemTemplate>
                         </asp:Repeater>
                     </asp:Panel>

@@ -37,7 +37,7 @@
 
                 <asp:Repeater ID="rptMisReservas" runat="server" OnItemCommand="rptMisReservas_ItemCommand" OnItemDataBound="rptMisReservas_ItemDataBound">
                     <ItemTemplate>
-                        <div class="space-row">
+                        <div class="space-row reservation-history-row">
                             <div class="space-row-info">
                                 <h3><%# Eval("NombreEspacio") %></h3>
                                 <p>Fecha del alquiler: <%# Eval("FechaSolicitada", "{0:dd/MM/yyyy}") %> · Estado: <%# Eval("EstadoReserva") %></p>
@@ -54,7 +54,8 @@
                                 <asp:Panel ID="pnlEstadoPago" runat="server" CssClass="reserva-pago" Visible="false">
                                     <asp:Literal ID="litEstadoPago" runat="server" />
                                 </asp:Panel>
-                                <section class="booking-progress" aria-label="Seguimiento de la reserva">
+                            </div>
+                            <section class="booking-progress booking-progress-reservation" aria-label="Seguimiento de la reserva">
                                     <ol class="booking-progress-steps">
                                         <asp:Repeater ID="rptSeguimiento" runat="server"
                                             DataSource='<%# StageUp.BLL.BLL_Reserva.ConstruirSeguimiento((StageUp.BE.Entidades.Reserva)Container.DataItem) %>'>
@@ -84,8 +85,7 @@
                                             </asp:Repeater>
                                         </ol>
                                     </details>
-                                </section>
-                            </div>
+                            </section>
                             <div class="space-row-actions">
                                 <a class="button button-secondary button-small" href='<%#: "DetalleReserva.aspx?id=" + Eval("IdReserva") %>'>Ver detalle</a>
                                 <asp:HyperLink ID="lnkPagar" runat="server" CssClass="button button-primary button-small" Text="Pagar reserva" Visible="false" />

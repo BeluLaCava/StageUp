@@ -36,6 +36,15 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.TextBox txtDescripcion;
         protected global::System.Web.UI.WebControls.Button btnGuardarDatos;
         protected global::System.Web.UI.WebControls.LinkButton lnkCancelarEdicion;
+        protected global::System.Web.UI.WebControls.Panel pnlUltimaCalificacion;
+        protected global::System.Web.UI.WebControls.Literal litTipoUltimaCalificacion;
+        protected global::System.Web.UI.WebControls.Literal litTituloUltimaCalificacion;
+        protected global::System.Web.UI.WebControls.Literal litEstrellasUltimaCalificacion;
+        protected global::System.Web.UI.WebControls.Literal litComentarioUltimaCalificacion;
+        protected global::System.Web.UI.WebControls.Literal litDetalleUltimaCalificacion;
+        protected global::System.Web.UI.WebControls.Panel pnlSinCalificaciones;
+        protected global::System.Web.UI.WebControls.Panel pnlHistorialCalificaciones;
+        protected global::System.Web.UI.WebControls.Literal litResumenHistorialCalificaciones;
         protected global::System.Web.UI.WebControls.Panel pnlSinCalificacionesRecibidas;
         protected global::System.Web.UI.WebControls.Repeater rptCalificacionesRecibidas;
         protected global::System.Web.UI.WebControls.Panel pnlSinCalificacionesRealizadas;

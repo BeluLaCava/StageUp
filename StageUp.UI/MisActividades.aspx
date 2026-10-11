@@ -702,19 +702,19 @@
 <asp:Content ID="MisActividadesScripts" ContentPlaceHolderID="PageScripts" runat="server">
     <script>
         (function () {
-            var tabButtons = document.querySelectorAll('[data-activities-tab-trigger]');
-            var tabPanels = document.querySelectorAll('[data-activities-tab-panel]');
-            var tabHidden = document.getElementById('hdnTabActividades');
+            const tabButtons = document.querySelectorAll('[data-activities-tab-trigger]');
+            const tabPanels = document.querySelectorAll('[data-activities-tab-panel]');
+            const tabHidden = document.getElementById('hdnTabActividades');
 
             // La solapa elegida se conserva entre postbacks (búsqueda,
             // detalle de participante, etc.).
             function activateTab(target) {
-                for (var b = 0; b < tabButtons.length; b++) {
-                    var isActiveButton = tabButtons[b].getAttribute('data-activities-tab-trigger') === target;
+                for (let b = 0; b < tabButtons.length; b++) {
+                    const isActiveButton = tabButtons[b].getAttribute('data-activities-tab-trigger') === target;
                     tabButtons[b].classList.toggle('active', isActiveButton);
                     tabButtons[b].setAttribute('aria-selected', isActiveButton ? 'true' : 'false');
                 }
-                for (var p = 0; p < tabPanels.length; p++) {
+                for (let p = 0; p < tabPanels.length; p++) {
                     tabPanels[p].classList.toggle('active', tabPanels[p].getAttribute('data-activities-tab-panel') === target);
                 }
                 if (tabHidden) {
@@ -722,7 +722,7 @@
                 }
             }
 
-            for (var i = 0; i < tabButtons.length; i++) {
+            for (let i = 0; i < tabButtons.length; i++) {
                 tabButtons[i].addEventListener('click', function () {
                     activateTab(this.getAttribute('data-activities-tab-trigger'));
                 });
@@ -732,23 +732,23 @@
                 activateTab('participantes');
             }
 
-            var picker = document.querySelector('[data-participant-picker]');
-            var repeatMode = document.getElementById('activity-repeat-mode');
-            var scheduleHidden = document.getElementById('hdnProgramacionActividad');
-            var schedulePreview = document.getElementById('activity-schedule-preview');
-            var dayWrap = document.querySelector('[data-activity-days-wrap]');
-            var dateWrap = document.querySelector('[data-activity-date-wrap]');
-            var monthlyWraps = document.querySelectorAll('[data-activity-monthly-wrap]');
-            var dayChecks = document.querySelectorAll('.activity-days input[type="checkbox"]');
-            var dateInput = document.getElementById('activity-date');
-            var monthWeek = document.getElementById('activity-month-week');
-            var monthDay = document.getElementById('activity-month-day');
-            var hourFrom = document.getElementById('<%= txtHoraInicio.ClientID %>');
-            var hourTo = document.getElementById('<%= txtHoraFin.ClientID %>');
+            const picker = document.querySelector('[data-participant-picker]');
+            const repeatMode = document.getElementById('activity-repeat-mode');
+            const scheduleHidden = document.getElementById('hdnProgramacionActividad');
+            const schedulePreview = document.getElementById('activity-schedule-preview');
+            const dayWrap = document.querySelector('[data-activity-days-wrap]');
+            const dateWrap = document.querySelector('[data-activity-date-wrap]');
+            const monthlyWraps = document.querySelectorAll('[data-activity-monthly-wrap]');
+            const dayChecks = document.querySelectorAll('.activity-days input[type="checkbox"]');
+            const dateInput = document.getElementById('activity-date');
+            const monthWeek = document.getElementById('activity-month-week');
+            const monthDay = document.getElementById('activity-month-day');
+            const hourFrom = document.getElementById('<%= txtHoraInicio.ClientID %>');
+            const hourTo = document.getElementById('<%= txtHoraFin.ClientID %>');
 
             function selectedDaysText() {
-                var days = [];
-                for (var i = 0; i < dayChecks.length; i++) {
+                const days = [];
+                for (let i = 0; i < dayChecks.length; i++) {
                     if (dayChecks[i].checked) {
                         days.push(dayChecks[i].value);
                     }
@@ -761,19 +761,19 @@
                     return;
                 }
 
-                var mode = repeatMode.value;
+                const mode = repeatMode.value;
                 if (dayWrap) {
                     dayWrap.hidden = mode !== 'weekly';
                 }
                 if (dateWrap) {
                     dateWrap.hidden = mode !== 'date';
                 }
-                for (var i = 0; i < monthlyWraps.length; i++) {
+                for (let i = 0; i < monthlyWraps.length; i++) {
                     monthlyWraps[i].hidden = mode !== 'monthly';
                 }
 
-                var days = selectedDaysText();
-                var data = {
+                const days = selectedDaysText();
+                const data = {
                     modo: mode,
                     dias: days,
                     fecha: dateInput ? dateInput.value : '',
@@ -814,20 +814,20 @@
                 if (!repeatMode || !scheduleHidden || !scheduleHidden.value) {
                     return;
                 }
-                var saved;
+                let saved;
                 try { saved = JSON.parse(scheduleHidden.value); } catch (e) { return; }
                 if (!saved) {
                     return;
                 }
-                var mode = saved.modo || saved.Modo;
+                const mode = saved.modo || saved.Modo;
                 if (mode === 'weekly' || mode === 'monthly' || mode === 'date') {
                     repeatMode.value = mode;
                 }
-                var savedDate = saved.fecha || saved.Fecha;
+                const savedDate = saved.fecha || saved.Fecha;
                 if (dateInput && savedDate) { dateInput.value = savedDate; }
-                var savedWeek = saved.semanaDelMes || saved.SemanaDelMes;
+                const savedWeek = saved.semanaDelMes || saved.SemanaDelMes;
                 if (monthWeek && savedWeek) { monthWeek.value = savedWeek; }
-                var savedDay = saved.diaDelMes || saved.DiaDelMes;
+                const savedDay = saved.diaDelMes || saved.DiaDelMes;
                 if (monthDay && savedDay) { monthDay.value = savedDay; }
             }
 
@@ -839,7 +839,7 @@
                 if (monthDay) { monthDay.addEventListener('change', updateActivitySchedule); }
                 if (hourFrom) { hourFrom.addEventListener('input', updateActivitySchedule); }
                 if (hourTo) { hourTo.addEventListener('input', updateActivitySchedule); }
-                for (var d = 0; d < dayChecks.length; d++) {
+                for (let d = 0; d < dayChecks.length; d++) {
                     dayChecks[d].addEventListener('change', updateActivitySchedule);
                 }
                 updateActivitySchedule();
@@ -849,12 +849,12 @@
                 return;
             }
 
-            var search = picker.querySelector('[data-participant-search]');
-            var suggestions = picker.querySelector('[data-participant-suggestions]');
-            var options = suggestions ? suggestions.querySelectorAll('button[data-participant-id]') : [];
-            var chips = picker.querySelector('[data-participant-chips]');
-            var hidden = document.getElementById('hdnParticipantesActividad');
-            var selected = [];
+            const search = picker.querySelector('[data-participant-search]');
+            const suggestions = picker.querySelector('[data-participant-suggestions]');
+            const options = suggestions ? suggestions.querySelectorAll('button[data-participant-id]') : [];
+            const chips = picker.querySelector('[data-participant-chips]');
+            const hidden = document.getElementById('hdnParticipantesActividad');
+            let selected = [];
 
             function normalize(value) {
                 return (value || '').toLowerCase();
@@ -872,12 +872,12 @@
                 }
 
                 selected.push(id);
-                var chip = document.createElement('span');
+                const chip = document.createElement('span');
                 chip.className = 'participant-chip';
                 chip.setAttribute('data-participant-chip', id);
                 chip.appendChild(document.createTextNode(name));
 
-                var removeButton = document.createElement('button');
+                const removeButton = document.createElement('button');
                 removeButton.type = 'button';
                 removeButton.setAttribute('aria-label', 'Quitar ' + name);
                 removeButton.textContent = '×';
@@ -899,14 +899,14 @@
             });
 
             search.addEventListener('input', function () {
-                var query = normalize(search.value);
+                const query = normalize(search.value);
                 picker.classList.add('is-open');
-                for (var i = 0; i < options.length; i++) {
+                for (let i = 0; i < options.length; i++) {
                     options[i].hidden = normalize(options[i].textContent).indexOf(query) === -1;
                 }
             });
 
-            for (var i = 0; i < options.length; i++) {
+            for (let i = 0; i < options.length; i++) {
                 options[i].addEventListener('click', function () {
                     addParticipant(this.getAttribute('data-participant-id'), this.getAttribute('data-participant-name'));
                 });
@@ -920,9 +920,9 @@
 
             // Participantes ya asociados (edición o vuelta de un error).
             if (hidden && hidden.value) {
-                var initialIds = hidden.value.split(',');
-                for (var n = 0; n < initialIds.length; n++) {
-                    for (var o = 0; o < options.length; o++) {
+                const initialIds = hidden.value.split(',');
+                for (let n = 0; n < initialIds.length; n++) {
+                    for (let o = 0; o < options.length; o++) {
                         if (options[o].getAttribute('data-participant-id') === initialIds[n]) {
                             addParticipant(initialIds[n], options[o].getAttribute('data-participant-name'));
                         }

@@ -167,9 +167,9 @@
         // Ordenamiento del catálogo (ítem 8): se agrega/quita "orden" de la
         // URL y se recarga, conservando los filtros que ya estén aplicados.
         function stageUpCambiarOrden(valor) {
-            var params = new URLSearchParams(window.location.search);
+            const params = new URLSearchParams(window.location.search);
             if (valor) { params.set("orden", valor); } else { params.delete("orden"); }
-            var query = params.toString();
+            const query = params.toString();
             window.location.href = window.location.pathname + (query ? "?" + query : "");
         }
     </script>

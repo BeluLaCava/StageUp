@@ -281,20 +281,20 @@
 
     <script>
         (function () {
-            var oculto = document.getElementById('<%= hdnPermisosPorRol.ClientID %>');
-            var combo = document.getElementById('<%= ddlRolInterno.ClientID %>');
-            var destino = document.getElementById('internal-role-preview');
+            const oculto = document.getElementById('<%= hdnPermisosPorRol.ClientID %>');
+            const combo = document.getElementById('<%= ddlRolInterno.ClientID %>');
+            const destino = document.getElementById('internal-role-preview');
             if (!oculto || !combo || !destino) { return; }
-            var mapa = {};
+            let mapa = {};
             try { mapa = JSON.parse(oculto.value || '{}'); } catch (e) { mapa = {}; }
             function mostrar() {
                 while (destino.firstChild) { destino.removeChild(destino.firstChild); }
-                var permisos = mapa[combo.value];
-                var texto;
+                const permisos = mapa[combo.value];
+                let texto;
                 if (!combo.value) { texto = 'Elegí un rol para ver sus permisos.'; }
                 else if (!permisos || permisos.length === 0) { texto = 'Este rol todavía no tiene permisos configurados: elegí otro o configuralo en Gestionar roles.'; }
-                if (texto) { var p = document.createElement('em'); p.textContent = texto; destino.appendChild(p); return; }
-                permisos.forEach(function (nombre) { var s = document.createElement('span'); s.textContent = nombre; destino.appendChild(s); });
+                if (texto) { const p = document.createElement('em'); p.textContent = texto; destino.appendChild(p); return; }
+                permisos.forEach(function (nombre) { const s = document.createElement('span'); s.textContent = nombre; destino.appendChild(s); });
             }
             combo.addEventListener('change', mostrar);
             mostrar();

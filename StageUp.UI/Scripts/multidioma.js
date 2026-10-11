@@ -1,12 +1,12 @@
 (function () {
     "use strict";
 
-    var campo = document.getElementById("hdnDiccionarioIdioma");
+    const campo = document.getElementById("hdnDiccionarioIdioma");
     if (!campo || !campo.value) {
         return;
     }
 
-    var configuracion;
+    let configuracion;
     try {
         configuracion = JSON.parse(campo.value);
     } catch (error) {
@@ -15,10 +15,10 @@
 
     campo.disabled = true;
 
-    var porClave = configuracion.porClave || {};
-    var porTextoNormalizado = {};
-    var plantillas = [];
-    var textosBase = configuracion.porTexto || {};
+    const porClave = configuracion.porClave || {};
+    const porTextoNormalizado = {};
+    const plantillas = [];
+    const textosBase = configuracion.porTexto || {};
 
     Object.keys(textosBase).forEach(function (texto) {
         porTextoNormalizado[normalizar(texto)] = textosBase[texto];
@@ -32,7 +32,7 @@
     }
 
     function traducirValor(valor) {
-        var normalizado = normalizar(valor);
+        const normalizado = normalizar(valor);
         if (!normalizado) {
             return null;
         }
@@ -41,9 +41,9 @@
             return porTextoNormalizado[normalizado];
         }
 
-        for (var indice = 0; indice < plantillas.length; indice++) {
-            var plantilla = plantillas[indice];
-            var coincidencia = normalizado.match(plantilla.patron);
+        for (let indice = 0; indice < plantillas.length; indice++) {
+            const plantilla = plantillas[indice];
+            const coincidencia = normalizado.match(plantilla.patron);
             if (coincidencia) {
                 return completarPlantilla(plantilla, coincidencia);
             }
@@ -57,11 +57,11 @@
     }
 
     function crearPlantilla(textoBase, traduccion) {
-        var indices = [];
-        var partes = [];
-        var expresion = /\{(\d+)\}/g;
-        var posicion = 0;
-        var coincidencia;
+        const indices = [];
+        const partes = [];
+        const expresion = /\{(\d+)\}/g;
+        let posicion = 0;
+        let coincidencia;
 
         while ((coincidencia = expresion.exec(textoBase))) {
             partes.push(escaparExpresionRegular(textoBase.substring(posicion, coincidencia.index)));
@@ -79,10 +79,10 @@
     }
 
     function completarPlantilla(plantilla, coincidencia) {
-        var valores = {};
+        const valores = {};
         plantilla.indices.forEach(function (indice, posicion) {
-            var valor = coincidencia[posicion + 1];
-            var valorNormalizado = normalizar(valor);
+            const valor = coincidencia[posicion + 1];
+            const valorNormalizado = normalizar(valor);
             valores[indice] = Object.prototype.hasOwnProperty.call(porTextoNormalizado, valorNormalizado)
                 ? porTextoNormalizado[valorNormalizado]
                 : valor;
@@ -94,12 +94,12 @@
     }
 
     function traducirPorClave(elemento, atributoClave, atributoDestino) {
-        var clave = elemento.getAttribute(atributoClave);
+        const clave = elemento.getAttribute(atributoClave);
         if (!clave || !Object.prototype.hasOwnProperty.call(porClave, clave)) {
             return;
         }
 
-        var traduccion = porClave[clave];
+        const traduccion = porClave[clave];
         if (atributoDestino) {
             elemento.setAttribute(atributoDestino, traduccion);
         } else if (elemento.tagName === "INPUT" && /^(button|submit)$/i.test(elemento.type)) {
@@ -114,7 +114,7 @@
             return;
         }
 
-        var elementos = [];
+        let elementos = [];
         if (raiz.nodeType === 1) {
             elementos.push(raiz);
         }
@@ -140,7 +140,7 @@
     }
 
     function debeIgnorarse(nodo) {
-        var padre = nodo.parentElement;
+        const padre = nodo.parentElement;
         if (!padre) {
             return true;
         }
@@ -154,13 +154,13 @@
             return;
         }
 
-        var traduccion = traducirValor(nodo.nodeValue);
+        const traduccion = traducirValor(nodo.nodeValue);
         if (!traduccion) {
             return;
         }
 
-        var coincidencia = nodo.nodeValue.match(/^(\s*)([\s\S]*?)(\s*)$/);
-        var nuevoValor = coincidencia[1] + traduccion + coincidencia[3];
+        const coincidencia = nodo.nodeValue.match(/^(\s*)([\s\S]*?)(\s*)$/);
+        const nuevoValor = coincidencia[1] + traduccion + coincidencia[3];
         if (nuevoValor !== nodo.nodeValue) {
             nodo.nodeValue = nuevoValor;
         }
@@ -176,9 +176,9 @@
             return;
         }
 
-        var recorrido = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT, null, false);
-        var nodos = [];
-        var actual;
+        const recorrido = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT, null, false);
+        const nodos = [];
+        let actual;
         while ((actual = recorrido.nextNode())) {
             nodos.push(actual);
         }
@@ -191,7 +191,7 @@
             return;
         }
 
-        var elementos = raiz.nodeType === 1 ? [raiz] : [];
+        let elementos = raiz.nodeType === 1 ? [raiz] : [];
         elementos = elementos.concat(Array.prototype.slice.call(raiz.querySelectorAll(
             "input[placeholder], textarea[placeholder], [title], [aria-label], input[type='button'], input[type='submit']"
         )));
@@ -201,14 +201,14 @@
                 if (!elemento.hasAttribute(atributo)) {
                     return;
                 }
-                var traduccion = traducirValor(elemento.getAttribute(atributo));
+                const traduccion = traducirValor(elemento.getAttribute(atributo));
                 if (traduccion) {
                     elemento.setAttribute(atributo, traduccion);
                 }
             });
 
             if (elemento.tagName === "INPUT" && /^(button|submit)$/i.test(elemento.type)) {
-                var traduccionValor = traducirValor(elemento.value);
+                const traduccionValor = traducirValor(elemento.value);
                 if (traduccionValor) {
                     elemento.value = traduccionValor;
                 }
@@ -234,8 +234,8 @@
     };
 
     if (!window.__stageUpI18nDialogos) {
-        var alertaOriginal = window.alert;
-        var confirmacionOriginal = window.confirm;
+        const alertaOriginal = window.alert;
+        const confirmacionOriginal = window.confirm;
 
         window.alert = function (mensaje) {
             return alertaOriginal.call(window, traducirValor(mensaje) || mensaje);
@@ -249,7 +249,7 @@
     }
 
     if (window.MutationObserver) {
-        var observador = new MutationObserver(function (cambios) {
+        const observador = new MutationObserver(function (cambios) {
             cambios.forEach(function (cambio) {
                 if (cambio.type === "characterData") {
                     traducirNodoTexto(cambio.target);

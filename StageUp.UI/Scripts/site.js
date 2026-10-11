@@ -2,8 +2,8 @@
     "use strict";
 
     function setupNavigation() {
-        var toggle = document.querySelector("[data-nav-toggle]");
-        var panel = document.querySelector("[data-nav-panel]");
+        const toggle = document.querySelector("[data-nav-toggle]");
+        const panel = document.querySelector("[data-nav-panel]");
 
         if (!toggle || !panel) {
             return;
@@ -15,7 +15,7 @@
         }
 
         toggle.addEventListener("click", function () {
-            var isOpen = panel.classList.toggle("is-open");
+            const isOpen = panel.classList.toggle("is-open");
             toggle.setAttribute("aria-expanded", String(isOpen));
         });
 
@@ -40,16 +40,16 @@
 
     function setupSearchRedirects() {
         document.querySelectorAll("[data-search-box]").forEach(function (searchBox) {
-            var action = searchBox.querySelector("[data-search-redirect]");
-            var input = searchBox.querySelector("input[type='search']");
+            const action = searchBox.querySelector("[data-search-redirect]");
+            const input = searchBox.querySelector("input[type='search']");
 
             if (!action) {
                 return;
             }
 
             function redirectToResults() {
-                var target = action.getAttribute("data-search-target");
-                var term = input ? input.value.trim() : "";
+                let target = action.getAttribute("data-search-target");
+                const term = input ? input.value.trim() : "";
 
                 if (term) {
                     target += (target.indexOf("?") === -1 ? "?" : "&") + "q=" + encodeURIComponent(term);
@@ -72,16 +72,16 @@
     }
 
     function setupResultsSearchState() {
-        var resultsPage = document.querySelector("[data-results-page]");
-        var input = document.querySelector("[data-results-search-input]");
+        const resultsPage = document.querySelector("[data-results-page]");
+        const input = document.querySelector("[data-results-search-input]");
 
         if (!resultsPage || typeof window.URLSearchParams === "undefined") {
             return;
         }
 
-        var params = new window.URLSearchParams(window.location.search);
-        var term = params.get("q");
-        var tipo = params.get("tipo");
+        const params = new window.URLSearchParams(window.location.search);
+        const term = params.get("q");
+        const tipo = params.get("tipo");
 
         if (term && input) {
             input.value = term;
@@ -89,7 +89,7 @@
         }
 
         if (tipo) {
-            var typeField = document.getElementById("filter-type");
+            const typeField = document.getElementById("filter-type");
             if (typeField) {
                 typeField.value = tipo;
                 typeField.dispatchEvent(new Event("change"));
@@ -97,7 +97,7 @@
             resultsPage.classList.add("has-search-query");
         }
 
-        var camposTexto = [
+        const camposTexto = [
             { param: "ubicacion", id: "filter-location" },
             { param: "capacidadMin", id: "filter-capacity" },
             { param: "precioMax", id: "filter-price" },
@@ -106,8 +106,8 @@
         ];
 
         camposTexto.forEach(function (campo) {
-            var valor = params.get(campo.param);
-            var elemento = document.getElementById(campo.id);
+            const valor = params.get(campo.param);
+            const elemento = document.getElementById(campo.id);
             if (valor && elemento) {
                 elemento.value = valor;
                 elemento.dispatchEvent(new Event("change"));
@@ -115,9 +115,9 @@
             }
         });
 
-        var equipamiento = params.get("equip");
+        const equipamiento = params.get("equip");
         if (equipamiento) {
-            var codigos = equipamiento.split(",");
+            const codigos = equipamiento.split(",");
             document.querySelectorAll("[data-equip-code]").forEach(function (checkbox) {
                 if (codigos.indexOf(checkbox.getAttribute("data-equip-code")) !== -1) {
                     checkbox.checked = true;
@@ -129,20 +129,20 @@
     }
 
     function setupFilters() {
-        var panel = document.querySelector("[data-filter-panel]");
-        var backdrop = document.querySelector("[data-filter-backdrop]");
-        var activeRegion = document.querySelector("[data-active-filters]");
-        var activeList = document.querySelector("[data-active-filter-list]");
-        var lastTrigger = null;
+        const panel = document.querySelector("[data-filter-panel]");
+        const backdrop = document.querySelector("[data-filter-backdrop]");
+        const activeRegion = document.querySelector("[data-active-filters]");
+        const activeList = document.querySelector("[data-active-filter-list]");
+        let lastTrigger = null;
 
         if (!panel || !backdrop || !activeRegion || !activeList) {
             return;
         }
 
-        var quickFilters = Array.from(document.querySelectorAll("[data-filter-chip]"));
-        var advancedFilters = Array.from(document.querySelectorAll("[data-advanced-filter]"));
-        var advancedSelect = document.querySelector("[data-advanced-select]");
-        var generalFields = [
+        const quickFilters = Array.from(document.querySelectorAll("[data-filter-chip]"));
+        const advancedFilters = Array.from(document.querySelectorAll("[data-advanced-filter]"));
+        const advancedSelect = document.querySelector("[data-advanced-select]");
+        const generalFields = [
             { id: "filter-type", label: "Tipo" },
             { id: "filter-location", label: "Ubicación" },
             { id: "filter-capacity", label: "Capacidad mínima" },
@@ -158,7 +158,7 @@
             window.requestAnimationFrame(function () {
                 panel.classList.add("is-open");
                 backdrop.classList.add("is-open");
-                var closeButton = panel.querySelector("[data-filter-close]");
+                const closeButton = panel.querySelector("[data-filter-close]");
                 if (closeButton) {
                     closeButton.focus();
                 }
@@ -179,7 +179,7 @@
         }
 
         function getSelections() {
-            var selections = [];
+            const selections = [];
 
             quickFilters.forEach(function (filter, index) {
                 if (filter.getAttribute("aria-pressed") === "true") {
@@ -188,7 +188,7 @@
             });
 
             generalFields.forEach(function (definition) {
-                var field = document.getElementById(definition.id);
+                const field = document.getElementById(definition.id);
                 if (field && field.value.trim()) {
                     selections.push({ label: definition.label + ": " + field.value.trim(), element: field, type: "field" });
                 }
@@ -218,13 +218,13 @@
         }
 
         function renderSelections() {
-            var selections = getSelections();
+            const selections = getSelections();
             activeList.innerHTML = "";
             activeRegion.hidden = selections.length === 0;
 
             selections.forEach(function (selection) {
-                var chip = document.createElement("button");
-                var removeIcon = document.createElement("span");
+                const chip = document.createElement("button");
+                const removeIcon = document.createElement("span");
                 chip.type = "button";
                 chip.className = "active-filter-chip";
                 chip.appendChild(document.createTextNode(selection.label));
@@ -257,7 +257,7 @@
 
         quickFilters.forEach(function (filter) {
             filter.addEventListener("click", function () {
-                var selected = filter.getAttribute("aria-pressed") === "true";
+                const selected = filter.getAttribute("aria-pressed") === "true";
                 filter.setAttribute("aria-pressed", String(!selected));
                 renderSelections();
             });
@@ -268,7 +268,7 @@
         });
 
         generalFields.forEach(function (definition) {
-            var field = document.getElementById(definition.id);
+            const field = document.getElementById(definition.id);
             if (field) {
                 field.addEventListener("change", renderSelections);
             }
@@ -278,17 +278,17 @@
             advancedSelect.addEventListener("change", renderSelections);
         }
 
-        var applyButton = document.querySelector("[data-apply-filters]");
+        const applyButton = document.querySelector("[data-apply-filters]");
         if (applyButton) {
             applyButton.addEventListener("click", function () {
-                var typeField = document.getElementById("filter-type");
+                const typeField = document.getElementById("filter-type");
 
                 if (typeField && typeof window.URLSearchParams !== "undefined") {
-                    var searchInput = document.querySelector("[data-results-search-input]");
-                    var currentParams = new window.URLSearchParams(window.location.search);
-                    var nextParams = new window.URLSearchParams();
+                    const searchInput = document.querySelector("[data-results-search-input]");
+                    const currentParams = new window.URLSearchParams(window.location.search);
+                    const nextParams = new window.URLSearchParams();
 
-                    var term = searchInput ? searchInput.value.trim() : (currentParams.get("q") || "").trim();
+                    const term = searchInput ? searchInput.value.trim() : (currentParams.get("q") || "").trim();
                     if (term) {
                         nextParams.set("q", term);
                     }
@@ -297,7 +297,7 @@
                         nextParams.set("tipo", typeField.value);
                     }
 
-                    var camposTexto = [
+                    const camposTexto = [
                         { id: "filter-location", param: "ubicacion" },
                         { id: "filter-capacity", param: "capacidadMin" },
                         { id: "filter-price", param: "precioMax" },
@@ -306,14 +306,14 @@
                     ];
 
                     camposTexto.forEach(function (campo) {
-                        var elemento = document.getElementById(campo.id);
-                        var valor = elemento ? elemento.value.trim() : "";
+                        const elemento = document.getElementById(campo.id);
+                        const valor = elemento ? elemento.value.trim() : "";
                         if (valor) {
                             nextParams.set(campo.param, valor);
                         }
                     });
 
-                    var codigosEquipamiento = Array.from(document.querySelectorAll("[data-equip-code]"))
+                    const codigosEquipamiento = Array.from(document.querySelectorAll("[data-equip-code]"))
                         .filter(function (checkbox) { return checkbox.checked; })
                         .map(function (checkbox) { return checkbox.getAttribute("data-equip-code"); });
 
@@ -326,7 +326,7 @@
                         nextParams.set("orden", currentParams.get("orden"));
                     }
 
-                    var queryString = nextParams.toString();
+                    const queryString = nextParams.toString();
                     window.location.href = window.location.pathname + (queryString ? "?" + queryString : "");
                     return;
                 }
@@ -345,17 +345,17 @@
     }
 
     function setupComparisonBar() {
-        var bar = document.querySelector("[data-compare-bar]");
-        var checkboxes = Array.from(document.querySelectorAll("[data-compare-checkbox]"));
+        const bar = document.querySelector("[data-compare-bar]");
+        const checkboxes = Array.from(document.querySelectorAll("[data-compare-checkbox]"));
 
         if (!bar || checkboxes.length === 0) {
             return;
         }
 
-        var CANTIDAD_MAXIMA = 3;
-        var barText = bar.querySelector("[data-compare-bar-text]");
-        var goButton = bar.querySelector("[data-compare-go]");
-        var clearButton = bar.querySelector("[data-compare-clear]");
+        const CANTIDAD_MAXIMA = 3;
+        const barText = bar.querySelector("[data-compare-bar-text]");
+        const goButton = bar.querySelector("[data-compare-go]");
+        const clearButton = bar.querySelector("[data-compare-clear]");
 
         function elegidos() {
             return checkboxes.filter(function (checkbox) {
@@ -364,7 +364,7 @@
         }
 
         function actualizar() {
-            var seleccion = elegidos();
+            const seleccion = elegidos();
             bar.hidden = seleccion.length === 0;
 
             if (barText) {
@@ -392,7 +392,7 @@
 
         if (goButton) {
             goButton.addEventListener("click", function () {
-                var ids = elegidos().map(function (checkbox) {
+                const ids = elegidos().map(function (checkbox) {
                     return checkbox.value;
                 });
 
@@ -416,15 +416,15 @@
     }
 
     function setupServiceComparison() {
-        var checkboxes = Array.from(document.querySelectorAll("[data-service-compare-checkbox]"));
-        var goButton = document.querySelector("[data-service-compare-go]");
-        var status = document.querySelector("[data-service-compare-status]");
+        const checkboxes = Array.from(document.querySelectorAll("[data-service-compare-checkbox]"));
+        const goButton = document.querySelector("[data-service-compare-go]");
+        const status = document.querySelector("[data-service-compare-status]");
 
         if (checkboxes.length === 0 || !goButton) {
             return;
         }
 
-        var CANTIDAD_MAXIMA = 3;
+        const CANTIDAD_MAXIMA = 3;
 
         function elegidos() {
             return checkboxes.filter(function (checkbox) {
@@ -433,7 +433,7 @@
         }
 
         function actualizar() {
-            var seleccion = elegidos();
+            const seleccion = elegidos();
 
             if (goButton) {
                 goButton.disabled = seleccion.length < 2;
@@ -450,7 +450,7 @@
             }
 
             checkboxes.forEach(function (checkbox) {
-                var option = checkbox.closest(".service-type-option");
+                const option = checkbox.closest(".service-type-option");
                 if (!checkbox.checked) {
                     checkbox.disabled = seleccion.length >= CANTIDAD_MAXIMA;
                 }
@@ -466,7 +466,7 @@
         });
 
         goButton.addEventListener("click", function () {
-            var tipos = elegidos().map(function (checkbox) {
+            const tipos = elegidos().map(function (checkbox) {
                 return encodeURIComponent(checkbox.value);
             });
 
@@ -479,11 +479,11 @@
     }
 
     function setupAssistantModal() {
-        var modal = document.querySelector("[data-assistant-modal]");
-        var backdrop = document.querySelector("[data-assistant-backdrop]");
-        var openButtons = document.querySelectorAll("[data-assistant-open]");
-        var closeButtons = document.querySelectorAll("[data-assistant-close]");
-        var lastTrigger = null;
+        const modal = document.querySelector("[data-assistant-modal]");
+        const backdrop = document.querySelector("[data-assistant-backdrop]");
+        const openButtons = document.querySelectorAll("[data-assistant-open]");
+        const closeButtons = document.querySelectorAll("[data-assistant-close]");
+        let lastTrigger = null;
 
         if (!modal || !backdrop) {
             return;
@@ -497,7 +497,7 @@
             window.requestAnimationFrame(function () {
                 modal.classList.add("is-open");
                 backdrop.classList.add("is-open");
-                var closeButton = modal.querySelector("[data-assistant-close]");
+                const closeButton = modal.querySelector("[data-assistant-close]");
                 if (closeButton) {
                     closeButton.focus();
                 }
@@ -543,16 +543,16 @@
     }
 
     function setupNotificationsMenu() {
-        var menu = document.querySelector("[data-notifications-menu]");
+        const menu = document.querySelector("[data-notifications-menu]");
         if (!menu) {
             return;
         }
 
-        var trigger = menu.querySelector("[data-notifications-trigger]");
-        var panel = menu.querySelector("[data-notifications-panel]");
-        var markRead = menu.querySelector("[data-notifications-read]");
-        var count = menu.querySelector(".notifications-count");
-        var storageKey = "stageup.notifications.read";
+        const trigger = menu.querySelector("[data-notifications-trigger]");
+        const panel = menu.querySelector("[data-notifications-panel]");
+        const markRead = menu.querySelector("[data-notifications-read]");
+        const count = menu.querySelector(".notifications-count");
+        const storageKey = "stageup.notifications.read";
 
         if (!trigger || !panel) {
             return;
@@ -582,14 +582,14 @@
             item.classList.remove("is-unread");
             item.classList.add("is-read");
 
-            var state = item.querySelector(".notification-state");
+            const state = item.querySelector(".notification-state");
             if (state) {
                 state.setAttribute("aria-label", "Leída");
             }
         }
 
         function updateUnreadCount() {
-            var unreadItems = menu.querySelectorAll(".notification-item.is-unread");
+            const unreadItems = menu.querySelectorAll(".notification-item.is-unread");
             if (!count) {
                 return;
             }
@@ -605,19 +605,19 @@
         }
 
         function persistItemRead(item) {
-            var id = item.getAttribute("data-notification-id");
+            const id = item.getAttribute("data-notification-id");
             if (!id) {
                 return;
             }
 
-            var readIds = loadReadIds();
+            const readIds = loadReadIds();
             if (readIds.indexOf(id) === -1) {
                 readIds.push(id);
                 saveReadIds(readIds);
             }
         }
 
-        var readIds = loadReadIds();
+        const readIds = loadReadIds();
         menu.querySelectorAll(".notification-item[data-notification-id]").forEach(function (item) {
             if (readIds.indexOf(item.getAttribute("data-notification-id")) !== -1) {
                 markItemRead(item);
@@ -675,15 +675,15 @@
     }
 
     function setupAccordions() {
-        var triggers = document.querySelectorAll("[data-accordion-trigger]");
+        const triggers = document.querySelectorAll("[data-accordion-trigger]");
 
         triggers.forEach(function (trigger) {
             trigger.addEventListener("click", function () {
-                var answer = document.getElementById(trigger.getAttribute("aria-controls"));
-                var expanded = trigger.getAttribute("aria-expanded") === "true";
+                const answer = document.getElementById(trigger.getAttribute("aria-controls"));
+                const expanded = trigger.getAttribute("aria-expanded") === "true";
                 if (answer) {
                     triggers.forEach(function (current) {
-                        var currentAnswer = document.getElementById(current.getAttribute("aria-controls"));
+                        const currentAnswer = document.getElementById(current.getAttribute("aria-controls"));
                         if (current !== trigger && currentAnswer) {
                             current.setAttribute("aria-expanded", "false");
                             currentAnswer.hidden = true;

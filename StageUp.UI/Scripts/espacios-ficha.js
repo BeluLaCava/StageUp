@@ -1,12 +1,12 @@
 (function () {
     "use strict";
-    var hidden = document.getElementById("hdnDisponibilidad");
+    const hidden = document.getElementById("hdnDisponibilidad");
     if (!hidden) return;
-    var rows = [];
-    var list = document.getElementById("schedule-list");
-    var error = document.getElementById("schedule-error");
-    var mode = document.getElementById("schedule-mode");
-    var days = ["", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+    let rows = [];
+    const list = document.getElementById("schedule-list");
+    const error = document.getElementById("schedule-error");
+    const mode = document.getElementById("schedule-mode");
+    const days = ["", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
     try { rows = JSON.parse(hidden.value || "[]") || []; } catch (e) { error.textContent = "No se pudieron leer los horarios."; }
     function time(minutes) {
         return String(Math.floor(minutes / 60)).padStart(2, "0") + ":" + String(minutes % 60).padStart(2, "0");
@@ -15,15 +15,15 @@
         hidden.value = JSON.stringify(rows);
         list.textContent = "";
         rows.forEach(function (row, index) {
-            var item = document.createElement("li");
-            var label = document.createElement("span");
-            var day = row.Fecha ? row.Fecha.split("-").reverse().join("/") : days[row.DiaSemana];
-            var esDiaCompleto = row.MinutoDesde === 0 && row.MinutoHasta === 1440;
-            var descripcionHorario = row.Bloqueado
+            const item = document.createElement("li");
+            const label = document.createElement("span");
+            const day = row.Fecha ? row.Fecha.split("-").reverse().join("/") : days[row.DiaSemana];
+            const esDiaCompleto = row.MinutoDesde === 0 && row.MinutoHasta === 1440;
+            const descripcionHorario = row.Bloqueado
                 ? (esDiaCompleto ? " · Cerrado (día completo)" : " · Bloqueado " + time(row.MinutoDesde) + " a " + time(row.MinutoHasta))
                 : " · " + time(row.MinutoDesde) + " a " + time(row.MinutoHasta);
             label.textContent = day + descripcionHorario;
-            var remove = document.createElement("button");
+            const remove = document.createElement("button");
             remove.type = "button";
             remove.textContent = "Quitar";
             remove.setAttribute("aria-label", "Quitar horario: " + label.textContent);
@@ -40,23 +40,23 @@
     });
     function minutes(value) {
         if (!/^\d{2}:\d{2}$/.test(value)) return NaN;
-        var parts = value.split(":").map(Number);
+        const parts = value.split(":").map(Number);
         return parts[0] * 60 + parts[1];
     }
     document.getElementById("schedule-add").addEventListener("click", function () {
         error.textContent = "";
-        var closed = mode.value === "closed";
-        var bloqueado = closed;
-        var from = closed ? 0 : minutes(document.getElementById("schedule-from").value);
-        var to = closed ? 1440 : minutes(document.getElementById("schedule-to").value);
+        const closed = mode.value === "closed";
+        const bloqueado = closed;
+        const from = closed ? 0 : minutes(document.getElementById("schedule-from").value);
+        let to = closed ? 1440 : minutes(document.getElementById("schedule-to").value);
         if (to === 0) to = 1440;
         if (!Number.isFinite(from) || !Number.isFinite(to) || from >= to || from % 30 || to % 30) {
             error.textContent = "Indicá un horario válido, en intervalos de 30 minutos y con fin posterior al inicio.";
             return;
         }
-        var selected = mode.value === "weekly" ?
+        const selected = mode.value === "weekly" ?
             Array.from(document.querySelectorAll("#schedule-days input:checked")).map(function (input) { return Number(input.value); }) : [null];
-        var date = mode.value === "weekly" ? null : document.getElementById("schedule-date").value;
+        const date = mode.value === "weekly" ? null : document.getElementById("schedule-date").value;
         if (!selected.length || (mode.value !== "weekly" && !date)) {
             error.textContent = "Seleccioná los días o la fecha correspondiente.";
             return;
@@ -65,12 +65,12 @@
             error.textContent = "Podés cargar hasta 100 franjas.";
             return;
         }
-        var additions = selected.map(function (day) {
+        const additions = selected.map(function (day) {
             return { DiaSemana: day, Fecha: date, MinutoDesde: from, MinutoHasta: to, Bloqueado: bloqueado };
         });
-        var overlaps = additions.some(function (next) {
+        const overlaps = additions.some(function (next) {
             return rows.some(function (row) {
-                var sameDay = next.Fecha ? next.Fecha === row.Fecha : !row.Fecha && next.DiaSemana === row.DiaSemana;
+                const sameDay = next.Fecha ? next.Fecha === row.Fecha : !row.Fecha && next.DiaSemana === row.DiaSemana;
                 return sameDay && next.MinutoDesde < row.MinutoHasta && row.MinutoDesde < next.MinutoHasta;
             });
         });
@@ -81,27 +81,27 @@
         rows = rows.concat(additions);
         render();
     });
-    var price = document.getElementById("txtPrecioHora");
-    var currency = document.getElementById("ddlMoneda");
+    const price = document.getElementById("txtPrecioHora");
+    const currency = document.getElementById("ddlMoneda");
     function showPrice() {
-        var value = Number(price.value.replace(",", "."));
-        var output = document.getElementById("price-example");
+        const value = Number(price.value.replace(",", "."));
+        const output = document.getElementById("price-example");
         if (!Number.isFinite(value) || value <= 0) {
             output.textContent = "El importe se calcula según la duración: precio por hora × minutos ÷ 60.";
             return;
         }
-        var format = new Intl.NumberFormat("es-AR", { style: "currency", currency: currency.value });
+        const format = new Intl.NumberFormat("es-AR", { style: "currency", currency: currency.value });
         output.textContent = "30 min: " + format.format(value / 2) + " · 1 hora: " + format.format(value) + " · 1 h 30 min: " + format.format(value * 1.5) + " (importe base)";
     }
     price.addEventListener("input", showPrice);
     currency.addEventListener("change", showPrice);
-    var fotosHidden = document.getElementById("hdnFotosActuales");
+    const fotosHidden = document.getElementById("hdnFotosActuales");
     if (fotosHidden) {
-        var fotos = [];
+        let fotos = [];
         try { fotos = JSON.parse(fotosHidden.value || "[]") || []; } catch (e) { fotos = []; }
-        var gallery = document.getElementById("photo-gallery");
-        var vacia = document.getElementById("photo-gallery-vacia");
-        var appRoot = gallery.getAttribute("data-app-root") || "/";
+        const gallery = document.getElementById("photo-gallery");
+        const vacia = document.getElementById("photo-gallery-vacia");
+        const appRoot = gallery.getAttribute("data-app-root") || "/";
         function resolverRuta(ruta) {
             return appRoot + ruta.replace(/^~\//, "");
         }
@@ -110,22 +110,22 @@
             gallery.textContent = "";
             vacia.hidden = fotos.length > 0;
             fotos.forEach(function (ruta, index) {
-                var item = document.createElement("li");
+                const item = document.createElement("li");
                 item.className = "space-photo-item";
-                var img = document.createElement("img");
+                const img = document.createElement("img");
                 img.src = resolverRuta(ruta);
                 img.alt = "Foto " + (index + 1) + " del espacio";
                 item.appendChild(img);
                 if (index === 0) {
-                    var badge = document.createElement("span");
+                    const badge = document.createElement("span");
                     badge.className = "space-photo-badge";
                     badge.textContent = "Portada";
                     item.appendChild(badge);
                 }
-                var acciones = document.createElement("div");
+                const acciones = document.createElement("div");
                 acciones.className = "space-photo-item-actions";
                 if (index !== 0) {
-                    var portada = document.createElement("button");
+                    const portada = document.createElement("button");
                     portada.type = "button";
                     portada.textContent = "Usar como portada";
                     portada.addEventListener("click", function () {
@@ -135,7 +135,7 @@
                     });
                     acciones.appendChild(portada);
                 }
-                var quitar = document.createElement("button");
+                const quitar = document.createElement("button");
                 quitar.type = "button";
                 quitar.textContent = "Quitar";
                 quitar.setAttribute("aria-label", "Quitar foto " + (index + 1) + " del espacio");
@@ -151,12 +151,12 @@
         renderFotos();
     }
 
-    var upload = document.getElementById("archivoFoto");
+    const upload = document.getElementById("archivoFoto");
     if (upload) {
         upload.addEventListener("change", function () {
-            var error = document.getElementById("photo-error");
+            const error = document.getElementById("photo-error");
             error.textContent = "";
-            var invalidas = [];
+            const invalidas = [];
             Array.prototype.forEach.call(upload.files, function (file) {
                 if (file.size > 3 * 1024 * 1024 || !/\.(jpe?g|png)$/i.test(file.name)) {
                     invalidas.push(file.name);

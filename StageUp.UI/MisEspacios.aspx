@@ -287,7 +287,7 @@
     <script src="<%= ResolveUrl("~/Scripts/espacios-ficha.js") %>?v=20260909-1"></script>
     <script>
         (function () {
-            var dialog = document.getElementById("space-editor");
+            const dialog = document.getElementById("space-editor");
             if (!dialog) return;
             dialog.showModal();
             dialog.addEventListener("cancel", function (event) {

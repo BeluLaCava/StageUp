@@ -39,6 +39,13 @@ namespace StageUp.BLL
             return new ResultadoOperacion<T>(true, mensaje, null, valor);
         }
 
+        // Operación exitosa que igual corresponde a un camino alternativo del
+        // caso de uso (por ejemplo, un aviso registrado como observado).
+        public static ResultadoOperacion<T> OkAlternativo(T valor, string mensaje, string codigoAlternativo)
+        {
+            return new ResultadoOperacion<T>(true, mensaje, codigoAlternativo, valor);
+        }
+
         public static new ResultadoOperacion<T> Error(string mensaje, string codigoAlternativo = null)
         {
             return new ResultadoOperacion<T>(false, mensaje, codigoAlternativo, default(T));

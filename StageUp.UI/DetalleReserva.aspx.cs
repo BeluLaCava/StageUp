@@ -238,6 +238,11 @@ namespace StageUp.UI
             lnkPagar.Visible = esSolicitante && BLL_Pago.EsperaPago(reserva);
             lnkPagar.NavigateUrl = "~/Pagar.aspx?reserva=" + reserva.IdReserva.ToString(CultureInfo.InvariantCulture);
 
+            // CU-002-001: el detalle del pago y su factura simulada.
+            lnkVerPago.Visible = (esSolicitante || esGestor) &&
+                (reserva.EstadoPago == BLL_Pago.EstadoPagado || reserva.EstadoPago == BLL_Pago.EstadoDevuelto);
+            lnkVerPago.NavigateUrl = "~/DetallePago.aspx?reserva=" + reserva.IdReserva.ToString(CultureInfo.InvariantCulture);
+
             btnCancelar.Visible = esSolicitante && (pendiente || aceptada);
             btnCancelar.Text = pendiente ? "Cancelar solicitud" : "Cancelar reserva";
 
@@ -264,7 +269,7 @@ namespace StageUp.UI
             lnkSoporte.Visible = esSolicitante;
             lnkSoporte.NavigateUrl = "~/Soporte.aspx?reserva=" + reserva.IdReserva.ToString(CultureInfo.InvariantCulture);
 
-            bool hayAcciones = lnkPagar.Visible || btnCancelar.Visible || btnAceptar.Visible || btnRechazar.Visible ||
+            bool hayAcciones = lnkPagar.Visible || lnkVerPago.Visible || btnCancelar.Visible || btnAceptar.Visible || btnRechazar.Visible ||
                 lnkCalificar.Visible || lnkSoporte.Visible;
             pnlAcciones.Visible = hayAcciones;
             pnlSinAcciones.Visible = !hayAcciones;

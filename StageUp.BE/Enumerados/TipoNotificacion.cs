@@ -16,6 +16,7 @@ namespace StageUp.BE.Enumerados
         PagoAprobado,
         PagoRecibido,
         PagoVencido,
+        PagoNoCompletado,
         ComprobanteEmitido,
         LiquidacionRegistrada
     }

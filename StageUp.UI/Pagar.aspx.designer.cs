@@ -11,6 +11,7 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Literal litExitoReserva;
         protected global::System.Web.UI.WebControls.Literal litExitoTotal;
         protected global::System.Web.UI.WebControls.Literal litExitoMedios;
+        protected global::System.Web.UI.WebControls.HyperLink lnkVerFactura;
         protected global::System.Web.UI.WebControls.Panel pnlPago;
         protected global::System.Web.UI.WebControls.Literal litEspacio;
         protected global::System.Web.UI.WebControls.Literal litNumeroReserva;
@@ -19,9 +20,17 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Literal litTotal;
         protected global::System.Web.UI.WebControls.Literal litVence;
         protected global::System.Web.UI.WebControls.Panel pnlSaldo;
-        protected global::System.Web.UI.WebControls.CheckBox chkUsarSaldo;
+        protected global::System.Web.UI.WebControls.Literal litSaldoDisponible;
+        protected global::System.Web.UI.WebControls.RadioButtonList rblModoPago;
+        protected global::System.Web.UI.WebControls.Panel pnlImporteSaldo;
+        protected global::System.Web.UI.WebControls.TextBox txtImporteSaldo;
+        protected global::System.Web.UI.WebControls.Button btnActualizarResumen;
+        protected global::System.Web.UI.WebControls.Literal litResumenTotal;
+        protected global::System.Web.UI.WebControls.Literal litResumenDisponible;
         protected global::System.Web.UI.WebControls.Literal litConSaldo;
         protected global::System.Web.UI.WebControls.Literal litConTarjeta;
+        protected global::System.Web.UI.WebControls.Literal litResumenRestante;
+        protected global::System.Web.UI.WebControls.Literal litResumenMedio;
         protected global::System.Web.UI.WebControls.Panel pnlTarjeta;
         protected global::System.Web.UI.WebControls.TextBox txtTitular;
         protected global::System.Web.UI.WebControls.TextBox txtNumero;

@@ -186,6 +186,7 @@
                             <div class="auth-card-header"><h2>Acciones</h2></div>
                             <asp:Panel ID="pnlAcciones" runat="server" CssClass="dr-acciones">
                                 <asp:HyperLink ID="lnkPagar" runat="server" CssClass="button button-primary" Text="Pagar reserva" Visible="false" />
+                                <asp:HyperLink ID="lnkVerPago" runat="server" CssClass="button button-secondary" Text="Ver pago y factura" Visible="false" />
                                 <asp:Button ID="btnCancelar" runat="server" CssClass="button button-secondary" CausesValidation="false" Visible="false" OnClick="btnCancelar_Click" />
                                 <asp:Button ID="btnAceptar" runat="server" CssClass="button button-primary" Text="Aceptar solicitud" CausesValidation="false" Visible="false" OnClick="btnAceptar_Click" />
                                 <asp:Button ID="btnRechazar" runat="server" CssClass="button button-secondary" Text="Rechazar solicitud" CausesValidation="false" Visible="false" OnClick="btnRechazar_Click" />

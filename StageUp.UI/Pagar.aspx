@@ -11,6 +11,12 @@
         .pago-saldo { padding: 12px 14px; border-radius: 12px; background: var(--color-nude-light, #fcf7f3); border: 1px solid var(--color-border, #e2e2e2); margin-bottom: 14px; }
         .pago-desglose { margin: 8px 0 0; font-size: 0.92em; }
         .pago-desglose span { display: flex; justify-content: space-between; padding: 2px 0; font-variant-numeric: tabular-nums; }
+        .pago-modos { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 8px; }
+        .pago-modos li { display: flex; align-items: center; gap: 8px; }
+        .pago-modos input { width: auto; margin: 0; flex: 0 0 auto; }
+        .pago-modos label { margin: 0; }
+        .pago-importe-saldo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+        .pago-importe-saldo input { width: 10em; padding: 6px 8px; border: 1px solid var(--color-border, #e2e2e2); border-radius: 8px; }
         .pago-tarjeta-fila { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 12px; }
         .pago-prueba { font-size: 0.82em; color: var(--color-text-muted, #765f55); margin-top: 10px; }
         .pago-prueba summary { cursor: pointer; }
@@ -47,9 +53,10 @@
                         <dt>Medio de pago</dt><dd><asp:Literal ID="litExitoMedios" runat="server" /></dd>
                     </dl>
                 </div>
-                <p>Te mandamos el comprobante por mail.</p>
+                <p>Te mandamos el comprobante por mail. La factura del pago queda disponible en el detalle del pago.</p>
                 <div class="form-actions">
-                    <a class="button button-primary" href="MisReservas.aspx">Ir a Mis reservas</a>
+                    <asp:HyperLink ID="lnkVerFactura" runat="server" CssClass="button button-primary" Text="Ver el pago y la factura" />
+                    <a class="button button-secondary" href="MisReservas.aspx">Ir a Mis reservas</a>
                     <a class="text-link" href="MiCuentaCorriente.aspx">Ver mi cuenta corriente</a>
                 </div>
             </asp:Panel>
@@ -68,13 +75,31 @@
                 </div>
 
                 <div class="auth-card">
+                    <%-- Ítem 7: elección explícita de cómo pagar. --%>
                     <asp:Panel ID="pnlSaldo" runat="server" CssClass="pago-saldo" Visible="false">
-                        <asp:CheckBox ID="chkUsarSaldo" runat="server" AutoPostBack="true" OnCheckedChanged="chkUsarSaldo_CheckedChanged" />
-                        <div class="pago-desglose">
-                            <span>Con saldo a favor <strong><asp:Literal ID="litConSaldo" runat="server" /></strong></span>
-                            <span>Con tarjeta <strong><asp:Literal ID="litConTarjeta" runat="server" /></strong></span>
-                        </div>
+                        <strong>¿Cómo querés pagar?</strong>
+                        <p class="pago-seguro">Tenés <asp:Literal ID="litSaldoDisponible" runat="server" /> de saldo a favor. Podés usarlo o no: la elección es tuya.</p>
+                        <asp:RadioButtonList ID="rblModoPago" runat="server" AutoPostBack="true" RepeatLayout="UnorderedList"
+                            CssClass="pago-modos" OnSelectedIndexChanged="rblModoPago_SelectedIndexChanged" />
+                        <asp:Panel ID="pnlImporteSaldo" runat="server" Visible="false" CssClass="pago-importe-saldo">
+                            <label for="<%= txtImporteSaldo.ClientID %>">Saldo a usar</label>
+                            <asp:TextBox ID="txtImporteSaldo" runat="server" MaxLength="15" inputmode="decimal" />
+                            <asp:Button ID="btnActualizarResumen" runat="server" CssClass="button button-secondary button-small" Text="Calcular"
+                                CausesValidation="false" OnClick="btnActualizarResumen_Click" />
+                        </asp:Panel>
                     </asp:Panel>
+
+                    <div class="pago-saldo pago-desglose-resumen">
+                        <strong>Resumen antes de confirmar</strong>
+                        <div class="pago-desglose">
+                            <span>Total de la reserva <strong><asp:Literal ID="litResumenTotal" runat="server" /></strong></span>
+                            <span>Saldo disponible <strong><asp:Literal ID="litResumenDisponible" runat="server" /></strong></span>
+                            <span>Saldo que se usa <strong><asp:Literal ID="litConSaldo" runat="server" /></strong></span>
+                            <span>Se cobra a la tarjeta <strong><asp:Literal ID="litConTarjeta" runat="server" /></strong></span>
+                            <span>Saldo que te queda <strong><asp:Literal ID="litResumenRestante" runat="server" /></strong></span>
+                            <span>Medio de pago <strong><asp:Literal ID="litResumenMedio" runat="server" /></strong></span>
+                        </div>
+                    </div>
 
                     <asp:Panel ID="pnlTarjeta" runat="server">
                         <h2>Tarjeta de crédito</h2>

@@ -39,6 +39,7 @@ namespace StageUp.BLL
             { TipoNotificacion.PagoAprobado.ToString(), "Pago aprobado" },
             { TipoNotificacion.PagoRecibido.ToString(), "Pago recibido" },
             { TipoNotificacion.PagoVencido.ToString(), "Plazo de pago vencido" },
+            { TipoNotificacion.PagoNoCompletado.ToString(), "Pago no completado" },
             { TipoNotificacion.ComprobanteEmitido.ToString(), "Comprobante emitido" },
             { TipoNotificacion.LiquidacionRegistrada.ToString(), "Liquidación registrada" }
         };
@@ -57,6 +58,7 @@ namespace StageUp.BLL
             { TipoNotificacion.PagoAprobado.ToString(), "Pagos" },
             { TipoNotificacion.PagoRecibido.ToString(), "Pagos" },
             { TipoNotificacion.PagoVencido.ToString(), "Pagos" },
+            { TipoNotificacion.PagoNoCompletado.ToString(), "Pagos" },
             { TipoNotificacion.ComprobanteEmitido.ToString(), "Comprobantes" },
             { TipoNotificacion.LiquidacionRegistrada.ToString(), "Cuenta corriente" }
         };

@@ -42,9 +42,31 @@ namespace StageUp.UI
             }
         }
 
-        protected void chkUsarSaldo_CheckedChanged(object sender, EventArgs e)
+        protected void rblModoPago_SelectedIndexChanged(object sender, EventArgs e)
         {
+            pnlMensaje.Visible = false;
             CargarContexto(false);
+        }
+
+        protected void btnActualizarResumen_Click(object sender, EventArgs e)
+        {
+            pnlMensaje.Visible = false;
+            CargarContexto(false);
+        }
+
+        // Lo que eligió el cliente. Sin saldo a favor, se paga con tarjeta.
+        private EleccionPago LeerEleccion(out bool eligio)
+        {
+            eligio = !pnlSaldo.Visible || rblModoPago.SelectedItem != null;
+            ModoPago modo = ModoPago.Tarjeta;
+            if (pnlSaldo.Visible && rblModoPago.SelectedItem != null)
+            {
+                Enum.TryParse(rblModoPago.SelectedValue, out modo);
+            }
+
+            decimal importeSaldo;
+            BLL_CuentaCorriente.IntentarLeerImporte(txtImporteSaldo.Text, out importeSaldo);
+            return new EleccionPago { Modo = modo, ImporteSaldo = importeSaldo };
         }
 
         protected void btnPagar_Click(object sender, EventArgs e)
@@ -68,7 +90,16 @@ namespace StageUp.UI
                 };
             }
 
-            ResultadoOperacion<Pago> resultado = _bllPago.PagarReserva(IdReserva, idUsuario, tarjeta, pnlSaldo.Visible && chkUsarSaldo.Checked);
+            bool eligio;
+            EleccionPago eleccion = LeerEleccion(out eligio);
+            if (!eligio)
+            {
+                MostrarMensaje("Elegí cómo querés pagar: con tarjeta, con tu saldo a favor o combinando los dos.", true);
+                CargarContexto(false);
+                return;
+            }
+
+            ResultadoOperacion<Pago> resultado = _bllPago.PagarReserva(IdReserva, idUsuario, tarjeta, eleccion);
 
             // El número y el código no se vuelven a mostrar en la página.
             txtNumero.Text = string.Empty;
@@ -88,6 +119,7 @@ namespace StageUp.UI
             litExitoReserva.Text = "N° " + IdReserva.ToString(CultureInfo.InvariantCulture) + " · " + litEspacio.Text;
             litExitoTotal.Text = Server.HtmlEncode(BLL_CuentaCorriente.FormatearImporte(pago.ImporteTotal, pago.Moneda));
             litExitoMedios.Text = Server.HtmlEncode(DescribirMediosParaComprobante(pago));
+            lnkVerFactura.NavigateUrl = "~/DetallePago.aspx?id=" + pago.IdPago.ToString(CultureInfo.InvariantCulture);
             MostrarMensaje(resultado.Mensaje, false);
         }
 
@@ -119,20 +151,71 @@ namespace StageUp.UI
 
             bool tieneSaldo = contexto.SaldoDisponible > 0;
             pnlSaldo.Visible = tieneSaldo;
-            if (primeraVez)
+            if (tieneSaldo)
             {
-                chkUsarSaldo.Checked = tieneSaldo;
+                litSaldoDisponible.Text = Server.HtmlEncode(BLL_CuentaCorriente.FormatearImporte(contexto.SaldoDisponible, moneda));
+                string seleccionado = rblModoPago.SelectedItem == null ? null : rblModoPago.SelectedValue;
+                rblModoPago.Items.Clear();
+                rblModoPago.Items.Add(new ListItem("Todo con tarjeta de crédito", ModoPago.Tarjeta.ToString()));
+                ListItem soloSaldo = new ListItem("Todo con mi saldo a favor", ModoPago.Saldo.ToString());
+                if (contexto.SaldoDisponible < contexto.Total)
+                {
+                    soloSaldo.Text += " (no alcanza para toda la reserva)";
+                    soloSaldo.Enabled = false;
+                }
+
+                rblModoPago.Items.Add(soloSaldo);
+                rblModoPago.Items.Add(new ListItem("Una parte con saldo y el resto con tarjeta", ModoPago.Combinado.ToString()));
+                ListItem item = seleccionado == null ? null : rblModoPago.Items.FindByValue(seleccionado);
+                if (item != null && item.Enabled)
+                {
+                    item.Selected = true;
+                }
+
+                if (primeraVez || txtImporteSaldo.Text.Trim().Length == 0)
+                {
+                    txtImporteSaldo.Text = Math.Min(contexto.SaldoDisponible, contexto.Total - 0.01m).ToString("0.00", CultureInfo.InvariantCulture);
+                }
             }
 
-            chkUsarSaldo.Text = " Usar mi saldo a favor (" + Server.HtmlEncode(BLL_CuentaCorriente.FormatearImporte(contexto.SaldoDisponible, moneda)) + " disponible)";
+            bool eligio;
+            EleccionPago eleccion = LeerEleccion(out eligio);
+            pnlImporteSaldo.Visible = tieneSaldo && eleccion.Modo == ModoPago.Combinado && eligio;
 
-            decimal conSaldo = tieneSaldo && chkUsarSaldo.Checked ? contexto.ImporteConSaldo : 0m;
-            decimal conTarjeta = contexto.Total - conSaldo;
-            litConSaldo.Text = Server.HtmlEncode(BLL_CuentaCorriente.FormatearImporte(conSaldo, moneda));
-            litConTarjeta.Text = Server.HtmlEncode(BLL_CuentaCorriente.FormatearImporte(conTarjeta, moneda));
+            litResumenTotal.Text = Server.HtmlEncode(BLL_CuentaCorriente.FormatearImporte(contexto.Total, moneda));
+            litResumenDisponible.Text = Server.HtmlEncode(BLL_CuentaCorriente.FormatearImporte(contexto.SaldoDisponible, moneda));
 
-            pnlTarjeta.Visible = conTarjeta > 0;
-            btnPagar.Text = conTarjeta > 0
+            if (!eligio)
+            {
+                litConSaldo.Text = "-";
+                litConTarjeta.Text = "-";
+                litResumenRestante.Text = "-";
+                litResumenMedio.Text = "Elegí cómo querés pagar";
+                pnlTarjeta.Visible = false;
+                btnPagar.Text = "Pagar " + BLL_CuentaCorriente.FormatearImporte(contexto.Total, moneda);
+                return;
+            }
+
+            ResultadoOperacion<ResumenPago> resumen = _bllPago.CalcularResumen(contexto, eleccion);
+            if (!resumen.Exitoso)
+            {
+                MostrarMensaje(resumen.Mensaje, true);
+                litConSaldo.Text = "-";
+                litConTarjeta.Text = "-";
+                litResumenRestante.Text = "-";
+                litResumenMedio.Text = "-";
+                pnlTarjeta.Visible = false;
+                return;
+            }
+
+            ResumenPago r = resumen.Valor;
+            litConSaldo.Text = Server.HtmlEncode(BLL_CuentaCorriente.FormatearImporte(r.SaldoAUsar, moneda));
+            litConTarjeta.Text = Server.HtmlEncode(BLL_CuentaCorriente.FormatearImporte(r.ImporteTarjeta, moneda));
+            litResumenRestante.Text = Server.HtmlEncode(BLL_CuentaCorriente.FormatearImporte(r.SaldoRestante, moneda));
+            litResumenMedio.Text = Server.HtmlEncode(r.MedioDescripcion);
+
+            pnlTarjeta.Visible = r.ImporteTarjeta > 0;
+            btnPagar.Text = r.ImporteTarjeta > 0
                 ? "Pagar " + BLL_CuentaCorriente.FormatearImporte(contexto.Total, moneda)
                 : "Pagar con mi saldo a favor";
         }

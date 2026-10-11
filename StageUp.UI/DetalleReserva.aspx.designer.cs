@@ -40,6 +40,8 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Literal litPoliticaAhora;
         protected global::System.Web.UI.WebControls.Panel pnlAcciones;
         protected global::System.Web.UI.WebControls.HyperLink lnkPagar;
+
+        protected global::System.Web.UI.WebControls.HyperLink lnkVerPago;
         protected global::System.Web.UI.WebControls.Button btnCancelar;
         protected global::System.Web.UI.WebControls.Button btnAceptar;
         protected global::System.Web.UI.WebControls.Button btnRechazar;

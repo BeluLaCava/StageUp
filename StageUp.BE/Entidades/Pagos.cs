@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
@@ -197,6 +198,83 @@ namespace StageUp.BE.Entidades
         public string Texto { get; set; }
     }
 
+    // CU-002-003: una operación del historial financiero. Origen indica de
+    // dónde sale: TX transacción económica, PG pago, RS reserva aceptada sin
+    // pagar, LQ liquidación a un gestor, CP nota manual.
+    public class OperacionFinanciera
+    {
+        public string Origen { get; set; }
+        public int IdOrigen { get; set; }
+        public string Codigo { get; set; }
+        public string TipoOperacion { get; set; }
+        public int? IdReserva { get; set; }
+        public int? IdPago { get; set; }
+        public int? IdComprobante { get; set; }
+        public int? IdUsuarioSolicitante { get; set; }
+        public int? IdUsuarioGestor { get; set; }
+        public int? IdEspacioArtistico { get; set; }
+        public string Moneda { get; set; }
+        public decimal MontoTotal { get; set; }
+        public decimal? PorcentajeComision { get; set; }
+        public decimal? ImporteComision { get; set; }
+        public decimal? ImporteGestor { get; set; }
+        public decimal? PorcentajeCargo { get; set; }
+        public decimal? ImporteCargo { get; set; }
+        public string EstadoPago { get; set; }
+        public string ReferenciaPago { get; set; }
+        public string EstadoRegistro { get; set; }
+        public DateTime FechaOperacion { get; set; }
+        public string Observacion { get; set; }
+
+        public string NombreSolicitante { get; set; }
+        public string NombreGestor { get; set; }
+        public string NombreEspacio { get; set; }
+        public string NumeroComprobante { get; set; }
+        public string TipoComprobante { get; set; }
+
+        // Solo en el detalle.
+        public string CorreoSolicitante { get; set; }
+        public string CorreoGestor { get; set; }
+        public DateTime? FechaSolicitada { get; set; }
+        public int? MinutoDesde { get; set; }
+        public int? MinutoHasta { get; set; }
+        public decimal? ImporteReserva { get; set; }
+        public string EstadoReserva { get; set; }
+        public string EstadoPagoReserva { get; set; }
+        public DateTime? FechaCancelacion { get; set; }
+        public DateTime? FechaLimitePago { get; set; }
+        public string EstadoPagoRegistrado { get; set; }
+        public string MedioPago { get; set; }
+        public decimal? ImporteTarjeta { get; set; }
+        public decimal? ImporteSaldo { get; set; }
+        public string CodigoAutorizacion { get; set; }
+        public List<Comprobante> Comprobantes { get; set; } = new List<Comprobante>();
+        public List<MovimientoCuentaCorriente> Movimientos { get; set; } = new List<MovimientoCuentaCorriente>();
+        public List<SaldoCuentaCorriente> SaldosGestor { get; set; } = new List<SaldoCuentaCorriente>();
+    }
+
+    public class FiltroHistorialFinanciero
+    {
+        public string TipoOperacion { get; set; }
+        public string EstadoPago { get; set; }
+        public int? IdUsuarioGestor { get; set; }
+        public DateTime? Desde { get; set; }
+        public DateTime? Hasta { get; set; }
+        public string Texto { get; set; }
+    }
+
+    // Totales del listado del historial en una moneda.
+    public class ResumenHistorialFinanciero
+    {
+        public string Moneda { get; set; }
+        public int Cantidad { get; set; }
+        public decimal TotalCobrado { get; set; }
+        public decimal TotalComision { get; set; }
+        public decimal TotalGestor { get; set; }
+        public decimal TotalPendiente { get; set; }
+        public decimal TotalLiquidado { get; set; }
+    }
+
     // Nota de crédito (NC) o de débito (ND).
     public class Comprobante
     {
@@ -242,6 +320,8 @@ namespace StageUp.BE.Entidades
         public string NumeroComprobante { get; set; }
         public string EstadoComprobante { get; set; }
         public string OrigenComprobante { get; set; }
+        // Historial financiero: dueño de la cuenta.
+        public string NombreUsuario { get; set; }
     }
 
     // Saldo de una cuenta en una moneda.

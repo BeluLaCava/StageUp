@@ -1,21 +1,21 @@
 (function () {
     "use strict";
 
-    var gallery = document.querySelector("[data-space-gallery]");
+    const gallery = document.querySelector("[data-space-gallery]");
     if (gallery) {
-        var mainImage = gallery.querySelector("[data-gallery-main]");
-        var thumbnails = Array.prototype.slice.call(gallery.querySelectorAll("[data-gallery-thumbnail]"));
-        var previous = gallery.querySelector("[data-gallery-previous]");
-        var next = gallery.querySelector("[data-gallery-next]");
-        var counter = gallery.querySelector("[data-gallery-counter]");
-        var expand = gallery.querySelector("[data-gallery-expand]");
-        var expandImage = gallery.querySelector("[data-gallery-expand-image]");
-        var lightbox = document.getElementById("space-gallery-lightbox");
-        var lightboxImage = lightbox ? lightbox.querySelector("[data-gallery-lightbox-image]") : null;
-        var lightboxPrevious = lightbox ? lightbox.querySelector("[data-gallery-lightbox-previous]") : null;
-        var lightboxNext = lightbox ? lightbox.querySelector("[data-gallery-lightbox-next]") : null;
-        var lightboxCounter = lightbox ? lightbox.querySelector("[data-gallery-lightbox-counter]") : null;
-        var current = 0;
+        const mainImage = gallery.querySelector("[data-gallery-main]");
+        const thumbnails = Array.prototype.slice.call(gallery.querySelectorAll("[data-gallery-thumbnail]"));
+        const previous = gallery.querySelector("[data-gallery-previous]");
+        const next = gallery.querySelector("[data-gallery-next]");
+        const counter = gallery.querySelector("[data-gallery-counter]");
+        const expand = gallery.querySelector("[data-gallery-expand]");
+        const expandImage = gallery.querySelector("[data-gallery-expand-image]");
+        const lightbox = document.getElementById("space-gallery-lightbox");
+        const lightboxImage = lightbox ? lightbox.querySelector("[data-gallery-lightbox-image]") : null;
+        const lightboxPrevious = lightbox ? lightbox.querySelector("[data-gallery-lightbox-previous]") : null;
+        const lightboxNext = lightbox ? lightbox.querySelector("[data-gallery-lightbox-next]") : null;
+        const lightboxCounter = lightbox ? lightbox.querySelector("[data-gallery-lightbox-counter]") : null;
+        let current = 0;
 
         function lightboxIsOpen() {
             return !!(lightbox && lightbox.hasAttribute("open"));
@@ -41,7 +41,7 @@
             current = (index + thumbnails.length) % thumbnails.length;
             mainImage.src = thumbnails[current].getAttribute("data-src");
             thumbnails.forEach(function (thumbnail, itemIndex) {
-                var active = itemIndex === current;
+                const active = itemIndex === current;
                 thumbnail.classList.toggle("is-active", active);
                 thumbnail.setAttribute("aria-current", active ? "true" : "false");
             });
@@ -147,16 +147,16 @@
         show(0);
     }
 
-    var planner = document.querySelector("[data-reservation-planner]");
-    var dateInput = document.getElementById("txtFechaReserva");
-    var startSelect = document.getElementById("reservation-start");
-    var durationSelect = document.getElementById("reservation-duration");
-    var feedback = document.getElementById("reservation-feedback");
-    var total = document.getElementById("reservation-total");
-    var summary = document.getElementById("reservation-summary");
-    var startHidden = document.getElementById("hdnMinutoDesdeReserva");
-    var durationHidden = document.getElementById("hdnDuracionReserva");
-    var submitButton = document.getElementById("btnSolicitarReserva");
+    const planner = document.querySelector("[data-reservation-planner]");
+    const dateInput = document.getElementById("txtFechaReserva");
+    const startSelect = document.getElementById("reservation-start");
+    const durationSelect = document.getElementById("reservation-duration");
+    const feedback = document.getElementById("reservation-feedback");
+    const total = document.getElementById("reservation-total");
+    const summary = document.getElementById("reservation-summary");
+    const startHidden = document.getElementById("hdnMinutoDesdeReserva");
+    const durationHidden = document.getElementById("hdnDuracionReserva");
+    const submitButton = document.getElementById("btnSolicitarReserva");
 
     function plannerIsComplete() {
         return !!(dateInput && dateInput.value && startHidden && startHidden.value &&
@@ -183,9 +183,9 @@
         return;
     }
 
-    var price = Number(document.getElementById("hdnPrecioHoraDetalle").value);
-    var currency = document.getElementById("hdnMonedaDetalle").value || "ARS";
-    var rows = [];
+    const price = Number(document.getElementById("hdnPrecioHoraDetalle").value);
+    const currency = document.getElementById("hdnMonedaDetalle").value || "ARS";
+    let rows = [];
     try {
         rows = JSON.parse(document.getElementById("hdnDisponibilidadDetalle").value || "[]") || [];
     } catch (error) {
@@ -196,8 +196,8 @@
     // para descontarlas de la disponibilidad publicada y que el
     // planificador no ofrezca como libre un horario que al confirmar la
     // solicitud va a ser rechazado por BLL_Reserva.ExisteSolapamiento.
-    var occupiedRows = [];
-    var occupiedField = document.getElementById("hdnReservasOcupadasDetalle");
+    let occupiedRows = [];
+    const occupiedField = document.getElementById("hdnReservasOcupadasDetalle");
     if (occupiedField) {
         try {
             occupiedRows = JSON.parse(occupiedField.value || "[]") || [];
@@ -211,11 +211,11 @@
             return ranges;
         }
 
-        var libres = [];
+        const libres = [];
         ranges.forEach(function (range) {
-            var segmentos = [{ MinutoDesde: range.MinutoDesde, MinutoHasta: range.MinutoHasta }];
+            let segmentos = [{ MinutoDesde: range.MinutoDesde, MinutoHasta: range.MinutoHasta }];
             bloqueadores.forEach(function (bloqueador) {
-                var siguientes = [];
+                const siguientes = [];
                 segmentos.forEach(function (segmento) {
                     if (bloqueador.MinutoHasta <= segmento.MinutoDesde || bloqueador.MinutoDesde >= segmento.MinutoHasta) {
                         siguientes.push(segmento);
@@ -254,7 +254,7 @@
     // disponibilidad recurrente de ese día en vez de solo descontar su
     // propio horario.
     function franjasParaFecha(candidatas, dateValue, weekday) {
-        var exactas = candidatas.filter(function (row) {
+        const exactas = candidatas.filter(function (row) {
             return row.Fecha === dateValue;
         });
 
@@ -267,10 +267,10 @@
         });
     }
 
-    var savedStart = startHidden.value;
-    var savedDuration = durationHidden.value;
-    var now = new Date();
-    var minimumDate = now.getFullYear() + "-" +
+    let savedStart = startHidden.value;
+    let savedDuration = durationHidden.value;
+    const now = new Date();
+    const minimumDate = now.getFullYear() + "-" +
         String(now.getMonth() + 1).padStart(2, "0") + "-" +
         String(now.getDate()).padStart(2, "0");
     dateInput.min = minimumDate;
@@ -286,39 +286,39 @@
     }
 
     function rangesForDate(dateValue) {
-        var date = new Date(dateValue + "T12:00:00");
-        var weekday = date.getDay() === 0 ? 7 : date.getDay();
+        const date = new Date(dateValue + "T12:00:00");
+        const weekday = date.getDay() === 0 ? 7 : date.getDay();
 
         // Ítem 27: la disponibilidad publicada (Bloqueado = 0) y los
         // bloqueos por actividad (Bloqueado = 1) se resuelven cada uno por
         // su lado (cada uno puede tener su propia excepción de fecha
         // puntual o su propio patrón recurrente) y recién después se
         // descuentan los bloqueos de la disponibilidad.
-        var disponibilidadRows = rows.filter(function (row) {
+        const disponibilidadRows = rows.filter(function (row) {
             return !row.Bloqueado;
         });
-        var bloqueadoRows = rows.filter(function (row) {
+        const bloqueadoRows = rows.filter(function (row) {
             return row.Bloqueado;
         });
 
-        var disponibles = franjasParaFecha(disponibilidadRows, dateValue, weekday);
+        const disponibles = franjasParaFecha(disponibilidadRows, dateValue, weekday);
         // CU-001-008: los bloqueos (manuales o de actividades) rigen siempre
         // en su fecha y también los semanales de ese día; un bloqueo de una
         // fecha no reemplaza a los semanales.
-        var bloqueadosDelDia = bloqueadoRows.filter(function (row) {
+        const bloqueadosDelDia = bloqueadoRows.filter(function (row) {
             return row.Fecha === dateValue || (!row.Fecha && row.DiaSemana === weekday);
         });
-        var ocupadosDelDia = occupiedRows.filter(function (occupied) {
+        const ocupadosDelDia = occupiedRows.filter(function (occupied) {
             return occupied.Fecha === dateValue;
         });
 
-        var sinBloqueos = restarSegmentos(disponibles, bloqueadosDelDia);
+        const sinBloqueos = restarSegmentos(disponibles, bloqueadosDelDia);
         return restarSegmentos(sinBloqueos, ocupadosDelDia);
     }
 
     function durationLabel(minutes) {
-        var hours = Math.floor(minutes / 60);
-        var remainder = minutes % 60;
+        const hours = Math.floor(minutes / 60);
+        const remainder = minutes % 60;
         if (!hours) {
             return "30 minutos";
         }
@@ -328,7 +328,7 @@
     }
 
     function updateEstimate() {
-        var complete = !!(dateInput.value && startSelect.value && durationSelect.value);
+        const complete = !!(dateInput.value && startSelect.value && durationSelect.value);
         startHidden.value = complete ? startSelect.value : "";
         durationHidden.value = complete ? durationSelect.value : "";
 
@@ -342,14 +342,14 @@
             return;
         }
 
-        var duration = Number(durationSelect.value);
-        var start = Number(startSelect.value);
-        var amount = price * duration / 60;
-        var formatter = new Intl.NumberFormat("es-AR", {
+        const duration = Number(durationSelect.value);
+        const start = Number(startSelect.value);
+        const amount = price * duration / 60;
+        const formatter = new Intl.NumberFormat("es-AR", {
             style: "currency",
             currency: currency
         });
-        var formattedDate = new Intl.DateTimeFormat("es-AR", {
+        const formattedDate = new Intl.DateTimeFormat("es-AR", {
             weekday: "short",
             day: "2-digit",
             month: "short"
@@ -361,7 +361,7 @@
     }
 
     function renderDurations() {
-        var previousValue = savedDuration || durationSelect.value || "60";
+        const previousValue = savedDuration || durationSelect.value || "60";
         durationSelect.textContent = "";
 
         if (!dateInput.value || startSelect.value === "") {
@@ -370,16 +370,16 @@
             return;
         }
 
-        var start = Number(startSelect.value);
-        var containingRange = rangesForDate(dateInput.value).filter(function (range) {
+        const start = Number(startSelect.value);
+        const containingRange = rangesForDate(dateInput.value).filter(function (range) {
             return start >= range.MinutoDesde && start < range.MinutoHasta;
         }).sort(function (left, right) {
             return right.MinutoHasta - left.MinutoHasta;
         })[0];
-        var maximum = containingRange ? containingRange.MinutoHasta - start : 0;
+        const maximum = containingRange ? containingRange.MinutoHasta - start : 0;
 
         durationSelect.add(new Option("Seleccioná la duración", ""));
-        for (var minutes = 30; minutes <= maximum; minutes += 30) {
+        for (let minutes = 30; minutes <= maximum; minutes += 30) {
             durationSelect.add(new Option(durationLabel(minutes), String(minutes)));
         }
 
@@ -396,7 +396,7 @@
     }
 
     function renderStarts() {
-        var previousValue = savedStart || startSelect.value;
+        const previousValue = savedStart || startSelect.value;
         startSelect.textContent = "";
         feedback.classList.remove("is-error");
 
@@ -407,10 +407,10 @@
             return;
         }
 
-        var ranges = rangesForDate(dateInput.value);
-        var values = [];
+        const ranges = rangesForDate(dateInput.value);
+        const values = [];
         ranges.forEach(function (range) {
-            for (var minute = range.MinutoDesde; minute + 30 <= range.MinutoHasta; minute += 30) {
+            for (let minute = range.MinutoDesde; minute + 30 <= range.MinutoHasta; minute += 30) {
                 if (values.indexOf(minute) < 0) {
                     values.push(minute);
                 }

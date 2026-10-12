@@ -18,6 +18,8 @@ namespace StageUp.BE.Enumerados
         PagoVencido,
         PagoNoCompletado,
         ComprobanteEmitido,
-        LiquidacionRegistrada
+        LiquidacionRegistrada,
+        SolicitudSoporteRegistrada,
+        SolicitudSoporteActualizada
     }
 }

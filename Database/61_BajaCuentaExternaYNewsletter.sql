@@ -85,7 +85,7 @@ BEGIN
         DECLARE @ticketsAbiertos INT =
         (
             SELECT COUNT(*) FROM dbo.Ticket
-            WHERE idUsuarioExterno = @idUsuarioExterno AND estado <> N'Cerrado'
+            WHERE idUsuarioExterno = @idUsuarioExterno AND estado NOT IN (N'Cerrado', N'Cerrada', N'Resuelta')
         );
 
         DECLARE @resultado NVARCHAR(30) = N'OK';

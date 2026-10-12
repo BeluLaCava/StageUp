@@ -1208,7 +1208,7 @@ BEGIN
               AND fechaCancelacion >= @desde AND fechaCancelacion < DATEADD(DAY, 1, @hasta)) AS importeComisiones,
         (SELECT CONVERT(DECIMAL(4,2), AVG(CONVERT(DECIMAL(10,2), puntaje))) FROM dbo.Calificacion
             WHERE tipoCalificacion = N'Espacio' AND activo = 1) AS promedioCalificacion,
-        (SELECT COUNT(*) FROM dbo.Ticket WHERE estado IN (N'Abierto', N'EnRevision')) AS ticketsPendientes;
+        (SELECT COUNT(*) FROM dbo.Ticket WHERE estado IN (N'Pendiente', N'EnProceso', N'Abierto', N'EnRevision')) AS ticketsPendientes;
 END
 GO
 

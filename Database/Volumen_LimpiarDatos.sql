@@ -74,6 +74,11 @@ PRINT CONCAT(N'Pagos: ', @@ROWCOUNT);
 UPDATE dbo.Ticket SET idReservaAsociada = NULL
 WHERE idReservaAsociada IN (SELECT id FROM #R) AND idUsuarioExterno NOT IN (SELECT id FROM #U);
 
+IF OBJECT_ID(N'dbo.TicketActualizacion', N'U') IS NOT NULL
+    DELETE FROM dbo.TicketActualizacion
+    WHERE idTicket IN (SELECT idTicket FROM dbo.Ticket WHERE idUsuarioExterno IN (SELECT id FROM #U))
+       OR idUsuarioExterno IN (SELECT id FROM #U);
+
 DELETE FROM dbo.TicketMensaje
 WHERE idTicket IN (SELECT idTicket FROM dbo.Ticket WHERE idUsuarioExterno IN (SELECT id FROM #U))
    OR idUsuarioExterno IN (SELECT id FROM #U);

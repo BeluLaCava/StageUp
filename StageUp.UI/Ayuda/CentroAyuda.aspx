@@ -79,7 +79,10 @@
             <section class="support-path" aria-labelledby="support-title">
                 <div class="support-path-marker"><span aria-hidden="true">3</span></div>
                 <div><span class="eyebrow">Última instancia</span><h2 id="support-title">Contactar a soporte</h2><p>Si la asistencia automatizada no resuelve tu consulta, podrás registrar una solicitud. Esta acción requiere una cuenta activa y una sesión iniciada.</p></div>
-                <asp:HyperLink ID="lnkContactarSoporte" runat="server" CssClass="button button-secondary" NavigateUrl="~/IniciarSesion.aspx" Text="Iniciar sesión para contactar a soporte" />
+                <div class="support-path-actions">
+                    <asp:HyperLink ID="lnkContactarSoporte" runat="server" CssClass="button button-secondary" NavigateUrl="~/IniciarSesion.aspx" Text="Iniciar sesión para contactar a soporte" />
+                    <asp:HyperLink ID="lnkMisSolicitudes" runat="server" CssClass="text-link" NavigateUrl="~/Soporte.aspx" Text="Mis solicitudes de soporte" Visible="false" />
+                </div>
             </section>
         </div>
     </section>
@@ -117,8 +120,9 @@
         .asistente-opciones { display: flex; flex-wrap: wrap; gap: 6px; align-self: flex-start; }
         .asistente-opciones button, .asistente-opciones a { padding: 5px 11px; border: 1px solid rgba(109, 16, 33, 0.35); border-radius: 999px; background: var(--color-surface); color: var(--color-primary); font: inherit; font-size: 0.84rem; cursor: pointer; text-decoration: none; }
         .asistente-opciones button:hover, .asistente-opciones a:hover { background: var(--color-primary); color: #fff; }
+        .support-path-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 0.6rem; }
         .asistente-opciones .asistente-soporte { background: var(--color-primary); color: #fff; font-weight: 700; }
         .asistente-form input:disabled { cursor: not-allowed; }
     </style>
-    <script src="<%= ResolveUrl("~/Scripts/asistente-ayuda.js") %>?v=20261012" defer></script>
+    <script src="<%= ResolveUrl("~/Scripts/asistente-ayuda.js") %>?v=20261012-2" defer></script>
 </asp:Content>

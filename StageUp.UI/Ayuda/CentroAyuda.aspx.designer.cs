@@ -10,5 +10,6 @@ namespace StageUp.UI.Ayuda
         protected global::System.Web.UI.WebControls.Literal litCategoriaVacia;
         protected global::System.Web.UI.WebControls.Repeater rptGrupos;
         protected global::System.Web.UI.WebControls.HyperLink lnkContactarSoporte;
+        protected global::System.Web.UI.WebControls.HyperLink lnkMisSolicitudes;
     }
 }

@@ -41,7 +41,9 @@ namespace StageUp.BLL
             { TipoNotificacion.PagoVencido.ToString(), "Plazo de pago vencido" },
             { TipoNotificacion.PagoNoCompletado.ToString(), "Pago no completado" },
             { TipoNotificacion.ComprobanteEmitido.ToString(), "Comprobante emitido" },
-            { TipoNotificacion.LiquidacionRegistrada.ToString(), "Liquidación registrada" }
+            { TipoNotificacion.LiquidacionRegistrada.ToString(), "Liquidación registrada" },
+            { TipoNotificacion.SolicitudSoporteRegistrada.ToString(), "Solicitud de soporte registrada" },
+            { TipoNotificacion.SolicitudSoporteActualizada.ToString(), "Solicitud de soporte actualizada" }
         };
 
         // Categoría que se muestra junto a cada notificación.
@@ -60,7 +62,9 @@ namespace StageUp.BLL
             { TipoNotificacion.PagoVencido.ToString(), "Pagos" },
             { TipoNotificacion.PagoNoCompletado.ToString(), "Pagos" },
             { TipoNotificacion.ComprobanteEmitido.ToString(), "Comprobantes" },
-            { TipoNotificacion.LiquidacionRegistrada.ToString(), "Cuenta corriente" }
+            { TipoNotificacion.LiquidacionRegistrada.ToString(), "Cuenta corriente" },
+            { TipoNotificacion.SolicitudSoporteRegistrada.ToString(), "Soporte" },
+            { TipoNotificacion.SolicitudSoporteActualizada.ToString(), "Soporte" }
         };
 
         // Página interna: "~/Pagina.aspx" o "~/Carpeta/Pagina.aspx", con

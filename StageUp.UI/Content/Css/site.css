@@ -416,6 +416,214 @@
     border-color: #d7c8bf;
 }
 
+/* CU-003-002 / CU-003-003 e ítem 12: estados nuevos de las solicitudes de
+   soporte, marcas de leído / no leído, historial y aviso de novedades. */
+.ticket-badge-pendiente {
+    color: #825100;
+    background: #fff2cf;
+    border-color: #f2d390;
+}
+
+.ticket-badge-enproceso {
+    color: #1f4a7a;
+    background: #e3eefb;
+    border-color: #a9c4e6;
+}
+
+.ticket-badge-resuelta {
+    color: #286241;
+    background: #e5f4e9;
+    border-color: #add3b8;
+}
+
+.ticket-badge-cerrada {
+    color: var(--color-text-muted);
+    background: #f1ebe7;
+    border-color: #d7c8bf;
+}
+
+.ticket-codigo {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ticket-nuevo {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.08rem 0.5rem;
+    color: #fff;
+    background: var(--color-primary);
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.ticket-lista-item-novedad {
+    border-color: rgba(109, 16, 33, 0.45);
+    box-shadow: inset 0.25rem 0 0 var(--color-primary);
+}
+
+.ticket-mensaje-nuevo {
+    border-color: rgba(109, 16, 33, 0.5);
+    box-shadow: 0 0 0 0.15rem rgba(109, 16, 33, 0.08);
+}
+
+.ticket-mensaje-leido {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--color-text-muted);
+    font-size: 0.72rem;
+    text-align: right;
+}
+
+.ticket-estado-aviso {
+    margin: 0 0 1rem;
+    padding: 0.85rem 1rem;
+    color: var(--color-text);
+    background: var(--color-nude-light);
+    border: 1px solid rgba(137, 102, 80, 0.22);
+    border-left: 0.3rem solid var(--color-brown-soft);
+    border-radius: 0.8rem;
+    line-height: 1.5;
+}
+
+.ticket-estado-aviso-Pendiente { border-left-color: #e0b04d; }
+.ticket-estado-aviso-EnProceso { border-left-color: #5b88c2; }
+.ticket-estado-aviso-Resuelta { border-left-color: #4f9a6b; }
+.ticket-estado-aviso-Cerrada { border-left-color: #a8978d; }
+
+.ticket-datos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.7rem 1.2rem;
+    margin: 0 0 1rem;
+}
+
+.ticket-datos > div {
+    min-width: 0;
+}
+
+.ticket-datos dt {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+}
+
+.ticket-datos dd {
+    margin: 0.1rem 0 0;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+.ticket-descripcion {
+    margin: 0 0 1rem;
+    padding: 0.9rem 1rem;
+    background: var(--color-surface);
+    border: 1px solid rgba(137, 102, 80, 0.18);
+    border-radius: 0.9rem;
+}
+
+.ticket-descripcion h3 {
+    margin: 0 0 0.35rem;
+    color: var(--color-brown-dark);
+    font-family: var(--font-interface);
+    font-size: 0.85rem;
+}
+
+.ticket-descripcion p {
+    margin: 0 0 0.6rem;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.ticket-descripcion p:last-child {
+    margin-bottom: 0;
+}
+
+.ticket-seccion-titulo {
+    margin: 1.2rem 0 0.4rem;
+    color: var(--color-brown-dark);
+    font-family: var(--font-interface);
+    font-size: 1rem;
+}
+
+.ticket-hilo-vacio {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+}
+
+.ticket-historial {
+    margin: 0.4rem 0 1rem;
+    padding: 0;
+    list-style: none;
+    border-left: 2px solid rgba(137, 102, 80, 0.25);
+}
+
+.ticket-historial li {
+    position: relative;
+    margin: 0 0 0.75rem;
+    padding-left: 1rem;
+    font-size: 0.86rem;
+    line-height: 1.45;
+}
+
+.ticket-historial li::before {
+    content: "";
+    position: absolute;
+    top: 0.35rem;
+    left: -0.38rem;
+    width: 0.6rem;
+    height: 0.6rem;
+    background: var(--color-surface);
+    border: 2px solid var(--color-brown-soft);
+    border-radius: 50%;
+}
+
+.ticket-historial-fecha {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+}
+
+.ticket-novedades-aviso {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin: 0 0 1rem;
+    padding: 0.7rem 0.95rem;
+    color: var(--color-primary-dark);
+    background: #fdf1ee;
+    border: 1px solid rgba(109, 16, 33, 0.25);
+    border-radius: 0.8rem;
+    font-weight: 650;
+}
+
+.ticket-novedades-aviso[hidden] {
+    display: none;
+}
+
+.sidebar-link .sidebar-badge {
+    display: inline-block;
+    min-width: 1.25rem;
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.4rem;
+    color: #fff;
+    background: var(--color-primary);
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-align: center;
+}
+
 .helpdesk-detail-header {
     display: flex;
     align-items: flex-start;

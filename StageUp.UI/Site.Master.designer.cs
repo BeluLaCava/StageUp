@@ -258,6 +258,15 @@ namespace StageUp.UI
         protected global::System.Web.UI.HtmlControls.HtmlAnchor MisActividadesLink;
 
         /// <summary>
+        /// Control SoporteLink.
+        /// </summary>
+        /// <remarks>
+        /// Campo generado automáticamente.
+        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor SoporteLink;
+
+        /// <summary>
         /// Control MainContent.
         /// </summary>
         /// <remarks>

@@ -85,7 +85,7 @@ namespace StageUp.UI.Interno
             }
 
             string cantidad = _ticketsAbiertos.ToString(CultureInfo.InvariantCulture);
-            return " <span class=\"internal-nav-badge\" title=\"Tickets abiertos esperando respuesta\" "
+            return " <span class=\"internal-nav-badge\" title=\"Solicitudes de soporte que requieren atención (pendientes o con mensajes sin leer)\" "
                 + "style=\"display:inline-block;min-width:20px;padding:1px 7px;margin-left:6px;border-radius:999px;"
                 + "background:#7a0c20;color:#fff;font-size:0.75em;font-weight:bold;text-align:center;\">"
                 + cantidad + "</span>";
@@ -97,10 +97,10 @@ namespace StageUp.UI.Interno
             GrupoMenu raiz = _bllPermiso.ConstruirMenuParaRol(idRolInterno);
             List<ItemMenu> items = raiz.ObtenerItems();
 
-            // Aviso al equipo interno de soporte (corrección de María sobre el
-            // helpdesk): contador de tickets en estado Abierto al lado de
-            // "Gestión de soporte", solo para quien tiene ese permiso.
-            _ticketsAbiertos = GestorDeSesion.TienePermisoInterno("GESTIONAR_SOPORTE")
+            // Aviso al equipo interno de soporte (ítem 12): al lado de
+            // "Solicitudes de soporte", cuántas están pendientes o tienen
+            // mensajes del usuario sin leer. Solo para quien tiene el permiso.
+            _ticketsAbiertos = GestorDeSesion.TienePermisoInterno(BLL_Ticket.PermisoGestionar)
                 ? new BLL_Ticket().ContarTicketsAbiertos()
                 : 0;
 

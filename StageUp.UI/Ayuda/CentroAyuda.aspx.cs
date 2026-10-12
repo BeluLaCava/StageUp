@@ -23,7 +23,9 @@ namespace StageUp.UI.Ayuda
 
         protected string UrlSoporte
         {
-            get { return ResolveUrl(GestorDeSesion.EstaAutenticado() ? "~/Soporte.aspx" : "~/IniciarSesion.aspx"); }
+            // CU-003-002 A1: el asistente deriva al formulario indicando el
+            // origen (y la consulta escrita, que agrega el script).
+            get { return ResolveUrl(GestorDeSesion.EstaAutenticado() ? "~/Soporte.aspx?nueva=1&origen=Asistente" : "~/IniciarSesion.aspx"); }
         }
 
         protected void Page_Load(object sender, EventArgs e)
@@ -33,11 +35,13 @@ namespace StageUp.UI.Ayuda
                 return;
             }
 
-            // Ítem 6C: un usuario logueado va directo a Soporte.
+            // Un usuario logueado va directo al formulario (CU-003-002 A1) y
+            // puede seguir sus solicitudes (A5).
             if (GestorDeSesion.EstaAutenticado())
             {
-                lnkContactarSoporte.NavigateUrl = "~/Soporte.aspx";
+                lnkContactarSoporte.NavigateUrl = "~/Soporte.aspx?nueva=1&origen=CentroAyuda";
                 lnkContactarSoporte.Text = "Registrar solicitud de soporte";
+                lnkMisSolicitudes.Visible = true;
             }
 
             int tema;

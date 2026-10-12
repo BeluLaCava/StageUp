@@ -92,7 +92,18 @@ namespace StageUp.UI
                 }
 
                 CargarNotificaciones();
+                CargarIndicadorSoporte();
             }
+        }
+
+        // Ítem 12: cantidad de solicitudes de soporte con respuestas o cambios
+        // de estado que el usuario todavía no vio.
+        private void CargarIndicadorSoporte()
+        {
+            int novedades = new BLL_Ticket().ContarNovedadesUsuario(GestorDeSesion.ObtenerIdUsuarioActual().Value);
+            SoporteLink.InnerHtml = novedades > 0
+                ? "Soporte <span class=\"sidebar-badge\" title=\"Solicitudes de soporte con novedades\">" + novedades + "</span>"
+                : "Soporte";
         }
 
         protected void lnkCerrarSesion_Click(object sender, EventArgs e)

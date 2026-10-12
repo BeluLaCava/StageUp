@@ -70,6 +70,7 @@
     <Compile Include="Entidades\Ticket.cs" />
     <Compile Include="Entidades\TicketMensaje.cs" />
     <Compile Include="Entidades\TicketCompleto.cs" />
+    <Compile Include="Entidades\SolicitudSoporte.cs" />
     <Compile Include="Entidades\Idioma.cs" />
     <Compile Include="Entidades\Traduccion.cs" />
     <Compile Include="Interfaces\IObservadorIdioma.cs" />

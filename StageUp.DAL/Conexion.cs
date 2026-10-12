@@ -15,6 +15,17 @@ namespace StageUp.DAL
         {
             NombreStoredProcedure = nombreStoredProcedure;
         }
+
+        // Número del error de SQL Server (por ejemplo el de un THROW 51031 de
+        // un stored procedure), o 0 si el error no vino de SQL Server.
+        public int NumeroErrorSql
+        {
+            get
+            {
+                SqlException sql = InnerException as SqlException;
+                return sql == null ? 0 : sql.Number;
+            }
+        }
     }
 
     public sealed class Conexion

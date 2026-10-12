@@ -17,6 +17,17 @@
     const urlSoporte = modal.getAttribute("data-soporte-url");
     let iniciado = false;
     let disponible = true;
+    let ultimaConsulta = "";
+
+    // CU-003-002 A1: el formulario de soporte se abre con la última consulta
+    // como motivo (solo si el usuario tiene sesión; si no, va al login).
+    function enlaceSoporte() {
+        if (!ultimaConsulta || urlSoporte.indexOf("Soporte.aspx") < 0) {
+            return urlSoporte;
+        }
+
+        return urlSoporte + (urlSoporte.indexOf("?") < 0 ? "?" : "&") + "consulta=" + encodeURIComponent(ultimaConsulta.slice(0, 150));
+    }
 
     function bajar() {
         chat.scrollTop = chat.scrollHeight;
@@ -89,7 +100,7 @@
 
     function ofrecerSoporte() {
         opciones([
-            { texto: "Registrar solicitud de soporte", url: urlSoporte, clase: "asistente-soporte" },
+            { texto: "Registrar solicitud de soporte", url: enlaceSoporte(), clase: "asistente-soporte" },
             { texto: "Ver los temas", accion: mostrarTemas }
         ]);
     }
@@ -136,6 +147,7 @@
     }
 
     function elegirPregunta(pregunta) {
+        ultimaConsulta = pregunta.pregunta;
         burbuja(pregunta.pregunta, true);
         pedir({ accion: "respuesta", id: pregunta.id }, "GET").then(function (datos) {
             if (!datos.ok) {
@@ -187,6 +199,7 @@
         }
 
         entrada.value = "";
+        ultimaConsulta = texto;
         burbuja(texto, true);
         pedir({ accion: "consultar", texto: texto }, "POST").then(function (datos) {
             if (!datos.ok) {
@@ -209,7 +222,7 @@
             const lista = datos.sugerencias.map(function (sugerencia) {
                 return { texto: sugerencia.pregunta, accion: function () { elegirPregunta(sugerencia); } };
             });
-            lista.unshift({ texto: "Registrar solicitud de soporte", url: urlSoporte, clase: "asistente-soporte" });
+            lista.unshift({ texto: "Registrar solicitud de soporte", url: enlaceSoporte(), clase: "asistente-soporte" });
             opciones(lista);
         }).catch(function () {
             noDisponible();

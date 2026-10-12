@@ -7,63 +7,27 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Módulo de soporte/helpdesk (ítems 6C y 16 de la segunda entrega).
-    // Mismo patrón que MPP_Faq.cs / MPP_Encuesta.cs (Conexion.Instance +
-    // Hashtable de parámetros). Todos los métodos públicos reciben objetos
-    // (Ticket, TicketMensaje, UsuarioExterno), no ids sueltos.
+    // Solicitudes de soporte (CU-003-002, CU-003-003 e ítem 12). Mismo patrón
+    // que el resto de los MPP: Conexion.Instance + Hashtable de parámetros, y
+    // los métodos públicos reciben objetos (Ticket, TicketMensaje, filtro).
     public class MPP_Ticket
     {
-        public int Crear(Ticket oTicket, TicketMensaje oMensajeInicial)
+        public int Registrar(Ticket oTicket)
         {
             object resultado = Conexion.Instance.LeerEscalar(
-                "sp_Ticket_Crear",
+                "sp_Ticket_Registrar",
                 new Hashtable
                 {
                     { "@idUsuarioExterno", oTicket.IdUsuarioExterno },
                     { "@idReservaAsociada", (object)oTicket.IdReservaAsociada ?? DBNull.Value },
-                    { "@categoria", oTicket.Categoria },
-                    { "@asunto", oTicket.Asunto },
-                    { "@mensajeInicial", oMensajeInicial.Mensaje }
+                    { "@funcionalidad", oTicket.FuncionalidadVinculada },
+                    { "@motivo", oTicket.Motivo },
+                    { "@descripcion", oTicket.Descripcion },
+                    { "@informacionAdicional", (object)oTicket.InformacionAdicional ?? DBNull.Value },
+                    { "@origen", oTicket.Origen }
                 });
 
             return Convert.ToInt32(resultado);
-        }
-
-        public int InsertarMensaje(TicketMensaje oMensaje)
-        {
-            object resultado = Conexion.Instance.LeerEscalar(
-                "sp_TicketMensaje_Insertar",
-                new Hashtable
-                {
-                    { "@idTicket", oMensaje.IdTicket },
-                    { "@idUsuarioExterno", (object)oMensaje.IdUsuarioExterno ?? DBNull.Value },
-                    { "@idUsuarioInterno", (object)oMensaje.IdUsuarioInterno ?? DBNull.Value },
-                    { "@mensaje", oMensaje.Mensaje }
-                });
-
-            return Convert.ToInt32(resultado);
-        }
-
-        public void CambiarEstado(Ticket oTicket)
-        {
-            Conexion.Instance.Guardar(
-                "sp_Ticket_CambiarEstado",
-                new Hashtable
-                {
-                    { "@idTicket", oTicket.IdTicket },
-                    { "@estado", oTicket.Estado }
-                });
-        }
-
-        public void Asignar(Ticket oTicket)
-        {
-            Conexion.Instance.Guardar(
-                "sp_Ticket_Asignar",
-                new Hashtable
-                {
-                    { "@idTicket", oTicket.IdTicket },
-                    { "@idUsuarioInternoAsignado", oTicket.IdUsuarioInternoAsignado.Value }
-                });
         }
 
         public Ticket ObtenerPorId(Ticket oTicket)
@@ -82,22 +46,166 @@ namespace StageUp.MPP
                 new Hashtable { { "@idUsuarioExterno", oUsuario.IdUsuarioExterno } }));
         }
 
-        // El filtro viaja como un Ticket "de ejemplo": Estado y Categoria en
-        // null significan "todos".
-        public List<Ticket> ListarParaInterno(Ticket oFiltro)
+        public List<Ticket> ListarParaInterno(FiltroTicket oFiltro)
         {
-            return MapearTickets(Conexion.Instance.Leer(
-                "sp_Ticket_ListarParaInterno",
+            Hashtable parametros = ParametrosFiltro(oFiltro);
+            parametros.Add("@pagina", oFiltro.Pagina);
+            parametros.Add("@tamanioPagina", oFiltro.TamanioPagina);
+            return MapearTickets(Conexion.Instance.Leer("sp_Ticket_ListarParaInterno", parametros));
+        }
+
+        public int ContarParaInterno(FiltroTicket oFiltro)
+        {
+            object resultado = Conexion.Instance.LeerEscalar("sp_Ticket_ContarParaInterno", ParametrosFiltro(oFiltro));
+            return resultado == null || resultado == DBNull.Value ? 0 : Convert.ToInt32(resultado);
+        }
+
+        public ResumenSoporte ObtenerResumen()
+        {
+            DataTable tabla = Conexion.Instance.Leer("sp_Ticket_ResumenInterno", new Hashtable());
+            if (tabla.Rows.Count == 0)
+            {
+                return new ResumenSoporte();
+            }
+
+            DataRow fila = tabla.Rows[0];
+            return new ResumenSoporte
+            {
+                Total = Convert.ToInt32(fila["total"]),
+                Pendientes = Convert.ToInt32(fila["pendientes"]),
+                EnProceso = Convert.ToInt32(fila["enProceso"]),
+                Resueltas = Convert.ToInt32(fila["resueltas"]),
+                Cerradas = Convert.ToInt32(fila["cerradas"]),
+                SinLeer = Convert.ToInt32(fila["sinLeer"]),
+                SinAsignar = Convert.ToInt32(fila["sinAsignar"])
+            };
+        }
+
+        // Devuelve el estado en que quedó la solicitud.
+        public string RegistrarRespuesta(TicketMensaje oMensaje, string estadoAnterior, bool marcarResuelta)
+        {
+            object resultado = Conexion.Instance.LeerEscalar(
+                "sp_Ticket_RegistrarRespuesta",
                 new Hashtable
                 {
-                    { "@estado", (object)oFiltro.Estado ?? DBNull.Value },
-                    { "@categoria", (object)oFiltro.Categoria ?? DBNull.Value }
-                }));
+                    { "@idTicket", oMensaje.IdTicket },
+                    { "@idUsuarioInterno", oMensaje.IdUsuarioInterno.Value },
+                    { "@mensaje", oMensaje.Mensaje },
+                    { "@estadoAnterior", estadoAnterior },
+                    { "@marcarResuelta", marcarResuelta }
+                });
+
+            return Convert.ToString(resultado);
+        }
+
+        public void CambiarEstado(TicketActualizacion oActualizacion)
+        {
+            Conexion.Instance.Guardar(
+                "sp_Ticket_CambiarEstado",
+                new Hashtable
+                {
+                    { "@idTicket", oActualizacion.IdTicket },
+                    { "@estadoAnterior", oActualizacion.EstadoAnterior },
+                    { "@estadoNuevo", oActualizacion.EstadoNuevo },
+                    { "@idUsuarioInterno", (object)oActualizacion.IdUsuarioInterno ?? DBNull.Value },
+                    { "@idUsuarioExterno", (object)oActualizacion.IdUsuarioExterno ?? DBNull.Value },
+                    { "@detalle", (object)oActualizacion.Detalle ?? DBNull.Value }
+                });
+        }
+
+        // Devuelve el estado en que quedó la solicitud.
+        public string Asignar(Ticket oTicket, int idUsuarioInternoResponsable, bool tomar)
+        {
+            object resultado = Conexion.Instance.LeerEscalar(
+                "sp_Ticket_Asignar",
+                new Hashtable
+                {
+                    { "@idTicket", oTicket.IdTicket },
+                    { "@idUsuarioInternoAsignado", (object)oTicket.IdUsuarioInternoAsignado ?? DBNull.Value },
+                    { "@idUsuarioInternoResponsable", idUsuarioInternoResponsable },
+                    { "@tomar", tomar }
+                });
+
+            return Convert.ToString(resultado);
+        }
+
+        // Devuelve el estado en que quedó la solicitud.
+        public string InsertarMensajeUsuario(TicketMensaje oMensaje)
+        {
+            object resultado = Conexion.Instance.LeerEscalar(
+                "sp_TicketMensaje_InsertarUsuario",
+                new Hashtable
+                {
+                    { "@idTicket", oMensaje.IdTicket },
+                    { "@idUsuarioExterno", oMensaje.IdUsuarioExterno.Value },
+                    { "@mensaje", oMensaje.Mensaje }
+                });
+
+            return Convert.ToString(resultado);
+        }
+
+        public void MarcarLeido(Ticket oTicket, string lado)
+        {
+            Conexion.Instance.LeerEscalar(
+                "sp_Ticket_MarcarLeido",
+                new Hashtable
+                {
+                    { "@idTicket", oTicket.IdTicket },
+                    { "@lado", lado }
+                });
+        }
+
+        // Ítem 12 (actualización periódica): estado y última actividad.
+        public Ticket ObtenerMarca(Ticket oTicket)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_Ticket_ObtenerMarca",
+                new Hashtable { { "@idTicket", oTicket.IdTicket } });
+
+            if (tabla.Rows.Count == 0)
+            {
+                return null;
+            }
+
+            DataRow fila = tabla.Rows[0];
+            return new Ticket
+            {
+                IdTicket = oTicket.IdTicket,
+                IdUsuarioExterno = Convert.ToInt32(fila["idUsuarioExterno"]),
+                Estado = fila["estado"].ToString(),
+                FechaUltimaActividad = Convert.ToDateTime(fila["fechaUltimaActividad"])
+            };
+        }
+
+        // Cantidad de solicitudes y última actividad (todas, o las de un usuario).
+        public KeyValuePair<int, DateTime?> ObtenerMarcaListado(UsuarioExterno oUsuario)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_Ticket_ObtenerMarcaListado",
+                new Hashtable { { "@idUsuarioExterno", oUsuario == null ? (object)DBNull.Value : oUsuario.IdUsuarioExterno } });
+
+            if (tabla.Rows.Count == 0)
+            {
+                return new KeyValuePair<int, DateTime?>(0, null);
+            }
+
+            DataRow fila = tabla.Rows[0];
+            return new KeyValuePair<int, DateTime?>(
+                Convert.ToInt32(fila["cantidad"]),
+                fila["ultimaActividad"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(fila["ultimaActividad"]));
         }
 
         public int ContarAbiertos()
         {
             object resultado = Conexion.Instance.LeerEscalar("sp_Ticket_ContarAbiertos");
+            return resultado == null || resultado == DBNull.Value ? 0 : Convert.ToInt32(resultado);
+        }
+
+        public int ContarNovedadesUsuario(UsuarioExterno oUsuario)
+        {
+            object resultado = Conexion.Instance.LeerEscalar(
+                "sp_Ticket_ContarNovedadesUsuario",
+                new Hashtable { { "@idUsuarioExterno", oUsuario.IdUsuarioExterno } });
             return resultado == null || resultado == DBNull.Value ? 0 : Convert.ToInt32(resultado);
         }
 
@@ -125,6 +233,49 @@ namespace StageUp.MPP
             return lista;
         }
 
+        public List<TicketActualizacion> ListarActualizacionesPorTicket(Ticket oTicket)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_TicketActualizacion_ListarPorTicket",
+                new Hashtable { { "@idTicket", oTicket.IdTicket } });
+
+            List<TicketActualizacion> lista = new List<TicketActualizacion>();
+            foreach (DataRow fila in tabla.Rows)
+            {
+                lista.Add(new TicketActualizacion
+                {
+                    IdTicketActualizacion = Convert.ToInt32(fila["idTicketActualizacion"]),
+                    IdTicket = Convert.ToInt32(fila["idTicket"]),
+                    TipoActualizacion = fila["tipoActualizacion"].ToString(),
+                    EstadoAnterior = LeerTexto(fila, "estadoAnterior"),
+                    EstadoNuevo = LeerTexto(fila, "estadoNuevo"),
+                    IdUsuarioInterno = LeerEntero(fila, "idUsuarioInterno"),
+                    IdUsuarioExterno = LeerEntero(fila, "idUsuarioExterno"),
+                    Detalle = LeerTexto(fila, "detalle"),
+                    Fecha = Convert.ToDateTime(fila["fecha"]),
+                    NombreResponsable = LeerTexto(fila, "nombreResponsable"),
+                    EsInterno = Convert.ToBoolean(fila["esInterno"])
+                });
+            }
+            return lista;
+        }
+
+        private static Hashtable ParametrosFiltro(FiltroTicket oFiltro)
+        {
+            return new Hashtable
+            {
+                { "@estado", (object)oFiltro.Estado ?? DBNull.Value },
+                { "@funcionalidad", (object)oFiltro.FuncionalidadVinculada ?? DBNull.Value },
+                { "@desde", oFiltro.Desde.HasValue ? (object)oFiltro.Desde.Value.Date : DBNull.Value },
+                { "@hasta", oFiltro.Hasta.HasValue ? (object)oFiltro.Hasta.Value.Date : DBNull.Value },
+                { "@usuario", (object)oFiltro.Usuario ?? DBNull.Value },
+                { "@idTicket", (object)oFiltro.IdTicket ?? DBNull.Value },
+                { "@asignacion", (object)oFiltro.Asignacion ?? DBNull.Value },
+                { "@idUsuarioInternoAsignado", (object)oFiltro.IdUsuarioInternoAsignado ?? DBNull.Value },
+                { "@soloNoLeidas", oFiltro.SoloNoLeidas }
+            };
+        }
+
         private static List<Ticket> MapearTickets(DataTable tabla)
         {
             List<Ticket> lista = new List<Ticket>();
@@ -141,17 +292,26 @@ namespace StageUp.MPP
             {
                 IdTicket = Convert.ToInt32(fila["idTicket"]),
                 IdUsuarioExterno = Convert.ToInt32(fila["idUsuarioExterno"]),
-                IdReservaAsociada = fila["idReservaAsociada"] == DBNull.Value ? (int?)null : Convert.ToInt32(fila["idReservaAsociada"]),
-                Categoria = fila["categoria"].ToString(),
-                Asunto = fila["asunto"].ToString(),
+                IdReservaAsociada = LeerEntero(fila, "idReservaAsociada"),
+                FuncionalidadVinculada = fila["funcionalidadVinculada"].ToString(),
+                Motivo = fila["motivo"].ToString(),
+                Descripcion = LeerTexto(fila, "descripcion"),
+                InformacionAdicional = LeerTexto(fila, "informacionAdicional"),
+                Origen = LeerTexto(fila, "origen"),
                 Estado = fila["estado"].ToString(),
-                IdUsuarioInternoAsignado = fila["idUsuarioInternoAsignado"] == DBNull.Value ? (int?)null : Convert.ToInt32(fila["idUsuarioInternoAsignado"]),
+                IdUsuarioInternoAsignado = LeerEntero(fila, "idUsuarioInternoAsignado"),
                 FechaCreacion = Convert.ToDateTime(fila["fechaCreacion"]),
                 FechaUltimaActividad = Convert.ToDateTime(fila["fechaUltimaActividad"]),
-                FechaCierre = fila["fechaCierre"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(fila["fechaCierre"]),
+                FechaResolucion = LeerFecha(fila, "fechaResolucion"),
+                FechaCierre = LeerFecha(fila, "fechaCierre"),
+                FechaUltimaLecturaUsuario = LeerFecha(fila, "fechaUltimaLecturaUsuario"),
+                FechaUltimaLecturaSoporte = LeerFecha(fila, "fechaUltimaLecturaSoporte"),
                 NombreUsuarioExterno = fila["nombreUsuarioExterno"].ToString(),
                 CorreoUsuarioExterno = fila["correoUsuarioExterno"].ToString(),
-                NombreUsuarioInternoAsignado = fila["nombreUsuarioInternoAsignado"] == DBNull.Value ? null : fila["nombreUsuarioInternoAsignado"].ToString(),
+                NombreUsuarioInternoAsignado = LeerTexto(fila, "nombreUsuarioInternoAsignado"),
+                CantidadRespuestas = LeerEntero(fila, "cantidadRespuestas") ?? 0,
+                NovedadesUsuario = LeerEntero(fila, "novedadesUsuario") ?? 0,
+                NovedadesSoporte = LeerEntero(fila, "novedadesSoporte") ?? 0,
                 NombreEspacioReserva = LeerTexto(fila, "nombreEspacioReserva"),
                 FechaReserva = LeerFecha(fila, "fechaReserva"),
                 MinutoDesdeReserva = LeerEntero(fila, "minutoDesdeReserva"),
@@ -160,8 +320,6 @@ namespace StageUp.MPP
             };
         }
 
-        // Las columnas de la reserva asociada las agrega el script 40; se leen
-        // de forma tolerante para no romper si la columna no viene.
         private static string LeerTexto(DataRow fila, string columna)
         {
             return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value

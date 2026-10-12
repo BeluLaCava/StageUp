@@ -351,17 +351,22 @@ PRINT @mensaje;
 DECLARE @idInterno INT = (SELECT TOP (1) idUsuarioInterno FROM dbo.UsuarioInterno ORDER BY idUsuarioInterno);
 
 INSERT INTO dbo.Ticket
-    (idUsuarioExterno, idReservaAsociada, categoria, asunto, estado, idUsuarioInternoAsignado,
-     fechaCreacion, fechaUltimaActividad, fechaCierre)
+    (idUsuarioExterno, idReservaAsociada, categoria, asunto, descripcion, origen, estado, idUsuarioInternoAsignado,
+     fechaCreacion, fechaUltimaActividad, fechaResolucion, fechaCierre, fechaUltimaLecturaUsuario, fechaUltimaLecturaSoporte)
 SELECT r.idCliente,
        CASE WHEN r.n % 2 = 0 THEN r.idReserva END,
-       CASE r.n % 5 WHEN 0 THEN N'Reserva' WHEN 1 THEN N'Pago' WHEN 2 THEN N'Cuenta' WHEN 3 THEN N'Espacio' ELSE N'Otro' END,
+       CASE r.n % 6 WHEN 0 THEN N'Reserva' WHEN 1 THEN N'Pago' WHEN 2 THEN N'Cuenta' WHEN 3 THEN N'Espacio' WHEN 4 THEN N'Gestor' ELSE N'Otra' END,
        CONCAT(N'[Volumen] Consulta de prueba ', r.n),
-       CASE r.n % 3 WHEN 0 THEN N'Abierto' WHEN 1 THEN N'Respondido' ELSE N'Cerrado' END,
-       CASE WHEN r.n % 3 <> 0 THEN @idInterno END,
+       N'Hola, tengo una consulta sobre mi reserva y necesito que alguien del equipo la revise.',
+       CASE r.n % 4 WHEN 0 THEN N'Soporte' WHEN 1 THEN N'CentroAyuda' WHEN 2 THEN N'Asistente' ELSE N'Reserva' END,
+       CASE r.n % 4 WHEN 0 THEN N'Pendiente' WHEN 1 THEN N'EnProceso' WHEN 2 THEN N'Resuelta' ELSE N'Cerrada' END,
+       CASE WHEN r.n % 4 <> 0 THEN @idInterno END,
        DATEADD(DAY, -(2 + r.n % 300), @ahora),
        DATEADD(DAY, -(1 + r.n % 300), @ahora),
-       CASE WHEN r.n % 3 = 2 THEN DATEADD(DAY, -(1 + r.n % 300), @ahora) END
+       CASE WHEN r.n % 4 IN (2, 3) THEN DATEADD(DAY, -(1 + r.n % 300), @ahora) END,
+       CASE WHEN r.n % 4 = 3 THEN DATEADD(DAY, -(1 + r.n % 300), @ahora) END,
+       DATEADD(DAY, -(1 + r.n % 300), @ahora),
+       CASE WHEN r.n % 4 <> 0 THEN DATEADD(DAY, -(1 + r.n % 300), @ahora) END
 FROM #Reservas r
 WHERE r.n <= @cantidadTickets;
 
@@ -372,14 +377,20 @@ FROM dbo.Ticket t
 JOIN #Clientes c ON c.id = t.idUsuarioExterno
 WHERE t.asunto LIKE N'\[Volumen\]%' ESCAPE N'\';
 
+-- La descripción va en la solicitud; el hilo tiene la respuesta de soporte
+-- y, en las cerradas, el agradecimiento del usuario. Más el historial.
 INSERT INTO dbo.TicketMensaje (idTicket, idUsuarioExterno, idUsuarioInterno, mensaje, fechaEnvio)
-SELECT idTicket, idUsuarioExterno, NULL, N'Hola, tengo una consulta sobre mi reserva.', fechaCreacion FROM #Tickets
-UNION ALL
 SELECT idTicket, NULL, @idInterno, N'Hola, gracias por escribirnos. Ya lo estamos revisando.', DATEADD(HOUR, 3, fechaCreacion)
-FROM #Tickets WHERE estado <> N'Abierto' AND @idInterno IS NOT NULL
+FROM #Tickets WHERE estado <> N'Pendiente' AND @idInterno IS NOT NULL
 UNION ALL
 SELECT idTicket, idUsuarioExterno, NULL, N'Perfecto, muchas gracias.', DATEADD(HOUR, 20, fechaCreacion)
-FROM #Tickets WHERE estado = N'Cerrado';
+FROM #Tickets WHERE estado = N'Cerrada';
+
+INSERT INTO dbo.TicketActualizacion (idTicket, tipoActualizacion, estadoAnterior, estadoNuevo, idUsuarioInterno, idUsuarioExterno, detalle, fecha)
+SELECT idTicket, N'Alta', NULL, N'Pendiente', NULL, idUsuarioExterno, N'Solicitud registrada.', fechaCreacion FROM #Tickets
+UNION ALL
+SELECT idTicket, N'CambioEstado', N'Pendiente', estado, @idInterno, NULL, N'Datos de volumen.', DATEADD(HOUR, 3, fechaCreacion)
+FROM #Tickets WHERE estado <> N'Pendiente' AND @idInterno IS NOT NULL;
 
 SET @mensaje = CONCAT(N'Tickets: ', (SELECT COUNT(*) FROM #Tickets));
 PRINT @mensaje;

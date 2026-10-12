@@ -174,6 +174,9 @@
     <Compile Include="SolicitudesRecibidas.aspx.designer.cs">
       <DependentUpon>SolicitudesRecibidas.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Ayuda\AsistenteAyuda.ashx.cs">
+      <DependentUpon>AsistenteAyuda.ashx</DependentUpon>
+    </Compile>
     <Compile Include="Servicios\ServicioEspacios.asmx.cs">
       <DependentUpon>ServicioEspacios.asmx</DependentUpon>
       <SubType>Component</SubType>
@@ -482,6 +485,8 @@
     <Content Include="MisReservas.aspx" />
     <Content Include="SolicitudesRecibidas.aspx" />
     <Content Include="Servicios\ServicioEspacios.asmx" />
+    <Content Include="Ayuda\AsistenteAyuda.ashx" />
+    <Content Include="Scripts\asistente-ayuda.js" />
     <Content Include="Interno\RegistrosActividad.aspx" />
     <Content Include="Interno\PanelInterno.Master" />
     <Content Include="Interno\PanelAdministrador.aspx" />

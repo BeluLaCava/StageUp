@@ -70,6 +70,7 @@
     <Compile Include="BLL_HistorialFinanciero.cs" />
     <Compile Include="BLL_ClaveCifrado.cs" />
     <Compile Include="BLL_Billetera.cs" />
+    <Compile Include="BLL_AsistenteAyuda.cs" />
     <Compile Include="BLL_CuentaCorriente.cs" />
     <Compile Include="BLL_ParametroPlataforma.cs" />
     <Compile Include="ValidadorTarjeta.cs" />

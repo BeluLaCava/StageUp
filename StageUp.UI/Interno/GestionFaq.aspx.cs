@@ -10,19 +10,20 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
+    // CU-003-004 Gestionar contenido de ayuda (permiso GESTIONAR_FAQ):
+    // listado con filtros (pasos 4 a 6, A2), alta (pasos 7 a 23), detalle
+    // (A4, A9), edición (A5), publicación (A6, A8), desactivación (A7) y
+    // consultas del asistente sin respuesta para crear contenido (A15).
     public partial class GestionFaq : Page
     {
-        // Cantidad de preguntas activas que se muestran en la vista previa
-        // (ya ordenadas por "orden", igual que las ve el público en el
-        // centro de ayuda).
-        private const int CantidadPreview = 4;
+        private const string PermisoRequerido = "GESTIONAR_FAQ";
 
-        private readonly BLL_Faq _bllFaq = new BLL_Faq();
+        private readonly BLL_Faq _bll = new BLL_Faq();
 
-        private int? IdFaqEnEdicion
+        private int IdEnDetalle
         {
-            get { return ViewState["IdFaqEnEdicion"] as int?; }
-            set { ViewState["IdFaqEnEdicion"] = value; }
+            get { return ViewState["IdEnDetalle"] as int? ?? 0; }
+            set { ViewState["IdEnDetalle"] = value; }
         }
 
         protected void Page_Load(object sender, EventArgs e)
@@ -34,184 +35,352 @@ namespace StageUp.UI.Interno
 
             if (!IsPostBack)
             {
-                CargarFaqs();
+                CargarOpciones();
+                CargarListado();
+                CargarConsultas();
             }
         }
 
-        protected void btnGuardarFaq_Click(object sender, EventArgs e)
+        // ---- Listado -------------------------------------------------------
+
+        protected void btnFiltrar_Click(object sender, EventArgs e)
         {
-            Guardar(chkActiva.Checked);
+            pnlMensaje.Visible = false;
+            CargarListado();
         }
 
-        protected void btnGuardarBorradorFaq_Click(object sender, EventArgs e)
+        protected void lnkLimpiar_Click(object sender, EventArgs e)
         {
-            // "Borrador": guarda igual que "Guardar", pero siempre inactiva,
-            // sin importar lo que tenga tildado el checkbox — así la
-            // pregunta no aparece todavía en el centro de ayuda público.
-            Guardar(false);
-        }
-
-        protected void lnkCancelarFaq_Click(object sender, EventArgs e)
-        {
-            LimpiarFormulario();
+            ddlFiltroEstado.ClearSelection();
+            ddlFiltroCategoria.ClearSelection();
+            txtFiltroTexto.Text = string.Empty;
+            pnlMensaje.Visible = false;
+            CargarListado();
         }
 
         protected void rptFaq_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
-            if (!TieneAcceso())
+            int id;
+            if (e.CommandName == "Ver" && int.TryParse(Convert.ToString(e.CommandArgument), out id))
             {
-                return;
-            }
-
-            int idFaq = Convert.ToInt32(e.CommandArgument, CultureInfo.InvariantCulture);
-            int idResponsable = GestorDeSesion.ObtenerIdUsuarioInternoActual().Value;
-            ResultadoOperacion resultado;
-
-            switch (e.CommandName)
-            {
-                case "Editar":
-                    CargarFaqEnFormulario(idFaq);
-                    return;
-
-                case "Baja":
-                    resultado = _bllFaq.DarDeBaja(idFaq, idResponsable);
-                    MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
-                    if (resultado.Exitoso && IdFaqEnEdicion == idFaq)
-                    {
-                        LimpiarFormulario();
-                    }
-                    CargarFaqs();
-                    return;
-
-                case "Activar":
-                    resultado = _bllFaq.Reactivar(idFaq, idResponsable);
-                    MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
-                    CargarFaqs();
-                    return;
+                pnlMensaje.Visible = false;
+                MostrarDetalle(id);
             }
         }
 
-        private void Guardar(bool activo)
+        protected static string Fecha(object dato)
         {
-            if (!Page.IsValid || !TieneAcceso())
+            Faq faq = (Faq)dato;
+            DateTime fecha = faq.FechaUltimaModificacion ?? faq.FechaAlta;
+            return fecha == DateTime.MinValue ? "—" : fecha.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
+        }
+
+        // ---- Alta y edición ------------------------------------------------
+
+        protected void btnAgregar_Click(object sender, EventArgs e)
+        {
+            AbrirFormulario(null, null);
+        }
+
+        protected void btnEditar_Click(object sender, EventArgs e)
+        {
+            Faq faq = _bll.ObtenerPorId(IdEnDetalle);
+            if (faq == null)
             {
+                MostrarMensaje("No se encontró el contenido de ayuda seleccionado.", true);
+                VolverAlListado();
                 return;
             }
 
-            int idResponsable = GestorDeSesion.ObtenerIdUsuarioInternoActual().Value;
+            AbrirFormulario(faq, null);
+        }
+
+        protected void btnCancelarFormulario_Click(object sender, EventArgs e)
+        {
+            pnlMensaje.Visible = false;
+            int id;
+            // A5: cancelar la edición vuelve al detalle sin cambios.
+            if (int.TryParse(hfIdFaq.Value, out id) && id > 0)
+            {
+                MostrarDetalle(id);
+                return;
+            }
+
+            VolverAlListado();
+        }
+
+        protected void btnGuardar_Click(object sender, EventArgs e)
+        {
             int orden;
-            if (!int.TryParse(txtOrden.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out orden))
+            int.TryParse(txtOrden.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out orden);
+            int idCategoria;
+            Faq datos = new Faq
             {
-                MostrarMensaje("Ingresá un orden válido.", true);
-                return;
-            }
+                Pregunta = txtPregunta.Text,
+                Respuesta = txtRespuesta.Text,
+                Orden = orden,
+                Estado = ddlEstado.SelectedValue,
+                IdCategoriaAyuda = int.TryParse(ddlCategoria.SelectedValue, out idCategoria) ? idCategoria : (int?)null,
+                UsarEnAsistente = chkAsistente.Checked,
+                PalabrasClave = txtPalabrasClave.Text
+            };
 
-            ResultadoOperacion resultado;
-            if (IdFaqEnEdicion.HasValue)
+            int idFaq;
+            int idResponsable = GestorDeSesion.ObtenerIdUsuarioInternoActual().Value;
+            if (int.TryParse(hfIdFaq.Value, out idFaq) && idFaq > 0)
             {
-                resultado = _bllFaq.Modificar(
-                    IdFaqEnEdicion.Value, txtPregunta.Text, txtRespuesta.Text, orden, activo, idResponsable);
+                datos.IdFaq = idFaq;
+                ResultadoOperacion resultado = _bll.Modificar(datos, idResponsable);
+                if (!resultado.Exitoso)
+                {
+                    // A10 a A14: se queda en el formulario con lo escrito.
+                    MostrarMensaje(resultado.Mensaje, true);
+                    return;
+                }
+
+                MostrarDetalle(idFaq);
+                MostrarMensaje(resultado.Mensaje, false);
             }
             else
             {
-                ResultadoOperacion<int> resultadoAlta = _bllFaq.Registrar(
-                    txtPregunta.Text, txtRespuesta.Text, orden, activo, idResponsable);
-                resultado = resultadoAlta;
-            }
+                ResultadoOperacion<int> resultado = _bll.Registrar(datos, idResponsable, hfConsultaOrigen.Value);
+                if (!resultado.Exitoso)
+                {
+                    MostrarMensaje(resultado.Mensaje, true);
+                    return;
+                }
 
+                // Pasos 22 y 23.
+                VolverAlListado();
+                CargarConsultas();
+                MostrarMensaje(resultado.Mensaje, false);
+            }
+        }
+
+        // ---- Publicar y desactivar ----------------------------------------
+
+        protected void btnPublicar_Click(object sender, EventArgs e)
+        {
+            ResultadoOperacion resultado = _bll.Publicar(IdEnDetalle, GestorDeSesion.ObtenerIdUsuarioInternoActual().Value);
+            MostrarDetalle(IdEnDetalle);
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
-            if (!resultado.Exitoso)
+        }
+
+        protected void btnDesactivar_Click(object sender, EventArgs e)
+        {
+            // A7 paso 1: confirmación.
+            pnlMensaje.Visible = false;
+            pnlConfirmarDesactivar.Visible = true;
+            btnDesactivar.Visible = false;
+        }
+
+        protected void btnConfirmarDesactivar_Click(object sender, EventArgs e)
+        {
+            ResultadoOperacion resultado = _bll.Desactivar(IdEnDetalle, GestorDeSesion.ObtenerIdUsuarioInternoActual().Value);
+            MostrarDetalle(IdEnDetalle);
+            MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+        }
+
+        protected void btnCancelarDesactivar_Click(object sender, EventArgs e)
+        {
+            MostrarDetalle(IdEnDetalle);
+        }
+
+        protected void lnkVolverListado_Click(object sender, EventArgs e)
+        {
+            pnlMensaje.Visible = false;
+            VolverAlListado();
+        }
+
+        // ---- A15 ------------------------------------------------------------
+
+        protected void rptConsultas_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            string argumento = Convert.ToString(e.CommandArgument);
+            if (e.CommandName == "Descartar")
             {
+                ResultadoOperacion resultado = _bll.DescartarConsultaSinRespuesta(argumento, GestorDeSesion.ObtenerIdUsuarioInternoActual().Value);
+                MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+                CargarConsultas();
                 return;
             }
 
-            LimpiarFormulario();
-            CargarFaqs();
+            if (e.CommandName == "Crear")
+            {
+                int separador = argumento.IndexOf('|');
+                string normalizada = separador < 0 ? argumento : argumento.Substring(0, separador);
+                string texto = separador < 0 ? argumento : argumento.Substring(separador + 1);
+                pnlMensaje.Visible = false;
+                AbrirFormulario(null, normalizada);
+                txtPregunta.Text = PrimeraMayuscula(texto);
+            }
         }
 
-        private void CargarFaqs()
+        // ---- Auxiliares ------------------------------------------------------
+
+        private void AbrirFormulario(Faq faq, string consultaOrigen)
         {
-            List<Faq> todas = _bllFaq.Listar();
-            int cantidadActivas = todas.Count(f => f.Activo);
-            int cantidadBorrador = todas.Count - cantidadActivas;
-            DateTime? ultimaEdicion = todas.Count == 0
-                ? (DateTime?)null
-                : todas.Max(f => f.FechaUltimaModificacion ?? f.FechaAlta);
+            List<CategoriaAyuda> categorias = _bll.ListarCategorias().Where(c => c.Activa).ToList();
+            ddlCategoria.Items.Clear();
+            ddlCategoria.Items.Add(new ListItem("Elegí una categoría", string.Empty));
+            foreach (CategoriaAyuda categoria in categorias)
+            {
+                ddlCategoria.Items.Add(new ListItem(categoria.Nombre, categoria.IdCategoriaAyuda.ToString(CultureInfo.InvariantCulture)));
+            }
 
-            litCantidadActivas.Text = cantidadActivas.ToString(CultureInfo.InvariantCulture);
-            litCantidadBorrador.Text = cantidadBorrador.ToString(CultureInfo.InvariantCulture);
-            litUltimaEdicion.Text = FormatearUltimaEdicion(ultimaEdicion);
+            // A3: sin categorías solo se puede guardar como borrador.
+            pnlSinCategorias.Visible = categorias.Count == 0;
+            ddlEstado.Items.Clear();
+            ddlEstado.Items.Add(new ListItem("Borrador (no se muestra)", BLL_Faq.EstadoBorrador));
+            if (categorias.Count > 0)
+            {
+                ddlEstado.Items.Add(new ListItem("Publicado (activo)", BLL_Faq.EstadoActivo));
+            }
 
-            pnlSinFaqs.Visible = todas.Count == 0;
-            rptFaq.DataSource = todas;
-            rptFaq.DataBind();
+            if (faq != null && faq.Estado == BLL_Faq.EstadoInactivo)
+            {
+                ddlEstado.Items.Add(new ListItem("Desactivado", BLL_Faq.EstadoInactivo));
+            }
 
-            List<Faq> preview = todas.Where(f => f.Activo).Take(CantidadPreview).ToList();
-            pnlSinPreview.Visible = preview.Count == 0;
-            rptFaqPreview.DataSource = preview;
-            rptFaqPreview.DataBind();
+            hfIdFaq.Value = faq == null ? string.Empty : faq.IdFaq.ToString(CultureInfo.InvariantCulture);
+            hfConsultaOrigen.Value = consultaOrigen ?? string.Empty;
+            litTituloFormulario.Text = faq == null ? "Agregar contenido de ayuda" : "Editar contenido de ayuda";
+            txtPregunta.Text = faq == null ? string.Empty : faq.Pregunta;
+            txtRespuesta.Text = faq == null ? string.Empty : faq.Respuesta;
+            txtOrden.Text = (faq == null ? 10 : faq.Orden).ToString(CultureInfo.InvariantCulture);
+            txtPalabrasClave.Text = faq == null ? string.Empty : faq.PalabrasClave;
+            chkAsistente.Checked = faq == null || faq.UsarEnAsistente;
+            Seleccionar(ddlCategoria, faq == null || !faq.IdCategoriaAyuda.HasValue ? null : faq.IdCategoriaAyuda.Value.ToString(CultureInfo.InvariantCulture));
+            Seleccionar(ddlEstado, faq == null ? BLL_Faq.EstadoBorrador : faq.Estado);
+
+            pnlFormulario.Visible = true;
+            pnlDetalle.Visible = false;
+            pnlListado.Visible = false;
+            pnlConsultas.Visible = false;
         }
 
-        private void CargarFaqEnFormulario(int idFaq)
+        private void MostrarDetalle(int idFaq)
         {
-            Faq faq = _bllFaq.ObtenerPorId(idFaq);
+            Faq faq = _bll.ObtenerPorId(idFaq);
             if (faq == null)
             {
-                MostrarMensaje("No se encontró la pregunta frecuente seleccionada.", true);
+                MostrarMensaje("No se encontró el contenido de ayuda seleccionado.", true);
+                VolverAlListado();
                 return;
             }
 
-            IdFaqEnEdicion = faq.IdFaq;
-            txtPregunta.Text = faq.Pregunta;
-            txtRespuesta.Text = faq.Respuesta;
-            txtOrden.Text = faq.Orden.ToString(CultureInfo.InvariantCulture);
-            chkActiva.Checked = faq.Activo;
-            litTituloFormulario.Text = "Editar pregunta";
-            btnGuardarFaq.Text = "Guardar cambios";
-            lnkCancelarFaq.Visible = true;
+            IdEnDetalle = idFaq;
+            litDetallePregunta.Text = faq.Pregunta;
+            lblDetalleEstado.Text = Server.HtmlEncode(BLL_Faq.DescribirEstado(faq.Estado));
+            lblDetalleEstado.CssClass = "faq-estado faq-estado-" + faq.Estado;
+            litDetalleRespuesta.Text = faq.Respuesta;
+            litDetalleCategoria.Text = faq.NombreCategoria ?? "Sin categoría";
+            litDetalleAsistente.Text = faq.UsarEnAsistente ? "Se usa como respuesta del asistente" : "No se usa en el asistente";
+            litDetalleOrden.Text = faq.Orden.ToString(CultureInfo.InvariantCulture);
+            litDetallePalabras.Text = string.IsNullOrWhiteSpace(faq.PalabrasClave) ? "—" : faq.PalabrasClave;
+            litDetalleAlta.Text = faq.FechaAlta == DateTime.MinValue ? "—" : faq.FechaAlta.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
+            litDetalleActualizacion.Text = Fecha(faq);
+
+            pnlAvisoEstado.Visible = faq.Estado != BLL_Faq.EstadoActivo;
+            litAvisoEstado.Text = faq.Estado == BLL_Faq.EstadoInactivo
+                ? "Este contenido está desactivado: no lo ven los usuarios. Podés editarlo y volver a publicarlo."
+                : "Este contenido es un borrador: todavía no lo ven los usuarios.";
+
+            btnPublicar.Visible = faq.Estado != BLL_Faq.EstadoActivo;
+            btnPublicar.Text = faq.Estado == BLL_Faq.EstadoInactivo ? "Publicar de nuevo" : "Publicar contenido";
+            btnDesactivar.Visible = faq.Estado == BLL_Faq.EstadoActivo;
+            pnlConfirmarDesactivar.Visible = false;
+            litConfirmarAsistente.Visible = faq.UsarEnAsistente;
+
+            pnlDetalle.Visible = true;
+            pnlFormulario.Visible = false;
+            pnlListado.Visible = false;
+            pnlConsultas.Visible = false;
         }
 
-        private void LimpiarFormulario()
+        private void VolverAlListado()
         {
-            IdFaqEnEdicion = null;
-            txtPregunta.Text = string.Empty;
-            txtRespuesta.Text = string.Empty;
-            txtOrden.Text = string.Empty;
-            chkActiva.Checked = true;
-            litTituloFormulario.Text = "Nueva pregunta";
-            btnGuardarFaq.Text = "Crear pregunta";
-            lnkCancelarFaq.Visible = false;
+            pnlFormulario.Visible = false;
+            pnlDetalle.Visible = false;
+            pnlListado.Visible = true;
+            pnlConsultas.Visible = true;
+            CargarListado();
         }
 
-        private static string FormatearUltimaEdicion(DateTime? fecha)
+        private void CargarOpciones()
         {
-            if (!fecha.HasValue)
+            ddlFiltroEstado.Items.Clear();
+            ddlFiltroEstado.Items.Add(new ListItem("Todos", string.Empty));
+            ddlFiltroEstado.Items.Add(new ListItem("Publicados", BLL_Faq.EstadoActivo));
+            ddlFiltroEstado.Items.Add(new ListItem("Borradores", BLL_Faq.EstadoBorrador));
+            ddlFiltroEstado.Items.Add(new ListItem("Desactivados", BLL_Faq.EstadoInactivo));
+
+            ddlFiltroCategoria.Items.Clear();
+            ddlFiltroCategoria.Items.Add(new ListItem("Todas", string.Empty));
+            foreach (CategoriaAyuda categoria in _bll.ListarCategorias())
             {
-                return "Sin datos";
+                ddlFiltroCategoria.Items.Add(new ListItem(categoria.Nombre, categoria.IdCategoriaAyuda.ToString(CultureInfo.InvariantCulture)));
             }
-
-            return fecha.Value.Date == DateTime.Today
-                ? "Hoy"
-                : fecha.Value.ToString("dd/MM/yyyy", CultureInfo.CurrentCulture);
         }
 
-        protected static string ObtenerClaseFilaFaq(Faq faq)
+        private void CargarListado()
         {
-            return faq != null && faq.Activo ? "faq-admin-row" : "faq-admin-row faq-admin-row-muted";
+            List<Faq> todos = _bll.Listar();
+            litCantidadActivos.Text = todos.Count(f => f.Estado == BLL_Faq.EstadoActivo).ToString(CultureInfo.InvariantCulture);
+            litCantidadBorradores.Text = todos.Count(f => f.Estado == BLL_Faq.EstadoBorrador).ToString(CultureInfo.InvariantCulture);
+            litCantidadInactivos.Text = todos.Count(f => f.Estado == BLL_Faq.EstadoInactivo).ToString(CultureInfo.InvariantCulture);
+            litCantidadAsistente.Text = todos.Count(f => f.Estado == BLL_Faq.EstadoActivo && f.UsarEnAsistente).ToString(CultureInfo.InvariantCulture);
+
+            int idCategoria;
+            FiltroFaq filtro = new FiltroFaq
+            {
+                Estado = ddlFiltroEstado.SelectedValue,
+                IdCategoriaAyuda = int.TryParse(ddlFiltroCategoria.SelectedValue, out idCategoria) ? idCategoria : (int?)null,
+                Texto = txtFiltroTexto.Text
+            };
+            bool hayFiltros = !string.IsNullOrEmpty(filtro.Estado) || filtro.IdCategoriaAyuda.HasValue || !string.IsNullOrWhiteSpace(filtro.Texto);
+            List<Faq> lista = hayFiltros ? _bll.Listar(filtro) : todos;
+
+            rptFaq.DataSource = lista;
+            rptFaq.DataBind();
+            rptFaq.Visible = lista.Count > 0;
+            pnlSinContenido.Visible = lista.Count == 0;
+            litSinContenido.Text = todos.Count == 0 ? "No hay contenidos de ayuda cargados" : "No hay contenidos para los filtros aplicados";
         }
 
-        protected static string ObtenerClaseEstadoFaq(Faq faq)
+        private void CargarConsultas()
         {
-            return faq != null && faq.Activo
-                ? "admin-status-badge admin-status-badge-active"
-                : "admin-status-badge admin-status-badge-inactive";
+            List<ConsultaAsistenteSinRespuesta> consultas = _bll.ListarConsultasSinRespuesta();
+            rptConsultas.DataSource = consultas;
+            rptConsultas.DataBind();
+            rptConsultas.Visible = consultas.Count > 0;
+            pnlSinConsultas.Visible = consultas.Count == 0;
         }
 
-        protected static string ObtenerTextoEstadoFaq(Faq faq)
+        private static void Seleccionar(DropDownList lista, string valor)
         {
-            return faq != null && faq.Activo ? "Activa" : "Borrador";
+            lista.ClearSelection();
+            ListItem item = valor == null ? null : lista.Items.FindByValue(valor);
+            if (item != null)
+            {
+                item.Selected = true;
+            }
         }
 
+        private static string PrimeraMayuscula(string texto)
+        {
+            string limpio = (texto ?? string.Empty).Trim();
+            return limpio.Length == 0 ? limpio : char.ToUpper(limpio[0], CultureInfo.CurrentCulture) + limpio.Substring(1);
+        }
+
+        private void MostrarMensaje(string mensaje, bool esError)
+        {
+            litMensaje.Text = mensaje;
+            pnlMensaje.CssClass = esError ? "form-message form-message-error" : "form-message form-message-success";
+            pnlMensaje.Visible = !string.IsNullOrEmpty(mensaje);
+        }
+
+        // Paso 2 y A1.
         private bool TieneAcceso()
         {
             if (!GestorDeSesion.EstaAutenticadoComoInterno())
@@ -220,22 +389,13 @@ namespace StageUp.UI.Interno
                 return false;
             }
 
-            if (!GestorDeSesion.TienePermisoInterno("GESTIONAR_FAQ"))
+            if (!GestorDeSesion.TienePermisoInterno(PermisoRequerido))
             {
                 Response.Redirect("~/Interno/PanelAdministrador.aspx?acceso=denegado");
                 return false;
             }
 
             return true;
-        }
-
-        private void MostrarMensaje(string mensaje, bool esError)
-        {
-            litMensaje.Text = Server.HtmlEncode(mensaje);
-            pnlMensaje.CssClass = esError
-                ? "form-message form-message-error"
-                : "form-message form-message-success";
-            pnlMensaje.Visible = !string.IsNullOrEmpty(mensaje);
         }
     }
 }

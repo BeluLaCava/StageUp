@@ -38,5 +38,12 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.DropDownList ddlAnio;
         protected global::System.Web.UI.WebControls.TextBox txtCodigo;
         protected global::System.Web.UI.WebControls.Button btnPagar;
+        protected global::System.Web.UI.WebControls.Panel pnlElegirTarjeta;
+        protected global::System.Web.UI.WebControls.DropDownList ddlTarjetaGuardada;
+        protected global::System.Web.UI.WebControls.Panel pnlCodigoGuardada;
+        protected global::System.Web.UI.WebControls.TextBox txtCodigoGuardada;
+        protected global::System.Web.UI.WebControls.Panel pnlTarjetaNueva;
+        protected global::System.Web.UI.WebControls.CheckBox chkGuardarTarjeta;
+        protected global::System.Web.UI.WebControls.TextBox txtAliasGuardar;
     }
 }

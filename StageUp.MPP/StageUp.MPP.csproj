@@ -56,6 +56,8 @@
     <Compile Include="MPP_Pago.cs" />
     <Compile Include="MPP_TransaccionEconomica.cs" />
     <Compile Include="MPP_HistorialFinanciero.cs" />
+    <Compile Include="MPP_ClaveCifrado.cs" />
+    <Compile Include="MPP_TarjetaGuardada.cs" />
     <Compile Include="MPP_CuentaCorriente.cs" />
     <Compile Include="MPP_Comprobante.cs" />
     <Compile Include="MPP_ParametroPlataforma.cs" />

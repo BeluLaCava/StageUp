@@ -12,6 +12,7 @@ namespace StageUp.UI
     public partial class Pagar : Page
     {
         private readonly BLL_Pago _bllPago = new BLL_Pago();
+        private readonly BLL_Billetera _bllBilletera = new BLL_Billetera();
 
         private int IdReserva
         {
@@ -38,6 +39,7 @@ namespace StageUp.UI
 
                 IdReserva = idReserva;
                 CargarVencimientos();
+                CargarBilletera();
                 CargarContexto(true);
             }
         }
@@ -46,6 +48,45 @@ namespace StageUp.UI
         {
             pnlMensaje.Visible = false;
             CargarContexto(false);
+        }
+
+        protected void ddlTarjetaGuardada_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            pnlMensaje.Visible = false;
+            MostrarSegunTarjetaElegida();
+        }
+
+        // Ítem 8: tarjetas vigentes de la billetera, con la preferida elegida.
+        private void CargarBilletera()
+        {
+            ddlTarjetaGuardada.Items.Clear();
+            foreach (TarjetaGuardada tarjeta in _bllBilletera.Listar(GestorDeSesion.ObtenerIdUsuarioActual().Value))
+            {
+                if (tarjeta.EstaVencida)
+                {
+                    continue;
+                }
+
+                ListItem item = new ListItem(tarjeta.Alias + " · " + BLL_Billetera.Describir(tarjeta) + (tarjeta.Preferida ? " (preferida)" : string.Empty),
+                    tarjeta.IdTarjetaGuardada.ToString(CultureInfo.InvariantCulture));
+                item.Selected = tarjeta.Preferida;
+                ddlTarjetaGuardada.Items.Add(item);
+            }
+
+            pnlElegirTarjeta.Visible = ddlTarjetaGuardada.Items.Count > 0;
+            ddlTarjetaGuardada.Items.Add(new ListItem("Usar otra tarjeta", string.Empty));
+            MostrarSegunTarjetaElegida();
+        }
+
+        private bool UsaTarjetaGuardada
+        {
+            get { return pnlElegirTarjeta.Visible && ddlTarjetaGuardada.SelectedValue.Length > 0; }
+        }
+
+        private void MostrarSegunTarjetaElegida()
+        {
+            pnlCodigoGuardada.Visible = UsaTarjetaGuardada;
+            pnlTarjetaNueva.Visible = !UsaTarjetaGuardada;
         }
 
         protected void btnActualizarResumen_Click(object sender, EventArgs e)
@@ -73,20 +114,33 @@ namespace StageUp.UI
         {
             int idUsuario = GestorDeSesion.ObtenerIdUsuarioActual().Value;
 
-            DatosTarjeta tarjeta = null;
-            if (pnlTarjeta.Visible)
+            TarjetaParaPagar tarjeta = null;
+            if (pnlTarjeta.Visible && UsaTarjetaGuardada)
+            {
+                tarjeta = new TarjetaParaPagar
+                {
+                    IdTarjetaGuardada = int.Parse(ddlTarjetaGuardada.SelectedValue, CultureInfo.InvariantCulture),
+                    CodigoSeguridad = txtCodigoGuardada.Text
+                };
+            }
+            else if (pnlTarjeta.Visible)
             {
                 int mes;
                 int anio;
                 int.TryParse(ddlMes.SelectedValue, out mes);
                 int.TryParse(ddlAnio.SelectedValue, out anio);
-                tarjeta = new DatosTarjeta
+                tarjeta = new TarjetaParaPagar
                 {
-                    Titular = txtTitular.Text,
-                    Numero = txtNumero.Text,
-                    MesVencimiento = mes,
-                    AnioVencimiento = anio,
-                    CodigoSeguridad = txtCodigo.Text
+                    Nueva = new DatosTarjeta
+                    {
+                        Titular = txtTitular.Text,
+                        Numero = txtNumero.Text,
+                        MesVencimiento = mes,
+                        AnioVencimiento = anio,
+                        CodigoSeguridad = txtCodigo.Text
+                    },
+                    GuardarEnBilletera = chkGuardarTarjeta.Checked,
+                    AliasParaGuardar = txtAliasGuardar.Text
                 };
             }
 
@@ -104,6 +158,7 @@ namespace StageUp.UI
             // El número y el código no se vuelven a mostrar en la página.
             txtNumero.Text = string.Empty;
             txtCodigo.Text = string.Empty;
+            txtCodigoGuardada.Text = string.Empty;
 
             if (!resultado.Exitoso)
             {

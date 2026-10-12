@@ -21,6 +21,13 @@
         .pago-prueba { font-size: 0.82em; color: var(--color-text-muted, #765f55); margin-top: 10px; }
         .pago-prueba summary { cursor: pointer; }
         .pago-seguro { font-size: 0.82em; color: var(--color-text-muted, #765f55); margin-top: 8px; }
+        .pago-billetera { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--color-border, #e2e2e2); margin-bottom: 12px; }
+        .pago-billetera select { width: 100%; }
+        .pago-codigo-guardada input { max-width: 8em; }
+        .pago-admin-billetera { font-size: 0.88em; }
+        .pago-guardar { display: flex; gap: 8px; align-items: center; margin: 4px 0 6px; }
+        .pago-guardar input { width: auto; margin: 0; }
+        .pago-guardar label { margin: 0; }
         @media (max-width: 800px) { .pago-grid { grid-template-columns: 1fr; } }
         @media (max-width: 480px) { .pago-tarjeta-fila { grid-template-columns: 1fr 1fr; } }
     </style>
@@ -103,6 +110,19 @@
 
                     <asp:Panel ID="pnlTarjeta" runat="server">
                         <h2>Tarjeta de crédito</h2>
+                        <%-- Ítem 8: tarjetas de la billetera (solo se pide el código). --%>
+                        <asp:Panel ID="pnlElegirTarjeta" runat="server" Visible="false" CssClass="pago-billetera">
+                            <div class="form-field">
+                                <label for="<%= ddlTarjetaGuardada.ClientID %>">¿Con qué tarjeta pagás?</label>
+                                <asp:DropDownList ID="ddlTarjetaGuardada" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ddlTarjetaGuardada_SelectedIndexChanged" />
+                            </div>
+                            <asp:Panel ID="pnlCodigoGuardada" runat="server" CssClass="form-field pago-codigo-guardada">
+                                <label for="<%= txtCodigoGuardada.ClientID %>">Código de seguridad</label>
+                                <asp:TextBox ID="txtCodigoGuardada" runat="server" TextMode="Password" MaxLength="4" autocomplete="cc-csc" inputmode="numeric" />
+                            </asp:Panel>
+                            <a class="text-link pago-admin-billetera" href="MiBilletera.aspx">Administrar mi billetera</a>
+                        </asp:Panel>
+                        <asp:Panel ID="pnlTarjetaNueva" runat="server">
                         <div class="form-field">
                             <label for="<%= txtTitular.ClientID %>">Titular (como figura en la tarjeta)</label>
                             <asp:TextBox ID="txtTitular" runat="server" MaxLength="100" autocomplete="cc-name" />
@@ -125,7 +145,16 @@
                                 <asp:TextBox ID="txtCodigo" runat="server" TextMode="Password" MaxLength="4" autocomplete="cc-csc" inputmode="numeric" />
                             </div>
                         </div>
-                        <p class="pago-seguro">No guardamos el número completo ni el código de seguridad de tu tarjeta: solo la marca y los últimos 4 dígitos.</p>
+                        <div class="pago-guardar">
+                            <asp:CheckBox ID="chkGuardarTarjeta" runat="server" />
+                            <label for="<%= chkGuardarTarjeta.ClientID %>">Guardar esta tarjeta en mi billetera</label>
+                        </div>
+                        <div class="form-field pago-alias">
+                            <label for="<%= txtAliasGuardar.ClientID %>">Alias para la billetera (opcional)</label>
+                            <asp:TextBox ID="txtAliasGuardar" runat="server" MaxLength="40" placeholder="Por ejemplo: Visa personal" />
+                        </div>
+                        </asp:Panel>
+                        <p class="pago-seguro">El código de seguridad nunca se guarda. En el pago solo quedan la marca y los últimos 4 dígitos; si guardás la tarjeta en tu billetera, el número y el titular se guardan cifrados.</p>
                         <details class="pago-prueba">
                             <summary>Tarjetas de prueba</summary>
                             <p>Aprobadas: Visa 4111 1111 1111 1111 · Mastercard 5555 5555 5555 4444 · American Express 3782 822463 10005.<br />

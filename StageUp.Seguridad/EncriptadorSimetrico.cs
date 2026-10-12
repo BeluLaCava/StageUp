@@ -120,6 +120,27 @@ namespace StageUp.Seguridad
         }
 
         /// <summary>
+        /// Huella HMAC-SHA256 (hexadecimal) de un texto, calculada con una clave
+        /// derivada de la clave simétrica. Sirve para comparar datos sensibles
+        /// (por ejemplo, detectar una tarjeta repetida) sin guardarlos en claro
+        /// y sin poder revertir la huella.
+        /// </summary>
+        public static string CalcularHuella(string texto, string proposito)
+        {
+            byte[] claveDerivada;
+            using (HMACSHA256 derivador = new HMACSHA256(ObtenerClave()))
+            {
+                claveDerivada = derivador.ComputeHash(Encoding.UTF8.GetBytes("StageUp|" + (proposito ?? string.Empty)));
+            }
+
+            using (HMACSHA256 hmac = new HMACSHA256(claveDerivada))
+            {
+                byte[] huella = hmac.ComputeHash(Encoding.UTF8.GetBytes(texto ?? string.Empty));
+                return BitConverter.ToString(huella).Replace("-", string.Empty);
+            }
+        }
+
+        /// <summary>
         /// Igual que Desencriptar, pero si el valor guardado no es un texto cifrado válido
         /// (por ejemplo, datos cargados antes de habilitar la encriptación), devuelve el valor
         /// original tal cual en vez de tirar una excepción. Pensado para usarse al leer de la base.

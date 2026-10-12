@@ -33,6 +33,7 @@ namespace StageUp.BLL
         private readonly BLL_Notificacion _notificacion = new BLL_Notificacion();
         private readonly ServicioPasarelaPago _pasarela = new ServicioPasarelaPago();
         private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
+        private readonly BLL_Billetera _billetera = new BLL_Billetera();
 
         public static bool EsperaPago(Reserva reserva)
         {
@@ -170,6 +171,76 @@ namespace StageUp.BLL
                     : importeTarjeta <= 0 ? "Saldo a favor"
                     : "Saldo a favor y tarjeta de crédito"
             });
+        }
+
+        // Ítem 8: pago con una tarjeta de la billetera (pidiendo el código de
+        // seguridad) o con una nueva que, si el usuario quiere, se guarda
+        // después de un pago aprobado. medio puede ser null si se paga todo
+        // con saldo a favor.
+        public ResultadoOperacion<Pago> PagarReserva(int idReserva, int idUsuarioExterno, TarjetaParaPagar medio, EleccionPago eleccion)
+        {
+            DatosTarjeta tarjeta;
+            ResultadoOperacion<DatosTarjeta> datos = ResolverTarjeta(idUsuarioExterno, medio, out tarjeta);
+            if (!datos.Exitoso)
+            {
+                return ResultadoOperacion<Pago>.Error(datos.Mensaje);
+            }
+
+            return CompletarConBilletera(idUsuarioExterno, medio, PagarReserva(idReserva, idUsuarioExterno, tarjeta, eleccion));
+        }
+
+        public ResultadoOperacion<Pago> PagarDeuda(int idUsuarioExterno, string moneda, TarjetaParaPagar medio)
+        {
+            DatosTarjeta tarjeta;
+            ResultadoOperacion<DatosTarjeta> datos = ResolverTarjeta(idUsuarioExterno, medio, out tarjeta);
+            if (!datos.Exitoso)
+            {
+                return ResultadoOperacion<Pago>.Error(datos.Mensaje);
+            }
+
+            return CompletarConBilletera(idUsuarioExterno, medio, PagarDeuda(idUsuarioExterno, moneda, tarjeta));
+        }
+
+        private ResultadoOperacion<DatosTarjeta> ResolverTarjeta(int idUsuarioExterno, TarjetaParaPagar medio, out DatosTarjeta tarjeta)
+        {
+            tarjeta = null;
+            if (medio == null)
+            {
+                return ResultadoOperacion<DatosTarjeta>.Ok(null);
+            }
+
+            if (!medio.IdTarjetaGuardada.HasValue)
+            {
+                tarjeta = medio.Nueva;
+                return ResultadoOperacion<DatosTarjeta>.Ok(tarjeta);
+            }
+
+            ResultadoOperacion<DatosTarjeta> guardada = _billetera.ObtenerDatosParaPagar(idUsuarioExterno, medio.IdTarjetaGuardada.Value, medio.CodigoSeguridad);
+            tarjeta = guardada.Exitoso ? guardada.Valor : null;
+            return guardada;
+        }
+
+        private ResultadoOperacion<Pago> CompletarConBilletera(int idUsuarioExterno, TarjetaParaPagar medio, ResultadoOperacion<Pago> resultado)
+        {
+            if (!resultado.Exitoso || medio == null || resultado.Valor.ImporteTarjeta <= 0)
+            {
+                return resultado;
+            }
+
+            if (medio.IdTarjetaGuardada.HasValue)
+            {
+                _billetera.RegistrarUso(medio.IdTarjetaGuardada.Value);
+                return resultado;
+            }
+
+            if (!medio.GuardarEnBilletera || medio.Nueva == null)
+            {
+                return resultado;
+            }
+
+            ResultadoOperacion<TarjetaGuardada> guardada = _billetera.Guardar(idUsuarioExterno, medio.Nueva, medio.AliasParaGuardar, false);
+            return ResultadoOperacion<Pago>.Ok(resultado.Valor, resultado.Mensaje + " " +
+                (guardada.Exitoso ? guardada.Mensaje : "El pago se hizo, pero no pudimos guardar la tarjeta: " + guardada.Mensaje));
         }
 
         // tarjeta puede ser null solo si se paga todo con saldo a favor.

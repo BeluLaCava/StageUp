@@ -6,23 +6,21 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using StageUp.BE.Entidades;
+using StageUp.DAL;
 using StageUp.Seguridad;
 
 namespace StageUp.BLL
 {
+    // Exportación cifrada de la bitácora (ítem 23) con el esquema híbrido del
+    // ítem 9. Desde el script 66 se cifra con la versión activa del par de
+    // claves de StageUp (BLL_ClaveCifrado) y el archivo indica la versión,
+    // así se puede descifrar aunque después se roten las claves (ítem 10).
+    // Los archivos viejos, sin versión, se descifran con las claves de
+    // AppSettings si siguen configuradas.
     public class BLL_ExportacionSegura
     {
         private readonly BLL_Bitacora _bllBitacora = new BLL_Bitacora();
-
-        public void GenerarNuevoParDeClaves(out string claveBase64Publica, out string claveBase64Privada)
-        {
-            EncriptadorAsimetrico.GenerarParDeClaves(out claveBase64Publica, out claveBase64Privada);
-        }
-
-        public bool HayClavesConfiguradas()
-        {
-            return EncriptadorAsimetrico.HayClavesConfiguradas();
-        }
+        private readonly BLL_ClaveCifrado _claves = new BLL_ClaveCifrado();
 
         public ResultadoOperacion<string> ExportarBitacoraCifrada(
             int? idUsuarioExternoResponsable, DateTime? fechaDesde, DateTime? fechaHasta,
@@ -48,12 +46,21 @@ namespace StageUp.BLL
 
                 string xmlRegistros = SerializarRegistros(registros);
 
+                if (!BLL_ClaveCifrado.HayClaveMaestra())
+                {
+                    return ResultadoOperacion<string>.Error(
+                        "Falta la clave simétrica (ClaveEncriptacionSimetrica) en la configuración privada: sin ella no se puede cifrar la exportación.");
+                }
+
+                ClaveCifrado clave = _claves.ObtenerActiva("Creada automáticamente al exportar la bitácora por primera vez.");
                 string iv, claveCifrada, datosCifrados;
-                EncriptadorHibrido.Encriptar(xmlRegistros, out iv, out claveCifrada, out datosCifrados);
+                EncriptadorHibrido.Encriptar(xmlRegistros, clave.ClavePublica, out iv, out claveCifrada, out datosCifrados);
 
                 XElement envoltorio = new XElement("ExportacionBitacoraCifrada",
                     new XAttribute("fechaGeneracion", DateTime.Now.ToString("s")),
                     new XAttribute("cantidadRegistros", registros.Count),
+                    new XAttribute("versionClave", clave.Version),
+                    new XAttribute("huellaClave", clave.Huella),
                     new XElement("VectorInicializacion", iv),
                     new XElement("ClaveSimetricaCifrada", claveCifrada),
                     new XElement("DatosCifrados", datosCifrados));
@@ -63,6 +70,10 @@ namespace StageUp.BLL
             catch (InvalidOperationException ex)
             {
                 return ResultadoOperacion<string>.Error(ex.Message);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<string>.Error("No se pudo generar la exportación en este momento.");
             }
         }
 
@@ -89,8 +100,34 @@ namespace StageUp.BLL
 
             try
             {
-                string xmlOriginal = EncriptadorHibrido.Desencriptar(iv, claveCifrada, datosCifrados);
+                string xmlOriginal;
+                int version;
+                if (int.TryParse((string)envoltorio.Attribute("versionClave"), out version))
+                {
+                    ClaveCifrado clave = _claves.ObtenerPorVersion(version);
+                    if (clave == null)
+                    {
+                        return ResultadoOperacion<string>.Error("El archivo se cifró con la versión " + version + " de las claves, que no existe en esta base.");
+                    }
+
+                    xmlOriginal = EncriptadorHibrido.Desencriptar(iv, claveCifrada, datosCifrados, _claves.ObtenerClavePrivada(clave.IdClaveCifrado));
+                }
+                else if (EncriptadorAsimetrico.HayClavesConfiguradas())
+                {
+                    // Exportaciones anteriores al script 66.
+                    xmlOriginal = EncriptadorHibrido.Desencriptar(iv, claveCifrada, datosCifrados);
+                }
+                else
+                {
+                    return ResultadoOperacion<string>.Error(
+                        "El archivo es de una versión anterior (sin versión de clave) y ya no están configuradas las claves con que se generó.");
+                }
+
                 return ResultadoOperacion<string>.Ok(xmlOriginal);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<string>.Error("No se pudo leer la clave en este momento. Probá de nuevo.");
             }
             catch (InvalidOperationException ex)
             {
@@ -100,10 +137,10 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion<string>.Error("El archivo está corrupto o no es una exportación válida.");
             }
-            catch (CryptographicException)
+            catch (Exception ex) when (ex is CryptographicException || ex is ArgumentException)
             {
                 return ResultadoOperacion<string>.Error(
-                    "No se pudo descifrar el archivo. Verificá que la clave privada configurada sea la misma que se usó para generarlo.");
+                    "No se pudo descifrar el archivo: está alterado o no corresponde a las claves de esta instalación.");
             }
         }
 

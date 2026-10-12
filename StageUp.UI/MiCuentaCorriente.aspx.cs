@@ -70,26 +70,47 @@ namespace StageUp.UI
             CargarMovimientos();
         }
 
+        protected void ddlTarjetaGuardada_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            MostrarSegunTarjetaElegida();
+        }
+
         protected void btnPagarDeuda_Click(object sender, EventArgs e)
         {
-            int mes;
-            int anio;
-            int.TryParse(ddlMes.SelectedValue, out mes);
-            int.TryParse(ddlAnio.SelectedValue, out anio);
-            DatosTarjeta tarjeta = new DatosTarjeta
+            TarjetaParaPagar tarjeta;
+            if (UsaTarjetaGuardada)
             {
-                Titular = txtTitular.Text,
-                Numero = txtNumero.Text,
-                MesVencimiento = mes,
-                AnioVencimiento = anio,
-                CodigoSeguridad = txtCodigo.Text
-            };
+                tarjeta = new TarjetaParaPagar
+                {
+                    IdTarjetaGuardada = int.Parse(ddlTarjetaGuardada.SelectedValue, CultureInfo.InvariantCulture),
+                    CodigoSeguridad = txtCodigoGuardada.Text
+                };
+            }
+            else
+            {
+                int mes;
+                int anio;
+                int.TryParse(ddlMes.SelectedValue, out mes);
+                int.TryParse(ddlAnio.SelectedValue, out anio);
+                tarjeta = new TarjetaParaPagar
+                {
+                    Nueva = new DatosTarjeta
+                    {
+                        Titular = txtTitular.Text,
+                        Numero = txtNumero.Text,
+                        MesVencimiento = mes,
+                        AnioVencimiento = anio,
+                        CodigoSeguridad = txtCodigo.Text
+                    }
+                };
+            }
 
             ResultadoOperacion<Pago> resultado = _bllPago.PagarDeuda(
                 GestorDeSesion.ObtenerIdUsuarioActual().Value, hfMonedaDeuda.Value, tarjeta);
 
             txtNumero.Text = string.Empty;
             txtCodigo.Text = string.Empty;
+            txtCodigoGuardada.Text = string.Empty;
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
             CargarSaldos();
             CargarMovimientos();
@@ -148,10 +169,45 @@ namespace StageUp.UI
             pnlDeuda.Visible = deuda != null;
             if (deuda != null)
             {
+                CargarBilletera();
                 hfMonedaDeuda.Value = deuda.Moneda;
                 litDeuda.Text = Server.HtmlEncode(Importe(-deuda.Saldo, deuda.Moneda));
                 btnPagarDeuda.Text = "Pagar " + Importe(-deuda.Saldo, deuda.Moneda);
             }
+        }
+
+        // Ítem 8: tarjetas vigentes de la billetera, con la preferida elegida.
+        private void CargarBilletera()
+        {
+            string seleccionada = ddlTarjetaGuardada.Items.Count > 0 ? ddlTarjetaGuardada.SelectedValue : null;
+            ddlTarjetaGuardada.Items.Clear();
+            foreach (TarjetaGuardada tarjeta in new BLL_Billetera().Listar(GestorDeSesion.ObtenerIdUsuarioActual().Value))
+            {
+                if (!tarjeta.EstaVencida)
+                {
+                    ListItem item = new ListItem(tarjeta.Alias + " · " + BLL_Billetera.Describir(tarjeta),
+                        tarjeta.IdTarjetaGuardada.ToString(CultureInfo.InvariantCulture));
+                    item.Selected = seleccionada == null ? tarjeta.Preferida : seleccionada == item.Value;
+                    ddlTarjetaGuardada.Items.Add(item);
+                }
+            }
+
+            pnlElegirTarjeta.Visible = ddlTarjetaGuardada.Items.Count > 0;
+            ListItem otra = new ListItem("Usar otra tarjeta", string.Empty);
+            otra.Selected = seleccionada == string.Empty;
+            ddlTarjetaGuardada.Items.Add(otra);
+            MostrarSegunTarjetaElegida();
+        }
+
+        private bool UsaTarjetaGuardada
+        {
+            get { return pnlElegirTarjeta.Visible && ddlTarjetaGuardada.SelectedValue.Length > 0; }
+        }
+
+        private void MostrarSegunTarjetaElegida()
+        {
+            pnlCodigoGuardada.Visible = UsaTarjetaGuardada;
+            pnlTarjetaNueva.Visible = !UsaTarjetaGuardada;
         }
 
         private void CargarMovimientos()

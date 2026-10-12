@@ -20,6 +20,66 @@ namespace StageUp.BE.Entidades
         public string CodigoSeguridad { get; set; }
     }
 
+    // Ítem 8: tarjeta guardada en la billetera del usuario. Para mostrar
+    // solo viajan alias, marca, últimos 4 y vencimiento; número y titular
+    // quedan cifrados (ítem 9) y el código de seguridad nunca se guarda.
+    public class TarjetaGuardada
+    {
+        public int IdTarjetaGuardada { get; set; }
+        public int IdUsuarioExterno { get; set; }
+        public string Alias { get; set; }
+        public string Marca { get; set; }
+        public string UltimosDigitos { get; set; }
+        public int MesVencimiento { get; set; }
+        public int AnioVencimiento { get; set; }
+        public bool Preferida { get; set; }
+        public DateTime FechaAlta { get; set; }
+        public DateTime? FechaUltimoUso { get; set; }
+
+        // Datos protegidos (solo para guardar, pagar o rotar claves).
+        public string Huella { get; set; }
+        public string Iv { get; set; }
+        public string ClaveCifrada { get; set; }
+        public string DatosCifrados { get; set; }
+        public int? IdClaveCifrado { get; set; }
+
+        public bool EstaVencida
+        {
+            get { return new DateTime(AnioVencimiento, MesVencimiento, 1).AddMonths(1) <= DateTime.Today; }
+        }
+    }
+
+    // Ítem 8: con qué tarjeta se paga. O una nueva (Nueva, con la opción de
+    // guardarla) o una de la billetera (IdTarjetaGuardada + código de
+    // seguridad, que se pide en cada pago).
+    public class TarjetaParaPagar
+    {
+        public DatosTarjeta Nueva { get; set; }
+        public bool GuardarEnBilletera { get; set; }
+        public string AliasParaGuardar { get; set; }
+        public int? IdTarjetaGuardada { get; set; }
+        public string CodigoSeguridad { get; set; }
+    }
+
+    // Ítems 9 y 10: versión del par de claves RSA de StageUp.
+    public class ClaveCifrado
+    {
+        public int IdClaveCifrado { get; set; }
+        public int Version { get; set; }
+        public string ClavePublica { get; set; }
+        public string ClavePrivadaProtegida { get; set; }
+        public string Huella { get; set; }
+        public string Estado { get; set; }                // Activa | Retirada
+        public string Motivo { get; set; }
+        public int? IdUsuarioInternoAlta { get; set; }
+        public string NombreUsuarioAlta { get; set; }
+        public DateTime FechaAlta { get; set; }
+        public int? IdUsuarioInternoRetiro { get; set; }
+        public string NombreUsuarioRetiro { get; set; }
+        public DateTime? FechaRetiro { get; set; }
+        public int TarjetasProtegidas { get; set; }
+    }
+
     public class Pago
     {
         public int IdPago { get; set; }

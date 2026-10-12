@@ -41,6 +41,7 @@
     <Compile Include="HashDeContrasenas.cs" />
     <Compile Include="ProtectorDeCredenciales.cs" />
     <Compile Include="ProtectorDeDatosSensibles.cs" />
+    <Compile Include="ProtectorDeClavesAsimetricas.cs" />
     <Compile Include="GeneradorDeCodigos.cs" />
     <Compile Include="GestorDeSesion.cs" />
   </ItemGroup>

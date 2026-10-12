@@ -15,8 +15,17 @@ namespace StageUp.Seguridad
     /// </summary>
     public static class EncriptadorHibrido
     {
+        // Con las claves de AppSettings (exportaciones generadas antes del
+        // script 66).
         public static void Encriptar(
             string textoPlano, out string ivBase64, out string claveCifradaBase64, out string datosCifradosBase64)
+        {
+            Encriptar(textoPlano, null, out ivBase64, out claveCifradaBase64, out datosCifradosBase64);
+        }
+
+        // Ítem 9: con la clave pública indicada (versión activa de ClaveCifrado).
+        public static void Encriptar(
+            string textoPlano, string clavePublicaBase64, out string ivBase64, out string claveCifradaBase64, out string datosCifradosBase64)
         {
             using (Aes aes = Aes.Create())
             {
@@ -36,7 +45,9 @@ namespace StageUp.Seguridad
                     }
                 }
 
-                byte[] claveCifrada = EncriptadorAsimetrico.Encriptar(aes.Key);
+                byte[] claveCifrada = clavePublicaBase64 == null
+                    ? EncriptadorAsimetrico.Encriptar(aes.Key)
+                    : EncriptadorAsimetrico.Encriptar(aes.Key, clavePublicaBase64);
 
                 ivBase64 = Convert.ToBase64String(aes.IV);
                 claveCifradaBase64 = Convert.ToBase64String(claveCifrada);
@@ -46,7 +57,15 @@ namespace StageUp.Seguridad
 
         public static string Desencriptar(string ivBase64, string claveCifradaBase64, string datosCifradosBase64)
         {
-            byte[] claveAes = EncriptadorAsimetrico.Desencriptar(Convert.FromBase64String(claveCifradaBase64));
+            return Desencriptar(ivBase64, claveCifradaBase64, datosCifradosBase64, null);
+        }
+
+        public static string Desencriptar(string ivBase64, string claveCifradaBase64, string datosCifradosBase64, string clavePrivadaBase64)
+        {
+            byte[] claveCifrada = Convert.FromBase64String(claveCifradaBase64);
+            byte[] claveAes = clavePrivadaBase64 == null
+                ? EncriptadorAsimetrico.Desencriptar(claveCifrada)
+                : EncriptadorAsimetrico.Desencriptar(claveCifrada, clavePrivadaBase64);
             byte[] iv = Convert.FromBase64String(ivBase64);
             byte[] datosCifrados = Convert.FromBase64String(datosCifradosBase64);
 
@@ -63,6 +82,22 @@ namespace StageUp.Seguridad
                     flujoCripto.CopyTo(flujoResultado);
                     return Encoding.UTF8.GetString(flujoResultado.ToArray());
                 }
+            }
+        }
+
+        // Ítem 10 (rotación): vuelve a envolver la clave AES de un dato con
+        // la nueva clave pública, sin tocar los datos cifrados. La clave AES
+        // solo existe en memoria durante la llamada.
+        public static string ReenvolverClave(string claveCifradaBase64, string clavePrivadaAnteriorBase64, string clavePublicaNuevaBase64)
+        {
+            byte[] claveAes = EncriptadorAsimetrico.Desencriptar(Convert.FromBase64String(claveCifradaBase64), clavePrivadaAnteriorBase64);
+            try
+            {
+                return Convert.ToBase64String(EncriptadorAsimetrico.Encriptar(claveAes, clavePublicaNuevaBase64));
+            }
+            finally
+            {
+                Array.Clear(claveAes, 0, claveAes.Length);
             }
         }
     }

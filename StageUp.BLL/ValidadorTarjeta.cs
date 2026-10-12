@@ -23,6 +23,18 @@ namespace StageUp.BLL
         // Devuelve la marca si la tarjeta es válida.
         public static ResultadoOperacion<string> Validar(DatosTarjeta tarjeta)
         {
+            return Validar(tarjeta, true);
+        }
+
+        // Ítem 8: para guardar en la billetera no se pide el código de
+        // seguridad (no se guarda nunca; se pide en cada pago).
+        public static ResultadoOperacion<string> ValidarParaGuardar(DatosTarjeta tarjeta)
+        {
+            return Validar(tarjeta, false);
+        }
+
+        private static ResultadoOperacion<string> Validar(DatosTarjeta tarjeta, bool exigirCodigo)
+        {
             if (tarjeta == null)
             {
                 return ResultadoOperacion<string>.Error("Completá los datos de la tarjeta.");
@@ -53,7 +65,7 @@ namespace StageUp.BLL
 
             int largoCodigo = marca == MarcaAmex ? 4 : 3;
             string codigo = (tarjeta.CodigoSeguridad ?? string.Empty).Trim();
-            if (codigo.Length != largoCodigo || !EsSoloDigitos(codigo))
+            if (exigirCodigo && (codigo.Length != largoCodigo || !EsSoloDigitos(codigo)))
             {
                 return ResultadoOperacion<string>.Error(
                     "El código de seguridad tiene que tener " + largoCodigo + " dígitos" +

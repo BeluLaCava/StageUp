@@ -311,6 +311,13 @@
     <Compile Include="DetallePago.aspx.designer.cs">
       <DependentUpon>DetallePago.aspx</DependentUpon>
     </Compile>
+    <Compile Include="MiBilletera.aspx.cs">
+      <DependentUpon>MiBilletera.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="MiBilletera.aspx.designer.cs">
+      <DependentUpon>MiBilletera.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Interno\HistorialFinanciero.aspx.cs">
       <DependentUpon>HistorialFinanciero.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -498,6 +505,7 @@
     <Content Include="Interno\PagosReservas.aspx" />
     <Content Include="Interno\TransaccionesEconomicas.aspx" />
     <Content Include="Interno\HistorialFinanciero.aspx" />
+    <Content Include="MiBilletera.aspx" />
     <Content Include="Interno\DetalleOperacionFinanciera.aspx" />
     <Content Include="Notificaciones.aspx" />
     <Content Include="DisponibilidadEspacio.aspx" />

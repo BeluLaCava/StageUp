@@ -29,5 +29,10 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.LinkButton lnkLimpiar;
         protected global::System.Web.UI.WebControls.Panel pnlSinMovimientos;
         protected global::System.Web.UI.WebControls.Repeater rptMovimientos;
+        protected global::System.Web.UI.WebControls.Panel pnlElegirTarjeta;
+        protected global::System.Web.UI.WebControls.DropDownList ddlTarjetaGuardada;
+        protected global::System.Web.UI.WebControls.Panel pnlCodigoGuardada;
+        protected global::System.Web.UI.WebControls.TextBox txtCodigoGuardada;
+        protected global::System.Web.UI.WebControls.Panel pnlTarjetaNueva;
     }
 }

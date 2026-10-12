@@ -34,6 +34,39 @@ namespace StageUp.Seguridad
                 && !string.IsNullOrEmpty(ConfigurationManager.AppSettings["ClaveAsimetricaPrivada"]);
         }
 
+        // Ítems 9 y 10: cifrado con un par de claves guardado por StageUp
+        // (tabla ClaveCifrado), en vez del configurado en AppSettings.
+        public static byte[] Encriptar(byte[] datos, string clavePublicaBase64)
+        {
+            using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
+            {
+                rsa.ImportCspBlob(Convert.FromBase64String(clavePublicaBase64));
+                return rsa.Encrypt(datos, true);
+            }
+        }
+
+        public static byte[] Desencriptar(byte[] datosCifrados, string clavePrivadaBase64)
+        {
+            using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
+            {
+                rsa.ImportCspBlob(Convert.FromBase64String(clavePrivadaBase64));
+                return rsa.Decrypt(datosCifrados, true);
+            }
+        }
+
+        // Huella SHA-256 de la clave pública, para identificar una versión sin
+        // mostrar la clave (por ejemplo "3F2A 91C4 ... 7B10").
+        public static string CalcularHuella(string clavePublicaBase64)
+        {
+            using (SHA256 sha = SHA256.Create())
+            {
+                byte[] hash = sha.ComputeHash(Convert.FromBase64String(clavePublicaBase64));
+                string hex = BitConverter.ToString(hash).Replace("-", string.Empty);
+                return string.Join(" ", new[] { hex.Substring(0, 4), hex.Substring(4, 4), hex.Substring(8, 4), hex.Substring(12, 4),
+                                                hex.Substring(16, 4), hex.Substring(20, 4), hex.Substring(24, 4), hex.Substring(28, 4) });
+            }
+        }
+
         public static byte[] Encriptar(byte[] datos)
         {
             using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())

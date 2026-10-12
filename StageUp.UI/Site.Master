@@ -122,6 +122,7 @@
                 <nav class="sidebar-navigation">
                     <a id="MisReservasLink" runat="server" class="sidebar-link" href="~/MisReservas.aspx" data-i18n="Nav_MisReservas">Mis reservas</a>
                     <a id="MiCuentaCorrienteLink" runat="server" class="sidebar-link" href="~/MiCuentaCorriente.aspx">Mi cuenta corriente</a>
+                    <a id="MiBilleteraLink" runat="server" class="sidebar-link" href="~/MiBilletera.aspx">Mi billetera</a>
                     <a id="MisEspaciosLink" runat="server" class="sidebar-link" href="~/MisEspacios.aspx" data-i18n="Nav_MisEspacios">Mis espacios</a>
                     <a id="MisActividadesLink" runat="server" class="sidebar-link" href="~/MisActividades.aspx" data-i18n="Nav_MisActividades">Mis actividades</a>
                     <a id="SoporteLink" runat="server" class="sidebar-link" href="~/Soporte.aspx">Soporte</a>

@@ -14,6 +14,9 @@
         .cc-deuda { padding: 14px 16px; border-radius: 12px; background: #fff4e5; border-left: 4px solid #b45309; margin-top: 14px; }
         .cc-filtros { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 12px; }
         .cc-tarjeta { display: grid; grid-template-columns: 2fr 2fr 1fr 1fr 1fr; gap: 0 10px; }
+        .cc-billetera { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); gap: 0 10px; align-items: end; }
+        .cc-billetera > * { min-width: 0; }
+        .cc-billetera select, .cc-billetera input { width: 100%; box-sizing: border-box; }
         .cc-tabla-wrap { overflow-x: auto; }
         .cc-tabla { width: 100%; border-collapse: collapse; font-size: 0.9em; }
         .cc-tabla th, .cc-tabla td { padding: 8px; border-bottom: 1px solid var(--color-border, #e2e2e2); text-align: left; vertical-align: top; }
@@ -77,7 +80,18 @@
                     <h3>Pagar saldo deudor</h3>
                     <p>Tenés <strong><asp:Literal ID="litDeuda" runat="server" /></strong> pendiente de pago. Podés cancelarlo con tarjeta.</p>
                     <asp:HiddenField ID="hfMonedaDeuda" runat="server" />
-                    <div class="cc-tarjeta">
+                    <%-- Ítem 8: también se puede pagar con una tarjeta de la billetera. --%>
+                    <asp:Panel ID="pnlElegirTarjeta" runat="server" Visible="false" CssClass="cc-billetera">
+                        <div class="form-field">
+                            <label for="<%= ddlTarjetaGuardada.ClientID %>">Tarjeta</label>
+                            <asp:DropDownList ID="ddlTarjetaGuardada" runat="server" AutoPostBack="true" OnSelectedIndexChanged="ddlTarjetaGuardada_SelectedIndexChanged" />
+                        </div>
+                        <asp:Panel ID="pnlCodigoGuardada" runat="server" CssClass="form-field">
+                            <label for="<%= txtCodigoGuardada.ClientID %>">Código de seguridad</label>
+                            <asp:TextBox ID="txtCodigoGuardada" runat="server" TextMode="Password" MaxLength="4" autocomplete="cc-csc" inputmode="numeric" />
+                        </asp:Panel>
+                    </asp:Panel>
+                    <asp:Panel ID="pnlTarjetaNueva" runat="server" CssClass="cc-tarjeta">
                         <div class="form-field">
                             <label for="<%= txtTitular.ClientID %>">Titular</label>
                             <asp:TextBox ID="txtTitular" runat="server" MaxLength="100" autocomplete="cc-name" />
@@ -98,7 +112,7 @@
                             <label for="<%= txtCodigo.ClientID %>">Código</label>
                             <asp:TextBox ID="txtCodigo" runat="server" TextMode="Password" MaxLength="4" autocomplete="cc-csc" inputmode="numeric" />
                         </div>
-                    </div>
+                    </asp:Panel>
                     <asp:Button ID="btnPagarDeuda" runat="server" CssClass="button button-primary" CausesValidation="false"
                         UseSubmitBehavior="false" OnClientClick="this.disabled=true;this.value='Procesando pago...';"
                         OnClick="btnPagarDeuda_Click" />

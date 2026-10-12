@@ -101,7 +101,7 @@
                                     <asp:LinkButton runat="server" CssClass="text-link language-danger-link" CausesValidation="false"
                                         CommandName="Baja" CommandArgument='<%# Eval("IdIdioma") %>' Text="Dar de baja"
                                         Visible='<%# !Convert.ToBoolean(Eval("EsPredeterminado")) %>'
-                                        OnClientClick="return confirm('¿Seguro que querés dar de baja este idioma? Dejará de aparecer en el selector público.');" />
+                                        OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Seguro que querés dar de baja este idioma? Dejará de aparecer en el selector público.')) return false;" />
                                 </div>
                             </article>
                         </ItemTemplate>

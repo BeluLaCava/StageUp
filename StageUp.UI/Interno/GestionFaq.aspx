@@ -93,7 +93,8 @@
                 </asp:Panel>
                 <div class="form-actions">
                     <asp:Button ID="btnEditar" runat="server" CssClass="button button-secondary" Text="Editar contenido" CausesValidation="false" OnClick="btnEditar_Click" />
-                    <asp:Button ID="btnPublicar" runat="server" CssClass="button button-primary" Text="Publicar contenido" CausesValidation="false" OnClick="btnPublicar_Click" />
+                    <asp:Button ID="btnPublicar" runat="server" CssClass="button button-primary" Text="Publicar contenido" CausesValidation="false" OnClick="btnPublicar_Click"
+                        OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Publicar este contenido de ayuda? Va a quedar visible en el centro de ayuda.', { title: 'Publicar contenido', confirmText: 'Sí, publicar', cancelText: 'Volver' })) return false;" />
                     <asp:Button ID="btnDesactivar" runat="server" CssClass="button button-secondary" Text="Desactivar contenido" CausesValidation="false" OnClick="btnDesactivar_Click" />
                     <asp:LinkButton ID="lnkVolverListado" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkVolverListado_Click">Volver al listado</asp:LinkButton>
                 </div>

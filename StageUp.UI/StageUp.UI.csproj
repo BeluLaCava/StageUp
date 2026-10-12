@@ -532,6 +532,7 @@
     <Content Include="Interno\GestionIdiomas.aspx" />
     <Content Include="Interno\ConfigurarIdioma.aspx" />
     <Content Include="Scripts\site.js" />
+    <Content Include="Scripts\stageup-confirm.js" />
     <Content Include="Scripts\espacios-ficha.js" />
     <Content Include="Scripts\detalle-espacio.js" />
     <Content Include="Scripts\charts-stageup.js" />

@@ -114,7 +114,8 @@
                         </div>
                     </asp:Panel>
                     <asp:Button ID="btnPagarDeuda" runat="server" CssClass="button button-primary" CausesValidation="false"
-                        UseSubmitBehavior="false" OnClientClick="this.disabled=true;this.value='Procesando pago...';"
+                        UseSubmitBehavior="false"
+                        OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Confirmar el pago del saldo deudor? Se registrará el movimiento en tu cuenta corriente.', { title: 'Pagar saldo deudor', confirmText: 'Sí, pagar', cancelText: 'Volver', disableOnConfirm: true, confirmedText: 'Procesando pago...' })) return false;"
                         OnClick="btnPagarDeuda_Click" />
                 </asp:Panel>
             </div>

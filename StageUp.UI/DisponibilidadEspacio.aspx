@@ -283,7 +283,7 @@
                                         </div>
                                         <asp:LinkButton ID="lnkQuitar" runat="server" CssClass="button button-secondary button-small" CausesValidation="false"
                                             CommandName="Quitar" CommandArgument='<%# Eval("IdFranjaEspacio") %>' Text="Quitar bloqueo"
-                                            OnClientClick="return confirm('¿Quitar este bloqueo? El horario vuelve a estar disponible para reservas si está dentro de la disponibilidad.');" />
+                                            OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Quitar este bloqueo? El horario vuelve a estar disponible para reservas si está dentro de la disponibilidad.')) return false;" />
                                     </li>
                                 </ItemTemplate>
                             </asp:Repeater>

@@ -138,7 +138,8 @@
                 <asp:LinkButton ID="lnkCancelarCalificacionEspacio" runat="server" CssClass="button button-secondary" CausesValidation="false"
                     OnClick="lnkCerrarCalificacionEspacio_Click" data-i18n="General_Cancelar">Cancelar</asp:LinkButton>
                 <asp:Button ID="btnEnviarCalificacionEspacio" runat="server" CssClass="button button-primary"
-                    ValidationGroup="CalificarEspacio" Text="Publicar reseña" OnClick="btnEnviarCalificacionEspacio_Click" data-i18n="Calificacion_Publicar" />
+                    ValidationGroup="CalificarEspacio" Text="Publicar reseña" OnClick="btnEnviarCalificacionEspacio_Click" data-i18n="Calificacion_Publicar"
+                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Publicar esta calificación? Va a quedar asociada a la reserva.', { title: 'Publicar reseña', confirmText: 'Sí, publicar', cancelText: 'Revisar', validationGroup: 'CalificarEspacio' })) return false;" />
             </div>
         </dialog>
     </asp:Panel>

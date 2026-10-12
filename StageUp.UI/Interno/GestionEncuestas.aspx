@@ -154,7 +154,7 @@
                                     <asp:LinkButton ID="lnkQuitarPregunta" runat="server" CssClass="admin-action-link admin-action-link-danger"
                                         CausesValidation="false" CommandName="Quitar" CommandArgument='<%# Eval("IdPreguntaEncuesta") %>'
                                         Text="Quitar pregunta" Visible='<%# EsBorrador %>'
-                                        OnClientClick="return confirm('¿Seguro que querés quitar esta pregunta?');" />
+                                        OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Seguro que querés quitar esta pregunta?')) return false;" />
                                 </div>
                             </ItemTemplate>
                         </asp:Repeater>
@@ -185,13 +185,14 @@
                         </div>
                         <div class="encuesta-estado-acciones">
                             <asp:Button ID="btnPublicar" runat="server" CssClass="button button-primary" Text="Publicar encuesta"
-                                CausesValidation="false" OnClick="btnPublicar_Click" />
+                                CausesValidation="false" OnClick="btnPublicar_Click"
+                                OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Publicar esta encuesta? Desde ese momento va a quedar disponible para responder.', { title: 'Publicar encuesta', confirmText: 'Sí, publicar', cancelText: 'Volver' })) return false;" />
                             <asp:Button ID="btnCerrar" runat="server" CssClass="button button-secondary" Text="Cerrar encuesta"
                                 CausesValidation="false" OnClick="btnCerrar_Click"
-                                OnClientClick="return confirm('¿Seguro que querés cerrar la encuesta? Deja de aceptar respuestas.');" />
+                                OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Seguro que querés cerrar la encuesta? Deja de aceptar respuestas.')) return false;" />
                             <asp:Button ID="btnEliminarBorrador" runat="server" CssClass="button button-secondary" Text="Eliminar borrador"
                                 CausesValidation="false" OnClick="btnEliminarBorrador_Click"
-                                OnClientClick="return confirm('¿Seguro que querés eliminar esta encuesta en borrador? Se borran también sus preguntas y opciones.');" />
+                                OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Seguro que querés eliminar esta encuesta en borrador? Se borran también sus preguntas y opciones.')) return false;" />
                             <asp:Literal ID="litEstadoSinAcciones" runat="server" Visible="false" Text="Esta encuesta está cerrada." />
                         </div>
                     </asp:Panel>

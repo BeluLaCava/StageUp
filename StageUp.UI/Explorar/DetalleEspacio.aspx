@@ -40,8 +40,10 @@
                         <asp:HyperLink ID="lnkEditarGestion" runat="server" CssClass="button button-primary button-small" Text="Editar espacio" />
                         <asp:HyperLink ID="lnkDisponibilidadGestion" runat="server" CssClass="button button-secondary button-small" Text="Configurar disponibilidad" />
                         <asp:HyperLink ID="lnkActividadesGestion" runat="server" CssClass="button button-secondary button-small" Text="Actividades internas" />
-                        <asp:LinkButton ID="lnkPublicarGestion" runat="server" CssClass="button button-secondary button-small" CausesValidation="false" OnClick="lnkPublicarGestion_Click">Publicar</asp:LinkButton>
-                        <asp:LinkButton ID="lnkPausarGestion" runat="server" CssClass="button button-secondary button-small" CausesValidation="false" OnClick="lnkPausarGestion_Click">Pausar</asp:LinkButton>
+                        <asp:LinkButton ID="lnkPublicarGestion" runat="server" CssClass="button button-secondary button-small" CausesValidation="false" OnClick="lnkPublicarGestion_Click"
+                            OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Publicar este espacio? Va a quedar visible en el catálogo.', { title: 'Publicar espacio', confirmText: 'Sí, publicar', cancelText: 'Volver' })) return false;">Publicar</asp:LinkButton>
+                        <asp:LinkButton ID="lnkPausarGestion" runat="server" CssClass="button button-secondary button-small" CausesValidation="false" OnClick="lnkPausarGestion_Click"
+                            OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Pausar este espacio? Va a dejar de mostrarse en el catálogo hasta que lo vuelvas a publicar.', { title: 'Pausar espacio', confirmText: 'Sí, pausar', cancelText: 'Volver' })) return false;">Pausar</asp:LinkButton>
                         <asp:LinkButton ID="lnkBajaGestion" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkBajaGestion_Click">Dar de baja espacio</asp:LinkButton>
                         <a class="text-link" href="../MisEspacios.aspx">Volver a Mis espacios</a>
                     </div>

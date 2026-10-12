@@ -108,7 +108,8 @@
                         <asp:Button ID="btnGuardarBorrador" runat="server" CssClass="button button-secondary" Text="Guardar como borrador"
                             ValidationGroup="Novedad" OnClick="btnGuardarBorrador_Click" />
                         <asp:Button ID="btnPublicar" runat="server" CssClass="button button-primary" Text="Guardar y publicar"
-                            ValidationGroup="Novedad" OnClick="btnPublicar_Click" />
+                            ValidationGroup="Novedad" OnClick="btnPublicar_Click"
+                            OnClientClick="if (!confirmarPublicacionNovedad(this, event)) return false;" />
                         <asp:Button ID="btnEnviarPrueba" runat="server" CssClass="button button-secondary" Text="Enviar prueba"
                             ValidationGroup="Novedad" OnClick="btnEnviarPrueba_Click" />
                         <asp:LinkButton ID="lnkCancelarNovedad" runat="server" CssClass="text-link" Text="Cancelar edición"
@@ -166,15 +167,16 @@
                                                     CommandName="Editar" CommandArgument='<%# Eval("IdNovedad") %>' Text="Editar" />
                                                 <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
                                                     CommandName="Publicar" CommandArgument='<%# Eval("IdNovedad") %>' Text="Publicar"
-                                                    Visible='<%# !Convert.ToBoolean(Eval("Publicado")) %>' />
+                                                    Visible='<%# !Convert.ToBoolean(Eval("Publicado")) %>'
+                                                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Publicar esta novedad? Va a quedar visible en la página pública.', { title: 'Publicar novedad', confirmText: 'Sí, publicar', cancelText: 'Volver' })) return false;" />
                                                 <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-danger" CausesValidation="false"
                                                     CommandName="VolverABorrador" CommandArgument='<%# Eval("IdNovedad") %>' Text="Volver a borrador"
                                                     Visible='<%# Convert.ToBoolean(Eval("Publicado")) %>'
-                                                    OnClientClick="return confirm('¿Volver esta novedad a borrador? Deja de mostrarse en la página pública.');" />
+                                                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Volver esta novedad a borrador? Deja de mostrarse en la página pública.')) return false;" />
                                                 <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
                                                     CommandName="EnviarNewsletter" CommandArgument='<%# Eval("IdNovedad") %>' Text="Enviar newsletter"
                                                     Visible='<%# Convert.ToBoolean(Eval("Publicado")) && !Convert.ToBoolean(Eval("EnviadaPorCorreo")) %>'
-                                                    OnClientClick="return confirm('¿Enviar el newsletter de esta novedad a la categoría de destinatarios seleccionada arriba?');" />
+                                                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Enviar el newsletter de esta novedad a la categoría de destinatarios seleccionada arriba?')) return false;" />
                                             </div>
                                         </div>
                                         <span class='<%# ObtenerClaseEstadoNovedad((StageUp.BE.Entidades.Novedad)Container.DataItem) %>'>
@@ -189,4 +191,19 @@
             </div>
         </div>
     </section>
+    <script>
+        function confirmarPublicacionNovedad(btn, event) {
+            var enviarMail = document.getElementById("<%= chkEnviarMail.ClientID %>");
+            var mensaje = enviarMail && enviarMail.checked
+                ? "¿Publicar esta novedad y enviarla por mail? El envío se realizará a los destinatarios seleccionados."
+                : "¿Guardar y publicar esta novedad? Va a quedar visible en la web.";
+
+            return StageUpConfirm.confirmPostback(btn, event, mensaje, {
+                title: "Publicar novedad",
+                confirmText: "Sí, publicar",
+                cancelText: "Volver",
+                validationGroup: "Novedad"
+            });
+        }
+    </script>
 </asp:Content>

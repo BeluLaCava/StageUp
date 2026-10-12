@@ -97,7 +97,7 @@ namespace StageUp.UI
             if (puedeCancelar)
             {
                 lnkCancelar.Attributes["onclick"] =
-                    "return confirm('" + _bllReserva.ObtenerAvisoCancelacion(reserva).Replace("'", "\\'") + "');";
+                    "if (!StageUpConfirm.confirmPostback(this, event, '" + EscaparConfirmacion(_bllReserva.ObtenerAvisoCancelacion(reserva)) + "')) return false;";
             }
 
             // Módulo de pagos: estado del pago y botón para pagar.
@@ -241,6 +241,15 @@ namespace StageUp.UI
             litMensaje.Text = mensaje;
             pnlMensaje.CssClass = esError ? "form-message form-message-error" : "form-message form-message-success";
             pnlMensaje.Visible = !string.IsNullOrEmpty(mensaje);
+        }
+
+        private static string EscaparConfirmacion(string mensaje)
+        {
+            return (mensaje ?? string.Empty)
+                .Replace("\\", "\\\\")
+                .Replace("'", "\\'")
+                .Replace("\r", " ")
+                .Replace("\n", " ");
         }
     }
 }

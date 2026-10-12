@@ -156,10 +156,10 @@
                                 <div>
                                     <asp:LinkButton ID="lnkRechazar" runat="server" CssClass="button button-secondary request-reject"
                                         CausesValidation="false" CommandName="Rechazar" CommandArgument='<%# Eval("IdReserva") %>'
-                                        Text="Rechazar" OnClientClick="return confirm('¿Querés rechazar esta solicitud?');" />
+                                        Text="Rechazar" OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Querés rechazar esta solicitud?')) return false;" />
                                     <asp:LinkButton ID="lnkAceptar" runat="server" CssClass="button button-primary request-accept"
                                         CausesValidation="false" CommandName="Aceptar" CommandArgument='<%# Eval("IdReserva") %>'
-                                        Text="Aceptar solicitud" OnClientClick="return confirm('¿Querés aceptar esta solicitud?');" />
+                                        Text="Aceptar solicitud" OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Querés aceptar esta solicitud?')) return false;" />
                                 </div>
                             </asp:Panel>
                             <asp:Panel ID="pnlAccionesCalificacion" runat="server" CssClass="request-card-actions request-card-review-actions">
@@ -211,7 +211,8 @@
                 <asp:LinkButton ID="lnkCancelarCalificacionSolicitante" runat="server" CssClass="button button-secondary" CausesValidation="false"
                     OnClick="lnkCerrarCalificacionSolicitante_Click" data-i18n="General_Cancelar">Cancelar</asp:LinkButton>
                 <asp:Button ID="btnEnviarCalificacionSolicitante" runat="server" CssClass="button button-primary"
-                    ValidationGroup="CalificarSolicitante" Text="Enviar calificación" OnClick="btnEnviarCalificacionSolicitante_Click" data-i18n="Calificacion_Enviar" />
+                    ValidationGroup="CalificarSolicitante" Text="Enviar calificación" OnClick="btnEnviarCalificacionSolicitante_Click" data-i18n="Calificacion_Enviar"
+                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Publicar esta calificación? Va a quedar asociada a la reserva.', { title: 'Enviar calificación', confirmText: 'Sí, enviar', cancelText: 'Revisar', validationGroup: 'CalificarSolicitante' })) return false;" />
             </div>
         </dialog>
     </asp:Panel>

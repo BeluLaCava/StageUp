@@ -48,12 +48,14 @@
                                 <asp:LinkButton ID="lnkEditar" runat="server" CssClass="text-link" CausesValidation="false"
                                     CommandName="Editar" CommandArgument='<%# Eval("IdEspacioArtistico") %>' Text="Editar" />
                                 <asp:LinkButton ID="lnkPublicar" runat="server" CssClass="text-link" CausesValidation="false"
-                                    CommandName="Publicar" CommandArgument='<%# Eval("IdEspacioArtistico") %>' Text="Publicar" />
+                                    CommandName="Publicar" CommandArgument='<%# Eval("IdEspacioArtistico") %>' Text="Publicar"
+                                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Publicar este espacio? Va a quedar visible en el catálogo.', { title: 'Publicar espacio', confirmText: 'Sí, publicar', cancelText: 'Volver' })) return false;" />
                                 <asp:LinkButton ID="lnkPausar" runat="server" CssClass="text-link" CausesValidation="false"
-                                    CommandName="Pausar" CommandArgument='<%# Eval("IdEspacioArtistico") %>' Text="Pausar" />
+                                    CommandName="Pausar" CommandArgument='<%# Eval("IdEspacioArtistico") %>' Text="Pausar"
+                                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Pausar este espacio? Va a dejar de mostrarse en el catálogo hasta que lo vuelvas a publicar.', { title: 'Pausar espacio', confirmText: 'Sí, pausar', cancelText: 'Volver' })) return false;" />
                                 <asp:LinkButton ID="lnkDarDeBaja" runat="server" CssClass="text-link" CausesValidation="false"
                                     CommandName="BajaLogica" CommandArgument='<%# Eval("IdEspacioArtistico") %>' Text="Dar de baja"
-                                    OnClientClick="return confirm('¿Dar de baja este espacio? Va a dejar de estar disponible para nuevas reservas, pero su información histórica (reservas y reseñas) se conserva.');" />
+                                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Dar de baja este espacio? Va a dejar de estar disponible para nuevas reservas, pero su información histórica (reservas y reseñas) se conserva.')) return false;" />
                             </div>
                         </article>
                     </ItemTemplate>

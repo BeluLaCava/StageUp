@@ -85,7 +85,7 @@
                                         <asp:LinkButton runat="server" CssClass="text-link language-danger-link" Text="Eliminar traducción"
                                             CausesValidation="false" CommandName="Eliminar" CommandArgument='<%# Eval("IdEtiquetaTraduccion") %>'
                                             Visible='<%# Convert.ToBoolean(Eval("TieneTraduccion")) %>'
-                                            OnClientClick="return confirm('¿Querés eliminar esta traducción? Se utilizará el texto predeterminado como respaldo.');" />
+                                            OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Querés eliminar esta traducción? Se utilizará el texto predeterminado como respaldo.')) return false;" />
                                         <asp:LinkButton runat="server" CssClass="button button-primary button-small" Text="Guardar traducción"
                                             CausesValidation="false" CommandName="Guardar" CommandArgument='<%# Eval("IdEtiquetaTraduccion") %>' />
                                     </div>

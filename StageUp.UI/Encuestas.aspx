@@ -97,7 +97,8 @@
 
                     <div class="form-actions">
                         <asp:Button ID="btnEnviarRespuestas" runat="server" CssClass="button button-primary" Text="Enviar respuestas"
-                            CausesValidation="false" OnClick="btnEnviarRespuestas_Click" />
+                            CausesValidation="false" OnClick="btnEnviarRespuestas_Click"
+                            OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Enviar tus respuestas? Después de enviarlas no vas a poder modificarlas.', { title: 'Enviar respuestas', confirmText: 'Sí, enviar', cancelText: 'Revisar' })) return false;" />
                         <a class="text-link" href="Encuestas.aspx">Volver</a>
                     </div>
                 </div>

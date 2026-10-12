@@ -108,7 +108,7 @@
                                 <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-danger" CausesValidation="false"
                                     CommandName="Baja" CommandArgument='<%# Eval("IdOpcionMenu") %>' Text="Dar de baja"
                                     Visible='<%# Convert.ToBoolean(Eval("Activo")) %>'
-                                    OnClientClick="return confirm('¿Seguro que querés dar de baja esta opción? Deja de mostrarse en el menú.');" />
+                                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Seguro que querés dar de baja esta opción? Deja de mostrarse en el menú.')) return false;" />
                                 <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
                                     CommandName="Activar" CommandArgument='<%# Eval("IdOpcionMenu") %>' Text="Reactivar"
                                     Visible='<%# !Convert.ToBoolean(Eval("Activo")) %>' />

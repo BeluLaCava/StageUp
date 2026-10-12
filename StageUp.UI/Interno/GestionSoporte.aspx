@@ -238,7 +238,8 @@
                         </div>
                         <asp:CheckBox ID="chkMarcarResuelta" runat="server" Text="Marcar como resuelta al guardar" CssClass="soporte-check" />
                         <div class="form-actions">
-                            <asp:Button ID="btnGuardarRespuesta" runat="server" CssClass="button button-primary" Text="Guardar respuesta" CausesValidation="false" OnClick="btnGuardarRespuesta_Click" />
+                            <asp:Button ID="btnGuardarRespuesta" runat="server" CssClass="button button-primary" Text="Guardar respuesta" CausesValidation="false" OnClick="btnGuardarRespuesta_Click"
+                                OnClientClick="if (!confirmarRespuestaSoporte(this, event)) return false;" />
                         </div>
                     </asp:Panel>
 
@@ -328,5 +329,19 @@
             .internal-filter-row { grid-template-columns: 1fr; }
         }
     </style>
+    <script>
+        function confirmarRespuestaSoporte(btn, event) {
+            var marcarResuelta = document.getElementById("<%= chkMarcarResuelta.ClientID %>");
+            if (!marcarResuelta || !marcarResuelta.checked) {
+                return true;
+            }
+
+            return StageUpConfirm.confirmPostback(btn, event, "¿Guardar la respuesta y marcar esta solicitud como resuelta?", {
+                title: "Resolver solicitud",
+                confirmText: "Sí, guardar y resolver",
+                cancelText: "Revisar"
+            });
+        }
+    </script>
     <script src="<%= ResolveUrl("~/Scripts/soporte-novedades.js") %>?v=20261012" defer></script>
 </asp:Content>

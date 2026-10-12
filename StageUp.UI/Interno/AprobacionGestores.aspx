@@ -73,10 +73,10 @@
                                 <div class="ag-botones">
                                     <asp:Button ID="btnAprobar" runat="server" CssClass="button button-primary button-small" Text="Aprobar"
                                         CommandName="Aprobar" CommandArgument='<%# Eval("IdSolicitud") %>' CausesValidation="false"
-                                        OnClientClick="return confirm('¿Aprobar la solicitud? La cuenta va a poder publicar espacios.');" />
+                                        OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Aprobar la solicitud? La cuenta va a poder publicar espacios.')) return false;" />
                                     <asp:Button ID="btnRechazar" runat="server" CssClass="button button-ghost button-small" Text="Rechazar"
                                         CommandName="Rechazar" CommandArgument='<%# Eval("IdSolicitud") %>' CausesValidation="false"
-                                        OnClientClick="return confirm('¿Rechazar la solicitud con el motivo escrito?');" />
+                                        OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Rechazar la solicitud con el motivo escrito?')) return false;" />
                                 </div>
                             </asp:Panel>
 

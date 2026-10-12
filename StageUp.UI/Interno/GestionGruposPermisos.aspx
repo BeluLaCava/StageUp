@@ -72,7 +72,7 @@
                                 CausesValidation="false" OnClick="btnMover_Click" />
                             <asp:Button ID="btnEliminarGrupo" runat="server" CssClass="button button-secondary" Text="Eliminar grupo"
                                 CausesValidation="false" OnClick="btnEliminarGrupo_Click"
-                                OnClientClick="return confirm('¿Seguro que querés eliminar este grupo? Solo se puede si está vacío.');" />
+                                OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Seguro que querés eliminar este grupo? Solo se puede si está vacío.')) return false;" />
                         </div>
                     </asp:Panel>
 

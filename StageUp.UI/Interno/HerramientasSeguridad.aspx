@@ -72,7 +72,8 @@
                     </div>
                     <div>
                         <asp:Button ID="btnRotar" runat="server" CssClass="button button-primary" Text="Rotar claves"
-                            CausesValidation="false" OnClick="btnRotar_Click" />
+                            CausesValidation="false" OnClick="btnRotar_Click"
+                            OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Rotar las claves de cifrado? Se generará una nueva versión y el cambio quedará auditado.', { title: 'Rotar claves', confirmText: 'Sí, rotar claves', cancelText: 'Volver' })) return false;" />
                     </div>
                 </asp:Panel>
             </div>

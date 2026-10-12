@@ -165,7 +165,8 @@
 
                     <div class="form-actions">
                         <asp:Button ID="btnPagar" runat="server" CssClass="button button-primary" CausesValidation="false"
-                            UseSubmitBehavior="false" OnClientClick="this.disabled=true;this.value='Procesando pago...';"
+                            UseSubmitBehavior="false"
+                            OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Confirmar el pago de esta reserva? Se registrará el pago y la reserva quedará confirmada.', { title: 'Confirmar pago', confirmText: 'Sí, pagar', cancelText: 'Volver', disableOnConfirm: true, confirmedText: 'Procesando pago...' })) return false;"
                             OnClick="btnPagar_Click" />
                         <a class="text-link" href="MisReservas.aspx">Volver</a>
                     </div>

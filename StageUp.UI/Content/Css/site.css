@@ -863,6 +863,12 @@ a {
     gap: 1.35rem;
 }
 
+.site-header .navbar.container-wide {
+    width: auto;
+    max-width: none;
+    margin-inline: clamp(1.25rem, 3.4vw, 4.5rem);
+}
+
 .brand {
     display: inline-flex;
     align-items: center;

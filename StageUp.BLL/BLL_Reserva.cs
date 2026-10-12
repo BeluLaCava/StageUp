@@ -1066,6 +1066,7 @@ namespace StageUp.BLL
                         "La reserva N° " + reserva.IdReserva + " de \"" + reserva.NombreEspacio + "\" se canceló por falta de pago. El horario quedó libre.",
                         UrlDetalle(reserva.IdReserva));
 
+                    _servicioCorreo.Administrativo = _bllParametros.ObtenerConfiguracionCorreoAdministrativo();
                     EnviarCorreoSinBloquear(ObtenerUsuarioParaCorreo(reserva.IdUsuarioExternoSolicitante), u =>
                         _servicioCorreo.EnviarPagoVencido(u.CorreoElectronico, u.Nombre, reservaVencida));
                 }

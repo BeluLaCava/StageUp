@@ -16,6 +16,11 @@ namespace StageUp.Servicios
         private const string LogoContentId = "stageup-logo";
         private const string NewsletterImageContentId = "stageup-newsletter-image";
 
+        // CU-002-004 A7: configuración de los correos administrativos (pagos,
+        // vencimientos y comprobantes). La completa la BLL con los parámetros
+        // administrativos antes de enviar; si es null se envía como siempre.
+        public ConfiguracionCorreoAdministrativo Administrativo { get; set; }
+
         public bool EnviarCodigoActivacion(string destinatario, string nombreDestinatario, string codigo)
         {
             string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
@@ -300,7 +305,7 @@ namespace StageUp.Servicios
         // ------------------------------------------------------------------
         public bool EnviarPagoAprobado(string destinatario, string nombreDestinatario, Reserva reserva, Pago pago)
         {
-            if (string.IsNullOrWhiteSpace(destinatario) || reserva == null || pago == null)
+            if (string.IsNullOrWhiteSpace(destinatario) || reserva == null || pago == null || !AdministrativosActivos())
             {
                 return false;
             }
@@ -334,11 +339,16 @@ namespace StageUp.Servicios
                 Nota = "Si cancelás la reserva, lo que pagaste vuelve como saldo a favor, descontando el cargo por cancelación que corresponda según la anticipación."
             });
 
-            return Enviar(destinatario, "Comprobante de pago: " + reserva.NombreEspacio, cuerpo);
+            return Enviar(destinatario, "Comprobante de pago: " + reserva.NombreEspacio, cuerpo, null, Administrativo);
         }
 
         public bool EnviarPagoRecibidoGestor(string destinatario, string nombreDestinatario, Reserva reserva, decimal importeNeto)
         {
+            if (!AdministrativosActivos())
+            {
+                return false;
+            }
+
             return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
                 "Reserva pagada",
                 "Una reserva de tu espacio ya está pagada",
@@ -349,11 +359,17 @@ namespace StageUp.Servicios
                         " en tu cuenta corriente de gestor (el importe de la reserva menos la comisión de StageUp)."
                 },
                 null,
-                "Reserva pagada: " + reserva.NombreEspacio);
+                "Reserva pagada: " + reserva.NombreEspacio,
+                Administrativo);
         }
 
         public bool EnviarPagoVencido(string destinatario, string nombreDestinatario, Reserva reserva)
         {
+            if (!AdministrativosActivos())
+            {
+                return false;
+            }
+
             return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
                 "Reserva cancelada",
                 "Se venció el plazo para pagar tu reserva",
@@ -363,12 +379,13 @@ namespace StageUp.Servicios
                     "Si todavía querés ese espacio, podés volver a solicitarlo desde Explorar espacios."
                 },
                 null,
-                "Se canceló tu reserva por falta de pago: " + reserva.NombreEspacio);
+                "Se canceló tu reserva por falta de pago: " + reserva.NombreEspacio,
+                Administrativo);
         }
 
         public bool EnviarComprobanteEmitido(string destinatario, string nombreDestinatario, Comprobante comprobante)
         {
-            if (string.IsNullOrWhiteSpace(destinatario) || comprobante == null)
+            if (string.IsNullOrWhiteSpace(destinatario) || comprobante == null || !AdministrativosActivos())
             {
                 return false;
             }
@@ -403,7 +420,12 @@ namespace StageUp.Servicios
                 Detalles = detalles
             });
 
-            return Enviar(destinatario, nombreTipo + " " + comprobante.Numero + " | StageUp", cuerpo);
+            return Enviar(destinatario, nombreTipo + " " + comprobante.Numero + " | StageUp", cuerpo, null, Administrativo);
+        }
+
+        private bool AdministrativosActivos()
+        {
+            return Administrativo == null || Administrativo.Activos;
         }
 
         private static bool EsperaPago(Reserva reserva)
@@ -413,7 +435,8 @@ namespace StageUp.Servicios
 
         private static bool EnviarAvisoReserva(
             string destinatario, string nombreDestinatario, Reserva reserva,
-            string etiqueta, string titulo, string[] parrafos, string nota, string asunto)
+            string etiqueta, string titulo, string[] parrafos, string nota, string asunto,
+            ConfiguracionCorreoAdministrativo administrativo = null)
         {
             if (string.IsNullOrWhiteSpace(destinatario) || reserva == null)
             {
@@ -430,7 +453,7 @@ namespace StageUp.Servicios
                 Nota = nota
             });
 
-            return Enviar(destinatario, asunto, cuerpo);
+            return Enviar(destinatario, asunto, cuerpo, null, administrativo);
         }
 
         private static List<KeyValuePair<string, string>> ConstruirDetallesReserva(Reserva reserva)
@@ -471,7 +494,8 @@ namespace StageUp.Servicios
                 importe.ToString("N2", CultureInfo.GetCultureInfo("es-AR"));
         }
 
-        private static bool Enviar(string destinatario, string asunto, string cuerpoHtml, string rutaImagenNewsletter = null)
+        private static bool Enviar(string destinatario, string asunto, string cuerpoHtml, string rutaImagenNewsletter = null,
+            ConfiguracionCorreoAdministrativo administrativo = null)
         {
             try
             {
@@ -487,8 +511,22 @@ namespace StageUp.Servicios
                 {
                     string cuerpoFinal = PrepararLogo(cuerpoHtml);
 
+                    if (administrativo != null && !string.IsNullOrWhiteSpace(administrativo.NombreRemitente))
+                    {
+                        nombreRemitente = administrativo.NombreRemitente;
+                    }
+
                     mensaje.From = new MailAddress(correoRemitente, nombreRemitente);
                     mensaje.To.Add(destinatario);
+                    if (administrativo != null && !string.IsNullOrWhiteSpace(administrativo.ResponderA))
+                    {
+                        mensaje.ReplyToList.Add(administrativo.ResponderA);
+                    }
+
+                    if (administrativo != null && !string.IsNullOrWhiteSpace(administrativo.CopiaOculta))
+                    {
+                        mensaje.Bcc.Add(administrativo.CopiaOculta);
+                    }
                     mensaje.Subject = asunto;
                     mensaje.Body = cuerpoFinal;
                     mensaje.IsBodyHtml = true;
@@ -787,5 +825,14 @@ namespace StageUp.Servicios
             public string TextoBoton { get; set; }
             public string UrlBoton { get; set; }
         }
+    }
+
+    // CU-002-004: parámetros de los correos administrativos.
+    public class ConfiguracionCorreoAdministrativo
+    {
+        public bool Activos { get; set; }
+        public string NombreRemitente { get; set; }
+        public string ResponderA { get; set; }
+        public string CopiaOculta { get; set; }
     }
 }

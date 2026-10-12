@@ -337,18 +337,19 @@ namespace StageUp.BLL
         private static readonly string[] Grupos = { GrupoTodos, GrupoPendiente, GrupoConfirmado, GrupoFallido, GrupoCancelado, GrupoEnRevision };
 
         // Nombre de cada estado como lo describe el documento.
+        // Texto de cada estado según los parámetros administrativos (CU-002-004 A5).
         public static string DescribirEstado(string estado)
         {
             switch (estado)
             {
-                case "Aprobado": return "Confirmado";
-                case "Rechazado": return "Fallido";
-                case "Anulado": return "Cancelado";
-                case "Pendiente": return "Pendiente (informado por el medio de pago)";
-                case "EsperandoPago": return "Pendiente (esperando el pago)";
-                case "Vencido": return "Cancelado (venció el plazo de pago)";
-                case "Observado": return "En revisión (observado)";
-                case "NoAsociado": return "En revisión (sin reserva asociada)";
+                case "Aprobado": return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoPagoAprobado);
+                case "Rechazado": return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoPagoRechazado);
+                case "Anulado": return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoPagoAnulado);
+                case "Pendiente": return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoPagoPendiente);
+                case "EsperandoPago": return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoPagoEsperando);
+                case "Vencido": return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoPagoVencido);
+                case "Observado": return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoPagoObservado);
+                case "NoAsociado": return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoPagoNoAsociado);
                 default: return estado;
             }
         }
@@ -705,14 +706,11 @@ namespace StageUp.BLL
 
         // Emisor de la factura simulada. Los datos se toman de los
         // parámetros de facturación (CU-002-004) cuando estén configurados.
-        public static DatosFacturacion ObtenerDatosFacturacion()
+        // Datos del emisor (CU-002-004 A6). Una factura ya emitida se muestra
+        // con los datos que regían en su fecha.
+        public static DatosFacturacion ObtenerDatosFacturacion(DateTime? fechaFactura = null)
         {
-            return new DatosFacturacion
-            {
-                RazonSocial = "Artera – StageUp",
-                DatosFiscales = "CUIT 30-00000000-0 (simulado) · IVA Responsable Inscripto (simulado)",
-                Leyenda = "Comprobante simulado emitido por StageUp. No tiene validez fiscal."
-            };
+            return new BLL_ParametroPlataforma().ObtenerDatosFacturacion(fechaFactura);
         }
 
         public static string DescribirMedios(Pago pago)
@@ -822,6 +820,8 @@ namespace StageUp.BLL
 
             try
             {
+                // CU-002-004 A7: configuración vigente de los correos administrativos.
+                _servicioCorreo.Administrativo = _bllParametros.ObtenerConfiguracionCorreoAdministrativo();
                 UsuarioExterno cliente = _mppUsuario.ObtenerPorId(new UsuarioExterno { IdUsuarioExterno = reserva.IdUsuarioExternoSolicitante });
                 if (cliente != null && !string.IsNullOrWhiteSpace(cliente.CorreoElectronico))
                 {

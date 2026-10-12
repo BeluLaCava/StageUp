@@ -90,7 +90,7 @@ namespace StageUp.UI.Interno
             }
 
             bool correspondeFactura = o.TipoOperacion == "ReservaAbonada" || o.TipoOperacion == "PagoNoConfirmado" || o.TipoOperacion == "ReservaSinPago";
-            return correspondeFactura && o.EstadoPago != "Fallido" && o.EstadoPago != "Vencido" && o.EstadoPago != "Anulado" ? "Pendiente" : "—";
+            return correspondeFactura && o.EstadoPago != "Fallido" && o.EstadoPago != "Vencido" && o.EstadoPago != "Anulado" ? BLL_HistorialFinanciero.TextoFacturaPendiente() : "—";
         }
 
         protected string UrlDetalle(object codigo)

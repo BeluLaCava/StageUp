@@ -81,7 +81,7 @@ namespace StageUp.UI
             pnlFactura.Visible = d.IdComprobanteFactura.HasValue;
             if (d.IdComprobanteFactura.HasValue)
             {
-                DatosFacturacion emisor = BLL_Pago.ObtenerDatosFacturacion();
+                DatosFacturacion emisor = BLL_Pago.ObtenerDatosFacturacion(d.FechaFactura);
                 litEmisor.Text = emisor.RazonSocial;
                 litEmisorDatos.Text = emisor.DatosFiscales;
                 litNumeroFactura.Text = d.NumeroFactura;

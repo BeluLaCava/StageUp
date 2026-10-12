@@ -128,9 +128,11 @@ namespace StageUp.UI.Interno
             litMedio.Text = o.MedioPago ?? (o.IdPago.HasValue ? "—" : "No corresponde");
             litFormaPago.Text = FormaPago(o);
             Comprobante factura = o.Comprobantes.FirstOrDefault(c => c.Tipo == "FC");
-            litFactura.Text = factura != null ? factura.Numero + (factura.Estado == "Anulado" ? " (anulada)" : string.Empty)
+            litFactura.Text = factura != null
+                ? factura.Numero + " (" + BLL_ParametroPlataforma.TextoEstado(factura.Estado == "Anulado"
+                    ? BLL_ParametroPlataforma.EstadoFacturaAnulada : BLL_ParametroPlataforma.EstadoFacturaEmitida).ToLowerInvariant() + ")"
                 : !string.IsNullOrEmpty(o.NumeroComprobante) ? o.NumeroComprobante
-                : (o.TipoOperacion == "ReservaAbonada" || o.TipoOperacion == "PagoNoConfirmado" || o.TipoOperacion == "ReservaSinPago" ? "Factura pendiente" : "No corresponde");
+                : (o.TipoOperacion == "ReservaAbonada" || o.TipoOperacion == "PagoNoConfirmado" || o.TipoOperacion == "ReservaSinPago" ? BLL_HistorialFinanciero.TextoFacturaPendiente() : "No corresponde");
             litObservacion.Text = string.IsNullOrWhiteSpace(o.Observacion) ? "—" : o.Observacion;
 
             rptComprobantes.DataSource = o.Comprobantes;

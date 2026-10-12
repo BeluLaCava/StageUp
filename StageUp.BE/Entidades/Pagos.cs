@@ -147,6 +147,12 @@ namespace StageUp.BE.Entidades
         public string RazonSocial { get; set; }
         public string DatosFiscales { get; set; }
         public string Leyenda { get; set; }
+
+        // CU-002-004 A6: datos generales de facturación de Artera.
+        public string Cuit { get; set; }
+        public string CondicionIva { get; set; }
+        public string Domicilio { get; set; }
+        public int PuntoVenta { get; set; }
     }
 
     // CU-002-002: transacción económica generada por una reserva abonada o
@@ -402,5 +408,24 @@ namespace StageUp.BE.Entidades
         public string Valor { get; set; }
         public string Descripcion { get; set; }
         public DateTime FechaUltimaModificacion { get; set; }
+
+        // CU-002-004: cambio programado que todavía no rige (si lo hay).
+        public string ValorProgramado { get; set; }
+        public DateTime? FechaVigenciaProgramada { get; set; }
+    }
+
+    // CU-002-004 paso 13: cambio registrado de un parámetro administrativo.
+    public class CambioParametroPlataforma
+    {
+        public int IdCambio { get; set; }
+        public string Clave { get; set; }
+        public string ValorAnterior { get; set; }
+        public string ValorNuevo { get; set; }
+        public DateTime FechaVigencia { get; set; }
+        public string Estado { get; set; }                // Aplicado | Programado | Reemplazado
+        public int? IdUsuarioInterno { get; set; }
+        public string NombreResponsable { get; set; }
+        public DateTime FechaRegistro { get; set; }
+        public DateTime? FechaAplicacion { get; set; }
     }
 }

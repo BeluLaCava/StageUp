@@ -352,6 +352,7 @@ namespace StageUp.BLL
                 UsuarioExterno usuario = _mppUsuario.ObtenerPorId(new UsuarioExterno { IdUsuarioExterno = comprobante.IdUsuarioExterno });
                 if (usuario != null && !string.IsNullOrWhiteSpace(usuario.CorreoElectronico))
                 {
+                    _servicioCorreo.Administrativo = new BLL_ParametroPlataforma().ObtenerConfiguracionCorreoAdministrativo();
                     _servicioCorreo.EnviarComprobanteEmitido(usuario.CorreoElectronico, usuario.Nombre, comprobante);
                 }
             }

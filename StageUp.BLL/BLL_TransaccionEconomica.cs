@@ -48,10 +48,10 @@ namespace StageUp.BLL
         {
             switch (estado)
             {
-                case EstadoPagado: return "Pagado";
-                case EstadoCobrado: return "Cobrado";
-                case EstadoDevuelto: return "Devuelto al solicitante";
-                case EstadoPendiente: return "Pendiente";
+                case EstadoPagado: return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoOperacionPagado);
+                case EstadoCobrado: return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoOperacionCobrado);
+                case EstadoDevuelto: return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoOperacionDevuelto);
+                case EstadoPendiente: return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoOperacionPendiente);
                 default: return estado;
             }
         }

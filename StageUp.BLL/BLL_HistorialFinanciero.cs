@@ -59,8 +59,20 @@ namespace StageUp.BLL
 
         public static Dictionary<string, string> ObtenerEstados()
         {
-            return new Dictionary<string, string>(Estados);
+            return Estados.Keys.ToDictionary(e => e, DescribirEstado);
         }
+
+        // Estados cuyo texto se configura en los parámetros administrativos
+        // (CU-002-004 A5).
+        private static readonly Dictionary<string, string> EstadosConfigurables = new Dictionary<string, string>
+        {
+            { "Pagado", BLL_ParametroPlataforma.EstadoOperacionPagado },
+            { "Cobrado", BLL_ParametroPlataforma.EstadoOperacionCobrado },
+            { "Devuelto", BLL_ParametroPlataforma.EstadoOperacionDevuelto },
+            { "Pendiente", BLL_ParametroPlataforma.EstadoOperacionPendiente },
+            { "Fallido", BLL_ParametroPlataforma.EstadoPagoRechazado },
+            { "Vencido", BLL_ParametroPlataforma.EstadoPagoVencido }
+        };
 
         public static string DescribirTipo(string tipo)
         {
@@ -70,8 +82,19 @@ namespace StageUp.BLL
 
         public static string DescribirEstado(string estado)
         {
+            string clave;
+            if (EstadosConfigurables.TryGetValue(estado ?? string.Empty, out clave))
+            {
+                return BLL_ParametroPlataforma.TextoEstado(clave);
+            }
+
             string texto;
             return Estados.TryGetValue(estado ?? string.Empty, out texto) ? texto : estado;
+        }
+
+        public static string TextoFacturaPendiente()
+        {
+            return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoFacturaPendiente);
         }
 
         // Código visible de la operación ("TX-00000012", "PG-...", "RS-...",

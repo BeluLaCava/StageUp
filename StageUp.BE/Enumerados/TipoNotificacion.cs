@@ -20,6 +20,9 @@ namespace StageUp.BE.Enumerados
         ComprobanteEmitido,
         LiquidacionRegistrada,
         SolicitudSoporteRegistrada,
-        SolicitudSoporteActualizada
+        SolicitudSoporteActualizada,
+        PreguntaEspacioRecibida,
+        PreguntaEspacioRespondida,
+        PreguntaEspacioOcultada
     }
 }

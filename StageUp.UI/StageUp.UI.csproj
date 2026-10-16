@@ -167,6 +167,13 @@
     <Compile Include="MisReservas.aspx.designer.cs">
       <DependentUpon>MisReservas.aspx</DependentUpon>
     </Compile>
+    <Compile Include="PreguntasRecibidas.aspx.cs">
+      <DependentUpon>PreguntasRecibidas.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="PreguntasRecibidas.aspx.designer.cs">
+      <DependentUpon>PreguntasRecibidas.aspx</DependentUpon>
+    </Compile>
     <Compile Include="SolicitudesRecibidas.aspx.cs">
       <DependentUpon>SolicitudesRecibidas.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -487,6 +494,7 @@
     <Content Include="MisActividades.aspx" />
     <Content Include="MisReservas.aspx" />
     <Content Include="SolicitudesRecibidas.aspx" />
+    <Content Include="PreguntasRecibidas.aspx" />
     <Content Include="Servicios\ServicioEspacios.asmx" />
     <Content Include="Ayuda\AsistenteAyuda.ashx" />
     <Content Include="Scripts\asistente-ayuda.js" />

@@ -205,6 +205,78 @@
                                 <p>Cuando finalice la primera reserva, la persona que utilizó el espacio podrá compartir su experiencia.</p>
                             </asp:Panel>
                         </section>
+
+                        <%-- Ítem 1: preguntas y respuestas públicas sobre el espacio. --%>
+                        <section class="space-detail-section space-questions" id="preguntas" aria-labelledby="space-questions-title">
+                            <span class="eyebrow">Consultas públicas</span>
+                            <h2 id="space-questions-title">Preguntas sobre el espacio</h2>
+                            <p class="space-questions-intro">Las preguntas y las respuestas del gestor se ven públicamente. No incluyas correos, teléfonos ni enlaces.</p>
+
+                            <asp:Panel ID="pnlMensajePreguntas" runat="server" Visible="false" CssClass="form-message" role="status">
+                                <asp:Literal ID="litMensajePreguntas" runat="server" Mode="Encode" />
+                            </asp:Panel>
+
+                            <asp:Panel ID="pnlPreguntar" runat="server" CssClass="space-question-form" DefaultButton="btnPreguntar" Visible="false">
+                                <label for="<%= txtPregunta.ClientID %>">Tu pregunta</label>
+                                <asp:TextBox ID="txtPregunta" runat="server" TextMode="MultiLine" Rows="3" MaxLength="500"
+                                    placeholder="Ej: ¿El espacio tiene equipo de sonido incluido?" />
+                                <asp:Button ID="btnPreguntar" runat="server" CssClass="button button-primary button-small" Text="Preguntar"
+                                    CausesValidation="false" OnClick="btnPreguntar_Click" />
+                            </asp:Panel>
+                            <asp:Panel ID="pnlPreguntarSinSesion" runat="server" CssClass="space-inline-empty" Visible="false">
+                                <asp:HyperLink ID="lnkIniciarSesionPregunta" runat="server" NavigateUrl="~/IniciarSesion.aspx" Text="Iniciá sesión" /> para hacer una pregunta al gestor.
+                            </asp:Panel>
+                            <asp:Panel ID="pnlPreguntarGestor" runat="server" CssClass="space-inline-empty" Visible="false">
+                                Sos el gestor de este espacio: respondé las preguntas acá o desde <a href="<%= ResolveUrl("~/PreguntasRecibidas.aspx") %>">Preguntas recibidas</a>.
+                            </asp:Panel>
+
+                            <asp:Repeater ID="rptPreguntas" runat="server" OnItemCommand="rptPreguntas_ItemCommand">
+                                <ItemTemplate>
+                                    <article class='<%# "space-question" + (Convert.ToInt32(Eval("IdPreguntaEspacio")) == PreguntaDestacada ? " is-highlighted" : "") %>' id='pregunta-<%# Eval("IdPreguntaEspacio") %>'>
+                                        <p class="space-question-text"><%#: Eval("Pregunta") %></p>
+                                        <small class="space-question-meta">Preguntó <%#: Eval("NombreAutorPublico") %> el <%# Eval("FechaPregunta", "{0:dd/MM/yyyy}") %></small>
+
+                                        <asp:PlaceHolder runat="server" Visible='<%# Convert.ToBoolean(Eval("EstaRespondida")) %>'>
+                                            <div class="space-answer">
+                                                <strong>Respuesta del gestor</strong>
+                                                <p><%#: Eval("Respuesta") %></p>
+                                                <small><%# Eval("FechaRespuesta", "{0:dd/MM/yyyy}") %></small>
+                                            </div>
+                                        </asp:PlaceHolder>
+                                        <asp:PlaceHolder runat="server" Visible='<%# Convert.ToBoolean(Eval("EstaPendiente")) && !EsGestorDelEspacio %>'>
+                                            <p class="space-answer-pending">Esperando la respuesta del gestor.</p>
+                                        </asp:PlaceHolder>
+
+                                        <asp:Panel ID="pnlResponder" runat="server" CssClass="space-answer-form" Visible='<%# Convert.ToBoolean(Eval("EstaPendiente")) && EsGestorDelEspacio %>'>
+                                            <asp:TextBox ID="txtRespuesta" runat="server" TextMode="MultiLine" Rows="2" MaxLength="1000" placeholder="Tu respuesta (se publica)" aria-label="Respuesta" />
+                                            <asp:Button ID="btnResponder" runat="server" CssClass="button button-primary button-small" Text="Responder"
+                                                CommandName="Responder" CommandArgument='<%# Eval("IdPreguntaEspacio") %>' CausesValidation="false" />
+                                        </asp:Panel>
+
+                                        <asp:Panel ID="pnlOcultar" runat="server" CssClass="space-question-hide" Visible='<%# EsGestorDelEspacio && Convert.ToInt32(Eval("IdPreguntaEspacio")) == PreguntaOcultando %>'>
+                                            <span>Motivo para ocultarla (lo ve quien preguntó)</span>
+                                            <asp:TextBox ID="txtMotivo" runat="server" MaxLength="300" placeholder="Ej: contenido ofensivo o datos de contacto" aria-label="Motivo para ocultar la pregunta" />
+                                            <asp:Button ID="btnConfirmarOcultar" runat="server" CssClass="button button-primary button-small" Text="Ocultar pregunta"
+                                                CommandName="ConfirmarOcultar" CommandArgument='<%# Eval("IdPreguntaEspacio") %>' CausesValidation="false" />
+                                            <asp:LinkButton ID="lnkCancelarOcultar" runat="server" CssClass="text-link" CommandName="CancelarOcultar" CausesValidation="false">Cancelar</asp:LinkButton>
+                                        </asp:Panel>
+
+                                        <div class="space-question-actions">
+                                            <asp:LinkButton ID="lnkRetirar" runat="server" CssClass="text-link" CommandName="Retirar" CommandArgument='<%# Eval("IdPreguntaEspacio") %>'
+                                                Visible='<%# Convert.ToBoolean(Eval("EstaPendiente")) && EsAutor(Eval("IdUsuarioExterno")) %>' CausesValidation="false"
+                                                OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Retirar tu pregunta? Deja de verse en el espacio.', { title: 'Retirar pregunta', confirmText: 'Sí, retirar', cancelText: 'Volver' })) return false;">Retirar mi pregunta</asp:LinkButton>
+                                            <asp:LinkButton ID="lnkOcultar" runat="server" CssClass="text-link" CommandName="Ocultar" CommandArgument='<%# Eval("IdPreguntaEspacio") %>'
+                                                Visible='<%# EsGestorDelEspacio && Convert.ToInt32(Eval("IdPreguntaEspacio")) != PreguntaOcultando %>' CausesValidation="false">Ocultar</asp:LinkButton>
+                                        </div>
+                                    </article>
+                                </ItemTemplate>
+                            </asp:Repeater>
+
+                            <asp:Panel ID="pnlSinPreguntas" runat="server" CssClass="space-inline-empty" Visible="false">
+                                Todavía nadie hizo preguntas sobre este espacio.
+                            </asp:Panel>
+                            <asp:HyperLink ID="lnkVerTodasPreguntas" runat="server" CssClass="text-link" Visible="false" />
+                        </section>
                     </div>
 
                     <aside class="reservation-card" aria-label="Solicitud de reserva">

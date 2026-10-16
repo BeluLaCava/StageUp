@@ -16,6 +16,7 @@ namespace StageUp.UI.Explorar
         private readonly BLL_EspacioArtistico _bllEspacio = new BLL_EspacioArtistico();
         private readonly BLL_Reserva _bllReserva = new BLL_Reserva();
         private readonly BLL_Calificacion _bllCalificacion = new BLL_Calificacion();
+        private readonly BLL_PreguntaEspacio _bllPreguntas = new BLL_PreguntaEspacio();
 
         private int? IdEspacioArtistico
         {
@@ -55,6 +56,185 @@ namespace StageUp.UI.Explorar
             IdEspacioArtistico = idEspacioArtistico;
             MostrarDetalle(espacio);
             ConfigurarGestion(espacio);
+
+            IdGestorEspacio = espacio.IdUsuarioGestor;
+            EspacioPublicado = espacio.Publicado;
+            int destacada;
+            PreguntaDestacada = int.TryParse(Request.QueryString["pregunta"], NumberStyles.Integer, CultureInfo.InvariantCulture, out destacada) ? destacada : 0;
+            MostrarTodasLasPreguntas = Request.QueryString["preguntas"] == "todas" || PreguntaDestacada > 0;
+            CargarPreguntas();
+        }
+
+        // ------------------------------------------------------------------
+        // Ítem 1: preguntas y respuestas públicas sobre el espacio.
+        // ------------------------------------------------------------------
+        private int IdGestorEspacio
+        {
+            get { return ViewState["IdGestorEspacio"] as int? ?? 0; }
+            set { ViewState["IdGestorEspacio"] = value; }
+        }
+
+        private bool EspacioPublicado
+        {
+            get { return ViewState["EspacioPublicado"] as bool? ?? false; }
+            set { ViewState["EspacioPublicado"] = value; }
+        }
+
+        private bool MostrarTodasLasPreguntas
+        {
+            get { return ViewState["TodasLasPreguntas"] as bool? ?? false; }
+            set { ViewState["TodasLasPreguntas"] = value; }
+        }
+
+        protected int PreguntaDestacada
+        {
+            get { return ViewState["PreguntaDestacada"] as int? ?? 0; }
+            set { ViewState["PreguntaDestacada"] = value; }
+        }
+
+        // Pregunta a la que el gestor le está escribiendo el motivo para ocultarla.
+        protected int PreguntaOcultando
+        {
+            get { return ViewState["PreguntaOcultando"] as int? ?? 0; }
+            set { ViewState["PreguntaOcultando"] = value; }
+        }
+
+        protected bool EsGestorDelEspacio
+        {
+            get { return GestorDeSesion.EstaAutenticado() && GestorDeSesion.ObtenerIdUsuarioActual() == IdGestorEspacio; }
+        }
+
+        protected bool EsAutor(object idUsuarioExterno)
+        {
+            return GestorDeSesion.EstaAutenticado() && GestorDeSesion.ObtenerIdUsuarioActual() == Convert.ToInt32(idUsuarioExterno);
+        }
+
+        private void CargarPreguntas()
+        {
+            if (IdEspacioArtistico == null)
+            {
+                return;
+            }
+
+            bool autenticado = GestorDeSesion.EstaAutenticado();
+            pnlPreguntar.Visible = autenticado && !EsGestorDelEspacio && EspacioPublicado;
+            pnlPreguntarSinSesion.Visible = !autenticado && EspacioPublicado;
+            pnlPreguntarGestor.Visible = EsGestorDelEspacio;
+
+            ResultadoOperacion<PreguntasDeEspacio> preguntas = _bllPreguntas.ListarPublicas(IdEspacioArtistico.Value, MostrarTodasLasPreguntas);
+            if (!preguntas.Exitoso)
+            {
+                MostrarMensajePreguntas(preguntas.Mensaje, true);
+                rptPreguntas.Visible = false;
+                return;
+            }
+
+            rptPreguntas.Visible = true;
+            rptPreguntas.DataSource = preguntas.Valor.Preguntas;
+            rptPreguntas.DataBind();
+            pnlSinPreguntas.Visible = preguntas.Valor.Total == 0;
+
+            lnkVerTodasPreguntas.Visible = !MostrarTodasLasPreguntas && preguntas.Valor.Total > preguntas.Valor.Preguntas.Count;
+            lnkVerTodasPreguntas.Text = "Ver todas las preguntas (" + preguntas.Valor.Total + ")";
+            lnkVerTodasPreguntas.NavigateUrl = "~/Explorar/DetalleEspacio.aspx?id=" + IdEspacioArtistico.Value.ToString(CultureInfo.InvariantCulture) + "&preguntas=todas#preguntas";
+
+            if (PreguntaDestacada > 0)
+            {
+                ClientScript.RegisterStartupScript(GetType(), "irAPregunta",
+                    "(function(){var p=document.getElementById('pregunta-" + PreguntaDestacada.ToString(CultureInfo.InvariantCulture) + "');if(p){p.scrollIntoView({block:'center'});}}());", true);
+            }
+        }
+
+        protected void btnPreguntar_Click(object sender, EventArgs e)
+        {
+            if (!GestorDeSesion.EstaAutenticado())
+            {
+                Response.Redirect("~/IniciarSesion.aspx");
+                return;
+            }
+
+            ResultadoOperacion<int> resultado = _bllPreguntas.Preguntar(IdEspacioArtistico ?? 0, GestorDeSesion.ObtenerIdUsuarioActual(), txtPregunta.Text);
+            MostrarMensajePreguntas(resultado.Mensaje, !resultado.Exitoso);
+            if (resultado.Exitoso)
+            {
+                txtPregunta.Text = string.Empty;
+                PreguntaDestacada = resultado.Valor;
+            }
+
+            CargarPreguntas();
+        }
+
+        protected void rptPreguntas_ItemCommand(object source, System.Web.UI.WebControls.RepeaterCommandEventArgs e)
+        {
+            if (!GestorDeSesion.EstaAutenticado())
+            {
+                Response.Redirect("~/IniciarSesion.aspx");
+                return;
+            }
+
+            int idUsuario = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            int idPregunta;
+            int.TryParse(Convert.ToString(e.CommandArgument), NumberStyles.Integer, CultureInfo.InvariantCulture, out idPregunta);
+            ResultadoOperacion resultado = null;
+
+            switch (e.CommandName)
+            {
+                case "Responder":
+                    System.Web.UI.WebControls.TextBox respuesta = (System.Web.UI.WebControls.TextBox)e.Item.FindControl("txtRespuesta");
+                    resultado = _bllPreguntas.Responder(idPregunta, idUsuario, respuesta.Text);
+                    PreguntaDestacada = idPregunta;
+                    break;
+                case "Retirar":
+                    resultado = _bllPreguntas.Retirar(idPregunta, idUsuario);
+                    break;
+                case "Ocultar":
+                    PreguntaOcultando = idPregunta;
+                    break;
+                case "CancelarOcultar":
+                    PreguntaOcultando = 0;
+                    break;
+                case "ConfirmarOcultar":
+                    System.Web.UI.WebControls.TextBox motivo = (System.Web.UI.WebControls.TextBox)e.Item.FindControl("txtMotivo");
+                    resultado = _bllPreguntas.Ocultar(idPregunta, idUsuario, motivo.Text);
+                    if (resultado.Exitoso)
+                    {
+                        PreguntaOcultando = 0;
+                    }
+                    break;
+            }
+
+            if (resultado != null)
+            {
+                MostrarMensajePreguntas(resultado.Mensaje, !resultado.Exitoso);
+            }
+            else
+            {
+                pnlMensajePreguntas.Visible = false;
+            }
+
+            // Si falla una respuesta, se conserva lo escrito.
+            string textoEscrito = e.CommandName == "Responder" && resultado != null && !resultado.Exitoso
+                ? ((System.Web.UI.WebControls.TextBox)e.Item.FindControl("txtRespuesta")).Text
+                : null;
+            CargarPreguntas();
+            if (textoEscrito != null)
+            {
+                foreach (System.Web.UI.WebControls.RepeaterItem item in rptPreguntas.Items)
+                {
+                    System.Web.UI.WebControls.Button boton = (System.Web.UI.WebControls.Button)item.FindControl("btnResponder");
+                    if (boton != null && Convert.ToString(boton.CommandArgument) == idPregunta.ToString(CultureInfo.InvariantCulture))
+                    {
+                        ((System.Web.UI.WebControls.TextBox)item.FindControl("txtRespuesta")).Text = textoEscrito;
+                    }
+                }
+            }
+        }
+
+        private void MostrarMensajePreguntas(string mensaje, bool esError)
+        {
+            litMensajePreguntas.Text = mensaje;
+            pnlMensajePreguntas.CssClass = esError ? "form-message form-message-error" : "form-message form-message-success";
+            pnlMensajePreguntas.Visible = !string.IsNullOrEmpty(mensaje);
         }
 
         // ------------------------------------------------------------------

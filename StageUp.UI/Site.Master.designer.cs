@@ -266,6 +266,8 @@ namespace StageUp.UI
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlAnchor SoporteLink;
 
+        protected global::System.Web.UI.HtmlControls.HtmlAnchor PreguntasRecibidasLink;
+
         /// <summary>
         /// Control MainContent.
         /// </summary>

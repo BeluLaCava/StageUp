@@ -19,6 +19,7 @@
             <nav class="gestor-subnav" aria-label="Navegación de gestor de espacios">
                 <a href="~/MisEspacios.aspx" runat="server" class="active">Administrar espacios</a>
                 <a href="~/SolicitudesRecibidas.aspx" runat="server">Solicitudes recibidas<asp:Literal ID="litBadgeSolicitudes" runat="server" /></a>
+                <a href="~/PreguntasRecibidas.aspx" runat="server">Preguntas recibidas</a>
             </nav>
 
             <div class="managed-spaces-list">

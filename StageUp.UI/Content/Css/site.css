@@ -624,6 +624,128 @@
     text-align: center;
 }
 
+/* Ítem 1: preguntas y respuestas públicas sobre los espacios. */
+.space-questions-intro {
+    margin: 0 0 0.9rem;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+}
+
+.space-question-form {
+    display: grid;
+    gap: 0.5rem;
+    margin-bottom: 1.1rem;
+}
+
+.space-question-form label {
+    color: var(--color-brown-dark);
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.space-question-form textarea,
+.space-answer-form textarea,
+.space-question-hide input[type="text"] {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    color: var(--color-text);
+    background: var(--color-surface);
+    border: 1px solid rgba(137, 102, 80, 0.38);
+    border-radius: var(--radius-small);
+    font: inherit;
+    resize: vertical;
+}
+
+.space-question-form .button,
+.space-answer-form .button {
+    justify-self: start;
+}
+
+.space-question {
+    padding: 0.9rem 1rem;
+    margin-bottom: 0.75rem;
+    background: var(--color-surface);
+    border: 1px solid rgba(137, 102, 80, 0.2);
+    border-radius: 0.9rem;
+}
+
+.space-question.is-highlighted {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.18rem rgba(109, 16, 33, 0.1);
+}
+
+.space-question-text {
+    margin: 0;
+    color: var(--color-text);
+    font-weight: 650;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.space-question-meta {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+}
+
+.space-answer {
+    margin: 0.7rem 0 0;
+    padding: 0.6rem 0.85rem;
+    background: var(--color-nude-light);
+    border-left: 0.25rem solid var(--color-brown-soft);
+    border-radius: 0.5rem;
+}
+
+.space-answer strong {
+    display: block;
+    color: var(--color-brown-dark);
+    font-size: 0.8rem;
+}
+
+.space-answer p {
+    margin: 0.2rem 0;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.space-answer small,
+.space-answer-pending {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+}
+
+.space-answer-pending {
+    margin: 0.5rem 0 0;
+    font-style: italic;
+}
+
+.space-answer-form,
+.space-question-hide {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.7rem;
+}
+
+.space-question-hide span {
+    font-size: 0.82rem;
+    font-weight: 650;
+}
+
+.space-question-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.4rem;
+    font-size: 0.82rem;
+}
+
+.space-question-actions:empty {
+    display: none;
+}
+
 .helpdesk-detail-header {
     display: flex;
     align-items: flex-start;

@@ -15,6 +15,7 @@
             <nav class="gestor-subnav requests-subnav" aria-label="Navegación de gestor de espacios">
                 <a href="~/MisEspacios.aspx" runat="server">Administrar espacios</a>
                 <a href="~/SolicitudesRecibidas.aspx" runat="server" class="active">Solicitudes recibidas</a>
+                <a href="~/PreguntasRecibidas.aspx" runat="server">Preguntas recibidas</a>
             </nav>
 
             <div class="requests-summary" aria-label="Resumen de solicitudes">

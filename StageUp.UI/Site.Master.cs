@@ -60,6 +60,7 @@ namespace StageUp.UI
                 // puntual fue que el botón ni aparezca para el perfil ExternoSolicitante.
                 bool esGestorEspacios = GestorDeSesion.ObtenerPerfilActual() == PerfilUsuarioExterno.GestorEspacios.ToString();
                 MisActividadesLink.Visible = esGestorEspacios;
+                PreguntasRecibidasLink.Visible = esGestorEspacios;
 
                 // CU-001-007: quien todavía no es gestor ve "Ofrecer espacio"
                 // (solicitud de habilitación y su estado) en lugar de "Mis espacios".
@@ -104,6 +105,15 @@ namespace StageUp.UI
             SoporteLink.InnerHtml = novedades > 0
                 ? "Soporte <span class=\"sidebar-badge\" title=\"Solicitudes de soporte con novedades\">" + novedades + "</span>"
                 : "Soporte";
+
+            // Ítem 1: preguntas sin responder sobre los espacios del gestor.
+            if (PreguntasRecibidasLink.Visible)
+            {
+                int pendientes = new BLL_PreguntaEspacio().ContarPendientesGestor(GestorDeSesion.ObtenerIdUsuarioActual().Value);
+                PreguntasRecibidasLink.InnerHtml = pendientes > 0
+                    ? "Preguntas recibidas <span class=\"sidebar-badge\" title=\"Preguntas sin responder\">" + pendientes + "</span>"
+                    : "Preguntas recibidas";
+            }
         }
 
         protected void lnkCerrarSesion_Click(object sender, EventArgs e)

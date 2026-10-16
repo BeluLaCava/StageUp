@@ -81,5 +81,16 @@ namespace StageUp.UI.Explorar
         protected global::System.Web.UI.WebControls.Panel pnlCondiciones;
         protected global::System.Web.UI.WebControls.Literal litCondicionesUso;
         protected global::System.Web.UI.WebControls.Literal litReglasUso;
+        protected global::System.Web.UI.WebControls.Panel pnlMensajePreguntas;
+        protected global::System.Web.UI.WebControls.Literal litMensajePreguntas;
+        protected global::System.Web.UI.WebControls.Panel pnlPreguntar;
+        protected global::System.Web.UI.WebControls.TextBox txtPregunta;
+        protected global::System.Web.UI.WebControls.Button btnPreguntar;
+        protected global::System.Web.UI.WebControls.Panel pnlPreguntarSinSesion;
+        protected global::System.Web.UI.WebControls.HyperLink lnkIniciarSesionPregunta;
+        protected global::System.Web.UI.WebControls.Panel pnlPreguntarGestor;
+        protected global::System.Web.UI.WebControls.Repeater rptPreguntas;
+        protected global::System.Web.UI.WebControls.Panel pnlSinPreguntas;
+        protected global::System.Web.UI.WebControls.HyperLink lnkVerTodasPreguntas;
     }
 }

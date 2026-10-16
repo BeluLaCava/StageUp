@@ -43,7 +43,10 @@ namespace StageUp.BLL
             { TipoNotificacion.ComprobanteEmitido.ToString(), "Comprobante emitido" },
             { TipoNotificacion.LiquidacionRegistrada.ToString(), "Liquidación registrada" },
             { TipoNotificacion.SolicitudSoporteRegistrada.ToString(), "Solicitud de soporte registrada" },
-            { TipoNotificacion.SolicitudSoporteActualizada.ToString(), "Solicitud de soporte actualizada" }
+            { TipoNotificacion.SolicitudSoporteActualizada.ToString(), "Solicitud de soporte actualizada" },
+            { TipoNotificacion.PreguntaEspacioRecibida.ToString(), "Nueva pregunta sobre tu espacio" },
+            { TipoNotificacion.PreguntaEspacioRespondida.ToString(), "Respondieron tu pregunta" },
+            { TipoNotificacion.PreguntaEspacioOcultada.ToString(), "Tu pregunta fue ocultada" }
         };
 
         // Categoría que se muestra junto a cada notificación.
@@ -64,7 +67,10 @@ namespace StageUp.BLL
             { TipoNotificacion.ComprobanteEmitido.ToString(), "Comprobantes" },
             { TipoNotificacion.LiquidacionRegistrada.ToString(), "Cuenta corriente" },
             { TipoNotificacion.SolicitudSoporteRegistrada.ToString(), "Soporte" },
-            { TipoNotificacion.SolicitudSoporteActualizada.ToString(), "Soporte" }
+            { TipoNotificacion.SolicitudSoporteActualizada.ToString(), "Soporte" },
+            { TipoNotificacion.PreguntaEspacioRecibida.ToString(), "Preguntas" },
+            { TipoNotificacion.PreguntaEspacioRespondida.ToString(), "Preguntas" },
+            { TipoNotificacion.PreguntaEspacioOcultada.ToString(), "Preguntas" }
         };
 
         // Página interna: "~/Pagina.aspx" o "~/Carpeta/Pagina.aspx", con

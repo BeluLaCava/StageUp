@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><asp:ContentPlaceHolder ID="TitleContent" runat="server">StageUp</asp:ContentPlaceHolder></title>
     <link rel="icon" type="image/png" href="<%= ResolveUrl("~/Content/Images/favicon.png") %>" />
-    <link id="SiteStyles" href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20261012-3" rel="stylesheet" />
+    <link id="SiteStyles" href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20261016-1" rel="stylesheet" />
     <asp:ContentPlaceHolder ID="HeadContent" runat="server" />
 </head>
 <body>
@@ -125,6 +125,7 @@
                     <a id="MiBilleteraLink" runat="server" class="sidebar-link" href="~/MiBilletera.aspx">Mi billetera</a>
                     <a id="MisEspaciosLink" runat="server" class="sidebar-link" href="~/MisEspacios.aspx" data-i18n="Nav_MisEspacios">Mis espacios</a>
                     <a id="MisActividadesLink" runat="server" class="sidebar-link" href="~/MisActividades.aspx" data-i18n="Nav_MisActividades">Mis actividades</a>
+                    <a id="PreguntasRecibidasLink" runat="server" class="sidebar-link" href="~/PreguntasRecibidas.aspx">Preguntas recibidas</a>
                     <a id="SoporteLink" runat="server" class="sidebar-link" href="~/Soporte.aspx">Soporte</a>
                 </nav>
             </aside>

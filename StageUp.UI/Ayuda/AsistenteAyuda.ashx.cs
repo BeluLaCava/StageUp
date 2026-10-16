@@ -89,7 +89,8 @@ namespace StageUp.UI.Ayuda
                 esRespuesta = nodo.EsRespuesta,
                 mensaje = nodo.Mensaje,
                 recorrido = nodo.Recorrido,
-                opciones = nodo.Opciones.Select(o => new { codigo = o.Codigo, texto = o.TextoOpcion }),
+                textoBoton = nodo.TextoBotonLista,
+                opciones = nodo.Opciones.Select(o => new { codigo = o.Codigo, texto = o.TextoOpcion, descripcion = o.DescripcionOpcion, icono = o.Icono }),
                 acciones = nodo.Acciones
                     .Select(a => new { texto = a.Texto, tipo = a.TipoAccion, codigo = a.TipoAccion == AccionNodoAsistente.TipoNodo ? a.Destino : null, url = UrlInterna(a) })
                     .Where(a => a.tipo != AccionNodoAsistente.TipoEnlace || a.url != null)

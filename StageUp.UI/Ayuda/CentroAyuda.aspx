@@ -84,18 +84,18 @@
 
     <div class="assistant-backdrop" data-assistant-backdrop hidden></div>
     <section class="assistant-modal" data-assistant-modal hidden role="dialog" aria-modal="true" aria-labelledby="assistant-dialog-title"
-        data-asistente-url="<%= ResolveUrl("~/Ayuda/AsistenteAyuda.ashx") %>" data-soporte-url="<%= UrlSoporte %>">
+        data-asistente-url="<%= ResolveUrl("~/Ayuda/AsistenteAyuda.ashx") %>" data-soporte-url="<%= UrlSoporte %>" data-usuario-nombre="<%: NombreUsuario %>">
         <header class="assistant-modal-header">
-            <div class="assistant-identity"><span class="assistant-avatar" aria-hidden="true">S</span><div><strong id="assistant-dialog-title">Asistente StageUp</strong><span>Respuestas automáticas · No es atención humana</span></div></div>
+            <div class="assistant-identity"><span class="assistant-avatar" aria-hidden="true">S</span><div><strong id="assistant-dialog-title">Asistente StageUp</strong><span><span class="asistente-en-linea" aria-hidden="true"></span>En línea · Respuestas automáticas, no es atención humana</span></div></div>
             <button class="icon-button" type="button" aria-label="Cerrar asistente" data-assistant-close>×</button>
         </header>
         <div class="assistant-conversation asistente-chat" data-asistente-chat aria-live="polite" aria-label="Conversación con el asistente"></div>
         <footer class="assistant-modal-footer">
             <div class="assistant-input-preview asistente-form" data-asistente-form role="search">
-                <input type="text" maxlength="200" placeholder="Número de opción o tu consulta" aria-label="Consulta al asistente" autocomplete="off" data-asistente-texto />
+                <input type="text" maxlength="200" placeholder="Escribí tu consulta o el número de una opción" aria-label="Consulta al asistente" autocomplete="off" data-asistente-texto />
                 <button class="button button-primary button-small" type="button" data-asistente-enviar>Enviar</button>
             </div>
-            <span>Elegí una opción o escribí su número. También podés escribir tu consulta. Si no se resuelve, podés registrar una solicitud de soporte.</span>
+            <span>Escribí "menú" para volver al inicio o "salir" para terminar. Si no se resuelve, podés registrar una solicitud de soporte.</span>
         </footer>
     </section>
 
@@ -105,20 +105,56 @@
         .ayuda-categorias a:hover, .ayuda-categorias a.is-current { border-color: var(--color-primary); color: var(--color-primary); font-weight: 700; }
         .ayuda-vacia { padding: 14px 16px; border: 1px dashed var(--color-border); border-radius: 12px; }
         .ayuda-vacia p { margin: 0 0 4px; }
-        .asistente-chat { display: flex; flex-direction: column; gap: 10px; max-height: min(26rem, 55vh); overflow-y: auto; }
-        .asistente-burbuja { padding: 9px 12px; border-radius: 14px; max-width: 88%; line-height: 1.45; font-size: 0.92rem; overflow-wrap: anywhere; }
-        .asistente-burbuja-bot { background: var(--color-nude-light, #f7efe9); align-self: flex-start; border-bottom-left-radius: 4px; }
-        .asistente-burbuja-usuario { background: var(--color-primary, #6d1021); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .asistente-burbuja strong { display: block; margin-bottom: 4px; }
-        .asistente-opciones { display: flex; flex-wrap: wrap; gap: 6px; align-self: flex-start; }
-        .asistente-opciones button, .asistente-opciones a { padding: 5px 11px; border: 1px solid rgba(109, 16, 33, 0.35); border-radius: 999px; background: var(--color-surface); color: var(--color-primary); font: inherit; font-size: 0.84rem; cursor: pointer; text-decoration: none; }
-        .asistente-opciones button:hover, .asistente-opciones a:hover { background: var(--color-primary); color: #fff; }
+        .asistente-chat { display: flex; flex-direction: column; gap: 8px; max-height: min(30rem, 60vh); overflow-y: auto; padding: 14px 12px; background: #f4ece6; background-image: radial-gradient(rgba(109, 16, 33, 0.05) 1px, transparent 1px); background-size: 14px 14px; }
+        .asistente-dia { align-self: center; padding: 3px 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.85); color: var(--color-text-muted); font-size: 0.75rem; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06); }
+        .asistente-burbuja { position: relative; display: flex; flex-direction: column; gap: 3px; padding: 7px 10px 5px; border-radius: 10px; max-width: 85%; line-height: 1.42; font-size: 0.92rem; overflow-wrap: anywhere; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08); }
+        .asistente-burbuja-bot { background: #fff; color: var(--color-text, #2b1a1d); align-self: flex-start; border-top-left-radius: 2px; }
+        .asistente-burbuja-usuario { background: #f3dfe3; color: var(--color-text, #2b1a1d); align-self: flex-end; border-top-right-radius: 2px; }
+        .asistente-burbuja-con-botones { min-width: min(17rem, 85%); padding-bottom: 0; }
+        .asistente-titulo { font-weight: 700; }
+        .asistente-texto { white-space: pre-line; }
+        .asistente-nota { font-style: italic; color: var(--color-text-muted); }
+        .asistente-descripcion { color: var(--color-text-muted); font-size: 0.85rem; }
+        .asistente-hora { align-self: flex-end; display: inline-flex; gap: 4px; font-size: 0.7rem; color: var(--color-text-muted); line-height: 1; }
+        .asistente-leido { color: #3d8fd1; letter-spacing: -2px; }
+        .asistente-cita { display: flex; flex-direction: column; padding: 5px 8px; margin-bottom: 2px; border-left: 4px solid var(--color-primary, #6d1021); border-radius: 6px; background: rgba(109, 16, 33, 0.07); font-size: 0.8rem; }
+        .asistente-cita strong { color: var(--color-primary, #6d1021); }
+        .asistente-cita span { color: var(--color-text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .asistente-respuestas { display: flex; flex-direction: column; margin: 6px -10px 0; }
+        .asistente-respuesta, .asistente-boton-lista { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 9px 12px; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.08); background: transparent; color: var(--color-primary, #6d1021); font: inherit; font-size: 0.9rem; text-align: center; text-decoration: none; cursor: pointer; }
+        .asistente-boton-lista { margin: 6px -10px 0; width: calc(100% + 20px); font-weight: 600; }
+        .asistente-respuesta:hover, .asistente-boton-lista:hover { background: rgba(109, 16, 33, 0.05); }
+        .asistente-respuesta:focus-visible, .asistente-boton-lista:focus-visible, .asistente-hoja-opcion:focus-visible { outline: 2px solid var(--color-primary, #6d1021); outline-offset: -2px; }
+        .asistente-respuesta-destacada { font-weight: 700; }
+        .asistente-respuesta-enlace span:last-child::after { content: " \2197"; }
+        .asistente-respuesta:disabled, .asistente-boton-lista:disabled, .asistente-respuesta.is-disabled { color: var(--color-text-muted); cursor: default; background: transparent; pointer-events: none; opacity: 0.7; }
+        .asistente-numero { display: inline-grid; place-items: center; min-width: 1.35rem; height: 1.35rem; border-radius: 50%; background: rgba(109, 16, 33, 0.08); color: var(--color-primary, #6d1021); font-size: 0.72rem; font-weight: 700; }
+        .asistente-icono-lista { width: 14px; height: 10px; border-top: 2px solid currentColor; border-bottom: 2px solid currentColor; position: relative; }
+        .asistente-icono-lista::after { content: ""; position: absolute; left: 0; right: 0; top: 2px; border-top: 2px solid currentColor; }
+        .asistente-escribiendo { align-self: flex-start; display: inline-flex; gap: 4px; padding: 10px 12px; border-radius: 10px; border-top-left-radius: 2px; background: #fff; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08); }
+        .asistente-escribiendo span { width: 6px; height: 6px; border-radius: 50%; background: var(--color-text-muted); animation: asistente-puntos 1s infinite ease-in-out; }
+        .asistente-escribiendo span:nth-child(2) { animation-delay: 0.15s; }
+        .asistente-escribiendo span:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes asistente-puntos { 0%, 80%, 100% { opacity: 0.3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+        @media (prefers-reduced-motion: reduce) { .asistente-escribiendo span { animation: none; } }
+        .asistente-en-linea { display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; background: #2e9d5b; vertical-align: middle; }
+        .asistente-hoja-fondo { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.35); opacity: 0; transition: opacity 0.2s ease; z-index: 5; }
+        .asistente-hoja-fondo.is-open { opacity: 1; }
+        .asistente-hoja { position: absolute; left: 0; right: 0; bottom: 0; max-height: 78%; display: flex; flex-direction: column; background: var(--color-surface, #fff); border-radius: 16px 16px 0 0; box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.18); transform: translateY(100%); transition: transform 0.22s ease; z-index: 6; }
+        .asistente-hoja.is-open { transform: translateY(0); }
+        @media (prefers-reduced-motion: reduce) { .asistente-hoja, .asistente-hoja-fondo { transition: none; } }
+        .asistente-hoja-cabecera { position: relative; padding: 16px 48px 12px; text-align: center; border-bottom: 1px solid var(--color-border); }
+        .asistente-hoja-cerrar { position: absolute; right: 10px; top: 8px; width: 36px; height: 36px; border: 0; background: transparent; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--color-text); }
+        .asistente-hoja-lista { overflow-y: auto; }
+        .asistente-hoja-opcion { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 12px 18px; border: 0; border-bottom: 1px solid var(--color-border); background: transparent; font: inherit; text-align: left; color: var(--color-text); text-decoration: none; cursor: pointer; }
+        .asistente-hoja-opcion:hover { background: rgba(109, 16, 33, 0.04); }
+        .asistente-hoja-opcion .asistente-numero { margin-top: 1px; }
+        .asistente-hoja-texto { display: flex; flex-direction: column; gap: 2px; }
+        .asistente-hoja-texto strong { font-weight: 600; }
+        .asistente-hoja-texto > span { color: var(--color-text-muted); font-size: 0.85rem; }
+        .asistente-hoja-pie { margin: 0; padding: 10px 16px 14px; text-align: center; font-size: 0.78rem; color: var(--color-text-muted); }
         .support-path-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 0.6rem; }
-        .asistente-opciones-numeradas { flex-direction: column; align-items: stretch; width: min(100%, 26rem); }
-        .asistente-opciones-numeradas button, .asistente-opciones-numeradas a { border-radius: 10px; text-align: left; }
-        .asistente-opciones button:disabled { opacity: 0.55; cursor: default; background: var(--color-surface); color: var(--color-primary); }
-        .asistente-opciones .asistente-soporte { background: var(--color-primary); color: #fff; font-weight: 700; }
         .asistente-form input:disabled { cursor: not-allowed; }
     </style>
-    <script src="<%= ResolveUrl("~/Scripts/asistente-ayuda.js") %>?v=20261016" defer></script>
+    <script src="<%= ResolveUrl("~/Scripts/asistente-ayuda.js") %>?v=20261017" defer></script>
 </asp:Content>

@@ -58,6 +58,15 @@ namespace StageUp.BE.Entidades
         public string Mensaje { get; set; }
         public string PalabrasClave { get; set; }
         public int Orden { get; set; }
+
+        // Estilo chat (script 72): descripción corta debajo de la opción en
+        // el menú, ícono de la opción (clave fija que el asistente traduce a
+        // un emoji) y texto del botón que abre el menú de opciones de este
+        // paso (por ejemplo "Menú principal" u "Opciones de reservas").
+        public string DescripcionOpcion { get; set; }
+        public string Icono { get; set; }
+        public string TextoBotonLista { get; set; }
+
         public List<NodoAsistente> Opciones { get; set; } = new List<NodoAsistente>();
         public List<AccionNodoAsistente> Acciones { get; set; } = new List<AccionNodoAsistente>();
 

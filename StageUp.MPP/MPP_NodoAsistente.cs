@@ -25,10 +25,18 @@ namespace StageUp.MPP
                     TextoOpcion = fila["textoOpcion"].ToString(),
                     Mensaje = fila["mensaje"].ToString(),
                     PalabrasClave = fila["palabrasClave"] == DBNull.Value ? null : fila["palabrasClave"].ToString(),
-                    Orden = Convert.ToInt32(fila["orden"])
+                    Orden = Convert.ToInt32(fila["orden"]),
+                    DescripcionOpcion = Texto(fila, "descripcionOpcion"),
+                    Icono = Texto(fila, "icono"),
+                    TextoBotonLista = Texto(fila, "textoBotonLista")
                 });
             }
             return lista;
+        }
+
+        private static string Texto(DataRow fila, string columna)
+        {
+            return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value ? fila[columna].ToString() : null;
         }
 
         public List<AccionNodoAsistente> ListarAccionesActivas()

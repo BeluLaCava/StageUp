@@ -1,10 +1,17 @@
-// CU-003-001 A4 a A7: asistente guiado del centro de ayuda (sin IA).
-// Funciona como un árbol de decisión: muestra un mensaje y opciones
-// numeradas; cada opción lleva a otro paso hasta llegar a una respuesta con
-// acciones (ir a una pantalla, ver otra respuesta o registrar una solicitud
-// de soporte). También se puede escribir el número de la opción o una
-// consulta. Pide los pasos a Ayuda/AsistenteAyuda.ashx y muestra todo con
-// textContent (nunca HTML recibido).
+// CU-003-001 A4 a A7: asistente guiado del centro de ayuda (sin IA), con
+// formato de chat (como los asistentes de WhatsApp que no usan IA).
+//   - Saluda por el nombre y pregunta qué querés hacer.
+//   - Cada paso con muchas opciones muestra un botón ("Menú principal",
+//     "Opciones de reservas"...) que abre un menú con título, descripción e
+//     ícono de cada opción; con pocas opciones se muestran botones de
+//     respuesta rápida dentro del mensaje.
+//   - Lo que elegís aparece como tu mensaje, citando la pregunta.
+//   - Cada respuesta ofrece acciones (ir a una pantalla, ver otra respuesta
+//     o registrar una solicitud de soporte, con un resumen para confirmar).
+//   - Se puede escribir el número de la opción, una consulta, "menú" para
+//     volver al inicio o "salir" para terminar.
+// Pide los pasos a Ayuda/AsistenteAyuda.ashx y muestra todo con textContent
+// (nunca HTML recibido).
 (function () {
     "use strict";
 
@@ -18,79 +25,157 @@
     const enviar = modal.querySelector("[data-asistente-enviar]");
     const urlAsistente = modal.getAttribute("data-asistente-url");
     const urlSoporte = modal.getAttribute("data-soporte-url");
+    const nombreUsuario = (modal.getAttribute("data-usuario-nombre") || "").trim();
+    const conSesion = urlSoporte.indexOf("Soporte.aspx") >= 0;
+    const demoraEscritura = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 120 : 450;
+
+    // Íconos de las opciones (clave guardada en NodoAsistente.icono).
+    const ICONOS = {
+        reservas: "\u{1F4C5}", reservar: "\u{1F4DD}", cancelar: "❌", estado: "\u{1F50E}",
+        espera: "⏳", politica: "\u{1F4C4}", pagos: "\u{1F4B3}", pagar: "\u{1F4B5}",
+        saldo: "\u{1F4B0}", movimiento: "\u{1F4CA}", tarjeta: "⚠️", espacios: "\u{1F3AD}",
+        ofrecer: "\u{1F3E0}", editar: "✏️", calendario: "\u{1F5D3}️", solicitudes: "\u{1F4E5}",
+        tecnico: "\u{1F6E0}️", llave: "\u{1F511}", cuenta: "\u{1F464}", correo: "✉️",
+        error: "\u{1F5A5}️", soporte: "\u{1F4AC}", menu: "↩️", salir: "\u{1F44B}"
+    };
+    const MANO_ABAJO = "\u{1F447}";
+    const SALUDO = "\u{1F44B}";
+
     let iniciado = false;
     let disponible = true;
     let opcionesActuales = [];
     let recorridoActual = "";
+    let ultimaPregunta = "";
+    let cola = Promise.resolve();
+
+    // ---------------------------------------------------------------- util
+
+    function hora() {
+        const ahora = new Date();
+        return String(ahora.getHours()).padStart(2, "0") + ":" + String(ahora.getMinutes()).padStart(2, "0");
+    }
 
     function bajar() {
         chat.scrollTop = chat.scrollHeight;
     }
 
-    function burbuja(texto, deUsuario, titulo) {
-        const div = document.createElement("div");
-        div.className = "asistente-burbuja " + (deUsuario ? "asistente-burbuja-usuario" : "asistente-burbuja-bot");
-        if (titulo) {
-            const fuerte = document.createElement("strong");
-            fuerte.textContent = titulo;
-            div.appendChild(fuerte);
+    function elemento(etiqueta, clase, texto) {
+        const el = document.createElement(etiqueta);
+        if (clase) {
+            el.className = clase;
         }
+        if (texto !== undefined && texto !== null) {
+            el.textContent = texto;
+        }
+        return el;
+    }
 
-        const parrafo = document.createElement("span");
-        parrafo.textContent = texto;
-        div.appendChild(parrafo);
-        chat.appendChild(div);
+    function icono(clave) {
+        return clave && ICONOS[clave] ? ICONOS[clave] : "";
+    }
+
+    // Los mensajes del asistente se muestran en orden, con un "escribiendo…"
+    // breve antes de cada uno.
+    function enCola(tarea) {
+        cola = cola.then(function () {
+            const escribiendo = elemento("div", "asistente-escribiendo");
+            escribiendo.setAttribute("aria-hidden", "true");
+            escribiendo.appendChild(elemento("span"));
+            escribiendo.appendChild(elemento("span"));
+            escribiendo.appendChild(elemento("span"));
+            chat.appendChild(escribiendo);
+            bajar();
+            return new Promise(function (resolver) {
+                setTimeout(function () {
+                    escribiendo.remove();
+                    tarea();
+                    bajar();
+                    resolver();
+                }, demoraEscritura);
+            });
+        });
+        return cola;
+    }
+
+    // ------------------------------------------------------------ mensajes
+
+    function pie(burbuja, deUsuario) {
+        const meta = elemento("span", "asistente-hora", hora());
+        if (deUsuario) {
+            const leido = elemento("span", "asistente-leido", "✓✓");
+            leido.setAttribute("aria-label", "enviado");
+            meta.appendChild(leido);
+        }
+        burbuja.appendChild(meta);
+    }
+
+    // Mensaje del asistente: { titulo, texto, nota }.
+    function crearMensajeBot(partes) {
+        const burbuja = elemento("div", "asistente-burbuja asistente-burbuja-bot");
+        if (partes.titulo) {
+            burbuja.appendChild(elemento("strong", "asistente-titulo", partes.titulo));
+        }
+        if (partes.texto) {
+            burbuja.appendChild(elemento("span", "asistente-texto", partes.texto));
+        }
+        if (partes.nota) {
+            burbuja.appendChild(elemento("em", "asistente-nota", partes.nota));
+        }
+        pie(burbuja, false);
+        chat.appendChild(burbuja);
+        return burbuja;
+    }
+
+    function mensajeBot(partes, opciones, modo, textoBoton) {
+        return enCola(function () {
+            const burbuja = crearMensajeBot(partes);
+            if (opciones && opciones.length > 0) {
+                if (modo === "lista") {
+                    agregarBotonLista(burbuja, textoBoton || "Ver opciones", opciones);
+                } else {
+                    agregarRespuestasRapidas(burbuja, opciones);
+                }
+            }
+            if (partes.texto && opciones && opciones.length > 0) {
+                ultimaPregunta = partes.texto;
+            }
+        });
+    }
+
+    // Mensaje del usuario; si eligió una opción, cita la pregunta del asistente.
+    function mensajeUsuario(texto, descripcion, cita) {
+        const burbuja = elemento("div", "asistente-burbuja asistente-burbuja-usuario");
+        if (cita) {
+            const bloque = elemento("div", "asistente-cita");
+            bloque.appendChild(elemento("strong", null, "Asistente StageUp"));
+            bloque.appendChild(elemento("span", null, cita));
+            burbuja.appendChild(bloque);
+        }
+        burbuja.appendChild(elemento("span", "asistente-texto", texto));
+        if (descripcion) {
+            burbuja.appendChild(elemento("span", "asistente-descripcion", descripcion));
+        }
+        pie(burbuja, true);
+        chat.appendChild(burbuja);
         bajar();
-        return div;
     }
 
-    // CU-003-002 A1: el formulario de soporte se abre con el recorrido o la
-    // consulta como motivo (solo con sesión iniciada; si no, va al login).
-    function enlaceSoporte(motivo) {
-        if (!motivo || urlSoporte.indexOf("Soporte.aspx") < 0) {
-            return urlSoporte;
-        }
-
-        return urlSoporte + (urlSoporte.indexOf("?") < 0 ? "?" : "&") + "consulta=" + encodeURIComponent(motivo.slice(0, 150));
-    }
+    // ------------------------------------------------------------ opciones
 
     function desactivarOpcionesAnteriores() {
-        chat.querySelectorAll(".asistente-opciones button").forEach(function (boton) {
+        chat.querySelectorAll(".asistente-respuestas button, .asistente-boton-lista").forEach(function (boton) {
             boton.disabled = true;
+        });
+        chat.querySelectorAll(".asistente-respuestas a").forEach(function (enlace) {
+            enlace.classList.add("is-disabled");
+            enlace.setAttribute("tabindex", "-1");
+            enlace.setAttribute("aria-disabled", "true");
         });
         opcionesActuales = [];
     }
 
-    // Lista numerada de opciones. Cada opción: { texto, accion } o { texto, url }.
-    function opciones(lista, numeradas) {
-        const contenedor = document.createElement("div");
-        contenedor.className = "asistente-opciones" + (numeradas ? " asistente-opciones-numeradas" : "");
-        opcionesActuales = [];
-
-        lista.forEach(function (opcion, indice) {
-            let elemento;
-            if (opcion.url) {
-                elemento = document.createElement("a");
-                elemento.href = opcion.url;
-            } else {
-                elemento = document.createElement("button");
-                elemento.type = "button";
-                elemento.addEventListener("click", function () {
-                    elegir(opcion);
-                });
-            }
-
-            if (opcion.clase) {
-                elemento.className = opcion.clase;
-            }
-
-            elemento.textContent = (numeradas ? (indice + 1) + ". " : "") + opcion.texto;
-            contenedor.appendChild(elemento);
-            opcionesActuales.push({ opcion: opcion, elemento: elemento });
-        });
-
-        chat.appendChild(contenedor);
-        bajar();
+    function registrarOpciones(lista) {
+        opcionesActuales = lista.slice();
     }
 
     function elegir(opcion) {
@@ -99,10 +184,147 @@
             return;
         }
 
+        cerrarHoja();
         desactivarOpcionesAnteriores();
-        burbuja(opcion.texto, true);
+        mensajeUsuario(opcion.texto, opcion.descripcion, ultimaPregunta);
         opcion.accion();
     }
+
+    // Botones de respuesta rápida dentro del mensaje (pocas opciones).
+    function agregarRespuestasRapidas(burbuja, lista) {
+        const contenedor = elemento("div", "asistente-respuestas");
+        lista.forEach(function (opcion, indice) {
+            let control;
+            if (opcion.url) {
+                control = elemento("a", "asistente-respuesta asistente-respuesta-enlace");
+                control.href = opcion.url;
+            } else {
+                control = elemento("button", "asistente-respuesta");
+                control.type = "button";
+                control.addEventListener("click", function () {
+                    elegir(opcion);
+                });
+            }
+            if (opcion.destacada) {
+                control.classList.add("asistente-respuesta-destacada");
+            }
+            control.appendChild(elemento("span", "asistente-numero", String(indice + 1)));
+            control.appendChild(elemento("span", null, opcion.texto));
+            contenedor.appendChild(control);
+        });
+        burbuja.appendChild(contenedor);
+        burbuja.classList.add("asistente-burbuja-con-botones");
+        registrarOpciones(lista);
+    }
+
+    // Botón que abre el menú de opciones (muchas opciones).
+    function agregarBotonLista(burbuja, texto, lista) {
+        const boton = elemento("button", "asistente-boton-lista");
+        boton.type = "button";
+        boton.appendChild(elemento("span", "asistente-icono-lista"));
+        boton.appendChild(elemento("span", null, texto));
+        boton.addEventListener("click", function () {
+            abrirHoja(texto, lista, boton);
+        });
+        burbuja.appendChild(boton);
+        burbuja.classList.add("asistente-burbuja-con-botones");
+        registrarOpciones(lista);
+    }
+
+    // --------------------------------------------------- menú de opciones
+
+    const hoja = elemento("div", "asistente-hoja");
+    hoja.hidden = true;
+    hoja.setAttribute("role", "dialog");
+    hoja.setAttribute("aria-modal", "true");
+    hoja.setAttribute("aria-labelledby", "asistente-hoja-titulo");
+    const fondoHoja = elemento("div", "asistente-hoja-fondo");
+    fondoHoja.hidden = true;
+    const cabeceraHoja = elemento("div", "asistente-hoja-cabecera");
+    const tituloHoja = elemento("strong", null, "");
+    tituloHoja.id = "asistente-hoja-titulo";
+    const cerrarHojaBoton = elemento("button", "asistente-hoja-cerrar", "×");
+    cerrarHojaBoton.type = "button";
+    cerrarHojaBoton.setAttribute("aria-label", "Cerrar menú");
+    cabeceraHoja.appendChild(tituloHoja);
+    cabeceraHoja.appendChild(cerrarHojaBoton);
+    const listaHoja = elemento("div", "asistente-hoja-lista");
+    listaHoja.setAttribute("role", "list");
+    hoja.appendChild(cabeceraHoja);
+    hoja.appendChild(listaHoja);
+    hoja.appendChild(elemento("p", "asistente-hoja-pie", "Tocá una opción para elegirla o escribí su número."));
+    modal.appendChild(fondoHoja);
+    modal.appendChild(hoja);
+    let botonQueAbrio = null;
+
+    function abrirHoja(titulo, lista, origen) {
+        botonQueAbrio = origen || null;
+        tituloHoja.textContent = titulo;
+        listaHoja.textContent = "";
+        lista.forEach(function (opcion, indice) {
+            const fila = elemento(opcion.url ? "a" : "button", "asistente-hoja-opcion");
+            if (opcion.url) {
+                fila.href = opcion.url;
+            } else {
+                fila.type = "button";
+                fila.addEventListener("click", function () {
+                    elegir(opcion);
+                });
+            }
+            fila.setAttribute("role", "listitem");
+            fila.appendChild(elemento("span", "asistente-numero", String(indice + 1)));
+            const cuerpo = elemento("span", "asistente-hoja-texto");
+            const tituloOpcion = elemento("strong", null, opcion.texto);
+            const emoji = icono(opcion.icono);
+            if (emoji) {
+                tituloOpcion.appendChild(elemento("span", "asistente-emoji", " " + emoji));
+            }
+            cuerpo.appendChild(tituloOpcion);
+            if (opcion.descripcion) {
+                cuerpo.appendChild(elemento("span", null, opcion.descripcion));
+            }
+            fila.appendChild(cuerpo);
+            listaHoja.appendChild(fila);
+        });
+        fondoHoja.hidden = false;
+        hoja.hidden = false;
+        requestAnimationFrame(function () {
+            hoja.classList.add("is-open");
+            fondoHoja.classList.add("is-open");
+            const primera = listaHoja.querySelector(".asistente-hoja-opcion");
+            if (primera) {
+                primera.focus();
+            }
+        });
+    }
+
+    function cerrarHoja() {
+        if (hoja.hidden) {
+            return;
+        }
+        hoja.classList.remove("is-open");
+        fondoHoja.classList.remove("is-open");
+        hoja.hidden = true;
+        fondoHoja.hidden = true;
+        if (botonQueAbrio && !botonQueAbrio.disabled) {
+            botonQueAbrio.focus();
+        } else {
+            entrada.focus();
+        }
+        botonQueAbrio = null;
+    }
+
+    cerrarHojaBoton.addEventListener("click", cerrarHoja);
+    fondoHoja.addEventListener("click", cerrarHoja);
+    hoja.addEventListener("keydown", function (evento) {
+        if (evento.key === "Escape") {
+            evento.preventDefault();
+            evento.stopPropagation();
+            cerrarHoja();
+        }
+    });
+
+    // ------------------------------------------------------------- pasos
 
     function pedir(parametros, metodo) {
         const cuerpo = new URLSearchParams(parametros);
@@ -115,13 +337,26 @@
         });
     }
 
+    // CU-003-002 A1: el formulario de soporte se abre con el recorrido o la
+    // consulta como motivo (solo con sesión iniciada; si no, va al login).
+    function enlaceSoporte(motivo) {
+        if (!motivo || !conSesion) {
+            return urlSoporte;
+        }
+
+        return urlSoporte + (urlSoporte.indexOf("?") < 0 ? "?" : "&") + "consulta=" + encodeURIComponent(motivo.slice(0, 150));
+    }
+
+    const opcionMenuPrincipal = { texto: "Menú principal", descripcion: "Volver al inicio", icono: "menu", accion: function () { irANodo(""); } };
+    const opcionSalir = { texto: "Salir", descripcion: "Finalizar esta conversación", icono: "salir", accion: salir };
+
     // A7: se avisa y se ofrece soporte; las preguntas frecuentes siguen visibles.
     function noDisponible(mensaje) {
         disponible = false;
         entrada.disabled = true;
         enviar.disabled = true;
-        burbuja(mensaje || "El asistente no está disponible en este momento.", false);
-        opciones([{ texto: "Registrar solicitud de soporte", url: enlaceSoporte(""), clase: "asistente-soporte" }], false);
+        mensajeBot({ texto: mensaje || "El asistente no está disponible en este momento. Podés revisar las preguntas frecuentes o registrar una solicitud de soporte." },
+            [{ texto: "Registrar solicitud de soporte", url: enlaceSoporte(""), destacada: true }], "botones");
     }
 
     function irANodo(codigo) {
@@ -130,8 +365,7 @@
                 if (datos.codigo === "A7") {
                     noDisponible(datos.mensaje);
                 } else {
-                    burbuja(datos.mensaje, false);
-                    opciones([{ texto: "Volver al inicio", accion: function () { irANodo(""); } }], false);
+                    mensajeBot({ texto: datos.mensaje }, [opcionMenuPrincipal], "botones");
                 }
                 return;
             }
@@ -142,54 +376,100 @@
         });
     }
 
+    function convertirSugerencias(sugerencias) {
+        return (sugerencias || []).map(function (sugerencia) {
+            return { texto: sugerencia.texto, accion: function () { irANodo(sugerencia.codigo); } };
+        });
+    }
+
     function mostrarNodo(nodo, sugerencias) {
         recorridoActual = nodo.recorrido || "";
-        burbuja(nodo.mensaje, false);
 
-        const lista = [];
         if (!nodo.esRespuesta) {
             // Paso con pregunta: las opciones llevan al siguiente nivel.
-            nodo.opciones.forEach(function (opcion) {
-                lista.push({ texto: opcion.texto, accion: function () { irANodo(opcion.codigo); } });
-            });
-        } else {
-            // Respuesta: acciones definidas para este paso.
-            let tieneSoporte = false;
-            nodo.acciones.forEach(function (accion) {
-                if (accion.tipo === "Enlace") {
-                    lista.push({ texto: accion.texto, url: accion.url });
-                } else if (accion.tipo === "Nodo") {
-                    lista.push({ texto: accion.texto, accion: function () { irANodo(accion.codigo); } });
-                } else if (accion.tipo === "Soporte") {
-                    tieneSoporte = true;
-                    lista.push({ texto: accion.texto, url: enlaceSoporte(recorridoActual), clase: "asistente-soporte" });
-                }
-            });
+            const lista = nodo.opciones.map(function (opcion) {
+                return {
+                    texto: opcion.texto,
+                    descripcion: opcion.descripcion,
+                    icono: opcion.icono,
+                    accion: function () { irANodo(opcion.codigo); }
+                };
+            }).concat(convertirSugerencias(sugerencias));
+            lista.push(nodo.esInicio ? opcionSalir : opcionMenuPrincipal);
 
-            // A6: si la respuesta no alcanza.
-            if (!tieneSoporte) {
-                lista.push({ texto: "Necesito más ayuda", accion: necesitoMasAyuda });
+            if (nodo.opciones.length <= 3 && !nodo.esInicio) {
+                mensajeBot({ texto: nodo.mensaje }, lista, "botones");
+            } else {
+                mensajeBot({ texto: nodo.mensaje, nota: "Elegí una opción desde el menú " + MANO_ABAJO }, lista, "lista", nodo.textoBoton);
             }
+            return;
         }
 
-        (sugerencias || []).forEach(function (sugerencia) {
-            lista.push({ texto: sugerencia.texto, accion: function () { irANodo(sugerencia.codigo); } });
+        // Respuesta: acciones definidas para este paso.
+        const acciones = [];
+        let tieneSoporte = false;
+        nodo.acciones.forEach(function (accion) {
+            if (accion.tipo === "Enlace") {
+                acciones.push({ texto: accion.texto, url: accion.url });
+            } else if (accion.tipo === "Nodo") {
+                acciones.push({ texto: accion.texto, accion: function () { irANodo(accion.codigo); } });
+            } else if (accion.tipo === "Soporte") {
+                tieneSoporte = true;
+                acciones.push({ texto: accion.texto, destacada: true, accion: function () { confirmarSoporte(recorridoActual); } });
+            }
         });
 
-        if (!nodo.esInicio) {
-            lista.push({ texto: "Volver al inicio", accion: function () { irANodo(""); } });
+        // A6: si la respuesta no alcanza.
+        if (!tieneSoporte) {
+            acciones.push({ texto: "Necesito más ayuda", accion: necesitoMasAyuda });
         }
 
-        opciones(lista, true);
+        const final = acciones.concat(convertirSugerencias(sugerencias));
+        final.push(opcionMenuPrincipal);
+        mensajeBot({ texto: nodo.mensaje }, final, "botones");
     }
 
     function necesitoMasAyuda() {
-        burbuja("Podés registrar una solicitud de soporte y el equipo de StageUp la va a revisar. Te respondemos desde \"Mis solicitudes de soporte\".", false);
-        opciones([
-            { texto: "Registrar solicitud de soporte", url: enlaceSoporte(recorridoActual), clase: "asistente-soporte" },
-            { texto: "Volver al inicio", accion: function () { irANodo(""); } }
-        ], true);
+        mensajeBot({ texto: "Podés registrar una solicitud de soporte y el equipo de StageUp la va a revisar. Te respondemos desde \"Mis solicitudes de soporte\"." },
+            [
+                { texto: "Registrar solicitud de soporte", destacada: true, accion: function () { confirmarSoporte(recorridoActual); } },
+                opcionMenuPrincipal
+            ], "botones");
     }
+
+    // Antes de ir al formulario de soporte se muestra un resumen para
+    // confirmar (el formulario se abre con ese motivo precargado).
+    function confirmarSoporte(motivo) {
+        const lineas = ["Tema: " + (motivo || "Consulta general"), "Origen: Asistente de StageUp"];
+        if (nombreUsuario) {
+            lineas.push("A nombre de: " + nombreUsuario);
+        }
+        mensajeBot({ titulo: "\u{1F4CB} Resumen de tu consulta", texto: lineas.join("\n") });
+        mensajeBot({
+            titulo: "\u{1F50D} Revisá los datos antes de confirmar",
+            texto: conSesion
+                ? "Si es correcto, te llevo al formulario de soporte con este tema cargado. Si querés cambiar algo, volvé al menú principal."
+                : "Para registrar la solicitud tenés que iniciar sesión. Si querés cambiar algo, volvé al menú principal."
+        }, [
+            { texto: conSesion ? "Sí, es correcto" : "Iniciar sesión", url: enlaceSoporte(motivo), destacada: true },
+            { texto: "No, volver al menú principal", accion: function () { irANodo(""); } }
+        ], "botones");
+    }
+
+    function saludar() {
+        const saludo = nombreUsuario
+            ? "¡Hola, " + nombreUsuario + "! " + SALUDO + " Soy el asistente virtual de StageUp."
+            : "¡Hola! " + SALUDO + " Soy el asistente virtual de StageUp.";
+        mensajeBot({ texto: saludo });
+        irANodo("");
+    }
+
+    function salir() {
+        mensajeBot({ texto: "¡Gracias por usar el asistente de StageUp! " + SALUDO + " Si necesitás algo más, tocá \"Empezar de nuevo\" o escribí \"menú\"." },
+            [{ texto: "Empezar de nuevo", accion: function () { irANodo(""); } }], "botones");
+    }
+
+    // ------------------------------------------------- consulta escrita
 
     // El campo está dentro del formulario de la página: Enter no tiene que
     // enviarlo, sino mandar la consulta al asistente.
@@ -201,6 +481,10 @@
     });
     enviar.addEventListener("click", consultar);
 
+    function normalizar(texto) {
+        return texto.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9 ]/g, "").trim();
+    }
+
     function consultar() {
         const texto = entrada.value.trim();
         if (!disponible || texto.length === 0) {
@@ -208,27 +492,42 @@
         }
 
         entrada.value = "";
+        cerrarHoja();
 
         // Un número elige la opción correspondiente de la última lista.
         if (/^\d{1,2}$/.test(texto)) {
             const elegida = opcionesActuales[parseInt(texto, 10) - 1];
             if (elegida) {
-                elegir(elegida.opcion);
+                elegir(elegida);
             } else {
-                burbuja(texto, true);
-                burbuja("Elegí uno de los números de las opciones, o escribí tu consulta.", false);
+                mensajeUsuario(texto);
+                mensajeBot({ texto: "Elegí uno de los números de las opciones, o escribí tu consulta." });
             }
             return;
         }
 
+        const palabra = normalizar(texto);
+        if (palabra === "menu" || palabra === "inicio" || palabra === "hola" || palabra === "volver") {
+            desactivarOpcionesAnteriores();
+            mensajeUsuario(texto);
+            irANodo("");
+            return;
+        }
+        if (palabra === "salir" || palabra === "chau" || palabra === "gracias") {
+            desactivarOpcionesAnteriores();
+            mensajeUsuario(texto);
+            salir();
+            return;
+        }
+
         desactivarOpcionesAnteriores();
-        burbuja(texto, true);
+        mensajeUsuario(texto);
         pedir({ accion: "consultar", texto: texto }, "POST").then(function (datos) {
             if (!datos.ok) {
                 if (datos.codigo === "A7") {
                     noDisponible(datos.mensaje);
                 } else {
-                    burbuja(datos.mensaje, false);
+                    mensajeBot({ texto: datos.mensaje }, [opcionMenuPrincipal], "botones");
                 }
                 return;
             }
@@ -240,27 +539,26 @@
 
             if (datos.reconocida && datos.preguntaFrecuente) {
                 recorridoActual = texto;
-                burbuja(datos.preguntaFrecuente.respuesta, false, datos.preguntaFrecuente.pregunta);
-                opciones([
-                    { texto: "Necesito más ayuda", accion: necesitoMasAyuda },
-                    { texto: "Volver al inicio", accion: function () { irANodo(""); } }
-                ], true);
+                mensajeBot({ titulo: datos.preguntaFrecuente.pregunta, texto: datos.preguntaFrecuente.respuesta },
+                    [{ texto: "Necesito más ayuda", accion: necesitoMasAyuda }, opcionMenuPrincipal], "botones");
                 return;
             }
 
             // A5: consulta no reconocida.
-            burbuja("No pude encontrar una respuesta para tu consulta. Podés registrar una solicitud de soporte" +
-                (datos.sugerencias.length > 0 ? " o revisar estas opciones:" : "."), false);
-            const lista = [{ texto: "Registrar solicitud de soporte", url: enlaceSoporte(texto), clase: "asistente-soporte" }];
-            datos.sugerencias.forEach(function (sugerencia) {
-                lista.push({ texto: sugerencia.texto, accion: function () { irANodo(sugerencia.codigo); } });
-            });
-            lista.push({ texto: "Volver al inicio", accion: function () { irANodo(""); } });
-            opciones(lista, true);
+            recorridoActual = texto;
+            const lista = [{ texto: "Registrar solicitud de soporte", destacada: true, accion: function () { confirmarSoporte(texto); } }]
+                .concat(convertirSugerencias(datos.sugerencias));
+            lista.push(opcionMenuPrincipal);
+            mensajeBot({
+                texto: "No pude encontrar una respuesta para tu consulta. Podés registrar una solicitud de soporte" +
+                    (datos.sugerencias.length > 0 ? " o revisar estas opciones:" : " o volver al menú principal.")
+            }, lista, "botones");
         }).catch(function () {
             noDisponible();
         });
     }
+
+    // ------------------------------------------------------------ inicio
 
     document.querySelectorAll("[data-assistant-open]").forEach(function (boton) {
         boton.addEventListener("click", function () {
@@ -269,7 +567,8 @@
             }
 
             iniciado = true;
-            irANodo("");
+            chat.appendChild(elemento("div", "asistente-dia", "Hoy"));
+            saludar();
         });
     });
 }());

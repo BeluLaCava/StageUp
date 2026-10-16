@@ -30,6 +30,22 @@ namespace StageUp.UI.Ayuda
             get { return ResolveUrl(GestorDeSesion.EstaAutenticado() ? "~/Soporte.aspx?nueva=1&origen=Asistente" : "~/IniciarSesion.aspx"); }
         }
 
+        // Primer nombre del usuario con sesión, para que el asistente lo
+        // salude ("¡Hola, Belén!"). Vacío si es un visitante.
+        protected string NombreUsuario
+        {
+            get
+            {
+                string nombre = GestorDeSesion.EstaAutenticado() ? GestorDeSesion.ObtenerNombreCompletoActual() : null;
+                if (string.IsNullOrWhiteSpace(nombre))
+                {
+                    return string.Empty;
+                }
+
+                return nombre.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[0];
+            }
+        }
+
         protected void Page_Load(object sender, EventArgs e)
         {
             if (IsPostBack)

@@ -5,7 +5,7 @@
         <div class="static-page-header internal-page-hero">
             <span class="section-label">Centro de ayuda</span>
             <h1>Contenido de ayuda</h1>
-            <p>Preguntas frecuentes por categoría que se muestran en el centro de ayuda y que usa el asistente para responder consultas.</p>
+            <p>Preguntas frecuentes por categoría que se muestran en el centro de ayuda. El asistente guiado tiene su propio contenido: una pregunta frecuente solo se ofrece en el asistente si la marcás para eso.</p>
         </div>
 
         <div class="static-page-body internal-admin-stack">
@@ -52,13 +52,19 @@
                     </div>
                 </div>
                 <div class="form-field">
-                    <label for="<%= txtPalabrasClave.ClientID %>">Palabras clave para el asistente (opcional)</label>
+                    <label for="<%= txtPalabrasClave.ClientID %>">Palabras clave (opcional, para encontrarla desde el asistente)</label>
                     <asp:TextBox ID="txtPalabrasClave" runat="server" MaxLength="300" placeholder="Ej: cancelar cancelación devolución cargo" />
                 </div>
                 <div class="ayuda-check">
-                    <asp:CheckBox ID="chkAsistente" runat="server" Checked="true" />
-                    <label for="<%= chkAsistente.ClientID %>">Usar como respuesta del asistente</label>
+                    <asp:CheckBox ID="chkAsistente" runat="server" />
+                    <label for="<%= chkAsistente.ClientID %>">Ofrecerla también en el asistente, cuando la consulta escrita no coincide con ninguna de sus opciones</label>
                 </div>
+                <%-- A6: guardar como publicado también pide confirmación. --%>
+                <asp:Panel ID="pnlConfirmarGuardar" runat="server" Visible="false" CssClass="ayuda-confirmar">
+                    <p><strong>¿Guardar y publicar este contenido?</strong> Va a quedar visible en el centro de ayuda para todos los usuarios.</p>
+                    <asp:Button ID="btnConfirmarGuardar" runat="server" CssClass="button button-primary button-small" Text="Sí, guardar y publicar" CausesValidation="false" OnClick="btnConfirmarGuardar_Click" />
+                    <asp:Button ID="btnCancelarGuardar" runat="server" CssClass="button button-secondary button-small" Text="Volver al formulario" CausesValidation="false" OnClick="btnCancelarGuardar_Click" />
+                </asp:Panel>
                 <div class="form-actions">
                     <asp:Button ID="btnGuardar" runat="server" CssClass="button button-primary" Text="Guardar contenido" CausesValidation="false" OnClick="btnGuardar_Click" />
                     <asp:Button ID="btnCancelarFormulario" runat="server" CssClass="button button-secondary" Text="Cancelar" CausesValidation="false" OnClick="btnCancelarFormulario_Click" />
@@ -86,15 +92,20 @@
                     <div><dt>Alta</dt><dd><asp:Literal ID="litDetalleAlta" runat="server" Mode="Encode" /></dd></div>
                     <div><dt>Última actualización</dt><dd><asp:Literal ID="litDetalleActualizacion" runat="server" Mode="Encode" /></dd></div>
                 </dl>
+                <%-- A6: confirmación antes de publicar. --%>
+                <asp:Panel ID="pnlConfirmarPublicar" runat="server" Visible="false" CssClass="ayuda-confirmar">
+                    <p><strong>¿Publicar este contenido?</strong> Va a quedar visible en el centro de ayuda para todos los usuarios.</p>
+                    <asp:Button ID="btnConfirmarPublicar" runat="server" CssClass="button button-primary button-small" Text="Sí, publicar" CausesValidation="false" OnClick="btnConfirmarPublicar_Click" />
+                    <asp:Button ID="btnCancelarPublicar" runat="server" CssClass="button button-secondary button-small" Text="No" CausesValidation="false" OnClick="btnCancelarPublicar_Click" />
+                </asp:Panel>
                 <asp:Panel ID="pnlConfirmarDesactivar" runat="server" Visible="false" CssClass="ayuda-confirmar">
-                    <p><strong>¿Desactivar este contenido?</strong> Deja de verse en el centro de ayuda<asp:Literal ID="litConfirmarAsistente" runat="server" Text=" y el asistente deja de usarlo como respuesta" />. Se conserva su historial.</p>
+                    <p><strong>¿Desactivar este contenido?</strong> Deja de verse en el centro de ayuda<asp:Literal ID="litConfirmarAsistente" runat="server" Text=" y el asistente deja de ofrecerla" />. Se conserva su historial.</p>
                     <asp:Button ID="btnConfirmarDesactivar" runat="server" CssClass="button button-primary button-small" Text="Sí, desactivar" CausesValidation="false" OnClick="btnConfirmarDesactivar_Click" />
                     <asp:Button ID="btnCancelarDesactivar" runat="server" CssClass="button button-secondary button-small" Text="No" CausesValidation="false" OnClick="btnCancelarDesactivar_Click" />
                 </asp:Panel>
                 <div class="form-actions">
                     <asp:Button ID="btnEditar" runat="server" CssClass="button button-secondary" Text="Editar contenido" CausesValidation="false" OnClick="btnEditar_Click" />
-                    <asp:Button ID="btnPublicar" runat="server" CssClass="button button-primary" Text="Publicar contenido" CausesValidation="false" OnClick="btnPublicar_Click"
-                        OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Publicar este contenido de ayuda? Va a quedar visible en el centro de ayuda.', { title: 'Publicar contenido', confirmText: 'Sí, publicar', cancelText: 'Volver' })) return false;" />
+                    <asp:Button ID="btnPublicar" runat="server" CssClass="button button-primary" Text="Publicar contenido" CausesValidation="false" OnClick="btnPublicar_Click" />
                     <asp:Button ID="btnDesactivar" runat="server" CssClass="button button-secondary" Text="Desactivar contenido" CausesValidation="false" OnClick="btnDesactivar_Click" />
                     <asp:LinkButton ID="lnkVolverListado" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkVolverListado_Click">Volver al listado</asp:LinkButton>
                 </div>

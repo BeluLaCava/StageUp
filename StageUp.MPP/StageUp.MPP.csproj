@@ -48,6 +48,7 @@
     <Compile Include="MPP_Reserva.cs" />
     <Compile Include="MPP_Calificacion.cs" />
     <Compile Include="MPP_Faq.cs" />
+    <Compile Include="MPP_NodoAsistente.cs" />
     <Compile Include="MPP_Encuesta.cs" />
     <Compile Include="MPP_Ticket.cs" />
     <Compile Include="MPP_OpcionMenu.cs" />

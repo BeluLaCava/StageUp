@@ -99,7 +99,9 @@ namespace StageUp.MPP
             return lista;
         }
 
-        public void RegistrarConsultaAsistente(string texto, string textoNormalizado, int? idFaqRespuesta, int? idUsuarioExterno)
+        // CU-003-001 A4/A5: consulta escrita en el asistente, con el paso del
+        // asistente o la pregunta frecuente que la respondió (o ninguno).
+        public void RegistrarConsultaAsistente(string texto, string textoNormalizado, int? idNodoAsistente, int? idFaqRespuesta, int? idUsuarioExterno)
         {
             Conexion.Instance.LeerEscalar(
                 "sp_ConsultaAsistente_Registrar",
@@ -107,6 +109,7 @@ namespace StageUp.MPP
                 {
                     { "@texto", texto },
                     { "@textoNormalizado", textoNormalizado },
+                    { "@idNodoAsistente", idNodoAsistente.HasValue ? (object)idNodoAsistente.Value : DBNull.Value },
                     { "@idFaqRespuesta", idFaqRespuesta.HasValue ? (object)idFaqRespuesta.Value : DBNull.Value },
                     { "@idUsuarioExterno", idUsuarioExterno.HasValue ? (object)idUsuarioExterno.Value : DBNull.Value }
                 });

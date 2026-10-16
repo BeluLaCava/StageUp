@@ -10,10 +10,12 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Ayuda
 {
-    // CU-003-001 Consultar ayuda y asistencia automatizada: preguntas
-    // frecuentes activas por categoría (pasos 4 a 9, A2, A3), asistente
-    // (A4 a A7, Scripts/asistente-ayuda.js + AsistenteAyuda.ashx) y acceso
-    // a soporte.
+    // CU-003-001 Consultar ayuda y asistencia automatizada.
+    //   1) Preguntas frecuentes activas en una lista simple, con un filtro
+    //      opcional por tema (pasos 4 a 9, A2, A3).
+    //   2) Asistente guiado por opciones, con contenido propio (A4 a A7,
+    //      Scripts/asistente-ayuda.js + AsistenteAyuda.ashx).
+    //   3) Solicitud de soporte (CU-003-002).
     public partial class CentroAyuda : Page
     {
         private readonly BLL_Faq _bllFaq = new BLL_Faq();
@@ -57,8 +59,13 @@ namespace StageUp.UI.Ayuda
             }
 
             _contenido = contenido.Valor;
-            List<CategoriaAyuda> categorias = _bllFaq.ListarCategorias().Where(c => c.Activa).ToList();
-            if (!categorias.Any(c => c.IdCategoriaAyuda == CategoriaElegida))
+
+            // Solo los temas que tienen preguntas activas (como filtro opcional).
+            List<CategoriaAyuda> categorias = _bllFaq.ListarCategorias()
+                .Where(c => c.Activa && _contenido.Any(f => f.IdCategoriaAyuda == c.IdCategoriaAyuda))
+                .ToList();
+            CategoriaAyuda elegida = _bllFaq.ListarCategorias().FirstOrDefault(c => c.Activa && c.IdCategoriaAyuda == CategoriaElegida);
+            if (elegida == null)
             {
                 CategoriaElegida = 0;
             }
@@ -67,29 +74,15 @@ namespace StageUp.UI.Ayuda
             rptCategorias.DataSource = categorias;
             rptCategorias.DataBind();
 
-            List<CategoriaAyuda> grupos = categorias
-                .Where(c => CategoriaElegida == 0 ? _contenido.Any(f => f.IdCategoriaAyuda == c.IdCategoriaAyuda) : c.IdCategoriaAyuda == CategoriaElegida)
-                .ToList();
+            List<Faq> preguntas = CategoriaElegida == 0
+                ? _contenido
+                : _contenido.Where(f => f.IdCategoriaAyuda == CategoriaElegida).ToList();
 
-            CategoriaAyuda elegida = categorias.FirstOrDefault(c => c.IdCategoriaAyuda == CategoriaElegida);
-            bool vacia = elegida != null && !_contenido.Any(f => f.IdCategoriaAyuda == CategoriaElegida);
-            pnlCategoriaVacia.Visible = vacia || (CategoriaElegida == 0 && _contenido.Count == 0);
-            litCategoriaVacia.Text = elegida == null ? "ningún tema" : elegida.Nombre;
+            // A2: tema sin preguntas activas (o ninguna pregunta cargada).
+            pnlCategoriaVacia.Visible = preguntas.Count == 0;
+            litCategoriaVacia.Text = elegida == null ? "mostrar" : elegida.Nombre;
 
-            rptGrupos.DataSource = vacia ? new List<CategoriaAyuda>() : grupos;
-            rptGrupos.DataBind();
-        }
-
-        protected void rptGrupos_ItemDataBound(object sender, RepeaterItemEventArgs e)
-        {
-            if (e.Item.ItemType != ListItemType.Item && e.Item.ItemType != ListItemType.AlternatingItem)
-            {
-                return;
-            }
-
-            CategoriaAyuda categoria = (CategoriaAyuda)e.Item.DataItem;
-            Repeater rptFaq = (Repeater)e.Item.FindControl("rptFaq");
-            rptFaq.DataSource = _contenido.Where(f => f.IdCategoriaAyuda == categoria.IdCategoriaAyuda).ToList();
+            rptFaq.DataSource = preguntas;
             rptFaq.DataBind();
         }
     }

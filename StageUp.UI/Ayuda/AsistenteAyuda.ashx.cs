@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Web;
 using System.Web.Script.Serialization;
@@ -11,12 +9,10 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Ayuda
 {
-    // CU-003-001 A4 a A7: el asistente del centro de ayuda le pide los datos
-    // a este handler (JSON). Solo lee contenido activo y registra las
-    // consultas escritas; no modifica información operativa.
-    //   GET  ?accion=temas
-    //   GET  ?accion=preguntas&tema=ID
-    //   GET  ?accion=respuesta&id=ID
+    // CU-003-001 A4 a A7: el asistente guiado del centro de ayuda le pide
+    // los pasos a este handler (JSON). Solo lee contenido activo y registra
+    // las consultas escritas; no modifica información operativa.
+    //   GET  ?accion=nodo[&codigo=CODIGO]   (sin código: el inicio)
     //   POST accion=consultar&texto=...
     public class AsistenteAyuda : IHttpHandler, IReadOnlySessionState
     {
@@ -39,25 +35,11 @@ namespace StageUp.UI.Ayuda
             {
                 switch (accion)
                 {
-                    case "temas":
-                        ResultadoOperacion<List<CategoriaAyuda>> temas = asistente.ObtenerTemas();
-                        respuesta = temas.Exitoso
-                            ? (object)new { ok = true, temas = temas.Valor.Select(t => new { id = t.IdCategoriaAyuda, nombre = t.Nombre, cantidad = t.CantidadAsistente }) }
-                            : Error(temas.Mensaje, temas.CodigoAlternativo);
-                        break;
-
-                    case "preguntas":
-                        ResultadoOperacion<List<Faq>> preguntas = asistente.ObtenerPreguntas(Entero(context.Request["tema"]));
-                        respuesta = preguntas.Exitoso
-                            ? (object)new { ok = true, preguntas = preguntas.Valor.Select(Resumen) }
-                            : Error(preguntas.Mensaje, preguntas.CodigoAlternativo);
-                        break;
-
-                    case "respuesta":
-                        ResultadoOperacion<Faq> faq = asistente.ObtenerRespuesta(Entero(context.Request["id"]));
-                        respuesta = faq.Exitoso
-                            ? (object)new { ok = true, respuesta = Completa(faq.Valor) }
-                            : Error(faq.Mensaje, faq.CodigoAlternativo);
+                    case "nodo":
+                        ResultadoOperacion<NodoAsistente> nodo = asistente.ObtenerNodo(context.Request.QueryString["codigo"]);
+                        respuesta = nodo.Exitoso
+                            ? (object)new { ok = true, nodo = Paso(nodo.Valor) }
+                            : Error(nodo.Mensaje, nodo.CodigoAlternativo);
                         break;
 
                     case "consultar":
@@ -75,8 +57,11 @@ namespace StageUp.UI.Ayuda
                             {
                                 ok = true,
                                 reconocida = consulta.Valor.Reconocida,
-                                respuesta = consulta.Valor.Respuesta == null ? null : Completa(consulta.Valor.Respuesta),
-                                sugerencias = consulta.Valor.Sugerencias.Select(Resumen)
+                                nodo = consulta.Valor.Nodo == null ? null : Paso(consulta.Valor.Nodo),
+                                preguntaFrecuente = consulta.Valor.PreguntaFrecuente == null
+                                    ? null
+                                    : new { pregunta = consulta.Valor.PreguntaFrecuente.Pregunta, respuesta = consulta.Valor.PreguntaFrecuente.Respuesta },
+                                sugerencias = consulta.Valor.Sugerencias.Select(s => new { codigo = s.Codigo, texto = s.Recorrido })
                             }
                             : Error(consulta.Mensaje, consulta.CodigoAlternativo);
                         break;
@@ -95,25 +80,42 @@ namespace StageUp.UI.Ayuda
             context.Response.Write(new JavaScriptSerializer().Serialize(respuesta));
         }
 
+        private static object Paso(NodoAsistente nodo)
+        {
+            return new
+            {
+                codigo = nodo.Codigo,
+                esInicio = nodo.Codigo == BLL_AsistenteAyuda.CodigoInicio,
+                esRespuesta = nodo.EsRespuesta,
+                mensaje = nodo.Mensaje,
+                recorrido = nodo.Recorrido,
+                opciones = nodo.Opciones.Select(o => new { codigo = o.Codigo, texto = o.TextoOpcion }),
+                acciones = nodo.Acciones
+                    .Select(a => new { texto = a.Texto, tipo = a.TipoAccion, codigo = a.TipoAccion == AccionNodoAsistente.TipoNodo ? a.Destino : null, url = UrlInterna(a) })
+                    .Where(a => a.tipo != AccionNodoAsistente.TipoEnlace || a.url != null)
+            };
+        }
+
+        // Solo páginas internas de StageUp ("~/Pagina.aspx").
+        private static string UrlInterna(AccionNodoAsistente accion)
+        {
+            if (accion.TipoAccion != AccionNodoAsistente.TipoEnlace || string.IsNullOrEmpty(accion.Destino))
+            {
+                return null;
+            }
+
+            string destino = accion.Destino.Trim();
+            if (!destino.StartsWith("~/", StringComparison.Ordinal) || destino.Contains("//") || destino.Contains(":") || destino.Contains(".."))
+            {
+                return null;
+            }
+
+            return VirtualPathUtility.ToAbsolute(destino.Split('?')[0]) + (destino.Contains("?") ? destino.Substring(destino.IndexOf('?')) : string.Empty);
+        }
+
         private static object Error(string mensaje, string codigo)
         {
             return new { ok = false, mensaje = mensaje, codigo = codigo };
-        }
-
-        private static object Resumen(Faq faq)
-        {
-            return new { id = faq.IdFaq, pregunta = faq.Pregunta, categoria = faq.NombreCategoria };
-        }
-
-        private static object Completa(Faq faq)
-        {
-            return new { id = faq.IdFaq, pregunta = faq.Pregunta, respuesta = faq.Respuesta, categoria = faq.NombreCategoria, idCategoria = faq.IdCategoriaAyuda };
-        }
-
-        private static int Entero(string valor)
-        {
-            int numero;
-            return int.TryParse(valor, NumberStyles.Integer, CultureInfo.InvariantCulture, out numero) ? numero : 0;
         }
     }
 }

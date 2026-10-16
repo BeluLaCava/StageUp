@@ -111,6 +111,35 @@ namespace StageUp.UI.Interno
 
         protected void btnGuardar_Click(object sender, EventArgs e)
         {
+            // A6: si queda publicado y antes no lo estaba, se pide confirmación.
+            string estadoOriginal = Convert.ToString(ViewState["EstadoOriginal"]);
+            if (ddlEstado.SelectedValue == BLL_Faq.EstadoActivo && estadoOriginal != BLL_Faq.EstadoActivo)
+            {
+                pnlMensaje.Visible = false;
+                pnlConfirmarGuardar.Visible = true;
+                btnGuardar.Visible = false;
+                return;
+            }
+
+            Guardar();
+        }
+
+        protected void btnConfirmarGuardar_Click(object sender, EventArgs e)
+        {
+            pnlConfirmarGuardar.Visible = false;
+            btnGuardar.Visible = true;
+            Guardar();
+        }
+
+        // Si se cancela, no se guarda nada y se vuelve al formulario con lo escrito.
+        protected void btnCancelarGuardar_Click(object sender, EventArgs e)
+        {
+            pnlConfirmarGuardar.Visible = false;
+            btnGuardar.Visible = true;
+        }
+
+        private void Guardar()
+        {
             int orden;
             int.TryParse(txtOrden.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out orden);
             int idCategoria;
@@ -159,17 +188,34 @@ namespace StageUp.UI.Interno
 
         // ---- Publicar y desactivar ----------------------------------------
 
+        // A6 paso 2: se pide confirmación antes de publicar.
         protected void btnPublicar_Click(object sender, EventArgs e)
+        {
+            pnlMensaje.Visible = false;
+            pnlConfirmarDesactivar.Visible = false;
+            pnlConfirmarPublicar.Visible = true;
+            btnPublicar.Visible = false;
+        }
+
+        protected void btnConfirmarPublicar_Click(object sender, EventArgs e)
         {
             ResultadoOperacion resultado = _bll.Publicar(IdEnDetalle, GestorDeSesion.ObtenerIdUsuarioInternoActual().Value);
             MostrarDetalle(IdEnDetalle);
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
         }
 
+        // Si se cancela, el contenido mantiene su estado.
+        protected void btnCancelarPublicar_Click(object sender, EventArgs e)
+        {
+            MostrarDetalle(IdEnDetalle);
+            MostrarMensaje("No se publicó: el contenido mantiene su estado.", false);
+        }
+
         protected void btnDesactivar_Click(object sender, EventArgs e)
         {
             // A7 paso 1: confirmación.
             pnlMensaje.Visible = false;
+            pnlConfirmarPublicar.Visible = false;
             pnlConfirmarDesactivar.Visible = true;
             btnDesactivar.Visible = false;
         }
@@ -249,7 +295,10 @@ namespace StageUp.UI.Interno
             txtRespuesta.Text = faq == null ? string.Empty : faq.Respuesta;
             txtOrden.Text = (faq == null ? 10 : faq.Orden).ToString(CultureInfo.InvariantCulture);
             txtPalabrasClave.Text = faq == null ? string.Empty : faq.PalabrasClave;
-            chkAsistente.Checked = faq == null || faq.UsarEnAsistente;
+            chkAsistente.Checked = faq != null && faq.UsarEnAsistente;
+            ViewState["EstadoOriginal"] = faq == null ? string.Empty : faq.Estado;
+            pnlConfirmarGuardar.Visible = false;
+            btnGuardar.Visible = true;
             Seleccionar(ddlCategoria, faq == null || !faq.IdCategoriaAyuda.HasValue ? null : faq.IdCategoriaAyuda.Value.ToString(CultureInfo.InvariantCulture));
             Seleccionar(ddlEstado, faq == null ? BLL_Faq.EstadoBorrador : faq.Estado);
 
@@ -275,7 +324,7 @@ namespace StageUp.UI.Interno
             lblDetalleEstado.CssClass = "faq-estado faq-estado-" + faq.Estado;
             litDetalleRespuesta.Text = faq.Respuesta;
             litDetalleCategoria.Text = faq.NombreCategoria ?? "Sin categoría";
-            litDetalleAsistente.Text = faq.UsarEnAsistente ? "Se usa como respuesta del asistente" : "No se usa en el asistente";
+            litDetalleAsistente.Text = faq.UsarEnAsistente ? "Se ofrece en el asistente cuando la consulta escrita no coincide con sus opciones" : "No se ofrece en el asistente";
             litDetalleOrden.Text = faq.Orden.ToString(CultureInfo.InvariantCulture);
             litDetallePalabras.Text = string.IsNullOrWhiteSpace(faq.PalabrasClave) ? "—" : faq.PalabrasClave;
             litDetalleAlta.Text = faq.FechaAlta == DateTime.MinValue ? "—" : faq.FechaAlta.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
@@ -290,6 +339,7 @@ namespace StageUp.UI.Interno
             btnPublicar.Text = faq.Estado == BLL_Faq.EstadoInactivo ? "Publicar de nuevo" : "Publicar contenido";
             btnDesactivar.Visible = faq.Estado == BLL_Faq.EstadoActivo;
             pnlConfirmarDesactivar.Visible = false;
+            pnlConfirmarPublicar.Visible = false;
             litConfirmarAsistente.Visible = faq.UsarEnAsistente;
 
             pnlDetalle.Visible = true;

@@ -232,8 +232,23 @@ namespace StageUp.UI
                 ? "Todavía no solicitaste ninguna reserva. Podés explorar espacios publicados y solicitar una desde su detalle."
                 : "No tenés reservas con ese estado.";
             litSinReservas.Visible = reservas.Count == 0;
+            _mensajesNoLeidos = new BLL_MensajeReserva().NoLeidosPorReserva(idUsuarioExterno, MensajesNoLeidosReserva.RolSolicitante);
             rptMisReservas.DataSource = reservas;
             rptMisReservas.DataBind();
+        }
+
+        // Mensajería privada por reserva: mensajes sin leer de cada reserva.
+        private Dictionary<int, int> _mensajesNoLeidos = new Dictionary<int, int>();
+
+        protected string EtiquetaMensajesNoLeidos(int idReserva)
+        {
+            int cantidad;
+            if (!_mensajesNoLeidos.TryGetValue(idReserva, out cantidad) || cantidad <= 0)
+            {
+                return string.Empty;
+            }
+
+            return " <span class=\"mensajes-badge\" title=\"Mensajes sin leer\">" + cantidad.ToString(CultureInfo.InvariantCulture) + "</span>";
         }
 
         private void MostrarMensaje(string mensaje, bool esError)

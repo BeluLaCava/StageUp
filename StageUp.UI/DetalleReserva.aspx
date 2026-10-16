@@ -28,6 +28,19 @@
         .dr-comentario textarea { width: 100%; box-sizing: border-box; }
         .button-danger { background: #b3261e; border-color: #b3261e; color: #fff; }
         .button-danger:hover, .button-danger:focus-visible { background: #8c1d18; border-color: #8c1d18; color: #fff; }
+        .dr-mensajes-card { scroll-margin-top: 90px; }
+        .dr-chat { display: flex; flex-direction: column; gap: 10px; max-height: 26rem; overflow-y: auto; margin: 10px 0 12px; padding: 12px; border-radius: 12px; background: var(--color-nude-light, #f6eee8); }
+        .dr-chat-mensaje { display: flex; flex-direction: column; gap: 3px; max-width: 85%; padding: 8px 12px; border-radius: 12px; background: #fff; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06); }
+        .dr-chat-ajeno { align-self: flex-start; border-top-left-radius: 3px; }
+        .dr-chat-propio { align-self: flex-end; border-top-right-radius: 3px; background: #f3dfe3; }
+        .dr-chat-nuevo { outline: 2px solid var(--color-primary, #6d1021); }
+        .dr-chat-autor { font-size: 0.8em; font-weight: 700; color: var(--color-primary, #6d1021); }
+        .dr-chat-texto { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+        .dr-chat-meta { align-self: flex-end; font-size: 0.75em; color: var(--color-text-muted, #765f55); }
+        .dr-chat-vacio { color: var(--color-text-muted, #765f55); text-align: center; padding: 14px 6px; }
+        .dr-chat-vacio p { margin: 0; }
+        .dr-chat-form textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+        .dr-chat-form-pie { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 8px; }
         @media (max-width: 800px) { .dr-grid { grid-template-columns: 1fr; } }
         @media (max-width: 520px) {
             .dr-datos { grid-template-columns: 1fr; }
@@ -124,6 +137,42 @@
                             </asp:Panel>
                         </asp:Panel>
 
+                        <div id="mensajes" class="auth-card dr-mensajes-card">
+                            <div class="auth-card-header"><h2>Mensajes</h2></div>
+                            <p class="dr-nota"><asp:Literal ID="litMensajesAyuda" runat="server" Mode="Encode" /></p>
+                            <asp:Panel ID="pnlMensajeChat" runat="server" Visible="false" CssClass="form-message" role="status">
+                                <asp:Literal ID="litMensajeChat" runat="server" Mode="Encode" />
+                            </asp:Panel>
+                            <div id="dr-chat" class="dr-chat" tabindex="0" role="log" aria-label="Conversación de la reserva">
+                                <asp:Repeater ID="rptMensajes" runat="server">
+                                    <ItemTemplate>
+                                        <div class='<%# ClaseMensaje(Container.DataItem) %>'>
+                                            <span class="dr-chat-autor"><%#: AutorMensaje(Container.DataItem) %></span>
+                                            <p class="dr-chat-texto"><%#: Eval("Texto") %></p>
+                                            <span class="dr-chat-meta"><%#: Eval("FechaEnvio", "{0:dd/MM/yyyy HH:mm}") %><%#: EstadoLectura(Container.DataItem) %></span>
+                                        </div>
+                                    </ItemTemplate>
+                                </asp:Repeater>
+                                <asp:Panel ID="pnlSinMensajes" runat="server" CssClass="dr-chat-vacio">
+                                    <p>Todavía no hay mensajes. Podés escribir para coordinar detalles de la reserva, como el horario de llegada, el equipamiento o el acceso al espacio.</p>
+                                </asp:Panel>
+                            </div>
+                            <asp:Panel ID="pnlEscribirMensaje" runat="server" CssClass="dr-chat-form">
+                                <label class="sr-only" for="<%= txtMensaje.ClientID %>">Mensaje</label>
+                                <asp:TextBox ID="txtMensaje" runat="server" TextMode="MultiLine" Rows="3" MaxLength="1000" data-contador-mensaje="dr-contador"
+                                    placeholder="Escribí tu mensaje" />
+                                <div class="dr-chat-form-pie">
+                                    <span id="dr-contador" class="dr-nota" aria-live="polite">Hasta 1000 caracteres</span>
+                                    <asp:Button ID="btnEnviarMensaje" runat="server" CssClass="button button-primary button-small" Text="Enviar mensaje"
+                                        CausesValidation="false" UseSubmitBehavior="false" OnClientClick="this.disabled=true;this.value='Enviando...';"
+                                        OnClick="btnEnviarMensaje_Click" />
+                                </div>
+                            </asp:Panel>
+                            <asp:Panel ID="pnlMensajesCerrados" runat="server" Visible="false">
+                                <p class="dr-nota"><asp:Literal ID="litMensajesCerrados" runat="server" Mode="Encode" /></p>
+                            </asp:Panel>
+                        </div>
+
                         <div class="auth-card dr-tracking-card">
                             <div class="auth-card-header"><h2>Seguimiento</h2></div>
                             <ol class="booking-progress-detail-list booking-progress-detail-list-standalone">
@@ -218,4 +267,28 @@
             </asp:Panel>
         </div>
     </section>
+    <script>
+        (function () {
+            var chat = document.getElementById("dr-chat");
+            if (chat) {
+                chat.scrollTop = chat.scrollHeight;
+            }
+            if (/[?&](ver=mensajes|enviado=1)/.test(window.location.search)) {
+                var tarjeta = document.getElementById("mensajes");
+                if (tarjeta) {
+                    tarjeta.scrollIntoView();
+                }
+            }
+            var campo = document.querySelector("[data-contador-mensaje]");
+            var contador = campo ? document.getElementById(campo.getAttribute("data-contador-mensaje")) : null;
+            if (campo && contador) {
+                var actualizar = function () {
+                    var largo = campo.value.trim().length;
+                    contador.textContent = largo > 0 ? largo + " de 1000 caracteres" : "Hasta 1000 caracteres";
+                };
+                campo.addEventListener("input", actualizar);
+                actualizar();
+            }
+        }());
+    </script>
 </asp:Content>

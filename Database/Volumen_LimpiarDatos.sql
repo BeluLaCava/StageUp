@@ -91,6 +91,10 @@ PRINT CONCAT(N'Tickets: ', @@ROWCOUNT);
 DELETE FROM dbo.Calificacion WHERE idReserva IN (SELECT id FROM #R) OR idUsuarioAutor IN (SELECT id FROM #U);
 PRINT CONCAT(N'Calificaciones: ', @@ROWCOUNT);
 
+IF OBJECT_ID(N'dbo.MensajeReserva', N'U') IS NOT NULL
+    DELETE FROM dbo.MensajeReserva
+    WHERE idReserva IN (SELECT id FROM #R) OR idUsuarioExternoEmisor IN (SELECT id FROM #U);
+
 DELETE FROM dbo.Reserva WHERE idReserva IN (SELECT id FROM #R);
 PRINT CONCAT(N'Reservas: ', @@ROWCOUNT);
 
@@ -137,6 +141,10 @@ DELETE FROM dbo.Participante WHERE idUsuarioGestor IN (SELECT id FROM #U);
 PRINT CONCAT(N'Participantes: ', @@ROWCOUNT);
 
 -- Espacios (equipamiento, fotos y franjas se borran en cascada con la ficha).
+IF OBJECT_ID(N'dbo.PreguntaEspacio', N'U') IS NOT NULL
+    DELETE FROM dbo.PreguntaEspacio
+    WHERE idEspacioArtistico IN (SELECT id FROM #E) OR idUsuarioExterno IN (SELECT id FROM #U);
+
 DELETE FROM dbo.FichaEspacio WHERE idEspacioArtistico IN (SELECT id FROM #E);
 DELETE FROM dbo.EspacioArtistico WHERE idEspacioArtistico IN (SELECT id FROM #E);
 PRINT CONCAT(N'Espacios: ', @@ROWCOUNT);

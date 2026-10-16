@@ -56,5 +56,15 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Button btnConfirmar;
         protected global::System.Web.UI.WebControls.LinkButton lnkVolver;
         protected global::System.Web.UI.WebControls.HyperLink lnkVolverListado;
+        protected global::System.Web.UI.WebControls.Literal litMensajesAyuda;
+        protected global::System.Web.UI.WebControls.Panel pnlMensajeChat;
+        protected global::System.Web.UI.WebControls.Literal litMensajeChat;
+        protected global::System.Web.UI.WebControls.Repeater rptMensajes;
+        protected global::System.Web.UI.WebControls.Panel pnlSinMensajes;
+        protected global::System.Web.UI.WebControls.Panel pnlEscribirMensaje;
+        protected global::System.Web.UI.WebControls.TextBox txtMensaje;
+        protected global::System.Web.UI.WebControls.Button btnEnviarMensaje;
+        protected global::System.Web.UI.WebControls.Panel pnlMensajesCerrados;
+        protected global::System.Web.UI.WebControls.Literal litMensajesCerrados;
     }
 }

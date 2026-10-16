@@ -72,6 +72,7 @@
     <Compile Include="Entidades\TicketCompleto.cs" />
     <Compile Include="Entidades\SolicitudSoporte.cs" />
     <Compile Include="Entidades\PreguntaEspacio.cs" />
+    <Compile Include="Entidades\MensajeReserva.cs" />
     <Compile Include="Entidades\Idioma.cs" />
     <Compile Include="Entidades\Traduccion.cs" />
     <Compile Include="Interfaces\IObservadorIdioma.cs" />

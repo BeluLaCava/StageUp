@@ -191,8 +191,23 @@ namespace StageUp.UI
             pnlSinResultadosFiltro.Visible = solicitudes.Count > 0 && filtradas.Count == 0;
             litCantidadFiltrada.Text = solicitudes.Count == 0 ? string.Empty
                 : HttpUtility.HtmlEncode(filtradas.Count + (filtradas.Count == 1 ? " solicitud" : " solicitudes"));
+            _mensajesNoLeidos = new BLL_MensajeReserva().NoLeidosPorReserva(GestorDeSesion.ObtenerIdUsuarioActual().Value, MensajesNoLeidosReserva.RolGestor);
             rptSolicitudes.DataSource = filtradas;
             rptSolicitudes.DataBind();
+        }
+
+        // Mensajería privada por reserva: mensajes sin leer de cada reserva.
+        private Dictionary<int, int> _mensajesNoLeidos = new Dictionary<int, int>();
+
+        protected string EtiquetaMensajesNoLeidos(int idReserva)
+        {
+            int cantidad;
+            if (!_mensajesNoLeidos.TryGetValue(idReserva, out cantidad) || cantidad <= 0)
+            {
+                return string.Empty;
+            }
+
+            return " <span class=\"mensajes-badge\" title=\"Mensajes sin leer\">" + cantidad.ToString(CultureInfo.InvariantCulture) + "</span>";
         }
 
         private void MostrarMensaje(string mensaje, bool esError)

@@ -88,6 +88,7 @@
                             </section>
                             <div class="space-row-actions">
                                 <a class="button button-secondary button-small" href='<%#: "DetalleReserva.aspx?id=" + Eval("IdReserva") %>'>Ver detalle</a>
+                                <a class="text-link" href='<%#: "DetalleReserva.aspx?id=" + Eval("IdReserva") + "&ver=mensajes" %>'>Mensajes con el gestor<%# EtiquetaMensajesNoLeidos((int)Eval("IdReserva")) %></a>
                                 <asp:HyperLink ID="lnkPagar" runat="server" CssClass="button button-primary button-small" Text="Pagar reserva" Visible="false" />
                                 <asp:LinkButton ID="lnkCancelar" runat="server" CssClass="text-link" CausesValidation="false"
                                     CommandName="Cancelar" CommandArgument='<%# Eval("IdReserva") %>' Text="Cancelar" />

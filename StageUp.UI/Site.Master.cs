@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Web;
 using System.Web.UI.WebControls;
 using StageUp.BE.Entidades;
 using StageUp.BE.Enumerados;
@@ -94,6 +96,7 @@ namespace StageUp.UI
 
                 CargarNotificaciones();
                 CargarIndicadorSoporte();
+                CargarIndicadorMensajesReserva(esGestorEspacios);
             }
         }
 
@@ -114,6 +117,37 @@ namespace StageUp.UI
                     ? "Preguntas recibidas <span class=\"sidebar-badge\" title=\"Preguntas sin responder\">" + pendientes + "</span>"
                     : "Preguntas recibidas";
             }
+        }
+
+        // Mensajería privada por reserva: mensajes sin leer como solicitante
+        // (junto a "Mis reservas") y como gestor (junto a "Mis espacios",
+        // donde están las solicitudes recibidas). El texto del enlace queda en
+        // su propio span para que el cambio de idioma no borre el contador.
+        private void CargarIndicadorMensajesReserva(bool esGestorEspacios)
+        {
+            List<MensajesNoLeidosReserva> noLeidos = new BLL_MensajeReserva().NoLeidos(GestorDeSesion.ObtenerIdUsuarioActual().Value);
+            int comoSolicitante = noLeidos.Where(n => n.Rol == MensajesNoLeidosReserva.RolSolicitante).Sum(n => n.Cantidad);
+            int comoGestor = noLeidos.Where(n => n.Rol == MensajesNoLeidosReserva.RolGestor).Sum(n => n.Cantidad);
+
+            AgregarContador(MisReservasLink, comoSolicitante, "Mensajes sin leer en tus reservas");
+            if (esGestorEspacios)
+            {
+                AgregarContador(MisEspaciosLink, comoGestor, "Mensajes sin leer en solicitudes recibidas");
+            }
+        }
+
+        private static void AgregarContador(System.Web.UI.HtmlControls.HtmlAnchor enlace, int cantidad, string titulo)
+        {
+            if (cantidad <= 0)
+            {
+                return;
+            }
+
+            string clave = enlace.Attributes["data-i18n"];
+            string texto = HttpUtility.HtmlEncode(enlace.InnerText);
+            enlace.Attributes.Remove("data-i18n");
+            enlace.InnerHtml = (string.IsNullOrEmpty(clave) ? texto : "<span data-i18n=\"" + HttpUtility.HtmlAttributeEncode(clave) + "\">" + texto + "</span>") +
+                " <span class=\"sidebar-badge\" title=\"" + HttpUtility.HtmlAttributeEncode(titulo) + "\">" + cantidad + "</span>";
         }
 
         protected void lnkCerrarSesion_Click(object sender, EventArgs e)

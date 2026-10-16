@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Web.UI;
@@ -14,6 +15,8 @@ namespace StageUp.UI
     // la participación del usuario: cancelar (A13 a A16), aceptar o rechazar
     // (A9 a A12), pagar, calificar y contactar soporte. Cada acción pide una
     // confirmación antes de ejecutarse.
+    // También muestra los mensajes privados de la reserva entre el
+    // solicitante y el gestor (BLL_MensajeReserva).
     public partial class DetalleReserva : Page
     {
         private const string AccionCancelar = "Cancelar";
@@ -21,6 +24,12 @@ namespace StageUp.UI
         private const string AccionRechazar = "Rechazar";
 
         private readonly BLL_Reserva _bllReserva = new BLL_Reserva();
+        private readonly BLL_MensajeReserva _bllMensajes = new BLL_MensajeReserva();
+
+        // Para pintar los mensajes: quién mira y cuáles no había leído todavía.
+        private int _idUsuarioActual;
+        private bool _actualEsSolicitante;
+        private HashSet<int> _mensajesNuevos = new HashSet<int>();
 
         private int IdReserva
         {
@@ -47,7 +56,27 @@ namespace StageUp.UI
 
                 IdReserva = id;
                 Cargar();
+
+                if (Request.QueryString["enviado"] == "1" && pnlDetalle.Visible)
+                {
+                    MostrarMensajeChat("Mensaje enviado.", false);
+                }
             }
+        }
+
+        protected void btnEnviarMensaje_Click(object sender, EventArgs e)
+        {
+            ResultadoOperacion<int> resultado = _bllMensajes.Enviar(IdReserva, GestorDeSesion.ObtenerIdUsuarioActual().Value, txtMensaje.Text);
+            if (resultado.Exitoso)
+            {
+                // Se vuelve a pedir la página para que actualizar no reenvíe el mensaje.
+                Response.Redirect("~/DetalleReserva.aspx?id=" + IdReserva.ToString(CultureInfo.InvariantCulture) + "&enviado=1", false);
+                Context.ApplicationInstance.CompleteRequest();
+                return;
+            }
+
+            Cargar();
+            MostrarMensajeChat(resultado.Mensaje, true);
         }
 
         protected void btnCancelar_Click(object sender, EventArgs e)
@@ -223,6 +252,7 @@ namespace StageUp.UI
             rptSeguimiento.DataBind();
 
             ConfigurarAcciones(reserva, esSolicitante, esGestor);
+            CargarMensajes(reserva, idUsuario, esSolicitante);
 
             lnkVolverListado.Text = esSolicitante ? "← Volver a Mis reservas" : "← Volver a Solicitudes recibidas";
             lnkVolverListado.NavigateUrl = esSolicitante ? "~/MisReservas.aspx" : "~/SolicitudesRecibidas.aspx";
@@ -273,6 +303,86 @@ namespace StageUp.UI
                 lnkCalificar.Visible || lnkSoporte.Visible;
             pnlAcciones.Visible = hayAcciones;
             pnlSinAcciones.Visible = !hayAcciones;
+        }
+
+        // Mensajería privada de la reserva: se listan los mensajes, se marcan
+        // como nuevos los que el usuario no había leído y después se marcan
+        // como leídos.
+        private void CargarMensajes(Reserva reserva, int idUsuario, bool esSolicitante)
+        {
+            _idUsuarioActual = idUsuario;
+            _actualEsSolicitante = esSolicitante;
+
+            litMensajesAyuda.Text = esSolicitante
+                ? "Conversación privada con el gestor del espacio (" + reserva.NombreGestor + "). Solo ustedes dos ven estos mensajes. Para problemas con la plataforma, usá Contactar soporte."
+                : "Conversación privada con el solicitante (" + reserva.NombreSolicitante + "). Solo ustedes dos ven estos mensajes.";
+
+            ResultadoOperacion<List<MensajeReserva>> mensajes = _bllMensajes.Listar(reserva, idUsuario);
+            List<MensajeReserva> lista = mensajes.Exitoso ? mensajes.Valor : new List<MensajeReserva>();
+            _mensajesNuevos = new HashSet<int>(lista
+                .Where(m => m.IdUsuarioExternoEmisor != idUsuario && !m.Leido)
+                .Select(m => m.IdMensajeReserva));
+
+            rptMensajes.DataSource = lista;
+            rptMensajes.DataBind();
+            pnlSinMensajes.Visible = lista.Count == 0;
+            if (!mensajes.Exitoso)
+            {
+                MostrarMensajeChat(mensajes.Mensaje, true);
+            }
+
+            if (_mensajesNuevos.Count > 0)
+            {
+                _bllMensajes.MarcarLeidos(reserva, idUsuario);
+            }
+
+            bool admite = BLL_MensajeReserva.AdmiteMensajes(reserva);
+            pnlEscribirMensaje.Visible = admite;
+            pnlMensajesCerrados.Visible = !admite;
+            litMensajesCerrados.Text = "La reserva está " + (reserva.EstadoReserva ?? string.Empty).ToLowerInvariant() +
+                ": la conversación queda como registro, pero ya no se pueden enviar mensajes.";
+        }
+
+        protected string ClaseMensaje(object dato)
+        {
+            MensajeReserva mensaje = (MensajeReserva)dato;
+            bool propio = mensaje.IdUsuarioExternoEmisor == _idUsuarioActual;
+            return "dr-chat-mensaje " + (propio ? "dr-chat-propio" : "dr-chat-ajeno") +
+                (_mensajesNuevos.Contains(mensaje.IdMensajeReserva) ? " dr-chat-nuevo" : string.Empty);
+        }
+
+        protected string AutorMensaje(object dato)
+        {
+            MensajeReserva mensaje = (MensajeReserva)dato;
+            if (mensaje.IdUsuarioExternoEmisor == _idUsuarioActual)
+            {
+                return "Vos";
+            }
+
+            return mensaje.NombreCompletoEmisor + (_actualEsSolicitante ? " · Gestor" : " · Solicitante");
+        }
+
+        protected string EstadoLectura(object dato)
+        {
+            MensajeReserva mensaje = (MensajeReserva)dato;
+            if (mensaje.IdUsuarioExternoEmisor == _idUsuarioActual)
+            {
+                return mensaje.Leido ? " · Leído" : " · Enviado";
+            }
+
+            return _mensajesNuevos.Contains(mensaje.IdMensajeReserva) ? " · Nuevo" : string.Empty;
+        }
+
+        private void MostrarMensajeChat(string mensaje, bool esError)
+        {
+            if (string.IsNullOrEmpty(mensaje))
+            {
+                return;
+            }
+
+            litMensajeChat.Text = mensaje;
+            pnlMensajeChat.CssClass = "form-message " + (esError ? "form-message-error" : "form-message-success");
+            pnlMensajeChat.Visible = true;
         }
 
         private string DescribirCancelacionAhora(Reserva reserva)

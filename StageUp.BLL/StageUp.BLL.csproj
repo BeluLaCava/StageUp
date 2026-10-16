@@ -63,6 +63,7 @@
     <Compile Include="BLL_ExportacionSegura.cs" />
     <Compile Include="BLL_Ticket.cs" />
     <Compile Include="BLL_PreguntaEspacio.cs" />
+    <Compile Include="BLL_MensajeReserva.cs" />
     <Compile Include="BLL_OpcionMenu.cs" />
     <Compile Include="BLL_Backup.cs" />
     <Compile Include="BLL_Reporte.cs" />

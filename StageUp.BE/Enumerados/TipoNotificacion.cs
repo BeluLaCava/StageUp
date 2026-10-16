@@ -23,6 +23,7 @@ namespace StageUp.BE.Enumerados
         SolicitudSoporteActualizada,
         PreguntaEspacioRecibida,
         PreguntaEspacioRespondida,
-        PreguntaEspacioOcultada
+        PreguntaEspacioOcultada,
+        MensajeReserva
     }
 }

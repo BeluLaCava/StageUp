@@ -150,7 +150,8 @@
                                 </details>
                             </section>
 
-                            <p class="request-detail-link"><a class="text-link" href='<%#: "DetalleReserva.aspx?id=" + Eval("IdReserva") %>'>Ver detalle de la solicitud</a></p>
+                            <p class="request-detail-link"><a class="text-link" href='<%#: "DetalleReserva.aspx?id=" + Eval("IdReserva") %>'>Ver detalle de la solicitud</a>
+                                · <a class="text-link" href='<%#: "DetalleReserva.aspx?id=" + Eval("IdReserva") + "&ver=mensajes" %>'>Mensajes con el solicitante<%# EtiquetaMensajesNoLeidos((int)Eval("IdReserva")) %></a></p>
 
                             <asp:Panel ID="pnlAcciones" runat="server" CssClass="request-card-actions">
                                 <span>¿Querés aceptar esta solicitud?</span>

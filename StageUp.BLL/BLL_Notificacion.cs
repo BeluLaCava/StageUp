@@ -46,7 +46,8 @@ namespace StageUp.BLL
             { TipoNotificacion.SolicitudSoporteActualizada.ToString(), "Solicitud de soporte actualizada" },
             { TipoNotificacion.PreguntaEspacioRecibida.ToString(), "Nueva pregunta sobre tu espacio" },
             { TipoNotificacion.PreguntaEspacioRespondida.ToString(), "Respondieron tu pregunta" },
-            { TipoNotificacion.PreguntaEspacioOcultada.ToString(), "Tu pregunta fue ocultada" }
+            { TipoNotificacion.PreguntaEspacioOcultada.ToString(), "Tu pregunta fue ocultada" },
+            { TipoNotificacion.MensajeReserva.ToString(), "Nuevo mensaje sobre una reserva" }
         };
 
         // Categoría que se muestra junto a cada notificación.
@@ -70,7 +71,8 @@ namespace StageUp.BLL
             { TipoNotificacion.SolicitudSoporteActualizada.ToString(), "Soporte" },
             { TipoNotificacion.PreguntaEspacioRecibida.ToString(), "Preguntas" },
             { TipoNotificacion.PreguntaEspacioRespondida.ToString(), "Preguntas" },
-            { TipoNotificacion.PreguntaEspacioOcultada.ToString(), "Preguntas" }
+            { TipoNotificacion.PreguntaEspacioOcultada.ToString(), "Preguntas" },
+            { TipoNotificacion.MensajeReserva.ToString(), "Mensajes" }
         };
 
         // Página interna: "~/Pagina.aspx" o "~/Carpeta/Pagina.aspx", con

@@ -106,6 +106,12 @@ namespace StageUp.BE.Entidades
         public NodoAsistente Nodo { get; set; }
         public Faq PreguntaFrecuente { get; set; }
         public List<NodoAsistente> Sugerencias { get; set; } = new List<NodoAsistente>();
+
+        // Respuesta del asistente automático por API (solo si no hubo
+        // coincidencia propia). AsistenteAutomaticoNoDisponible: la API
+        // estaba configurada pero falló o tardó; se deriva a soporte.
+        public string RespuestaAutomatica { get; set; }
+        public bool AsistenteAutomaticoNoDisponible { get; set; }
     }
 
     // CU-003-004 A15: consulta del asistente sin respuesta, agrupada.

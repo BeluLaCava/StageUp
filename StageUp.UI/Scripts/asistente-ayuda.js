@@ -522,7 +522,19 @@
 
         desactivarOpcionesAnteriores();
         mensajeUsuario(texto);
+
+        // Mientras se busca la respuesta (puede consultar al asistente
+        // automático por API) se muestra "escribiendo…".
+        const esperando = elemento("div", "asistente-escribiendo");
+        esperando.setAttribute("aria-hidden", "true");
+        esperando.appendChild(elemento("span"));
+        esperando.appendChild(elemento("span"));
+        esperando.appendChild(elemento("span"));
+        chat.appendChild(esperando);
+        bajar();
+
         pedir({ accion: "consultar", texto: texto }, "POST").then(function (datos) {
+            esperando.remove();
             if (!datos.ok) {
                 if (datos.codigo === "A7") {
                     noDisponible(datos.mensaje);
@@ -544,16 +556,33 @@
                 return;
             }
 
-            // A5: consulta no reconocida.
+            // Respuesta del asistente automático por API (sin contenido propio).
+            if (datos.respuestaAutomatica) {
+                recorridoActual = texto;
+                mensajeBot({
+                    titulo: "Respuesta automática",
+                    texto: datos.respuestaAutomatica,
+                    nota: "La generó un asistente automático y puede no ser exacta. Si no te sirve, registrá una solicitud de soporte."
+                }, [{ texto: "Necesito más ayuda", accion: necesitoMasAyuda }]
+                    .concat(convertirSugerencias(datos.sugerencias))
+                    .concat([opcionMenuPrincipal]), "botones");
+                return;
+            }
+
+            // A5: consulta no reconocida (o el asistente automático no
+            // respondió a tiempo): se deriva a soporte.
             recorridoActual = texto;
             const lista = [{ texto: "Registrar solicitud de soporte", destacada: true, accion: function () { confirmarSoporte(texto); } }]
                 .concat(convertirSugerencias(datos.sugerencias));
             lista.push(opcionMenuPrincipal);
             mensajeBot({
-                texto: "No pude encontrar una respuesta para tu consulta. Podés registrar una solicitud de soporte" +
+                texto: (datos.asistenteAutomaticoNoDisponible
+                    ? "El asistente automático no está respondiendo en este momento. Podés registrar una solicitud de soporte y el equipo de StageUp la va a revisar"
+                    : "No pude encontrar una respuesta para tu consulta. Podés registrar una solicitud de soporte") +
                     (datos.sugerencias.length > 0 ? " o revisar estas opciones:" : " o volver al menú principal.")
             }, lista, "botones");
         }).catch(function () {
+            esperando.remove();
             noDisponible();
         });
     }

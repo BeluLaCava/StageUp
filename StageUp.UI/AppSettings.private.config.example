@@ -15,6 +15,13 @@
       definirse con la variable de entorno STAGEUP_CLAVE_ENCRIPTACION.
     - Las claves de reCAPTCHA también pueden definirse con las variables de entorno
       STAGEUP_RECAPTCHA_SITE_KEY / STAGEUP_RECAPTCHA_SECRET_KEY.
+    - Asistente automático por API (opcional): con AsistenteApiHabilitado = false
+      el asistente del Centro de ayuda deriva directo a soporte cuando no encuentra
+      la respuesta. Acepta cualquier API compatible con "chat completions":
+        OpenAI:  https://api.openai.com/v1/chat/completions  (clave sk-..., modelo gpt-4o-mini)
+        Ollama local (gratis, sin clave): http://localhost:11434/v1/chat/completions  (modelo llama3.2)
+      También pueden definirse con STAGEUP_ASISTENTE_API_HABILITADO / _URL / _CLAVE /
+      _MODELO / _TIEMPO_MS. El tiempo de espera va de 1000 a 15000 ms (8000 por defecto).
 -->
 <appSettings>
   <!-- Correo saliente (SMTP) -->
@@ -36,4 +43,11 @@
   <!-- Encriptación asimétrica (RSA 2048) - generar desde Interno > Herramientas de seguridad -->
   <add key="ClaveAsimetricaPublica" value="COMPLETAR_CLAVE_PUBLICA_BASE64" />
   <add key="ClaveAsimetricaPrivada" value="COMPLETAR_CLAVE_PRIVADA_BASE64" />
+
+  <!-- Asistente automático de soporte por API (opcional) -->
+  <add key="AsistenteApiHabilitado" value="false" />
+  <add key="AsistenteApiUrl" value="https://api.openai.com/v1/chat/completions" />
+  <add key="AsistenteApiClave" value="COMPLETAR_CLAVE_API" />
+  <add key="AsistenteApiModelo" value="gpt-4o-mini" />
+  <add key="AsistenteApiTiempoEsperaMs" value="8000" />
 </appSettings>

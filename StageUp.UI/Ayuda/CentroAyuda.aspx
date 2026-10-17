@@ -156,5 +156,5 @@
         .support-path-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 0.6rem; }
         .asistente-form input:disabled { cursor: not-allowed; }
     </style>
-    <script src="<%= ResolveUrl("~/Scripts/asistente-ayuda.js") %>?v=20261017" defer></script>
+    <script src="<%= ResolveUrl("~/Scripts/asistente-ayuda.js") %>?v=20261017-2" defer></script>
 </asp:Content>

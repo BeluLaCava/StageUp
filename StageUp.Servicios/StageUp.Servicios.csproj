@@ -38,6 +38,7 @@
     <Compile Include="ServicioCorreo.cs" />
     <Compile Include="ServicioRecaptcha.cs" />
     <Compile Include="ServicioPasarelaPago.cs" />
+    <Compile Include="ServicioAsistenteExterno.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

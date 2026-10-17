@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 using StageUp.MPP;
+using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
@@ -19,9 +21,13 @@ namespace StageUp.BLL
     // También se puede escribir la consulta (A4 paso 4): se compara con las
     // opciones y palabras clave del árbol y, si no coincide con ninguna, con
     // las preguntas frecuentes que se marcaron para el asistente en
-    // "Contenido de ayuda" (CU-003-004). Si tampoco hay coincidencia, se
-    // ofrece registrar una solicitud de soporte (A5) y la consulta queda
-    // guardada para que el equipo cree contenido.
+    // "Contenido de ayuda" (CU-003-004). Si tampoco hay coincidencia y está
+    // configurado el asistente automático por API (ServicioAsistenteExterno),
+    // se le consulta con el contenido público de ayuda como referencia y sin
+    // datos personales; si responde, se muestra como respuesta automática.
+    // Si no hay respuesta, o la API falla o tarda, se ofrece registrar una
+    // solicitud de soporte (A5). La consulta queda guardada para que el
+    // equipo cree contenido.
     public class BLL_AsistenteAyuda
     {
         public const string MensajeNoDisponible = "El asistente no está disponible en este momento. Podés consultar las preguntas frecuentes o registrar una solicitud de soporte.";
@@ -42,6 +48,8 @@ namespace StageUp.BLL
 
         private readonly MPP_NodoAsistente _mppNodos = new MPP_NodoAsistente();
         private readonly MPP_Faq _mppFaq = new MPP_Faq();
+        private readonly ServicioAsistenteExterno _asistenteExterno = new ServicioAsistenteExterno();
+        private const int LongitudMaximaContexto = 6000;
 
         // Paso del asistente con sus opciones y acciones. Sin código, el inicio.
         public ResultadoOperacion<NodoAsistente> ObtenerNodo(string codigo)
@@ -129,12 +137,30 @@ namespace StageUp.BLL
                 respuesta.Sugerencias = puntajes.Take(3).Select(p => p.Key).ToList();
             }
 
+            // Sin contenido propio: asistente automático por API, si está
+            // configurado. Su respuesta no cuenta como "reconocida" para
+            // la lista de consultas sin respuesta (CU-003-004 A15).
+            string resultadoApi = null;
+            if (!respuesta.Reconocida && _asistenteExterno.EstaHabilitado)
+            {
+                ResultadoAsistenteExterno externo = _asistenteExterno.Consultar(limpio, ArmarContexto(arbol));
+                resultadoApi = externo.Estado.ToString();
+                if (externo.Estado == EstadoAsistenteExterno.Respondida)
+                {
+                    respuesta.RespuestaAutomatica = externo.Respuesta;
+                }
+                else if (externo.Estado == EstadoAsistenteExterno.TiempoAgotado || externo.Estado == EstadoAsistenteExterno.NoDisponible)
+                {
+                    respuesta.AsistenteAutomaticoNoDisponible = true;
+                }
+            }
+
             try
             {
                 _mppFaq.RegistrarConsultaAsistente(limpio, normalizada.Length > 200 ? normalizada.Substring(0, 200) : normalizada,
                     respuesta.Nodo == null ? (int?)null : respuesta.Nodo.IdNodoAsistente,
                     respuesta.PreguntaFrecuente == null ? (int?)null : respuesta.PreguntaFrecuente.IdFaq,
-                    idUsuarioExterno);
+                    idUsuarioExterno, resultadoApi);
             }
             catch (ErrorAccesoDatosException)
             {
@@ -142,6 +168,25 @@ namespace StageUp.BLL
             }
 
             return ResultadoOperacion<RespuestaAsistente>.Ok(respuesta);
+        }
+
+        // Contenido público de ayuda (respuestas del árbol) que se le pasa al
+        // asistente automático como referencia. No incluye datos de usuarios.
+        private static string ArmarContexto(Dictionary<string, NodoAsistente> arbol)
+        {
+            StringBuilder texto = new StringBuilder();
+            foreach (NodoAsistente nodo in arbol.Values.Where(n => n.EsRespuesta).OrderBy(n => n.Recorrido))
+            {
+                string linea = "- " + nodo.Recorrido + ": " + nodo.Mensaje + "\n";
+                if (texto.Length + linea.Length > LongitudMaximaContexto)
+                {
+                    break;
+                }
+
+                texto.Append(linea);
+            }
+
+            return texto.ToString();
         }
 
         // Árbol activo indexado por código. Solo quedan los pasos alcanzables

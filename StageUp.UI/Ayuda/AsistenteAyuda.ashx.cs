@@ -61,7 +61,9 @@ namespace StageUp.UI.Ayuda
                                 preguntaFrecuente = consulta.Valor.PreguntaFrecuente == null
                                     ? null
                                     : new { pregunta = consulta.Valor.PreguntaFrecuente.Pregunta, respuesta = consulta.Valor.PreguntaFrecuente.Respuesta },
-                                sugerencias = consulta.Valor.Sugerencias.Select(s => new { codigo = s.Codigo, texto = s.Recorrido })
+                                sugerencias = consulta.Valor.Sugerencias.Select(s => new { codigo = s.Codigo, texto = s.Recorrido }),
+                                respuestaAutomatica = consulta.Valor.RespuestaAutomatica,
+                                asistenteAutomaticoNoDisponible = consulta.Valor.AsistenteAutomaticoNoDisponible
                             }
                             : Error(consulta.Mensaje, consulta.CodigoAlternativo);
                         break;

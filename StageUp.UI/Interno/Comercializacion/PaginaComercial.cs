@@ -207,5 +207,123 @@ namespace StageUp.UI.Interno.Comercializacion
             string texto = Convert.ToString(valor);
             return string.IsNullOrWhiteSpace(texto) ? "—" : texto;
         }
+    
+
+        protected static string Resumir(object valor, int largo)
+        {
+            string texto = Convert.ToString(valor) ?? string.Empty;
+            return texto.Length <= largo ? texto : texto.Substring(0, largo).TrimEnd() + "…";
+        }
+
+        protected static string Periodo(object desde, object hasta)
+        {
+            string inicio = desde is DateTime ? ((DateTime)desde).ToString("dd/MM/yyyy") : "—";
+            string fin = hasta is DateTime ? ((DateTime)hasta).ToString("dd/MM/yyyy") : "sin fecha de fin";
+            return inicio + " al " + fin;
+        }
+
+        // Opciones de un vínculo único (campaña, alianza) para un desplegable.
+        protected void CargarVinculoUnico(DropDownList lista, string tipo, string textoVacio)
+        {
+            lista.Items.Clear();
+            lista.Items.Add(new ListItem(textoVacio, string.Empty));
+            foreach (OpcionVinculoComercial opcion in Catalogos.ListarParaVincular(tipo))
+            {
+                lista.Items.Add(new ListItem(opcion.Nombre, opcion.Id.ToString(CultureInfo.InvariantCulture)));
+            }
+        }
+
+        // Lo que ya estaba vinculado pero no aparece entre las opciones
+        // disponibles (por ejemplo, una campaña finalizada) se agrega para no
+        // perderlo al guardar.
+        protected static void AsegurarOpcion(DropDownList lista, int? id, string nombre)
+        {
+            if (!id.HasValue)
+            {
+                return;
+            }
+
+            string valor = id.Value.ToString(CultureInfo.InvariantCulture);
+            if (lista.Items.FindByValue(valor) == null)
+            {
+                lista.Items.Add(new ListItem((nombre ?? "#" + valor) + " (no disponible para nuevas asociaciones)", valor));
+            }
+
+            Seleccionar(lista, valor);
+        }
+
+        protected static void MarcarVinculos(CheckBoxList lista, List<VinculoComercial> vinculos, string tipo)
+        {
+            foreach (VinculoComercial vinculo in vinculos.Where(v => v.Tipo == tipo))
+            {
+                string valor = vinculo.Id.ToString(CultureInfo.InvariantCulture);
+                ListItem item = lista.Items.FindByValue(valor);
+                if (item == null)
+                {
+                    item = new ListItem(vinculo.Nombre + " (" + TextoEstadoVinculo(vinculo) + ")", valor);
+                    lista.Items.Add(item);
+                }
+
+                item.Selected = true;
+            }
+        }
+
+        protected static string TextoTipoVinculo(object tipo)
+        {
+            switch (Convert.ToString(tipo))
+            {
+                case OpcionVinculoComercial.TipoContacto: return "Contacto comercial";
+                case OpcionVinculoComercial.TipoCampania: return "Campaña comercial";
+                case OpcionVinculoComercial.TipoAlianza: return "Alianza estratégica";
+                case OpcionVinculoComercial.TipoContenido: return "Contenido promocional";
+                case OpcionVinculoComercial.TipoOrigen: return "Origen de usuario";
+                default: return Convert.ToString(tipo);
+            }
+        }
+
+        protected static string TextoEstadoVinculo(object dato)
+        {
+            VinculoComercial vinculo = (VinculoComercial)dato;
+            switch (vinculo.Tipo)
+            {
+                case OpcionVinculoComercial.TipoContacto: return BLL_ContactoComercial.TextoEstado(vinculo.Estado);
+                case OpcionVinculoComercial.TipoAlianza: return BLL_AlianzaEstrategica.TextoEstado(vinculo.Estado);
+                case OpcionVinculoComercial.TipoContenido: return BLL_ContenidoPromocional.TextoEstado(vinculo.Estado);
+                case OpcionVinculoComercial.TipoCampania:
+                    string texto;
+                    return vinculo.Estado == "DadaDeBaja" ? "Dada de baja"
+                        : BLL_CampaniaComercial.Estados.TryGetValue(vinculo.Estado ?? string.Empty, out texto) ? texto : vinculo.Estado;
+                default: return TextoOGuion(vinculo.Estado);
+            }
+        }
+
+        // Nombre del vínculo con enlace a su detalle (si el usuario tiene el
+        // permiso de esa sección).
+        protected string EnlaceVinculo(object dato)
+        {
+            VinculoComercial vinculo = (VinculoComercial)dato;
+            string nombre = HttpUtility.HtmlEncode(vinculo.Nombre);
+            string url = null;
+            switch (vinculo.Tipo)
+            {
+                case OpcionVinculoComercial.TipoContacto:
+                    url = GestorDeSesion.TienePermisoInterno(BLL_ContactoComercial.PermisoGestionar) ? "ContactosComerciales.aspx?ver=" + vinculo.Id : null;
+                    break;
+                case OpcionVinculoComercial.TipoCampania:
+                    url = GestorDeSesion.TienePermisoInterno(BLL_CampaniaComercial.PermisoGestionar) ? "CampaniasComerciales.aspx?ver=" + vinculo.Id : null;
+                    break;
+                case OpcionVinculoComercial.TipoOrigen:
+                    url = GestorDeSesion.TienePermisoInterno(BLL_CampaniaComercial.PermisoGestionar) ? "CampaniasComerciales.aspx?vista=origenes&amp;origen=" + vinculo.Id : null;
+                    break;
+                case OpcionVinculoComercial.TipoAlianza:
+                    url = GestorDeSesion.TienePermisoInterno(BLL_AlianzaEstrategica.PermisoGestionar) ? "AlianzasEstrategicas.aspx?ver=" + vinculo.Id : null;
+                    break;
+                case OpcionVinculoComercial.TipoContenido:
+                    url = GestorDeSesion.TienePermisoInterno(BLL_ContenidoPromocional.PermisoGestionar) ? "ContenidoPromocional.aspx?ver=" + vinculo.Id : null;
+                    break;
+            }
+
+            return url == null ? nombre : "<a class=\"text-link\" href=\"" + url + "\">" + nombre + "</a>";
+        }
     }
 }

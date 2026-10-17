@@ -75,6 +75,9 @@
     <Compile Include="Entidades\MensajeReserva.cs" />
     <Compile Include="Entidades\SuscriptorNewsletter.cs" />
     <Compile Include="Entidades\CampaniaComercial.cs" />
+    <Compile Include="Entidades\AlianzaEstrategica.cs" />
+    <Compile Include="Entidades\ContenidoPromocional.cs" />
+    <Compile Include="Entidades\MetricasComerciales.cs" />
     <Compile Include="Entidades\CatalogoComercial.cs" />
     <Compile Include="Entidades\ContactoComercial.cs" />
     <Compile Include="Entidades\OrigenUsuario.cs" />

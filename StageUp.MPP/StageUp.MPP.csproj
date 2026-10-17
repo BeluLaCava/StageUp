@@ -53,6 +53,9 @@
     <Compile Include="MPP_MensajeReserva.cs" />
     <Compile Include="MPP_SuscriptorNewsletter.cs" />
     <Compile Include="MPP_CampaniaComercial.cs" />
+    <Compile Include="MPP_AlianzaEstrategica.cs" />
+    <Compile Include="MPP_ContenidoPromocional.cs" />
+    <Compile Include="MPP_MetricasComerciales.cs" />
     <Compile Include="MPP_CatalogoComercial.cs" />
     <Compile Include="MPP_ContactoComercial.cs" />
     <Compile Include="MPP_OrigenUsuario.cs" />

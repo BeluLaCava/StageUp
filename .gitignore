@@ -41,6 +41,7 @@ App_Data/*.mdf
 App_Data/*.ldf
 App_Data/*.db
 StageUp.UI/AppSettings.private.config
+StageUp.UI/App_Data/ContenidoPromocional/
 
 # Upgrade reports
 UpgradeLog*.htm

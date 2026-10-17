@@ -19,7 +19,10 @@ namespace StageUp.UI.Interno.Comercializacion
         private static readonly Solapa[] Solapas =
         {
             new Solapa { Permiso = "GESTIONAR_CAMPANIAS_COMERCIALES", Url = "~/Interno/Comercializacion/CampaniasComerciales.aspx", Texto = "Campañas" },
-            new Solapa { Permiso = "GESTIONAR_CONTACTOS_COMERCIALES", Url = "~/Interno/Comercializacion/ContactosComerciales.aspx", Texto = "Contactos" }
+            new Solapa { Permiso = "GESTIONAR_CONTACTOS_COMERCIALES", Url = "~/Interno/Comercializacion/ContactosComerciales.aspx", Texto = "Contactos" },
+            new Solapa { Permiso = "GESTIONAR_ALIANZAS_ESTRATEGICAS", Url = "~/Interno/Comercializacion/AlianzasEstrategicas.aspx", Texto = "Alianzas" },
+            new Solapa { Permiso = "GESTIONAR_CONTENIDO_PROMOCIONAL", Url = "~/Interno/Comercializacion/ContenidoPromocional.aspx", Texto = "Contenido promocional" },
+            new Solapa { Permiso = "CONSULTAR_METRICAS_COMERCIALES", Url = "~/Interno/Comercializacion/MetricasComerciales.aspx", Texto = "Métricas" }
         };
 
         protected void Page_Load(object sender, EventArgs e)

@@ -332,24 +332,6 @@ namespace StageUp.UI.Interno.Comercializacion
             vacio.Visible = lista.Items.Count == 0;
         }
 
-        // Lo vinculado que ya no aparece entre las opciones (por ejemplo, una
-        // alianza que pasó a finalizada) se agrega para no perderlo al guardar.
-        private static void MarcarVinculos(CheckBoxList lista, List<VinculoComercial> vinculos, string tipo)
-        {
-            foreach (VinculoComercial vinculo in vinculos.Where(v => v.Tipo == tipo))
-            {
-                string valor = vinculo.Id.ToString(CultureInfo.InvariantCulture);
-                ListItem item = lista.Items.FindByValue(valor);
-                if (item == null)
-                {
-                    item = new ListItem(vinculo.Nombre + " (" + vinculo.Estado + ")", valor);
-                    lista.Items.Add(item);
-                }
-
-                item.Selected = true;
-            }
-        }
-
         protected void btnGuardar_Click(object sender, EventArgs e)
         {
             if (!TieneAcceso())
@@ -459,32 +441,6 @@ namespace StageUp.UI.Interno.Comercializacion
             txtDescripcionOrigen.Text = origen.Descripcion;
         }
 
-        private void CargarVinculoUnico(DropDownList lista, string tipo, string textoVacio)
-        {
-            lista.Items.Clear();
-            lista.Items.Add(new ListItem(textoVacio, string.Empty));
-            foreach (OpcionVinculoComercial opcion in Catalogos.ListarParaVincular(tipo))
-            {
-                lista.Items.Add(new ListItem(opcion.Nombre, opcion.Id.ToString(CultureInfo.InvariantCulture)));
-            }
-        }
-
-        private static void AsegurarOpcion(DropDownList lista, int? id, string nombre)
-        {
-            if (!id.HasValue)
-            {
-                return;
-            }
-
-            string valor = id.Value.ToString(CultureInfo.InvariantCulture);
-            if (lista.Items.FindByValue(valor) == null)
-            {
-                lista.Items.Add(new ListItem((nombre ?? "#" + valor) + " (no disponible)", valor));
-            }
-
-            Seleccionar(lista, valor);
-        }
-
         protected void btnGuardarOrigen_Click(object sender, EventArgs e)
         {
             if (!TieneAcceso())
@@ -549,51 +505,6 @@ namespace StageUp.UI.Interno.Comercializacion
             if (c.CantidadContenidos > 0) partes.Add(c.CantidadContenidos + (c.CantidadContenidos == 1 ? " pieza" : " piezas"));
             if (c.CantidadOrigenes > 0) partes.Add(c.CantidadOrigenes + (c.CantidadOrigenes == 1 ? " origen" : " orígenes"));
             return string.Join(" · ", partes);
-        }
-
-        protected static string Resumir(object valor, int largo)
-        {
-            string texto = Convert.ToString(valor) ?? string.Empty;
-            return texto.Length <= largo ? texto : texto.Substring(0, largo).TrimEnd() + "…";
-        }
-
-        protected static string TextoTipoVinculo(object tipo)
-        {
-            switch (Convert.ToString(tipo))
-            {
-                case OpcionVinculoComercial.TipoContacto: return "Contacto comercial";
-                case OpcionVinculoComercial.TipoAlianza: return "Alianza estratégica";
-                case OpcionVinculoComercial.TipoContenido: return "Contenido promocional";
-                case OpcionVinculoComercial.TipoOrigen: return "Origen de usuario";
-                default: return Convert.ToString(tipo);
-            }
-        }
-
-        protected static string TextoEstadoVinculo(object dato)
-        {
-            VinculoComercial vinculo = (VinculoComercial)dato;
-            return vinculo.Tipo == OpcionVinculoComercial.TipoContacto
-                ? BLL_ContactoComercial.TextoEstado(vinculo.Estado)
-                : TextoOGuion(vinculo.Estado);
-        }
-
-        // Los contactos llevan a su detalle; el resto se muestra como texto
-        // (sus pantallas se suman con el script 81).
-        protected string EnlaceVinculo(object dato)
-        {
-            VinculoComercial vinculo = (VinculoComercial)dato;
-            string nombre = HttpUtility.HtmlEncode(vinculo.Nombre);
-            if (vinculo.Tipo == OpcionVinculoComercial.TipoContacto)
-            {
-                return "<a class=\"text-link\" href=\"ContactosComerciales.aspx?ver=" + vinculo.Id + "\">" + nombre + "</a>";
-            }
-
-            if (vinculo.Tipo == OpcionVinculoComercial.TipoOrigen)
-            {
-                return "<a class=\"text-link\" href=\"" + Pagina + "?vista=origenes&amp;origen=" + vinculo.Id + "\">" + nombre + "</a>";
-            }
-
-            return nombre;
         }
 
         protected string EnlaceOrigen(object codigo)

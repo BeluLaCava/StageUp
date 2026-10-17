@@ -297,6 +297,30 @@
       <DependentUpon>ComercializacionTabs.ascx</DependentUpon>
     </Compile>
     <Compile Include="Interno\Comercializacion\PaginaComercial.cs" />
+    <Compile Include="Interno\Comercializacion\AlianzasEstrategicas.aspx.cs">
+      <DependentUpon>AlianzasEstrategicas.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\Comercializacion\AlianzasEstrategicas.aspx.designer.cs">
+      <DependentUpon>AlianzasEstrategicas.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\Comercializacion\ContenidoPromocional.aspx.cs">
+      <DependentUpon>ContenidoPromocional.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\Comercializacion\ContenidoPromocional.aspx.designer.cs">
+      <DependentUpon>ContenidoPromocional.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\Comercializacion\MetricasComerciales.aspx.cs">
+      <DependentUpon>MetricasComerciales.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\Comercializacion\MetricasComerciales.aspx.designer.cs">
+      <DependentUpon>MetricasComerciales.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\Comercializacion\DescargarContenido.ashx.cs">
+      <DependentUpon>DescargarContenido.ashx</DependentUpon>
+    </Compile>
     <Compile Include="Interno\GestionSoporte.aspx.cs">
       <DependentUpon>GestionSoporte.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -487,6 +511,7 @@
     <Compile Include="Infraestructura\ConsultaBusqueda.cs" />
     <Compile Include="Infraestructura\ControlSesionBaseDatos.cs" />
     <Compile Include="Infraestructura\ImagenSubida.cs" />
+    <Compile Include="Infraestructura\ArchivoContenidoPromocional.cs" />
     <Compile Include="Infraestructura\OrigenDeDifusion.cs" />
     <Compile Include="Infraestructura\MasterPageMultidioma.cs">
       <SubType>ASPXCodeBehind</SubType>
@@ -549,6 +574,10 @@
     <Content Include="Interno\Comercializacion\CampaniasComerciales.aspx" />
     <Content Include="Interno\Comercializacion\ContactosComerciales.aspx" />
     <Content Include="Interno\Comercializacion\ComercializacionTabs.ascx" />
+    <Content Include="Interno\Comercializacion\AlianzasEstrategicas.aspx" />
+    <Content Include="Interno\Comercializacion\ContenidoPromocional.aspx" />
+    <Content Include="Interno\Comercializacion\MetricasComerciales.aspx" />
+    <Content Include="Interno\Comercializacion\DescargarContenido.ashx" />
     <Content Include="Interno\GestionSoporte.aspx" />
     <Content Include="Interno\GestionMenu.aspx" />
     <Content Include="Interno\BackupRestore.aspx" />

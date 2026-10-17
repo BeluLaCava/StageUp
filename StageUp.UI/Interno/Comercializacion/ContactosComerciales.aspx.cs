@@ -177,7 +177,14 @@ namespace StageUp.UI.Interno.Comercializacion
             litTelefono.Text = TextoOGuion(contacto.Telefono);
             litOtroDato.Text = TextoOGuion(contacto.OtroDatoContacto);
             litOrigen.Text = TextoOGuion(contacto.NombreOrigen);
-            litAlianza.Text = TextoOGuion(contacto.NombreAlianza);
+            litAlianza.Text = contacto.IdAlianzaEstrategica.HasValue
+                ? EnlaceVinculo(new VinculoComercial
+                {
+                    Tipo = OpcionVinculoComercial.TipoAlianza,
+                    Id = contacto.IdAlianzaEstrategica.Value,
+                    Nombre = contacto.NombreAlianza
+                })
+                : "—";
             litAlta.Text = contacto.FechaAlta.ToString("dd/MM/yyyy HH:mm");
             litActualizacion.Text = contacto.FechaUltimaModificacion.ToString("dd/MM/yyyy HH:mm");
             litObservaciones.Text = contacto.Observaciones;
@@ -442,32 +449,6 @@ namespace StageUp.UI.Interno.Comercializacion
                         origen.IdOrigenUsuario.ToString(CultureInfo.InvariantCulture)));
                 }
             }
-        }
-
-        private void CargarVinculoUnico(DropDownList lista, string tipo, string textoVacio)
-        {
-            lista.Items.Clear();
-            lista.Items.Add(new ListItem(textoVacio, string.Empty));
-            foreach (OpcionVinculoComercial opcion in Catalogos.ListarParaVincular(tipo))
-            {
-                lista.Items.Add(new ListItem(opcion.Nombre, opcion.Id.ToString(CultureInfo.InvariantCulture)));
-            }
-        }
-
-        private static void AsegurarOpcion(DropDownList lista, int? id, string nombre)
-        {
-            if (!id.HasValue)
-            {
-                return;
-            }
-
-            string valor = id.Value.ToString(CultureInfo.InvariantCulture);
-            if (lista.Items.FindByValue(valor) == null)
-            {
-                lista.Items.Add(new ListItem((nombre ?? "#" + valor) + " (no disponible para nuevas asociaciones)", valor));
-            }
-
-            Seleccionar(lista, valor);
         }
 
         protected static string DatoPrincipal(object dato)

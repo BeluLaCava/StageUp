@@ -126,7 +126,7 @@
                         <div><dt>Otro dato de contacto</dt><dd><asp:Literal ID="litOtroDato" runat="server" Mode="Encode" /></dd></div>
                         <div><dt>Origen del contacto</dt><dd><asp:Literal ID="litOrigen" runat="server" Mode="Encode" /></dd></div>
                         <div><dt>Campaña comercial</dt><dd><asp:HyperLink ID="lnkCampania" runat="server" CssClass="text-link" /><asp:Literal ID="litSinCampania" runat="server" Text="—" /></dd></div>
-                        <div><dt>Alianza estratégica</dt><dd><asp:Literal ID="litAlianza" runat="server" Mode="Encode" /></dd></div>
+                        <div><dt>Alianza estratégica</dt><dd><asp:Literal ID="litAlianza" runat="server" /></dd></div>
                         <div><dt>Cuenta en StageUp</dt><dd><asp:Literal ID="litCuenta" runat="server" Mode="Encode" /></dd></div>
                         <div><dt>Fecha de alta</dt><dd><asp:Literal ID="litAlta" runat="server" Mode="Encode" /></dd></div>
                         <div><dt>Última actualización</dt><dd><asp:Literal ID="litActualizacion" runat="server" Mode="Encode" /></dd></div>

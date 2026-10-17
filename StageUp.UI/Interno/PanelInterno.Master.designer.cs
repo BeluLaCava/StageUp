@@ -20,6 +20,8 @@ namespace StageUp.UI.Interno
 
         protected global::System.Web.UI.WebControls.LinkButton lnkCerrarSesionInterna;
 
+        protected global::System.Web.UI.WebControls.Panel pnlAvisoRestauracion;
+
         protected global::System.Web.UI.WebControls.ContentPlaceHolder MainContent;
 
         protected global::System.Web.UI.WebControls.HiddenField hdnDiccionarioIdioma;

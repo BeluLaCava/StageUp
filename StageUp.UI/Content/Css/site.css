@@ -4707,6 +4707,11 @@ body.overlay-open {
     border: 1px solid #E7B8B8;
 }
 
+/* Aviso de la sesión que siguió abierta después de restaurar la base. */
+.aviso-restauracion-base {
+    margin: 1rem clamp(1rem, 2.2vw, 1.75rem) 0;
+}
+
 .field-error-text {
     display: block;
     margin-top: 0.35rem;

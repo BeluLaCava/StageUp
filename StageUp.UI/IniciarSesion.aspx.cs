@@ -5,6 +5,7 @@ using System.Web.Configuration;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using StageUp.BLL;
+using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI
 {
@@ -44,6 +45,15 @@ namespace StageUp.UI
             {
                 MostrarMensaje(pnlMensajeLogin, litMensajeLogin,
                     "Tu cuenta interna fue dada de baja o desactivada, por eso se cerró la sesión. Si creés que es un error, consultalo con un administrador de StageUp.",
+                    esError: true);
+            }
+
+            // Script 79: se restauró la base desde un backup y la cuenta de
+            // la sesión no está (o no está activa) en esa copia.
+            if (!IsPostBack && Request.QueryString["motivo"] == ControlSesionBaseDatos.MotivoCierre)
+            {
+                MostrarMensaje(pnlMensajeLogin, litMensajeLogin,
+                    "Se restauró la base de datos de StageUp desde una copia de seguridad y tu cuenta no figura activa en esa copia, por eso se cerró la sesión. Si tu cuenta es reciente, puede que tengas que volver a registrarte; si no, probá iniciar sesión o consultalo con soporte.",
                     esError: true);
             }
         }

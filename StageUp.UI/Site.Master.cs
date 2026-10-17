@@ -56,6 +56,10 @@ namespace StageUp.UI
             {
                 UserSummary.InnerText = GestorDeSesion.ObtenerNombreCompletoActual();
 
+                // Script 79: la sesión siguió abierta después de restaurar la
+                // base; el aviso se muestra una sola vez.
+                pnlAvisoRestauracion.Visible = GestorDeSesion.TomarAvisoRestauracion();
+
                 // "Mis actividades" es exclusivo de gestores de espacios: a diferencia
                 // de "Mis espacios" (que se muestra siempre y es la propia pantalla la
                 // que le explica al solicitante que todavía no es gestor), acá el pedido

@@ -66,6 +66,7 @@ namespace StageUp.UI.Interno
             }
 
             InternalUserSummary.InnerText = GestorDeSesion.ObtenerNombreCompletoInternoActual();
+            pnlAvisoRestauracion.Visible = GestorDeSesion.TomarAvisoRestauracion();
             CargarMenu();
         }
 

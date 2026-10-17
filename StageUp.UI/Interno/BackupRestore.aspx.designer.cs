@@ -5,6 +5,8 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.Panel pnlMensaje;
         protected global::System.Web.UI.WebControls.Literal litMensaje;
         protected global::System.Web.UI.WebControls.Panel pnlRestaurado;
+        protected global::System.Web.UI.WebControls.Literal litRestaurado;
+        protected global::System.Web.UI.WebControls.HyperLink lnkContinuarRestaurado;
         protected global::System.Web.UI.WebControls.Panel pnlContenido;
         protected global::System.Web.UI.WebControls.TextBox txtDescripcion;
         protected global::System.Web.UI.WebControls.Button btnGenerar;

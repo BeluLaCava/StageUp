@@ -463,6 +463,7 @@
     </Compile>
     <Compile Include="Infraestructura\AperturaNotificacion.cs" />
     <Compile Include="Infraestructura\ConsultaBusqueda.cs" />
+    <Compile Include="Infraestructura\ControlSesionBaseDatos.cs" />
     <Compile Include="Infraestructura\ImagenSubida.cs" />
     <Compile Include="Infraestructura\MasterPageMultidioma.cs">
       <SubType>ASPXCodeBehind</SubType>

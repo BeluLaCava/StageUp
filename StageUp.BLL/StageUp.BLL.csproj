@@ -65,6 +65,7 @@
     <Compile Include="BLL_PreguntaEspacio.cs" />
     <Compile Include="BLL_MensajeReserva.cs" />
     <Compile Include="BLL_Newsletter.cs" />
+    <Compile Include="BLL_SesionBaseDatos.cs" />
     <Compile Include="BLL_OpcionMenu.cs" />
     <Compile Include="BLL_Backup.cs" />
     <Compile Include="BLL_Reporte.cs" />

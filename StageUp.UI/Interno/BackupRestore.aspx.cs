@@ -5,8 +5,10 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using StageUp.BE.Entidades;
+using StageUp.BE.Enumerados;
 using StageUp.BLL;
 using StageUp.Seguridad;
+using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Interno
 {
@@ -92,11 +94,43 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-            // La base cambió por completo (el usuario puede no existir en el
-            // backup restaurado): se cierra la sesión y se pide volver a entrar.
+            // La base cambió por completo: la sesión se vuelve a validar
+            // contra la base restaurada (script 79). Sigue abierta si el
+            // usuario existe, es el mismo y está activo en el backup, con los
+            // permisos que tiene ahí.
             IdBackupARestaurar = null;
-            GestorDeSesion.CerrarSesionInterna();
-            MostrarMensaje(resultado.Mensaje, false);
+            txtConfirmacion.Text = string.Empty;
+            ResultadoRevalidacionSesion sesion = ControlSesionBaseDatos.Verificar();
+            GestorDeSesion.TomarAvisoRestauracion();
+
+            if (sesion == ResultadoRevalidacionSesion.Invalida)
+            {
+                MostrarRestaurado(resultado.Mensaje,
+                    "La base de datos se restauró correctamente. Tu usuario no figura activo en el backup restaurado, por eso se cerró tu sesión. " +
+                    "Iniciá sesión con un usuario interno que exista en esa copia.",
+                    "~/IniciarSesion.aspx", "Iniciar sesión");
+                return;
+            }
+
+            if (!GestorDeSesion.TienePermisoInterno("GESTIONAR_BACKUP"))
+            {
+                MostrarRestaurado(resultado.Mensaje,
+                    "La base de datos se restauró correctamente y tu sesión sigue abierta, pero en el backup restaurado tu rol no tiene permiso para gestionar backups.",
+                    "~/Interno/PanelAdministrador.aspx", "Ir al panel");
+                return;
+            }
+
+            MostrarMensaje(resultado.Mensaje + " Tu sesión sigue abierta: tu usuario existe y está activo en el backup restaurado, y se actualizaron tus permisos.", false);
+            pnlConfirmarRestauracion.Visible = false;
+            CargarHistorial();
+        }
+
+        private void MostrarRestaurado(string mensaje, string detalle, string urlContinuar, string textoContinuar)
+        {
+            MostrarMensaje(mensaje, false);
+            litRestaurado.Text = Server.HtmlEncode(detalle);
+            lnkContinuarRestaurado.NavigateUrl = urlContinuar;
+            lnkContinuarRestaurado.Text = textoContinuar;
             pnlContenido.Visible = false;
             pnlRestaurado.Visible = true;
         }

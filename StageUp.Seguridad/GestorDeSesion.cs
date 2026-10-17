@@ -21,6 +21,15 @@ namespace StageUp.Seguridad
         private const string ClaveIdRolInterno = "StageUp.Sesion.IdRolInterno";
         private const string ClavePermisosInterno = "StageUp.Sesion.PermisosInterno";
 
+        // Control de la sesión después de restaurar un backup (script 79):
+        // fecha de alta de cada cuenta (un id que se vuelve a usar es otra
+        // cuenta), marca de la base con la que se validó la sesión y aviso
+        // pendiente de mostrar.
+        private const string ClaveAltaCuenta = "StageUp.Sesion.FechaAltaCuenta";
+        private const string ClaveAltaCuentaInterna = "StageUp.Sesion.FechaAltaCuentaInterna";
+        private const string ClaveMarcaBaseDatos = "StageUp.Sesion.MarcaBaseDatos";
+        private const string ClaveAvisoRestauracion = "StageUp.Sesion.AvisoRestauracion";
+
         public static void IniciarSesion(UsuarioExterno usuario)
         {
             if (usuario == null)
@@ -32,6 +41,7 @@ namespace StageUp.Seguridad
             HttpContext.Current.Session[ClaveNombreCompleto] = usuario.Nombre + " " + usuario.Apellido;
             HttpContext.Current.Session[ClavePerfil] = usuario.PerfilUsuario;
             HttpContext.Current.Session[ClaveUltimaVerificacionCuenta] = DateTime.Now;
+            GuardarFechaAlta(ClaveAltaCuenta, usuario.FechaAlta);
         }
 
         // CU-001-003: una cuenta dada de baja no puede seguir usando una sesión
@@ -56,6 +66,8 @@ namespace StageUp.Seguridad
             HttpContext.Current.Session.Remove(ClaveNombreCompleto);
             HttpContext.Current.Session.Remove(ClavePerfil);
             HttpContext.Current.Session.Remove(ClaveUltimaVerificacionCuenta);
+            HttpContext.Current.Session.Remove(ClaveAltaCuenta);
+            HttpContext.Current.Session.Remove(ClaveMarcaBaseDatos);
             HttpContext.Current.Session.Abandon();
         }
 
@@ -123,6 +135,7 @@ namespace StageUp.Seguridad
             HttpContext.Current.Session[ClavePermisosInterno] = codigosPermisos == null
                 ? string.Empty
                 : string.Join(",", codigosPermisos);
+            GuardarFechaAlta(ClaveAltaCuentaInterna, usuario.FechaAlta);
         }
 
         public static void CerrarSesionInterna()
@@ -131,6 +144,8 @@ namespace StageUp.Seguridad
             HttpContext.Current.Session.Remove(ClaveNombreCompletoInterno);
             HttpContext.Current.Session.Remove(ClaveIdRolInterno);
             HttpContext.Current.Session.Remove(ClavePermisosInterno);
+            HttpContext.Current.Session.Remove(ClaveAltaCuentaInterna);
+            HttpContext.Current.Session.Remove(ClaveMarcaBaseDatos);
             HttpContext.Current.Session.Abandon();
         }
 
@@ -174,6 +189,47 @@ namespace StageUp.Seguridad
                 }
             }
             return false;
+        }
+
+        public static DateTime? ObtenerFechaAltaCuentaActual()
+        {
+            return HttpContext.Current.Session[ClaveAltaCuenta] as DateTime?;
+        }
+
+        public static DateTime? ObtenerFechaAltaCuentaInternaActual()
+        {
+            return HttpContext.Current.Session[ClaveAltaCuentaInterna] as DateTime?;
+        }
+
+        public static string ObtenerMarcaBaseDatos()
+        {
+            return HttpContext.Current.Session[ClaveMarcaBaseDatos] as string;
+        }
+
+        public static void EstablecerMarcaBaseDatos(string marca)
+        {
+            HttpContext.Current.Session[ClaveMarcaBaseDatos] = marca;
+        }
+
+        public static void MarcarAvisoRestauracion()
+        {
+            HttpContext.Current.Session[ClaveAvisoRestauracion] = true;
+        }
+
+        // Devuelve si hay que mostrar el aviso y lo borra (se muestra una vez).
+        public static bool TomarAvisoRestauracion()
+        {
+            bool hayAviso = HttpContext.Current.Session[ClaveAvisoRestauracion] is bool;
+            HttpContext.Current.Session.Remove(ClaveAvisoRestauracion);
+            return hayAviso;
+        }
+
+        private static void GuardarFechaAlta(string clave, DateTime fechaAlta)
+        {
+            if (fechaAlta != default(DateTime))
+            {
+                HttpContext.Current.Session[clave] = fechaAlta;
+            }
         }
     }
 }

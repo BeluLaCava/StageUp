@@ -20,6 +20,8 @@ namespace StageUp.BLL
     //   4. Todo queda en la bitácora. El registro de la restauración se
     //      escribe DESPUÉS de restaurar, así queda en la base restaurada (lo
     //      anterior queda en el backup de seguridad).
+    //   5. Las sesiones abiertas no se cortan todas: cada una se vuelve a
+    //      validar contra la base restaurada (BLL_SesionBaseDatos).
     public class BLL_Backup
     {
         public const string PalabraConfirmacion = "RESTAURAR";
@@ -115,6 +117,10 @@ namespace StageUp.BLL
                     "No se pudo restaurar la base. El estado actual quedó guardado en " +
                     (seguridad != null ? seguridad.NombreArchivo : "un backup de seguridad") + ". " + ex.Message);
             }
+
+            // Las sesiones abiertas se vuelven a validar contra la base
+            // restaurada (BLL_SesionBaseDatos).
+            BLL_SesionBaseDatos.RegistrarRestauracion();
 
             try
             {

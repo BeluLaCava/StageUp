@@ -227,6 +227,41 @@ namespace StageUp.DAL
             }
         }
 
+        // Consulta corta en master (script 79). A diferencia de EjecutarEnMaster
+        // se llama seguido, por eso usa el pool de conexiones.
+        public object LeerEscalarEnMaster(string nombreSp, Hashtable parametros = null)
+        {
+            try
+            {
+                string cadena = ConfigurationManager.ConnectionStrings[NombreCadenaConexion].ConnectionString;
+                SqlConnectionStringBuilder constructor = new SqlConnectionStringBuilder(cadena)
+                {
+                    InitialCatalog = "master"
+                };
+
+                using (SqlConnection conexion = new SqlConnection(constructor.ConnectionString))
+                using (SqlCommand comando = new SqlCommand(nombreSp, conexion))
+                {
+                    comando.CommandType = CommandType.StoredProcedure;
+                    comando.CommandTimeout = 15;
+                    AgregarParametros(comando, parametros);
+
+                    conexion.Open();
+                    return comando.ExecuteScalar();
+                }
+            }
+            catch (SqlException ex)
+            {
+                throw new ErrorAccesoDatosException(
+                    nombreSp, "Ocurrió un error SQL en la operación: " + ex.Message, ex);
+            }
+            catch (Exception ex)
+            {
+                throw new ErrorAccesoDatosException(
+                    nombreSp, "Ocurrió un error en la operación. Probá nuevamente en unos minutos.", ex);
+            }
+        }
+
         // Después de restaurar, las conexiones que quedaron en el pool apuntan
         // a sesiones que SQL Server cerró: se descartan todas.
         public void LimpiarConexionesAbiertas()

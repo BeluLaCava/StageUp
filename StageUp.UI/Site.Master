@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><asp:ContentPlaceHolder ID="TitleContent" runat="server">StageUp</asp:ContentPlaceHolder></title>
     <link rel="icon" type="image/png" href="<%= ResolveUrl("~/Content/Images/favicon.png") %>" />
-    <link id="SiteStyles" href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20261017-2" rel="stylesheet" />
+    <link id="SiteStyles" href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20261017-3" rel="stylesheet" />
     <asp:ContentPlaceHolder ID="HeadContent" runat="server" />
 </head>
 <body>
@@ -131,6 +131,9 @@
             </aside>
 
             <main id="main-content" class="page-content">
+                <asp:Panel ID="pnlAvisoRestauracion" runat="server" Visible="false" CssClass="form-message form-message-success aviso-restauracion-base" role="status">
+                    Se restauró la base de datos de StageUp desde una copia de seguridad. Tu sesión sigue abierta, pero lo que se haya cargado después de esa copia ya no figura.
+                </asp:Panel>
                 <asp:ContentPlaceHolder ID="MainContent" runat="server" />
             </main>
         </div>

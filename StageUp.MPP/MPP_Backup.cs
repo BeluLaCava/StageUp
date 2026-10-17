@@ -63,5 +63,15 @@ namespace StageUp.MPP
 
             Conexion.Instance.LimpiarConexionesAbiertas();
         }
+
+        // Marca de la última restauración de la base (script 79, en master).
+        public string ObtenerMarcaUltimaRestauracion()
+        {
+            object valor = Conexion.Instance.LeerEscalarEnMaster(
+                "sp_StageUp_UltimaRestauracion",
+                new Hashtable { { "@nombreBase", Conexion.Instance.ObtenerNombreBaseDeDatos() } });
+
+            return valor == null || valor == DBNull.Value ? null : valor.ToString();
+        }
     }
 }

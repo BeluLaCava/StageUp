@@ -20,8 +20,8 @@
 
         <asp:Panel ID="pnlRestaurado" runat="server" Visible="false" CssClass="auth-card">
             <h2>Base restaurada</h2>
-            <p>La base de datos se restauró correctamente. Por seguridad se cerró tu sesión: volvé a iniciar sesión para seguir trabajando.</p>
-            <a class="button button-primary" href="../IniciarSesion.aspx">Iniciar sesión</a>
+            <p><asp:Literal ID="litRestaurado" runat="server" /></p>
+            <asp:HyperLink ID="lnkContinuarRestaurado" runat="server" CssClass="button button-primary" NavigateUrl="~/IniciarSesion.aspx" Text="Iniciar sesión" />
         </asp:Panel>
 
         <asp:Panel ID="pnlContenido" runat="server" CssClass="static-page-body internal-admin-stack">
@@ -51,7 +51,8 @@
                     <strong><asp:Literal ID="litBackupElegido" runat="server" /></strong>.
                     Todo lo que se haya cargado después de ese backup se pierde de la base activa
                     (antes de restaurar se guarda automáticamente un backup del estado actual).
-                    Los usuarios conectados pierden su sesión.
+                    Las sesiones abiertas (incluida la tuya) siguen solo si la cuenta existe y está activa en ese backup;
+                    si no, se cierran.
                 </div>
                 <div class="form-field">
                     <label for="<%= txtConfirmacion.ClientID %>">Para confirmar, escribí RESTAURAR</label>

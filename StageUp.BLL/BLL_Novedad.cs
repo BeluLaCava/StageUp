@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Text.RegularExpressions;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 using StageUp.MPP;
@@ -13,10 +15,37 @@ namespace StageUp.BLL
     // solo mostraba un formulario con datos de ejemplo fijos, sin persistir
     // nada, y StageUp.Servicios.ServicioCorreo.EnviarNewsletter no tenía
     // ningún llamador en todo el proyecto.
+    // Vigencia (script 75): cada novedad tiene fecha de publicación y,
+    // opcionalmente, de vencimiento. Se muestra en la página pública solo
+    // mientras está Vigente; antes de su fecha queda Programada y después,
+    // Vencida. La baja es lógica (DadaDeBaja) y se puede restaurar como
+    // borrador. La imagen se sube como archivo: solo se aceptan rutas de
+    // Content/Uploads/Novedades generadas por el sistema.
     public class BLL_Novedad
     {
         private const int LongitudMaximaTitulo = 180;
         private const int LongitudMaximaResumen = 300;
+
+        public const string CarpetaImagenes = "~/Content/Uploads/Novedades/";
+        private static readonly Regex FormatoImagenSubida = new Regex(@"^~/Content/Uploads/Novedades/[a-f0-9]{32}\.jpg$", RegexOptions.Compiled);
+
+        public static string ObtenerEtiquetaEstado(string estado)
+        {
+            switch (estado)
+            {
+                case Novedad.EstadoBorrador: return "Borrador";
+                case Novedad.EstadoProgramada: return "Programada";
+                case Novedad.EstadoVigente: return "Vigente";
+                case Novedad.EstadoVencida: return "Vencida";
+                case Novedad.EstadoDadaDeBaja: return "Dada de baja";
+                default: return estado ?? string.Empty;
+            }
+        }
+
+        public static bool EsImagenSubida(string urlImagen)
+        {
+            return !string.IsNullOrEmpty(urlImagen) && FormatoImagenSubida.IsMatch(urlImagen);
+        }
 
         // Mismos valores que ofrece el desplegable "Categoría" en
         // Interno/GestionNovedades.aspx.
@@ -51,11 +80,11 @@ namespace StageUp.BLL
             }
         }
 
-        public List<Novedad> Listar()
+        public List<Novedad> Listar(string estado = null)
         {
             try
             {
-                return _mpp.Listar();
+                return _mpp.Listar(estado);
             }
             catch (ErrorAccesoDatosException)
             {
@@ -77,7 +106,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion<int> Registrar(
             string titulo, string resumen, string contenido, string categoria, string urlImagen,
-            DateTime? fechaPublicacion, bool publicado, int idUsuarioInternoResponsable)
+            DateTime? fechaPublicacion, DateTime? fechaVencimiento, bool publicado, int idUsuarioInternoResponsable)
         {
             return EjecutarProtegido(() =>
             {
@@ -91,6 +120,18 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error(validacion.Mensaje);
                 }
 
+                if (urlImagenNormalizada != null && !EsImagenSubida(urlImagenNormalizada))
+                {
+                    return ResultadoOperacion<int>.Error("La imagen no es válida. Subila de nuevo desde el formulario.");
+                }
+
+                DateTime? fechaPublicacionFinal = publicado ? (fechaPublicacion ?? DateTime.Now) : fechaPublicacion;
+                ResultadoOperacion vigencia = ValidarVigencia(fechaPublicacionFinal, fechaVencimiento, publicado);
+                if (!vigencia.Exitoso)
+                {
+                    return ResultadoOperacion<int>.Error(vigencia.Mensaje);
+                }
+
                 int idNovedad = _mpp.Insertar(new Novedad
                 {
                     Titulo = tituloNormalizado,
@@ -99,22 +140,25 @@ namespace StageUp.BLL
                     Categoria = categoriaNormalizada,
                     UrlImagen = urlImagenNormalizada,
                     Publicado = publicado,
-                    FechaPublicacion = publicado ? (fechaPublicacion ?? DateTime.Now) : fechaPublicacion
+                    FechaPublicacion = fechaPublicacionFinal,
+                    FechaVencimiento = fechaVencimiento
                 });
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "ALTA", TipoEntidadBitacora, idNovedad,
-                    "Alta de la novedad \"" + tituloNormalizado + "\"" + (publicado ? " (publicada)." : " (como borrador)."));
+                    "Alta de la novedad \"" + tituloNormalizado + "\"" + DescribirVigencia(publicado, fechaPublicacionFinal, fechaVencimiento) + ".");
 
-                return ResultadoOperacion<int>.Ok(idNovedad, publicado
-                    ? "La novedad se creó y publicó correctamente."
-                    : "La novedad se guardó como borrador.");
+                return ResultadoOperacion<int>.Ok(idNovedad, !publicado
+                    ? "La novedad se guardó como borrador."
+                    : fechaPublicacionFinal > DateTime.Now
+                        ? "La novedad quedó programada: se va a publicar el " + FormatearFechaHora(fechaPublicacionFinal.Value) + "."
+                        : "La novedad se creó y publicó correctamente.");
             });
         }
 
         public ResultadoOperacion Modificar(
             int idNovedad, string titulo, string resumen, string contenido, string categoria, string urlImagen,
-            DateTime? fechaPublicacion, bool publicado, int idUsuarioInternoResponsable)
+            DateTime? fechaPublicacion, DateTime? fechaVencimiento, bool publicado, int idUsuarioInternoResponsable)
         {
             return EjecutarProtegido(() =>
             {
@@ -122,6 +166,11 @@ namespace StageUp.BLL
                 if (actual == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la novedad seleccionada.");
+                }
+
+                if (actual.Estado == Novedad.EstadoDadaDeBaja)
+                {
+                    return ResultadoOperacion.Error("La novedad está dada de baja. Restaurala antes de editarla.");
                 }
 
                 string tituloNormalizado, resumenNormalizado, contenidoNormalizado, categoriaNormalizada, urlImagenNormalizada;
@@ -134,9 +183,24 @@ namespace StageUp.BLL
                     return validacion;
                 }
 
+                // Se acepta la imagen que ya tenía (aunque sea de antes de la
+                // carga por archivo) o una nueva subida desde el formulario.
+                if (urlImagenNormalizada != null && urlImagenNormalizada != actual.UrlImagen && !EsImagenSubida(urlImagenNormalizada))
+                {
+                    return ResultadoOperacion.Error("La imagen no es válida. Subila de nuevo desde el formulario.");
+                }
+
                 DateTime? fechaPublicacionFinal = publicado
                     ? (fechaPublicacion ?? actual.FechaPublicacion ?? DateTime.Now)
                     : fechaPublicacion;
+                // Una novedad vencida se puede corregir sin cambiarle la fecha
+                // de vencimiento (sigue vencida).
+                ResultadoOperacion vigencia = ValidarVigencia(fechaPublicacionFinal, fechaVencimiento,
+                    publicado && fechaVencimiento != actual.FechaVencimiento);
+                if (!vigencia.Exitoso)
+                {
+                    return vigencia;
+                }
 
                 _mpp.Modificar(new Novedad
                 {
@@ -147,14 +211,17 @@ namespace StageUp.BLL
                     Categoria = categoriaNormalizada,
                     UrlImagen = urlImagenNormalizada,
                     Publicado = publicado,
-                    FechaPublicacion = fechaPublicacionFinal
+                    FechaPublicacion = fechaPublicacionFinal,
+                    FechaVencimiento = fechaVencimiento
                 });
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "MODIFICACION", TipoEntidadBitacora, idNovedad,
-                    "Modificación de la novedad \"" + tituloNormalizado + "\".");
+                    "Modificación de la novedad \"" + tituloNormalizado + "\"" + DescribirVigencia(publicado, fechaPublicacionFinal, fechaVencimiento) + ".");
 
-                return ResultadoOperacion.Ok("La novedad se actualizó correctamente.");
+                return ResultadoOperacion.Ok(publicado && fechaPublicacionFinal > DateTime.Now
+                    ? "La novedad se actualizó y quedó programada para el " + FormatearFechaHora(fechaPublicacionFinal.Value) + "."
+                    : "La novedad se actualizó correctamente.");
             });
         }
 
@@ -168,18 +235,33 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("No se encontró la novedad seleccionada.");
                 }
 
+                if (novedad.Estado == Novedad.EstadoDadaDeBaja)
+                {
+                    return ResultadoOperacion.Error("La novedad está dada de baja. Restaurala antes de publicarla.");
+                }
+
                 if (novedad.Publicado)
                 {
                     return ResultadoOperacion.Error("La novedad ya está publicada.");
                 }
 
+                DateTime fechaPublicacion = novedad.FechaPublicacion ?? DateTime.Now;
+                ResultadoOperacion vigencia = ValidarVigencia(fechaPublicacion, novedad.FechaVencimiento, true);
+                if (!vigencia.Exitoso)
+                {
+                    return ResultadoOperacion.Error(vigencia.Mensaje + " Editala para cambiar las fechas.");
+                }
+
                 _mpp.Publicar(novedad);
 
+                bool programada = fechaPublicacion > DateTime.Now;
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "MODIFICACION", TipoEntidadBitacora, idNovedad,
-                    "Publicación de la novedad \"" + novedad.Titulo + "\" (queda visible en la página pública de novedades).");
+                    "Publicación de la novedad \"" + novedad.Titulo + "\"" + DescribirVigencia(true, fechaPublicacion, novedad.FechaVencimiento) + ".");
 
-                return ResultadoOperacion.Ok("La novedad se publicó y ya se muestra en la página pública.");
+                return ResultadoOperacion.Ok(programada
+                    ? "La novedad quedó programada: se va a mostrar en la página pública desde el " + FormatearFechaHora(fechaPublicacion) + "."
+                    : "La novedad se publicó y ya se muestra en la página pública.");
             });
         }
 
@@ -191,6 +273,11 @@ namespace StageUp.BLL
                 if (novedad == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la novedad seleccionada.");
+                }
+
+                if (novedad.Estado == Novedad.EstadoDadaDeBaja)
+                {
+                    return ResultadoOperacion.Error("La novedad está dada de baja.");
                 }
 
                 if (!novedad.Publicado)
@@ -205,6 +292,53 @@ namespace StageUp.BLL
                     "La novedad \"" + novedad.Titulo + "\" volvió a borrador (deja de mostrarse en la página pública).");
 
                 return ResultadoOperacion.Ok("La novedad volvió a borrador y dejó de mostrarse en la página pública.");
+            });
+        }
+
+        // Baja lógica: deja de mostrarse y queda en el historial.
+        public ResultadoOperacion DarDeBaja(int idNovedad, int idUsuarioInternoResponsable)
+        {
+            return EjecutarProtegido(() =>
+            {
+                Novedad novedad = _mpp.ObtenerPorId(new Novedad { IdNovedad = idNovedad });
+                if (novedad == null)
+                {
+                    return ResultadoOperacion.Error("No se encontró la novedad seleccionada.");
+                }
+
+                if (!_mpp.DarDeBaja(novedad, new UsuarioInterno { IdUsuarioInterno = idUsuarioInternoResponsable }))
+                {
+                    return ResultadoOperacion.Error("La novedad ya estaba dada de baja.");
+                }
+
+                _bitacora.RegistrarInterno(
+                    idUsuarioInternoResponsable, "BAJA", TipoEntidadBitacora, idNovedad,
+                    "Baja de la novedad \"" + novedad.Titulo + "\" (estaba " + ObtenerEtiquetaEstado(novedad.Estado).ToLowerInvariant() + ").");
+
+                return ResultadoOperacion.Ok("La novedad se dio de baja: ya no se muestra y queda en el historial.");
+            });
+        }
+
+        public ResultadoOperacion Restaurar(int idNovedad, int idUsuarioInternoResponsable)
+        {
+            return EjecutarProtegido(() =>
+            {
+                Novedad novedad = _mpp.ObtenerPorId(new Novedad { IdNovedad = idNovedad });
+                if (novedad == null)
+                {
+                    return ResultadoOperacion.Error("No se encontró la novedad seleccionada.");
+                }
+
+                if (!_mpp.Restaurar(novedad))
+                {
+                    return ResultadoOperacion.Error("La novedad no está dada de baja.");
+                }
+
+                _bitacora.RegistrarInterno(
+                    idUsuarioInternoResponsable, "MODIFICACION", TipoEntidadBitacora, idNovedad,
+                    "Restauración de la novedad \"" + novedad.Titulo + "\" como borrador.");
+
+                return ResultadoOperacion.Ok("La novedad se restauró como borrador. Revisala y publicala cuando quieras.");
             });
         }
 
@@ -225,9 +359,11 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error("No se encontró la novedad seleccionada.");
                 }
 
-                if (!novedad.Publicado)
+                if (novedad.Estado != Novedad.EstadoVigente)
                 {
-                    return ResultadoOperacion<int>.Error("Primero publicá la novedad para poder enviarla por correo.");
+                    return ResultadoOperacion<int>.Error(novedad.Estado == Novedad.EstadoProgramada
+                        ? "La novedad todavía no está vigente: podés enviarla por correo a partir del " + FormatearFechaHora(novedad.FechaPublicacion.Value) + "."
+                        : "Solo se puede enviar por correo una novedad vigente (publicada y sin vencer).");
                 }
 
                 if (novedad.EnviadaPorCorreo)
@@ -328,6 +464,45 @@ namespace StageUp.BLL
             return enviado
                 ? ResultadoOperacion.Ok("Se envió el correo de prueba a " + correoDestino + ".")
                 : ResultadoOperacion.Error("No se pudo enviar el correo de prueba. Revisá la configuración de correo saliente.");
+        }
+
+        // exigirFuturo: al publicar, la fecha de vencimiento no puede haber pasado.
+        private static ResultadoOperacion ValidarVigencia(DateTime? fechaPublicacion, DateTime? fechaVencimiento, bool exigirFuturo)
+        {
+            if (!fechaVencimiento.HasValue)
+            {
+                return ResultadoOperacion.Ok();
+            }
+
+            if (fechaPublicacion.HasValue && fechaVencimiento.Value <= fechaPublicacion.Value)
+            {
+                return ResultadoOperacion.Error("La fecha de vencimiento tiene que ser posterior a la de publicación.");
+            }
+
+            if (exigirFuturo && fechaVencimiento.Value <= DateTime.Now)
+            {
+                return ResultadoOperacion.Error("La fecha de vencimiento ya pasó: elegí una fecha futura o guardala como borrador.");
+            }
+
+            return ResultadoOperacion.Ok();
+        }
+
+        private static string DescribirVigencia(bool publicado, DateTime? fechaPublicacion, DateTime? fechaVencimiento)
+        {
+            if (!publicado)
+            {
+                return " (como borrador)";
+            }
+
+            string texto = fechaPublicacion.HasValue && fechaPublicacion.Value > DateTime.Now
+                ? " (programada para el " + FormatearFechaHora(fechaPublicacion.Value)
+                : " (publicada";
+            return texto + (fechaVencimiento.HasValue ? ", vence el " + FormatearFechaHora(fechaVencimiento.Value) : ", sin vencimiento") + ")";
+        }
+
+        private static string FormatearFechaHora(DateTime fecha)
+        {
+            return fecha.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
         }
 
         private static bool EsDestinatarioValido(string codigo)

@@ -17,7 +17,6 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvContenido;
         protected global::System.Web.UI.WebControls.DropDownList ddlCategoria;
         protected global::System.Web.UI.WebControls.TextBox txtFechaPublicacion;
-        protected global::System.Web.UI.WebControls.TextBox txtUrlImagen;
         protected global::System.Web.UI.WebControls.CheckBox chkEnviarMail;
         protected global::System.Web.UI.WebControls.DropDownList ddlDestinatarios;
         protected global::System.Web.UI.WebControls.Button btnGuardarBorrador;
@@ -29,5 +28,13 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.Literal litPreviewResumen;
         protected global::System.Web.UI.WebControls.Panel pnlSinNovedades;
         protected global::System.Web.UI.WebControls.Repeater rptNovedades;
+        protected global::System.Web.UI.WebControls.Literal litCantidadProgramadas;
+        protected global::System.Web.UI.WebControls.TextBox txtFechaVencimiento;
+        protected global::System.Web.UI.WebControls.Panel pnlImagenActual;
+        protected global::System.Web.UI.WebControls.Image imgImagenActual;
+        protected global::System.Web.UI.WebControls.CheckBox chkQuitarImagen;
+        protected global::System.Web.UI.WebControls.FileUpload fuImagen;
+        protected global::System.Web.UI.WebControls.DropDownList ddlFiltroEstado;
+        protected global::System.Web.UI.WebControls.Literal litSinNovedades;
     }
 }

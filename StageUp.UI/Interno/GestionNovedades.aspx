@@ -19,7 +19,11 @@
                     <strong><asp:Literal ID="litCantidadBorradores" runat="server" /></strong>
                 </article>
                 <article>
-                    <span>Publicadas</span>
+                    <span>Programadas</span>
+                    <strong><asp:Literal ID="litCantidadProgramadas" runat="server" /></strong>
+                </article>
+                <article>
+                    <span>Vigentes</span>
                     <strong><asp:Literal ID="litCantidadPublicadas" runat="server" /></strong>
                 </article>
                 <article>
@@ -60,28 +64,41 @@
                             ValidationGroup="Novedad" Display="Dynamic" CssClass="field-error-text" ErrorMessage="Ingresá el contenido." />
                     </div>
 
-                    <div class="newsletter-form-grid">
+                    <div class="form-field">
+                        <label for="<%= ddlCategoria.ClientID %>">Categoría</label>
+                        <asp:DropDownList ID="ddlCategoria" runat="server" CssClass="form-select">
+                            <asp:ListItem Text="Novedad institucional" Value="Institucional" />
+                            <asp:ListItem Text="Nuevos espacios" Value="Catalogo" Selected="True" />
+                            <asp:ListItem Text="Consejos para usuarios" Value="Consejos" />
+                            <asp:ListItem Text="Comunidad artística" Value="Comunidad" />
+                        </asp:DropDownList>
+                    </div>
+
+                    <div class="newsletter-form-grid novedad-vigencia-grid">
                         <div class="form-field">
-                            <label for="<%= ddlCategoria.ClientID %>">Categoría</label>
-                            <asp:DropDownList ID="ddlCategoria" runat="server" CssClass="form-select">
-                                <asp:ListItem Text="Novedad institucional" Value="Institucional" />
-                                <asp:ListItem Text="Nuevos espacios" Value="Catalogo" Selected="True" />
-                                <asp:ListItem Text="Consejos para usuarios" Value="Consejos" />
-                                <asp:ListItem Text="Comunidad artística" Value="Comunidad" />
-                            </asp:DropDownList>
+                            <label for="<%= txtFechaPublicacion.ClientID %>">Publicar desde</label>
+                            <asp:TextBox ID="txtFechaPublicacion" runat="server" TextMode="DateTimeLocal" />
+                            <small class="field-help">Vacía: se publica en el momento. Con una fecha futura queda programada.</small>
                         </div>
 
                         <div class="form-field">
-                            <label for="<%= txtFechaPublicacion.ClientID %>">Fecha de publicación</label>
-                            <asp:TextBox ID="txtFechaPublicacion" runat="server" TextMode="Date" />
-                            <small class="field-help">Si la dejás vacía y publicás, se usa la fecha de hoy.</small>
+                            <label for="<%= txtFechaVencimiento.ClientID %>">Vence el (opcional)</label>
+                            <asp:TextBox ID="txtFechaVencimiento" runat="server" TextMode="DateTimeLocal" />
+                            <small class="field-help">Desde ese momento deja de mostrarse. Vacía: no vence.</small>
                         </div>
                     </div>
 
                     <div class="form-field">
-                        <label for="<%= txtUrlImagen.ClientID %>">Imagen destacada</label>
-                        <asp:TextBox ID="txtUrlImagen" runat="server" TextMode="SingleLine" MaxLength="500"
-                            placeholder="~/Content/Uploads/Novedades/imagen.jpg" />
+                        <label for="<%= fuImagen.ClientID %>">Imagen destacada</label>
+                        <asp:Panel ID="pnlImagenActual" runat="server" Visible="false" CssClass="novedad-imagen-actual">
+                            <asp:Image ID="imgImagenActual" runat="server" AlternateText="Imagen actual de la novedad" />
+                            <label class="newsletter-check-option">
+                                <asp:CheckBox ID="chkQuitarImagen" runat="server" />
+                                <span>Quitar la imagen</span>
+                            </label>
+                        </asp:Panel>
+                        <asp:FileUpload ID="fuImagen" runat="server" accept=".jpg,.jpeg,.png,image/jpeg,image/png" />
+                        <small class="field-help">JPG o PNG de hasta 3 MB. Se ajusta a 1600 px y se guarda como JPG. Si elegís una nueva, reemplaza a la actual.</small>
                     </div>
 
                     <div class="newsletter-options">
@@ -151,8 +168,21 @@
                             <h2>Novedades recientes</h2>
                         </div>
 
+                        <div class="form-field">
+                            <label for="<%= ddlFiltroEstado.ClientID %>">Mostrar</label>
+                            <asp:DropDownList ID="ddlFiltroEstado" runat="server" CssClass="form-select" AutoPostBack="true"
+                                CausesValidation="false" OnSelectedIndexChanged="ddlFiltroEstado_SelectedIndexChanged">
+                                <asp:ListItem Text="Todas (menos las dadas de baja)" Value="" />
+                                <asp:ListItem Text="Borradores" Value="Borrador" />
+                                <asp:ListItem Text="Programadas" Value="Programada" />
+                                <asp:ListItem Text="Vigentes" Value="Vigente" />
+                                <asp:ListItem Text="Vencidas" Value="Vencida" />
+                                <asp:ListItem Text="Dadas de baja" Value="DadaDeBaja" />
+                            </asp:DropDownList>
+                        </div>
+
                         <asp:Panel ID="pnlSinNovedades" runat="server" CssClass="admin-empty-hint" Visible="false">
-                            Todavía no cargaste ninguna novedad. Creá la primera desde el formulario.
+                            <asp:Literal ID="litSinNovedades" runat="server" Text="Todavía no cargaste ninguna novedad. Creá la primera desde el formulario." />
                         </asp:Panel>
 
                         <div class="newsletter-campaign-list">
@@ -164,19 +194,27 @@
                                             <p><%#: ObtenerTextoFechaNovedad((StageUp.BE.Entidades.Novedad)Container.DataItem) %></p>
                                             <div class="space-row-actions">
                                                 <asp:LinkButton runat="server" CssClass="admin-action-link" CausesValidation="false"
-                                                    CommandName="Editar" CommandArgument='<%# Eval("IdNovedad") %>' Text="Editar" />
+                                                    CommandName="Editar" CommandArgument='<%# Eval("IdNovedad") %>' Text="Editar"
+                                                    Visible='<%# PuedeEditar(Container.DataItem) %>' />
                                                 <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
                                                     CommandName="Publicar" CommandArgument='<%# Eval("IdNovedad") %>' Text="Publicar"
-                                                    Visible='<%# !Convert.ToBoolean(Eval("Publicado")) %>'
-                                                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Publicar esta novedad? Va a quedar visible en la página pública.', { title: 'Publicar novedad', confirmText: 'Sí, publicar', cancelText: 'Volver' })) return false;" />
-                                                <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-danger" CausesValidation="false"
+                                                    Visible='<%# EsEstado(Container.DataItem, "Borrador") %>'
+                                                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Publicar esta novedad? Si tiene una fecha de publicación futura, queda programada hasta ese momento.', { title: 'Publicar novedad', confirmText: 'Sí, publicar', cancelText: 'Volver' })) return false;" />
+                                                <asp:LinkButton runat="server" CssClass="admin-action-link" CausesValidation="false"
                                                     CommandName="VolverABorrador" CommandArgument='<%# Eval("IdNovedad") %>' Text="Volver a borrador"
-                                                    Visible='<%# Convert.ToBoolean(Eval("Publicado")) %>'
+                                                    Visible='<%# EsEstado(Container.DataItem, "Programada") || EsEstado(Container.DataItem, "Vigente") || EsEstado(Container.DataItem, "Vencida") %>'
                                                     OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Volver esta novedad a borrador? Deja de mostrarse en la página pública.')) return false;" />
                                                 <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
                                                     CommandName="EnviarNewsletter" CommandArgument='<%# Eval("IdNovedad") %>' Text="Enviar newsletter"
-                                                    Visible='<%# Convert.ToBoolean(Eval("Publicado")) && !Convert.ToBoolean(Eval("EnviadaPorCorreo")) %>'
+                                                    Visible='<%# EsEstado(Container.DataItem, "Vigente") && !Convert.ToBoolean(Eval("EnviadaPorCorreo")) %>'
                                                     OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Enviar el newsletter de esta novedad a la categoría de destinatarios seleccionada arriba?')) return false;" />
+                                                <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-danger" CausesValidation="false"
+                                                    CommandName="DarDeBaja" CommandArgument='<%# Eval("IdNovedad") %>' Text="Dar de baja"
+                                                    Visible='<%# !EsEstado(Container.DataItem, "DadaDeBaja") %>'
+                                                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Dar de baja esta novedad? Deja de mostrarse y queda en el historial (se puede restaurar como borrador).', { title: 'Dar de baja', confirmText: 'Sí, dar de baja', cancelText: 'Volver' })) return false;" />
+                                                <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
+                                                    CommandName="Restaurar" CommandArgument='<%# Eval("IdNovedad") %>' Text="Restaurar como borrador"
+                                                    Visible='<%# EsEstado(Container.DataItem, "DadaDeBaja") %>' />
                                             </div>
                                         </div>
                                         <span class='<%# ObtenerClaseEstadoNovedad((StageUp.BE.Entidades.Novedad)Container.DataItem) %>'>
@@ -191,6 +229,13 @@
             </div>
         </div>
     </section>
+    <style>
+        .novedad-imagen-actual { display: flex; align-items: center; gap: 12px; margin: 6px 0 10px; }
+        .novedad-imagen-actual img { width: 120px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--color-border); }
+        .novedad-vigencia-grid input { width: 100%; min-width: 0; box-sizing: border-box; }
+        .admin-status-badge-programada { background: #fff4e5; color: #8a4b08; }
+        .admin-status-badge-vencida { background: #eef2f7; color: #33475b; }
+    </style>
     <script>
         function confirmarPublicacionNovedad(btn, event) {
             var enviarMail = document.getElementById("<%= chkEnviarMail.ClientID %>");

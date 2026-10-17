@@ -9,14 +9,16 @@ namespace StageUp.MPP
 {
     public class MPP_Novedad
     {
-        // Todas las novedades (borradores y publicadas) para el panel de
-        // administración.
-        public List<Novedad> Listar()
+        // Panel de administración: todas menos las dadas de baja, o solo las
+        // de un estado (Borrador, Programada, Vigente, Vencida, DadaDeBaja).
+        public List<Novedad> Listar(string estado = null)
         {
-            return Mapear(Conexion.Instance.Leer("sp_Novedad_Listar"));
+            return Mapear(Conexion.Instance.Leer(
+                "sp_Novedad_Listar",
+                new Hashtable { { "@estado", (object)estado ?? DBNull.Value } }));
         }
 
-        // Solo las publicadas, para la página pública de novedades
+        // Solo las vigentes, para la página pública de novedades
         // (StageUp.UI/Novedades.aspx).
         public List<Novedad> ListarPublicadas()
         {
@@ -44,7 +46,8 @@ namespace StageUp.MPP
                     { "@categoria", oNovedad.Categoria },
                     { "@urlImagen", (object)oNovedad.UrlImagen ?? DBNull.Value },
                     { "@publicado", oNovedad.Publicado },
-                    { "@fechaPublicacion", (object)oNovedad.FechaPublicacion ?? DBNull.Value }
+                    { "@fechaPublicacion", (object)oNovedad.FechaPublicacion ?? DBNull.Value },
+                    { "@fechaVencimiento", (object)oNovedad.FechaVencimiento ?? DBNull.Value }
                 });
 
             return Convert.ToInt32(resultado);
@@ -63,7 +66,8 @@ namespace StageUp.MPP
                     { "@categoria", oNovedad.Categoria },
                     { "@urlImagen", (object)oNovedad.UrlImagen ?? DBNull.Value },
                     { "@publicado", oNovedad.Publicado },
-                    { "@fechaPublicacion", (object)oNovedad.FechaPublicacion ?? DBNull.Value }
+                    { "@fechaPublicacion", (object)oNovedad.FechaPublicacion ?? DBNull.Value },
+                    { "@fechaVencimiento", (object)oNovedad.FechaVencimiento ?? DBNull.Value }
                 });
         }
 
@@ -79,6 +83,26 @@ namespace StageUp.MPP
             Conexion.Instance.Guardar(
                 "sp_Novedad_VolverABorrador",
                 new Hashtable { { "@idNovedad", oNovedad.IdNovedad } });
+        }
+
+        public bool DarDeBaja(Novedad oNovedad, UsuarioInterno oResponsable)
+        {
+            object resultado = Conexion.Instance.LeerEscalar(
+                "sp_Novedad_DarDeBaja",
+                new Hashtable
+                {
+                    { "@idNovedad", oNovedad.IdNovedad },
+                    { "@idUsuarioInternoBaja", oResponsable.IdUsuarioInterno }
+                });
+            return resultado != null && resultado != DBNull.Value && Convert.ToInt32(resultado) > 0;
+        }
+
+        public bool Restaurar(Novedad oNovedad)
+        {
+            object resultado = Conexion.Instance.LeerEscalar(
+                "sp_Novedad_Restaurar",
+                new Hashtable { { "@idNovedad", oNovedad.IdNovedad } });
+            return resultado != null && resultado != DBNull.Value && Convert.ToInt32(resultado) > 0;
         }
 
         public void MarcarEnviadaPorCorreo(Novedad oNovedad)
@@ -126,8 +150,19 @@ namespace StageUp.MPP
                 FechaAlta = Convert.ToDateTime(fila["fechaAlta"]),
                 FechaUltimaModificacion = fila["fechaUltimaModificacion"] == DBNull.Value
                     ? (DateTime?)null
-                    : Convert.ToDateTime(fila["fechaUltimaModificacion"])
+                    : Convert.ToDateTime(fila["fechaUltimaModificacion"]),
+                FechaVencimiento = Fecha(fila, "fechaVencimiento"),
+                FechaBaja = Fecha(fila, "fechaBaja"),
+                Activo = !fila.Table.Columns.Contains("activo") || Convert.ToBoolean(fila["activo"]),
+                Estado = fila.Table.Columns.Contains("estado") ? fila["estado"].ToString() : null
             };
+        }
+
+        private static DateTime? Fecha(DataRow fila, string columna)
+        {
+            return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value
+                ? Convert.ToDateTime(fila[columna])
+                : (DateTime?)null;
         }
     }
 }

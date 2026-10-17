@@ -455,6 +455,7 @@
       <DependentUpon>Novedades.aspx</DependentUpon>
     </Compile>
     <Compile Include="Infraestructura\AperturaNotificacion.cs" />
+    <Compile Include="Infraestructura\ImagenSubida.cs" />
     <Compile Include="Infraestructura\MasterPageMultidioma.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>

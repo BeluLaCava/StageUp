@@ -7,11 +7,16 @@ using System.Web.UI.WebControls;
 using StageUp.BE.Entidades;
 using StageUp.BLL;
 using StageUp.Seguridad;
+using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Interno
 {
+    // Novedades con vigencia (Borrador, Programada, Vigente, Vencida, Dada de
+    // baja) e imagen subida como archivo (Infraestructura/ImagenSubida).
     public partial class GestionNovedades : Page
     {
+        private const string FormatoFechaHora = "yyyy-MM-ddTHH:mm";
+
         private readonly BLL_Novedad _bllNovedad = new BLL_Novedad();
         private readonly BLL_UsuarioInterno _bllUsuarioInterno = new BLL_UsuarioInterno();
 
@@ -19,6 +24,15 @@ namespace StageUp.UI.Interno
         {
             get { return ViewState["IdNovedadEnEdicion"] as int?; }
             set { ViewState["IdNovedadEnEdicion"] = value; }
+        }
+
+        // Imagen que tiene la novedad en el formulario (la guardada o la que
+        // se acaba de subir). Va en ViewState para que no se pueda cambiar
+        // desde el navegador.
+        private string ImagenActual
+        {
+            get { return ViewState["ImagenActual"] as string; }
+            set { ViewState["ImagenActual"] = value; }
         }
 
         protected void Page_Load(object sender, EventArgs e)
@@ -62,13 +76,21 @@ namespace StageUp.UI.Interno
                 return;
             }
 
+            string errorImagen;
+            string imagen = ResolverImagenFormulario(out errorImagen);
+            if (errorImagen != null)
+            {
+                MostrarMensaje(errorImagen, true);
+                return;
+            }
+
             ResultadoOperacion resultado = _bllNovedad.EnviarPrueba(
                 usuarioInterno.CorreoElectronico,
                 usuarioInterno.Nombre,
                 txtTitulo.Text,
                 txtResumen.Text,
                 ConstruirUrlNovedadesPublicas(),
-                txtUrlImagen.Text,
+                imagen,
                 ConstruirUrlBaseAplicacion(),
                 Server.MapPath("~/"));
 
@@ -78,6 +100,14 @@ namespace StageUp.UI.Interno
         protected void lnkCancelarNovedad_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
+        }
+
+        protected void ddlFiltroEstado_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (TieneAcceso())
+            {
+                CargarNovedades();
+            }
         }
 
         protected void rptNovedades_ItemCommand(object source, RepeaterCommandEventArgs e)
@@ -109,6 +139,22 @@ namespace StageUp.UI.Interno
                     CargarNovedades();
                     return;
 
+                case "DarDeBaja":
+                    resultado = _bllNovedad.DarDeBaja(idNovedad, idResponsable);
+                    MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+                    if (resultado.Exitoso && IdNovedadEnEdicion == idNovedad)
+                    {
+                        LimpiarFormulario();
+                    }
+                    CargarNovedades();
+                    return;
+
+                case "Restaurar":
+                    resultado = _bllNovedad.Restaurar(idNovedad, idResponsable);
+                    MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+                    CargarNovedades();
+                    return;
+
                 case "EnviarNewsletter":
                     ResultadoOperacion<int> resultadoEnvio = _bllNovedad.EnviarNewsletter(
                         idNovedad, ddlDestinatarios.SelectedValue, ConstruirUrlNovedadesPublicas(), idResponsable,
@@ -127,8 +173,23 @@ namespace StageUp.UI.Interno
             }
 
             int idResponsable = GestorDeSesion.ObtenerIdUsuarioInternoActual().Value;
-            DateTime? fechaPublicacion = ParsearFecha(txtFechaPublicacion.Text);
-            string urlImagen = string.IsNullOrWhiteSpace(txtUrlImagen.Text) ? null : txtUrlImagen.Text.Trim();
+
+            DateTime? fechaPublicacion;
+            DateTime? fechaVencimiento;
+            if (!TryParsearFechaHora(txtFechaPublicacion.Text, out fechaPublicacion) ||
+                !TryParsearFechaHora(txtFechaVencimiento.Text, out fechaVencimiento))
+            {
+                MostrarMensaje("Revisá las fechas: elegí día y hora con el selector.", true);
+                return;
+            }
+
+            string errorImagen;
+            string urlImagen = ResolverImagenFormulario(out errorImagen);
+            if (errorImagen != null)
+            {
+                MostrarMensaje(errorImagen, true);
+                return;
+            }
 
             ResultadoOperacion resultado;
             int idNovedadGuardada;
@@ -138,13 +199,13 @@ namespace StageUp.UI.Interno
                 idNovedadGuardada = IdNovedadEnEdicion.Value;
                 resultado = _bllNovedad.Modificar(
                     idNovedadGuardada, txtTitulo.Text, txtResumen.Text, txtContenido.Text,
-                    ddlCategoria.SelectedValue, urlImagen, fechaPublicacion, publicado, idResponsable);
+                    ddlCategoria.SelectedValue, urlImagen, fechaPublicacion, fechaVencimiento, publicado, idResponsable);
             }
             else
             {
                 ResultadoOperacion<int> resultadoAlta = _bllNovedad.Registrar(
                     txtTitulo.Text, txtResumen.Text, txtContenido.Text,
-                    ddlCategoria.SelectedValue, urlImagen, fechaPublicacion, publicado, idResponsable);
+                    ddlCategoria.SelectedValue, urlImagen, fechaPublicacion, fechaVencimiento, publicado, idResponsable);
                 resultado = resultadoAlta;
                 idNovedadGuardada = resultadoAlta.Exitoso ? resultadoAlta.Valor : 0;
             }
@@ -175,8 +236,9 @@ namespace StageUp.UI.Interno
         private void CargarNovedades()
         {
             List<Novedad> todas = _bllNovedad.Listar();
-            int cantidadPublicadas = todas.Count(n => n.Publicado);
-            int cantidadBorradores = todas.Count - cantidadPublicadas;
+            int cantidadPublicadas = todas.Count(n => n.Estado == Novedad.EstadoVigente);
+            int cantidadProgramadas = todas.Count(n => n.Estado == Novedad.EstadoProgramada);
+            int cantidadBorradores = todas.Count(n => n.Estado == Novedad.EstadoBorrador);
             List<DateTime> fechasDeEnvio = todas
                 .Where(n => n.EnviadaPorCorreo && n.FechaEnvioNewsletter.HasValue)
                 .Select(n => n.FechaEnvioNewsletter.Value)
@@ -185,12 +247,18 @@ namespace StageUp.UI.Interno
 
             litCantidadBorradores.Text = cantidadBorradores.ToString(CultureInfo.InvariantCulture);
             litCantidadPublicadas.Text = cantidadPublicadas.ToString(CultureInfo.InvariantCulture);
+            litCantidadProgramadas.Text = cantidadProgramadas.ToString(CultureInfo.InvariantCulture);
             litUltimoEnvio.Text = ultimoEnvio.HasValue
                 ? FormatearFecha(ultimoEnvio.Value)
                 : "Sin envíos";
 
-            pnlSinNovedades.Visible = todas.Count == 0;
-            rptNovedades.DataSource = todas;
+            string filtro = ddlFiltroEstado.SelectedValue;
+            List<Novedad> listado = string.IsNullOrEmpty(filtro) ? todas : _bllNovedad.Listar(filtro);
+            litSinNovedades.Text = string.IsNullOrEmpty(filtro)
+                ? "Todavía no cargaste ninguna novedad. Creá la primera desde el formulario."
+                : "No hay novedades en ese estado.";
+            pnlSinNovedades.Visible = listado.Count == 0;
+            rptNovedades.DataSource = listado;
             rptNovedades.DataBind();
         }
 
@@ -203,15 +271,24 @@ namespace StageUp.UI.Interno
                 return;
             }
 
+            if (novedad.Estado == Novedad.EstadoDadaDeBaja)
+            {
+                MostrarMensaje("La novedad está dada de baja. Restaurala antes de editarla.", true);
+                return;
+            }
+
             IdNovedadEnEdicion = novedad.IdNovedad;
             txtTitulo.Text = novedad.Titulo;
             txtResumen.Text = novedad.Resumen;
             txtContenido.Text = novedad.Contenido;
             ddlCategoria.SelectedValue = novedad.Categoria;
             txtFechaPublicacion.Text = novedad.FechaPublicacion.HasValue
-                ? novedad.FechaPublicacion.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+                ? novedad.FechaPublicacion.Value.ToString(FormatoFechaHora, CultureInfo.InvariantCulture)
                 : string.Empty;
-            txtUrlImagen.Text = novedad.UrlImagen;
+            txtFechaVencimiento.Text = novedad.FechaVencimiento.HasValue
+                ? novedad.FechaVencimiento.Value.ToString(FormatoFechaHora, CultureInfo.InvariantCulture)
+                : string.Empty;
+            MostrarImagenActual(novedad.UrlImagen);
             chkEnviarMail.Checked = false;
 
             litTituloFormulario.Text = "Editar novedad";
@@ -229,7 +306,8 @@ namespace StageUp.UI.Interno
             txtContenido.Text = string.Empty;
             ddlCategoria.SelectedIndex = 0;
             txtFechaPublicacion.Text = string.Empty;
-            txtUrlImagen.Text = string.Empty;
+            txtFechaVencimiento.Text = string.Empty;
+            MostrarImagenActual(null);
             chkEnviarMail.Checked = false;
 
             litTituloFormulario.Text = "Nueva novedad";
@@ -250,6 +328,38 @@ namespace StageUp.UI.Interno
             litPreviewCategoria.Text = string.IsNullOrWhiteSpace(categoria)
                 ? "Novedades StageUp"
                 : Server.HtmlEncode(ObtenerEtiquetaCategoria(categoria));
+        }
+
+        // Imagen a guardar: la nueva si se eligió un archivo (se valida y se
+        // guarda en Content/Uploads/Novedades), ninguna si se tildó "Quitar",
+        // o la que ya tenía.
+        private string ResolverImagenFormulario(out string error)
+        {
+            error = null;
+            if (fuImagen.HasFile)
+            {
+                string ruta = ImagenSubida.GuardarComoJpeg(fuImagen.PostedFile, BLL_Novedad.CarpetaImagenes, Server, out error);
+                if (ruta == null)
+                {
+                    return null;
+                }
+
+                MostrarImagenActual(ruta);
+                return ruta;
+            }
+
+            return chkQuitarImagen.Checked ? null : ImagenActual;
+        }
+
+        private void MostrarImagenActual(string urlImagen)
+        {
+            ImagenActual = string.IsNullOrWhiteSpace(urlImagen) ? null : urlImagen;
+            chkQuitarImagen.Checked = false;
+            pnlImagenActual.Visible = ImagenActual != null;
+            if (ImagenActual != null)
+            {
+                imgImagenActual.ImageUrl = ImagenActual.StartsWith("~/", StringComparison.Ordinal) ? ResolveUrl(ImagenActual) : ImagenActual;
+            }
         }
 
         private string ConstruirUrlNovedadesPublicas()
@@ -285,16 +395,36 @@ namespace StageUp.UI.Interno
             return "newsletter-campaign-row";
         }
 
+        protected static bool EsEstado(object dato, string estado)
+        {
+            Novedad novedad = dato as Novedad;
+            return novedad != null && novedad.Estado == estado;
+        }
+
+        protected static bool PuedeEditar(object dato)
+        {
+            Novedad novedad = dato as Novedad;
+            return novedad != null && novedad.Estado != Novedad.EstadoDadaDeBaja;
+        }
+
         protected static string ObtenerClaseEstadoNovedad(Novedad novedad)
         {
-            return novedad != null && novedad.Publicado
-                ? "admin-status-badge admin-status-badge-active"
-                : "admin-status-badge admin-status-badge-inactive";
+            switch (novedad == null ? null : novedad.Estado)
+            {
+                case Novedad.EstadoVigente:
+                    return "admin-status-badge admin-status-badge-active";
+                case Novedad.EstadoProgramada:
+                    return "admin-status-badge admin-status-badge-programada";
+                case Novedad.EstadoVencida:
+                    return "admin-status-badge admin-status-badge-vencida";
+                default:
+                    return "admin-status-badge admin-status-badge-inactive";
+            }
         }
 
         protected static string ObtenerTextoEstadoNovedad(Novedad novedad)
         {
-            return novedad != null && novedad.Publicado ? "Publicada" : "Borrador";
+            return novedad == null ? string.Empty : BLL_Novedad.ObtenerEtiquetaEstado(novedad.Estado);
         }
 
         protected static string ObtenerTextoFechaNovedad(Novedad novedad)
@@ -304,19 +434,49 @@ namespace StageUp.UI.Interno
                 return string.Empty;
             }
 
-            if (novedad.Publicado && novedad.FechaPublicacion.HasValue)
-            {
-                return "Publicada · " + FormatearFecha(novedad.FechaPublicacion.Value) +
-                    (novedad.EnviadaPorCorreo ? " · Enviada por correo" : " · Sin enviar por correo");
-            }
+            string vencimiento = novedad.FechaVencimiento.HasValue
+                ? " · Vence el " + FormatearFechaHora(novedad.FechaVencimiento.Value)
+                : " · Sin vencimiento";
+            string correo = novedad.EnviadaPorCorreo ? " · Enviada por correo" : string.Empty;
 
-            return "Borrador · Sin publicar";
+            switch (novedad.Estado)
+            {
+                case Novedad.EstadoProgramada:
+                    return "Se publica el " + FormatearFechaHora(novedad.FechaPublicacion.Value) + vencimiento;
+                case Novedad.EstadoVigente:
+                    return "Publicada el " + (novedad.FechaPublicacion.HasValue ? FormatearFechaHora(novedad.FechaPublicacion.Value) : "-") + vencimiento + correo;
+                case Novedad.EstadoVencida:
+                    return "Venció el " + FormatearFechaHora(novedad.FechaVencimiento.Value) + correo;
+                case Novedad.EstadoDadaDeBaja:
+                    return "Dada de baja" + (novedad.FechaBaja.HasValue ? " el " + FormatearFechaHora(novedad.FechaBaja.Value) : string.Empty);
+                default:
+                    return "Borrador · Sin publicar";
+            }
         }
 
-        private static DateTime? ParsearFecha(string texto)
+        // Valor de un campo datetime-local ("2026-10-20T18:30"). Vacío = null.
+        private static bool TryParsearFechaHora(string texto, out DateTime? valor)
         {
-            DateTime valor;
-            return DateTime.TryParse(texto, out valor) ? valor : (DateTime?)null;
+            valor = null;
+            if (string.IsNullOrWhiteSpace(texto))
+            {
+                return true;
+            }
+
+            DateTime fecha;
+            if (DateTime.TryParseExact(texto.Trim(), new[] { FormatoFechaHora, "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-dd" },
+                CultureInfo.InvariantCulture, DateTimeStyles.None, out fecha))
+            {
+                valor = fecha;
+                return true;
+            }
+
+            return false;
+        }
+
+        private static string FormatearFechaHora(DateTime fecha)
+        {
+            return fecha.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
         }
 
         private static string FormatearFecha(DateTime fecha)

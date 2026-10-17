@@ -76,7 +76,7 @@ namespace StageUp.BLL
             return mensajeGenerico;
         }
 
-        private static string ObtenerMensajeCaptcha(EstadoValidacionRecaptcha estado)
+        internal static string ObtenerMensajeCaptcha(EstadoValidacionRecaptcha estado)
         {
             switch (estado)
             {

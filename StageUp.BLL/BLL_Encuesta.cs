@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 using StageUp.MPP;
+using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
@@ -364,13 +368,63 @@ namespace StageUp.BLL
         }
 
         // ------------------------------------------------------------------
-        // Usuario externo
+        // Usuario externo o visitante sin sesión
         // ------------------------------------------------------------------
-        public List<Encuesta> ListarPendientesParaUsuario(int idUsuarioExterno, string perfilUsuario)
+        // Un visitante sin sesión solo ve y responde encuestas para "Todos".
+        // Para no responder dos veces, el navegador guarda una cookie con un
+        // identificador aleatorio (lo genera GenerarIdentificadorNavegador);
+        // a la base llega solo su hash SHA-256.
+        public const string PublicoTodos = "Todos";
+        private static readonly Regex FormatoIdentificadorNavegador = new Regex("^[A-Za-z0-9_-]{43}$", RegexOptions.Compiled);
+        private readonly ServicioRecaptcha _servicioRecaptcha = new ServicioRecaptcha();
+
+        public static string GenerarIdentificadorNavegador()
+        {
+            byte[] bytes = new byte[32];
+            using (RandomNumberGenerator generador = RandomNumberGenerator.Create())
+            {
+                generador.GetBytes(bytes);
+            }
+
+            return Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        }
+
+        public static Encuestado EncuestadoConSesion(int idUsuarioExterno, string perfilUsuario, string identificadorNavegador)
+        {
+            return new Encuestado
+            {
+                IdUsuarioExterno = idUsuarioExterno,
+                PerfilUsuario = perfilUsuario,
+                IdentificadorAnonimo = HashIdentificador(identificadorNavegador)
+            };
+        }
+
+        public static Encuestado EncuestadoSinSesion(string identificadorNavegador)
+        {
+            return new Encuestado { IdentificadorAnonimo = HashIdentificador(identificadorNavegador) };
+        }
+
+        // null si el valor de la cookie no tiene el formato esperado (cookie
+        // vieja o alterada): se trata como un navegador sin cookie.
+        private static string HashIdentificador(string identificadorNavegador)
+        {
+            if (string.IsNullOrEmpty(identificadorNavegador) || !FormatoIdentificadorNavegador.IsMatch(identificadorNavegador))
+            {
+                return null;
+            }
+
+            using (SHA256 sha = SHA256.Create())
+            {
+                byte[] hash = sha.ComputeHash(Encoding.ASCII.GetBytes(identificadorNavegador));
+                return string.Concat(hash.Select(b => b.ToString("x2")));
+            }
+        }
+
+        public List<Encuesta> ListarPendientesParaUsuario(Encuestado encuestado)
         {
             try
             {
-                return _mpp.ListarPendientesParaUsuario(UsuarioConPerfil(idUsuarioExterno, perfilUsuario));
+                return _mpp.ListarPendientesParaUsuario(encuestado);
             }
             catch (ErrorAccesoDatosException)
             {
@@ -378,11 +432,11 @@ namespace StageUp.BLL
             }
         }
 
-        public List<Encuesta> ListarConResultadosParaUsuario(int idUsuarioExterno, string perfilUsuario)
+        public List<Encuesta> ListarConResultadosParaUsuario(Encuestado encuestado)
         {
             try
             {
-                return _mpp.ListarConResultadosParaUsuario(UsuarioConPerfil(idUsuarioExterno, perfilUsuario));
+                return _mpp.ListarConResultadosParaUsuario(encuestado);
             }
             catch (ErrorAccesoDatosException)
             {
@@ -390,12 +444,12 @@ namespace StageUp.BLL
             }
         }
 
-        public ResultadoOperacion<EncuestaCompleta> ObtenerParaResponder(int idEncuesta, int idUsuarioExterno, string perfilUsuario)
+        public ResultadoOperacion<EncuestaCompleta> ObtenerParaResponder(int idEncuesta, Encuestado encuestado)
         {
             return EjecutarProtegido(() =>
             {
                 Encuesta encuesta;
-                ResultadoOperacion validacionAcceso = ValidarPuedeResponder(idEncuesta, idUsuarioExterno, perfilUsuario, out encuesta);
+                ResultadoOperacion validacionAcceso = ValidarPuedeResponder(idEncuesta, encuestado, out encuesta);
                 if (!validacionAcceso.Exitoso)
                 {
                     return ResultadoOperacion<EncuestaCompleta>.Error(validacionAcceso.Mensaje);
@@ -411,13 +465,20 @@ namespace StageUp.BLL
             });
         }
 
+        // Sin sesión se pide además el CAPTCHA (respuestaCaptcha), para que
+        // no se puedan cargar respuestas en forma automática.
         public ResultadoOperacion RegistrarRespuesta(
-            int idEncuesta, int idUsuarioExterno, string perfilUsuario, Dictionary<int, int> respuestasPorPregunta)
+            int idEncuesta, Encuestado encuestado, Dictionary<int, int> respuestasPorPregunta, string respuestaCaptcha)
         {
+            if (encuestado.EsAnonimo && string.IsNullOrEmpty(encuestado.IdentificadorAnonimo))
+            {
+                return ResultadoOperacion.Error("No pudimos identificar este navegador. Habilitá las cookies para responder sin iniciar sesión.");
+            }
+
             return EjecutarProtegido(() =>
             {
                 Encuesta encuesta;
-                ResultadoOperacion validacionAcceso = ValidarPuedeResponder(idEncuesta, idUsuarioExterno, perfilUsuario, out encuesta);
+                ResultadoOperacion validacionAcceso = ValidarPuedeResponder(idEncuesta, encuestado, out encuesta);
                 if (!validacionAcceso.Exitoso)
                 {
                     return validacionAcceso;
@@ -443,7 +504,42 @@ namespace StageUp.BLL
                     }
                 }
 
-                int idRespuestaEncuesta = _mpp.InsertarRespuesta(RespuestaDe(idEncuesta, idUsuarioExterno));
+                if (encuestado.EsAnonimo)
+                {
+                    ResultadoValidacionRecaptcha captcha = _servicioRecaptcha.Validar(respuestaCaptcha);
+                    if (!captcha.EsValido)
+                    {
+                        return ResultadoOperacion.Error(BLL_Autenticacion.ObtenerMensajeCaptcha(captcha.Estado));
+                    }
+                }
+
+                int idRespuestaEncuesta;
+                try
+                {
+                    idRespuestaEncuesta = _mpp.InsertarRespuesta(new RespuestaEncuesta
+                    {
+                        IdEncuesta = idEncuesta,
+                        IdUsuarioExterno = encuestado.IdUsuarioExterno,
+                        IdentificadorAnonimo = encuestado.EsAnonimo ? encuestado.IdentificadorAnonimo : null
+                    });
+                }
+                catch (ErrorAccesoDatosException ex)
+                {
+                    // 2601/2627: otra respuesta del mismo respondente entró
+                    // primero (doble envío). 51060/51061: el SP la rechazó.
+                    if (ex.NumeroErrorSql == 2601 || ex.NumeroErrorSql == 2627)
+                    {
+                        return ResultadoOperacion.Error("Ya respondiste esta encuesta.");
+                    }
+
+                    if (ex.NumeroErrorSql == 51060 || ex.NumeroErrorSql == 51061)
+                    {
+                        return ResultadoOperacion.Error("Esta encuesta no está disponible en este momento.");
+                    }
+
+                    throw;
+                }
+
                 foreach (KeyValuePair<int, int> respuesta in respuestasPorPregunta)
                 {
                     _mpp.InsertarRespuestaDetalle(new RespuestaEncuestaDetalle
@@ -455,15 +551,16 @@ namespace StageUp.BLL
                 }
 
                 _bitacora.Registrar(
-                    idUsuarioExterno, "ASOCIACION", TipoEntidadBitacora, idEncuesta,
-                    "El usuario respondió la encuesta \"" + encuesta.Titulo + "\".");
+                    encuestado.IdUsuarioExterno, "ASOCIACION", TipoEntidadBitacora, idEncuesta,
+                    encuestado.EsAnonimo
+                        ? "Un visitante sin sesión respondió la encuesta \"" + encuesta.Titulo + "\"."
+                        : "El usuario respondió la encuesta \"" + encuesta.Titulo + "\".");
 
                 return ResultadoOperacion.Ok("¡Gracias por responder! Ya podés ver los resultados al instante.");
             });
         }
 
-        public ResultadoOperacion<List<ResultadoPreguntaEncuesta>> ObtenerResultadosParaUsuario(
-            int idEncuesta, int idUsuarioExterno, string perfilUsuario)
+        public ResultadoOperacion<List<ResultadoPreguntaEncuesta>> ObtenerResultadosParaUsuario(int idEncuesta, Encuestado encuestado)
         {
             return EjecutarProtegido(() =>
             {
@@ -481,13 +578,14 @@ namespace StageUp.BLL
                     return ResultadoOperacion<List<ResultadoPreguntaEncuesta>>.Error("Esta encuesta no está disponible.");
                 }
 
-                bool dirigidaAlPerfil = encuesta.PublicoObjetivo == "Todos" || encuesta.PublicoObjetivo == perfilUsuario;
-                if (!dirigidaAlPerfil || encuesta.FechaInicio > DateTime.Now)
+                if (!EstaDirigidaA(encuesta, encuestado) || encuesta.FechaInicio > DateTime.Now)
                 {
-                    return ResultadoOperacion<List<ResultadoPreguntaEncuesta>>.Error("Esta encuesta no está disponible para tu perfil.");
+                    return ResultadoOperacion<List<ResultadoPreguntaEncuesta>>.Error(encuestado.EsAnonimo
+                        ? "Esta encuesta es solo para usuarios registrados. Iniciá sesión para verla."
+                        : "Esta encuesta no está disponible para tu perfil.");
                 }
 
-                bool yaRespondida = _mpp.ExisteRespuestaDeUsuario(RespuestaDe(idEncuesta, idUsuarioExterno));
+                bool yaRespondida = _mpp.ExisteRespuestaDeUsuario(RespuestaDe(idEncuesta, encuestado));
                 bool vencidaOCerrada = encuesta.Estado == "Cerrada" || encuesta.FechaVencimiento < DateTime.Now;
 
                 if (!yaRespondida && !vencidaOCerrada)
@@ -504,8 +602,13 @@ namespace StageUp.BLL
         // ------------------------------------------------------------------
         // Privados
         // ------------------------------------------------------------------
-        private ResultadoOperacion ValidarPuedeResponder(
-            int idEncuesta, int idUsuarioExterno, string perfilUsuario, out Encuesta encuesta)
+        private static bool EstaDirigidaA(Encuesta encuesta, Encuestado encuestado)
+        {
+            return encuesta.PublicoObjetivo == PublicoTodos ||
+                (!encuestado.EsAnonimo && encuesta.PublicoObjetivo == encuestado.PerfilUsuario);
+        }
+
+        private ResultadoOperacion ValidarPuedeResponder(int idEncuesta, Encuestado encuestado, out Encuesta encuesta)
         {
             encuesta = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
             if (encuesta == null)
@@ -528,15 +631,19 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("Esta encuesta ya venció.");
             }
 
-            bool dirigidaAlPerfil = encuesta.PublicoObjetivo == "Todos" || encuesta.PublicoObjetivo == perfilUsuario;
-            if (!dirigidaAlPerfil)
+            if (!EstaDirigidaA(encuesta, encuestado))
             {
-                return ResultadoOperacion.Error("Esta encuesta no está disponible para tu perfil.");
+                return ResultadoOperacion.Error(encuestado.EsAnonimo
+                    ? "Esta encuesta es solo para usuarios registrados. Iniciá sesión para responderla."
+                    : "Esta encuesta no está disponible para tu perfil.");
             }
 
-            if (_mpp.ExisteRespuestaDeUsuario(RespuestaDe(idEncuesta, idUsuarioExterno)))
+            if ((!encuestado.EsAnonimo || !string.IsNullOrEmpty(encuestado.IdentificadorAnonimo)) &&
+                _mpp.ExisteRespuestaDeUsuario(RespuestaDe(idEncuesta, encuestado)))
             {
-                return ResultadoOperacion.Error("Ya respondiste esta encuesta.");
+                return ResultadoOperacion.Error(encuestado.EsAnonimo
+                    ? "Ya respondiste esta encuesta desde este navegador."
+                    : "Ya respondiste esta encuesta.");
             }
 
             return ResultadoOperacion.Ok();
@@ -654,14 +761,14 @@ namespace StageUp.BLL
             return new Encuesta { IdEncuesta = idEncuesta };
         }
 
-        private static UsuarioExterno UsuarioConPerfil(int idUsuarioExterno, string perfilUsuario)
+        private static RespuestaEncuesta RespuestaDe(int idEncuesta, Encuestado encuestado)
         {
-            return new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno, PerfilUsuario = perfilUsuario };
-        }
-
-        private static RespuestaEncuesta RespuestaDe(int idEncuesta, int idUsuarioExterno)
-        {
-            return new RespuestaEncuesta { IdEncuesta = idEncuesta, IdUsuarioExterno = idUsuarioExterno };
+            return new RespuestaEncuesta
+            {
+                IdEncuesta = idEncuesta,
+                IdUsuarioExterno = encuestado.IdUsuarioExterno,
+                IdentificadorAnonimo = encuestado.IdentificadorAnonimo
+            };
         }
 
         private static ResultadoOperacion EjecutarProtegido(Func<ResultadoOperacion> operacion)

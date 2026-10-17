@@ -15,6 +15,10 @@
         .encuesta-opcion-radio { display: flex; align-items: center; gap: 8px; font-weight: normal; }
         .encuesta-lista-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--color-border, #e2e2e2); }
         .encuesta-lista-item span.encuesta-vencimiento { color: var(--color-text-muted, #6b7280); font-size: 0.85em; }
+        .encuesta-aviso-sesion { margin: 0 0 16px; padding: 10px 14px; border-radius: 10px; background: var(--color-nude-light, #f6eee8); }
+        .encuesta-aviso-sesion p { margin: 0; }
+        .encuesta-sin-sesion { margin: 8px 0 16px; }
+        .encuesta-sin-sesion p { margin: 0 0 10px; color: var(--color-text-muted, #6b7280); font-size: 0.92em; }
     </style>
 
     <section class="static-page user-module-page">
@@ -30,6 +34,9 @@
             </asp:Panel>
 
             <asp:Panel ID="pnlDashboard" runat="server" Visible="false">
+                <asp:Panel ID="pnlAvisoSinSesion" runat="server" Visible="false" CssClass="encuesta-aviso-sesion">
+                    <p>Podés responder sin iniciar sesión las encuestas abiertas a todo el público. Algunas encuestas son solo para usuarios registrados: <a class="text-link" href="IniciarSesion.aspx">iniciá sesión</a> para verlas.</p>
+                </asp:Panel>
                 <div class="auth-card">
                     <div class="auth-card-header">
                         <h2>Pendientes por responder</h2>
@@ -94,6 +101,11 @@
                             </div>
                         </ItemTemplate>
                     </asp:Repeater>
+
+                    <asp:Panel ID="pnlResponderSinSesion" runat="server" Visible="false" CssClass="encuesta-sin-sesion">
+                        <p>Estás respondiendo sin iniciar sesión, en forma anónima. Para que la encuesta no se responda dos veces desde este navegador, guardamos una cookie con un código al azar (no incluye datos personales). Si preferís, <a class="text-link" href="IniciarSesion.aspx">iniciá sesión</a>.</p>
+                        <div class="g-recaptcha" data-sitekey="<%= ClaveSitioRecaptcha %>"></div>
+                    </asp:Panel>
 
                     <div class="form-actions">
                         <asp:Button ID="btnEnviarRespuestas" runat="server" CssClass="button button-primary" Text="Enviar respuestas"
@@ -160,4 +172,7 @@
             </asp:Panel>
         </div>
     </section>
+    <asp:PlaceHolder ID="phScriptRecaptcha" runat="server" Visible="false">
+        <script src="https://www.google.com/recaptcha/api.js?hl=<%= CodigoIdiomaRecaptcha %>" async defer></script>
+    </asp:PlaceHolder>
 </asp:Content>

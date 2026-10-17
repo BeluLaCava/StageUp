@@ -19,5 +19,8 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Literal litDescripcionResultados;
         protected global::System.Web.UI.WebControls.Literal litTotalRespuestas;
         protected global::System.Web.UI.WebControls.Repeater rptResultados;
+        protected global::System.Web.UI.WebControls.Panel pnlAvisoSinSesion;
+        protected global::System.Web.UI.WebControls.Panel pnlResponderSinSesion;
+        protected global::System.Web.UI.WebControls.PlaceHolder phScriptRecaptcha;
     }
 }

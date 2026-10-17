@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Web;
+using System.Web.Configuration;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using StageUp.BE.Entidades;
@@ -15,10 +17,48 @@ namespace StageUp.UI
     //   Encuestas.aspx                 -> pendientes por responder + resultados disponibles
     //   Encuestas.aspx?responder={id}  -> formulario para responder
     //   Encuestas.aspx?ver={id}        -> resultados en barras, al instante
+    // Sin iniciar sesión se pueden responder las encuestas para "Todos": el
+    // navegador guarda una cookie con un identificador al azar (solo se crea
+    // al responder) para que no se responda dos veces, y se pide el CAPTCHA.
     public partial class Encuestas : Page
     {
+        private const string NombreCookieEncuestado = "StageUp_Encuestado";
+
         private readonly BLL_Encuesta _bllEncuesta = new BLL_Encuesta();
         protected bool UsuarioAutenticado { get; private set; }
+
+        protected string ClaveSitioRecaptcha
+        {
+            get
+            {
+                string claveEntorno = Environment.GetEnvironmentVariable("STAGEUP_RECAPTCHA_SITE_KEY");
+                string clave = string.IsNullOrWhiteSpace(claveEntorno)
+                    ? WebConfigurationManager.AppSettings["RecaptchaSiteKey"]
+                    : claveEntorno;
+                return HttpUtility.HtmlAttributeEncode(clave ?? string.Empty);
+            }
+        }
+
+        protected string CodigoIdiomaRecaptcha
+        {
+            get { return HttpUtility.UrlEncode(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName); }
+        }
+
+        private string IdentificadorNavegador
+        {
+            get
+            {
+                HttpCookie cookie = Request.Cookies[NombreCookieEncuestado];
+                return cookie == null ? null : cookie.Value;
+            }
+        }
+
+        private Encuestado EncuestadoActual(string identificadorNavegador)
+        {
+            return UsuarioAutenticado
+                ? BLL_Encuesta.EncuestadoConSesion(GestorDeSesion.ObtenerIdUsuarioActual().Value, GestorDeSesion.ObtenerPerfilActual(), identificadorNavegador)
+                : BLL_Encuesta.EncuestadoSinSesion(identificadorNavegador);
+        }
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -29,59 +69,37 @@ namespace StageUp.UI
                 return;
             }
 
-            int idUsuarioExterno = UsuarioAutenticado
-                ? GestorDeSesion.ObtenerIdUsuarioActual().Value
-                : 0;
-            string perfilUsuario = UsuarioAutenticado
-                ? GestorDeSesion.ObtenerPerfilActual()
-                : string.Empty;
+            Encuestado encuestado = EncuestadoActual(IdentificadorNavegador);
 
             int idResponder;
             int idVer;
 
             if (int.TryParse(Request.QueryString["responder"], out idResponder))
             {
-                if (!UsuarioAutenticado)
-                {
-                    Response.Redirect("~/IniciarSesion.aspx");
-                    return;
-                }
-
-                CargarResponder(idResponder, idUsuarioExterno, perfilUsuario);
+                CargarResponder(idResponder, encuestado);
             }
             else if (int.TryParse(Request.QueryString["ver"], out idVer))
             {
-                CargarResultadosPublico(idVer, idUsuarioExterno, perfilUsuario);
+                CargarResultadosPublico(idVer, encuestado);
             }
             else
             {
-                CargarDashboard(idUsuarioExterno, perfilUsuario);
+                CargarDashboard(encuestado);
             }
         }
 
         protected string ObtenerUrlRespuesta(object idEncuesta)
         {
-            if (!UsuarioAutenticado)
-            {
-                return ResolveUrl("~/IniciarSesion.aspx");
-            }
-
             return ResolveUrl("~/Encuestas.aspx?responder=" + Convert.ToString(idEncuesta, CultureInfo.InvariantCulture));
         }
 
         protected string ObtenerTextoRespuesta()
         {
-            return UsuarioAutenticado ? "Responder" : "Iniciar sesión para responder";
+            return "Responder";
         }
 
         protected void btnEnviarRespuestas_Click(object sender, EventArgs e)
         {
-            if (!GestorDeSesion.EstaAutenticado())
-            {
-                Response.Redirect("~/IniciarSesion.aspx");
-                return;
-            }
-
             int idEncuesta;
             if (!int.TryParse(Request.QueryString["responder"], out idEncuesta))
             {
@@ -89,14 +107,21 @@ namespace StageUp.UI
                 return;
             }
 
-            int idUsuarioExterno = GestorDeSesion.ObtenerIdUsuarioActual().Value;
-            string perfilUsuario = GestorDeSesion.ObtenerPerfilActual();
+            // Sin sesión: se usa la cookie del navegador o, si no hay, se
+            // genera un identificador nuevo que se guarda al responder.
+            string identificadorNavegador = IdentificadorNavegador;
+            if (!UsuarioAutenticado && BLL_Encuesta.EncuestadoSinSesion(identificadorNavegador).IdentificadorAnonimo == null)
+            {
+                identificadorNavegador = BLL_Encuesta.GenerarIdentificadorNavegador();
+            }
 
-            ResultadoOperacion<EncuestaCompleta> completa = _bllEncuesta.ObtenerParaResponder(idEncuesta, idUsuarioExterno, perfilUsuario);
+            Encuestado encuestado = EncuestadoActual(identificadorNavegador);
+
+            ResultadoOperacion<EncuestaCompleta> completa = _bllEncuesta.ObtenerParaResponder(idEncuesta, encuestado);
             if (!completa.Exitoso)
             {
                 MostrarMensaje(completa.Mensaje, true);
-                CargarDashboard(idUsuarioExterno, perfilUsuario);
+                CargarDashboard(encuestado);
                 return;
             }
 
@@ -111,12 +136,17 @@ namespace StageUp.UI
                 }
             }
 
-            ResultadoOperacion resultado = _bllEncuesta.RegistrarRespuesta(idEncuesta, idUsuarioExterno, perfilUsuario, respuestasPorPregunta);
+            ResultadoOperacion resultado = _bllEncuesta.RegistrarRespuesta(idEncuesta, encuestado, respuestasPorPregunta, Request.Form["g-recaptcha-response"]);
             if (!resultado.Exitoso)
             {
                 MostrarMensaje(resultado.Mensaje, true);
-                CargarResponder(idEncuesta, idUsuarioExterno, perfilUsuario);
+                CargarResponder(idEncuesta, encuestado);
                 return;
+            }
+
+            if (!UsuarioAutenticado)
+            {
+                GuardarCookieEncuestado(identificadorNavegador);
             }
 
             Response.Redirect("~/Encuestas.aspx?ver=" + idEncuesta);
@@ -148,32 +178,50 @@ namespace StageUp.UI
             rptOpciones.DataBind();
         }
 
-        private void CargarDashboard(int idUsuarioExterno, string perfilUsuario)
+        // Solo guarda un identificador al azar (sin datos personales). Dura
+        // un año, viaja solo por HTTPS cuando el sitio usa HTTPS y no es
+        // accesible desde JavaScript.
+        private void GuardarCookieEncuestado(string identificadorNavegador)
+        {
+            HttpCookie cookie = new HttpCookie(NombreCookieEncuestado, identificadorNavegador)
+            {
+                HttpOnly = true,
+                Secure = Request.IsSecureConnection,
+                Path = "/",
+                Expires = DateTime.Now.AddYears(1)
+            };
+            Response.Cookies.Add(cookie);
+        }
+
+        private void CargarDashboard(Encuestado encuestado)
         {
             MostrarSolo(pnlDashboard);
+            pnlAvisoSinSesion.Visible = encuestado.EsAnonimo;
 
-            List<Encuesta> pendientes = _bllEncuesta.ListarPendientesParaUsuario(idUsuarioExterno, perfilUsuario);
+            List<Encuesta> pendientes = _bllEncuesta.ListarPendientesParaUsuario(encuestado);
             pnlSinPendientes.Visible = pendientes.Count == 0;
             rptPendientes.DataSource = pendientes;
             rptPendientes.DataBind();
 
-            List<Encuesta> disponibles = _bllEncuesta.ListarConResultadosParaUsuario(idUsuarioExterno, perfilUsuario);
+            List<Encuesta> disponibles = _bllEncuesta.ListarConResultadosParaUsuario(encuestado);
             pnlSinDisponibles.Visible = disponibles.Count == 0;
             rptDisponibles.DataSource = disponibles;
             rptDisponibles.DataBind();
         }
 
-        private void CargarResponder(int idEncuesta, int idUsuarioExterno, string perfilUsuario)
+        private void CargarResponder(int idEncuesta, Encuestado encuestado)
         {
-            ResultadoOperacion<EncuestaCompleta> resultado = _bllEncuesta.ObtenerParaResponder(idEncuesta, idUsuarioExterno, perfilUsuario);
+            ResultadoOperacion<EncuestaCompleta> resultado = _bllEncuesta.ObtenerParaResponder(idEncuesta, encuestado);
             if (!resultado.Exitoso)
             {
                 MostrarMensaje(resultado.Mensaje, true);
-                CargarDashboard(idUsuarioExterno, perfilUsuario);
+                CargarDashboard(encuestado);
                 return;
             }
 
             MostrarSolo(pnlResponder);
+            pnlResponderSinSesion.Visible = encuestado.EsAnonimo;
+            phScriptRecaptcha.Visible = encuestado.EsAnonimo;
             litTituloResponder.Text = Server.HtmlEncode(resultado.Valor.Encuesta.Titulo);
             litDescripcionResponder.Text = string.IsNullOrEmpty(resultado.Valor.Encuesta.Descripcion)
                 ? string.Empty
@@ -183,15 +231,15 @@ namespace StageUp.UI
             rptPreguntasResponder.DataBind();
         }
 
-        private void CargarResultadosPublico(int idEncuesta, int idUsuarioExterno, string perfilUsuario)
+        private void CargarResultadosPublico(int idEncuesta, Encuestado encuestado)
         {
             ResultadoOperacion<List<ResultadoPreguntaEncuesta>> resultado =
-                _bllEncuesta.ObtenerResultadosParaUsuario(idEncuesta, idUsuarioExterno, perfilUsuario);
+                _bllEncuesta.ObtenerResultadosParaUsuario(idEncuesta, encuestado);
 
             if (!resultado.Exitoso)
             {
                 MostrarMensaje(resultado.Mensaje, true);
-                CargarDashboard(idUsuarioExterno, perfilUsuario);
+                CargarDashboard(encuestado);
                 return;
             }
 

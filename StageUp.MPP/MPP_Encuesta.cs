@@ -83,25 +83,27 @@ namespace StageUp.MPP
             return resultado != null && resultado != DBNull.Value && Convert.ToInt32(resultado) > 0;
         }
 
-        public List<Encuesta> ListarPendientesParaUsuario(UsuarioExterno oUsuario)
+        public List<Encuesta> ListarPendientesParaUsuario(Encuestado oEncuestado)
         {
             return MapearEncuestas(Conexion.Instance.Leer(
                 "sp_Encuesta_ListarPendientesParaUsuario",
                 new Hashtable
                 {
-                    { "@idUsuarioExterno", oUsuario.IdUsuarioExterno },
-                    { "@perfilUsuario", oUsuario.PerfilUsuario }
+                    { "@idUsuarioExterno", Valor(oEncuestado.IdUsuarioExterno) },
+                    { "@perfilUsuario", Valor(oEncuestado.PerfilUsuario) },
+                    { "@identificadorAnonimo", Valor(oEncuestado.IdentificadorAnonimo) }
                 }));
         }
 
-        public List<Encuesta> ListarConResultadosParaUsuario(UsuarioExterno oUsuario)
+        public List<Encuesta> ListarConResultadosParaUsuario(Encuestado oEncuestado)
         {
             return MapearEncuestas(Conexion.Instance.Leer(
                 "sp_Encuesta_ListarConResultadosParaUsuario",
                 new Hashtable
                 {
-                    { "@idUsuarioExterno", oUsuario.IdUsuarioExterno },
-                    { "@perfilUsuario", oUsuario.PerfilUsuario }
+                    { "@idUsuarioExterno", Valor(oEncuestado.IdUsuarioExterno) },
+                    { "@perfilUsuario", Valor(oEncuestado.PerfilUsuario) },
+                    { "@identificadorAnonimo", Valor(oEncuestado.IdentificadorAnonimo) }
                 }));
         }
 
@@ -187,7 +189,8 @@ namespace StageUp.MPP
                 new Hashtable
                 {
                     { "@idEncuesta", oRespuesta.IdEncuesta },
-                    { "@idUsuarioExterno", oRespuesta.IdUsuarioExterno }
+                    { "@idUsuarioExterno", Valor(oRespuesta.IdUsuarioExterno) },
+                    { "@identificadorAnonimo", Valor(oRespuesta.IdentificadorAnonimo) }
                 });
 
             return resultado != null && Convert.ToBoolean(resultado);
@@ -200,7 +203,8 @@ namespace StageUp.MPP
                 new Hashtable
                 {
                     { "@idEncuesta", oRespuesta.IdEncuesta },
-                    { "@idUsuarioExterno", oRespuesta.IdUsuarioExterno }
+                    { "@idUsuarioExterno", Valor(oRespuesta.IdUsuarioExterno) },
+                    { "@identificadorAnonimo", Valor(oRespuesta.IdentificadorAnonimo) }
                 });
 
             return Convert.ToInt32(resultado);
@@ -270,6 +274,16 @@ namespace StageUp.MPP
                     ? (DateTime?)null
                     : Convert.ToDateTime(fila["fechaUltimaModificacion"])
             };
+        }
+
+        private static object Valor(int? valor)
+        {
+            return valor.HasValue ? (object)valor.Value : DBNull.Value;
+        }
+
+        private static object Valor(string valor)
+        {
+            return string.IsNullOrEmpty(valor) ? (object)DBNull.Value : valor;
         }
     }
 }

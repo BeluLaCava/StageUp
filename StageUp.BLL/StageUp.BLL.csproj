@@ -66,6 +66,10 @@
     <Compile Include="BLL_MensajeReserva.cs" />
     <Compile Include="BLL_Newsletter.cs" />
     <Compile Include="BLL_SesionBaseDatos.cs" />
+    <Compile Include="BLL_CampaniaComercial.cs" />
+    <Compile Include="BLL_CatalogoComercial.cs" />
+    <Compile Include="BLL_ContactoComercial.cs" />
+    <Compile Include="BLL_OrigenUsuario.cs" />
     <Compile Include="BLL_OpcionMenu.cs" />
     <Compile Include="BLL_Backup.cs" />
     <Compile Include="BLL_Reporte.cs" />

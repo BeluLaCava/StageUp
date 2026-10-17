@@ -52,6 +52,10 @@
     <Compile Include="MPP_PreguntaEspacio.cs" />
     <Compile Include="MPP_MensajeReserva.cs" />
     <Compile Include="MPP_SuscriptorNewsletter.cs" />
+    <Compile Include="MPP_CampaniaComercial.cs" />
+    <Compile Include="MPP_CatalogoComercial.cs" />
+    <Compile Include="MPP_ContactoComercial.cs" />
+    <Compile Include="MPP_OrigenUsuario.cs" />
     <Compile Include="MPP_Encuesta.cs" />
     <Compile Include="MPP_Ticket.cs" />
     <Compile Include="MPP_OpcionMenu.cs" />

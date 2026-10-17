@@ -275,6 +275,28 @@
     <Compile Include="Interno\GestionEncuestas.aspx.designer.cs">
       <DependentUpon>GestionEncuestas.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Interno\Comercializacion\CampaniasComerciales.aspx.cs">
+      <DependentUpon>CampaniasComerciales.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\Comercializacion\CampaniasComerciales.aspx.designer.cs">
+      <DependentUpon>CampaniasComerciales.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\Comercializacion\ContactosComerciales.aspx.cs">
+      <DependentUpon>ContactosComerciales.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\Comercializacion\ContactosComerciales.aspx.designer.cs">
+      <DependentUpon>ContactosComerciales.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\Comercializacion\ComercializacionTabs.ascx.cs">
+      <DependentUpon>ComercializacionTabs.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\Comercializacion\ComercializacionTabs.ascx.designer.cs">
+      <DependentUpon>ComercializacionTabs.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\Comercializacion\PaginaComercial.cs" />
     <Compile Include="Interno\GestionSoporte.aspx.cs">
       <DependentUpon>GestionSoporte.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -465,6 +487,7 @@
     <Compile Include="Infraestructura\ConsultaBusqueda.cs" />
     <Compile Include="Infraestructura\ControlSesionBaseDatos.cs" />
     <Compile Include="Infraestructura\ImagenSubida.cs" />
+    <Compile Include="Infraestructura\OrigenDeDifusion.cs" />
     <Compile Include="Infraestructura\MasterPageMultidioma.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
@@ -523,6 +546,9 @@
     <Content Include="Interno\GestionFaq.aspx" />
     <Content Include="Interno\GestionEncuestas.aspx" />
     <Content Include="Interno\HerramientasSeguridad.aspx" />
+    <Content Include="Interno\Comercializacion\CampaniasComerciales.aspx" />
+    <Content Include="Interno\Comercializacion\ContactosComerciales.aspx" />
+    <Content Include="Interno\Comercializacion\ComercializacionTabs.ascx" />
     <Content Include="Interno\GestionSoporte.aspx" />
     <Content Include="Interno\GestionMenu.aspx" />
     <Content Include="Interno\BackupRestore.aspx" />

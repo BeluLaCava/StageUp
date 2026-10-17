@@ -74,6 +74,10 @@
     <Compile Include="Entidades\PreguntaEspacio.cs" />
     <Compile Include="Entidades\MensajeReserva.cs" />
     <Compile Include="Entidades\SuscriptorNewsletter.cs" />
+    <Compile Include="Entidades\CampaniaComercial.cs" />
+    <Compile Include="Entidades\CatalogoComercial.cs" />
+    <Compile Include="Entidades\ContactoComercial.cs" />
+    <Compile Include="Entidades\OrigenUsuario.cs" />
     <Compile Include="Entidades\Idioma.cs" />
     <Compile Include="Entidades\Traduccion.cs" />
     <Compile Include="Interfaces\IObservadorIdioma.cs" />

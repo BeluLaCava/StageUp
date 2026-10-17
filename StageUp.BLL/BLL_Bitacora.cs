@@ -13,7 +13,8 @@ namespace StageUp.BLL
         {
             "ALTA", "MODIFICACION", "BAJA", "ACTIVACION", "LOGIN", "RECUPERACION_SOLICITADA",
             "APROBACION", "RECHAZO", "ASIGNACION_PERMISOS", "ASOCIACION", "DESVINCULACION", "ERROR",
-            "RESPUESTA", "CIERRE", "BACKUP", "RESTAURACION", "PAGO", "ANULACION", "LIQUIDACION", "BLOQUEO", "ROTACION_CLAVES"
+            "RESPUESTA", "CIERRE", "BACKUP", "RESTAURACION", "PAGO", "ANULACION", "LIQUIDACION", "BLOQUEO", "ROTACION_CLAVES",
+            "SEGUIMIENTO", "RENOVACION"
         };
 
         public static readonly string[] TiposDeEntidadAfectada =
@@ -21,7 +22,8 @@ namespace StageUp.BLL
             "UsuarioExterno", "UsuarioInterno", "EspacioArtistico", "Reserva", "Calificacion", "RolInterno", "Idioma", "Traduccion", "ComponentePermiso",
             "Actividad", "Participante", "Encuesta", "Sistema", "Ticket", "OpcionMenu", "BaseDeDatos",
             "Pago", "Comprobante", "CuentaCorriente", "ParametroPlataforma", "SolicitudHabilitacionGestor", "Disponibilidad",
-            "TransaccionEconomica", "TarjetaGuardada", "ClaveCifrado", "Faq", "PreguntaEspacio", "MensajeReserva", "SuscriptorNewsletter"
+            "TransaccionEconomica", "TarjetaGuardada", "ClaveCifrado", "Faq", "PreguntaEspacio", "MensajeReserva", "SuscriptorNewsletter",
+            "CampaniaComercial", "ContactoComercial", "AlianzaEstrategica", "ContenidoPromocional", "OrigenUsuario"
         };
 
         public void Registrar(

@@ -11574,3 +11574,275 @@ table tbody tr:hover {
         transition: none !important;
     }
 }
+
+/* ==========================================================================
+   Comercialización (CU-004): solapas, listados, detalle y formularios.
+   ========================================================================== */
+.comercial-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 1.25rem;
+    padding: 0.35rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    width: fit-content;
+    max-width: 100%;
+}
+
+.comercial-tab {
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    color: var(--color-text);
+    font-weight: 650;
+    font-size: 0.9rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.comercial-tab:hover,
+.comercial-tab:focus-visible {
+    background: var(--color-nude);
+}
+
+.comercial-tab-actual {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+.comercial-tab-actual:hover,
+.comercial-tab-actual:focus-visible {
+    background: var(--color-primary-dark);
+    color: #fff;
+}
+
+.comercial-stack > * { min-width: 0; }
+
+.comercial-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.comercial-toolbar-acciones {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.comercial-resumen {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+    gap: 0.75rem;
+    margin: 0 0 1rem;
+}
+
+.comercial-resumen > a,
+.comercial-resumen > div {
+    display: block;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.9rem;
+    background: var(--color-surface);
+    color: inherit;
+    text-decoration: none;
+}
+
+.comercial-resumen span {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+}
+
+.comercial-resumen strong {
+    font-size: 1.45rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.comercial-filtros {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    align-items: end;
+    margin: 0.5rem 0 0.9rem;
+}
+
+.comercial-filtros .form-field { margin-bottom: 0; min-width: 0; }
+.comercial-filtros .form-field input,
+.comercial-filtros .form-field select { width: 100%; box-sizing: border-box; }
+
+.comercial-filtros-acciones {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    grid-column: 1 / -1;
+}
+
+.comercial-tabla-wrap { overflow-x: auto; max-width: 100%; }
+.comercial-tabla { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.comercial-tabla th { text-align: left; color: var(--color-text-muted); font-weight: 600; padding: 8px; border-bottom: 1px solid var(--color-border); white-space: nowrap; }
+.comercial-tabla td { padding: 8px; border-bottom: 1px solid var(--color-border); vertical-align: top; }
+.comercial-tabla small { color: var(--color-text-muted); }
+.comercial-tabla .admin-action-link { white-space: nowrap; }
+.comercial-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.comercial-fila-baja td { color: var(--color-text-muted); }
+
+.comercial-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.comercial-badge-activa { background: #e6f5eb; color: #236240; }
+.comercial-badge-planificada { background: #fff4e5; color: #8a4b0f; }
+.comercial-badge-contactado { background: #eef0fb; color: #33407a; }
+.comercial-badge-finalizada { background: #ece8f6; color: #4b3a7a; }
+.comercial-badge-cancelada { background: #fdecec; color: #8a1f1f; }
+.comercial-badge-baja { background: #eeeeee; color: #555555; }
+
+.comercial-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.comercial-chip {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--color-nude);
+    color: var(--color-primary-dark);
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.comercial-detalle-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.comercial-datos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem 1.25rem;
+    margin: 0.75rem 0 1rem;
+}
+
+.comercial-datos > div { min-width: 0; }
+.comercial-datos dt { color: var(--color-text-muted); font-size: 0.78rem; }
+.comercial-datos dd { margin: 0.15rem 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.comercial-datos .comercial-dato-ancho { grid-column: 1 / -1; }
+.comercial-texto { white-space: pre-line; line-height: 1.55; font-weight: 400; }
+
+.comercial-aviso {
+    padding: 0.7rem 1rem;
+    border-radius: 0.75rem;
+    background: #fff4e5;
+    color: #78350f;
+    margin: 0.5rem 0 1rem;
+}
+
+.comercial-acciones {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.comercial-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 1rem;
+}
+
+.comercial-form-grid > * { min-width: 0; }
+.comercial-form-grid .comercial-campo-ancho { grid-column: 1 / -1; }
+.comercial-form-grid .form-field input:not([type="checkbox"]):not([type="submit"]):not([type="button"]),
+.comercial-form-grid select,
+.comercial-form-grid textarea { width: 100%; box-sizing: border-box; }
+.comercial-ayuda { color: var(--color-text-muted); font-size: 0.85rem; margin: 0.25rem 0 0; }
+.comercial-form-grid .form-label,
+.comercial-stack .form-label {
+    display: block;
+    margin-bottom: 0.42rem;
+    color: var(--color-brown-dark);
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+.comercial-check { display: flex; align-items: center; gap: 0.5rem; }
+.comercial-check input { width: auto !important; margin: 0; }
+.comercial-check label { margin: 0 !important; font-weight: 500 !important; }
+
+.comercial-opciones {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: 0.35rem 0.75rem;
+    margin: 0.35rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.comercial-opciones li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.comercial-opciones li input { width: auto; margin: 0.2rem 0 0; flex: 0 0 auto; }
+.comercial-opciones li label { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+
+.comercial-vinculos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.comercial-fieldset,
+.comercial-vinculos-grid > fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.9rem;
+}
+
+.comercial-vinculos-grid legend,
+.comercial-fieldset legend { padding: 0 0.35rem; font-weight: 700; }
+.comercial-fieldset { margin-top: 1rem; }
+.comercial-campo-boton { align-self: end; }
+.comercial-lista-vacia { color: var(--color-text-muted); font-size: 0.88rem; margin: 0.25rem 0 0; }
+
+.comercial-historial { list-style: none; margin: 0; padding: 0; }
+.comercial-historial li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--color-border);
+}
+.comercial-historial li:last-child { border-bottom: 0; }
+.comercial-historial-meta { color: var(--color-text-muted); font-size: 0.82rem; }
+
+.comercial-enlace {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+    .comercial-filtros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .comercial-datos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+    .comercial-filtros,
+    .comercial-datos,
+    .comercial-form-grid,
+    .comercial-vinculos-grid { grid-template-columns: 1fr; }
+    .comercial-tabs { border-radius: 1rem; width: auto; }
+}

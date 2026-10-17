@@ -20,6 +20,12 @@ namespace StageUp.UI
             base.OnInit(e);
             InicializarMultidioma(ddlIdioma, hdnDiccionarioIdioma, HtmlRoot, LanguageSelector);
 
+            // CU-004-004: enlace de difusión con ?origen=codigo.
+            if (!IsPostBack)
+            {
+                OrigenDeDifusion.Capturar(Context);
+            }
+
             // CU-001-003: si la cuenta se dio de baja (por ejemplo desde otro
             // navegador), la sesión se corta antes de que la página procese nada.
             int? idUsuario = GestorDeSesion.ObtenerIdUsuarioActual();

@@ -1,13 +1,17 @@
 using System;
+using System.Globalization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using StageUp.BE.Entidades;
 using StageUp.BLL;
+using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI
 {
     public partial class Registrarse : Page
     {
         private readonly BLL_UsuarioExterno _bllUsuarioExterno = new BLL_UsuarioExterno();
+        private readonly BLL_OrigenUsuario _bllOrigen = new BLL_OrigenUsuario();
 
         private int? IdUsuarioExternoPendiente
         {
@@ -17,6 +21,30 @@ namespace StageUp.UI
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (!IsPostBack)
+            {
+                CargarOrigenes();
+            }
+        }
+
+        // CU-004-004: si la persona llegó por un enlace de difusión
+        // (?origen=codigo), ese es su origen y no se le pregunta.
+        private void CargarOrigenes()
+        {
+            if (_bllOrigen.ObtenerPorCodigo(OrigenDeDifusion.Leer(Context)) != null)
+            {
+                pnlOrigen.Visible = false;
+                return;
+            }
+
+            ddlOrigen.Items.Clear();
+            ddlOrigen.Items.Add(new ListItem("Prefiero no decirlo", string.Empty));
+            foreach (OrigenUsuario origen in _bllOrigen.ListarParaRegistro())
+            {
+                ddlOrigen.Items.Add(new ListItem(origen.NombreOrigen, origen.IdOrigenUsuario.ToString(CultureInfo.InvariantCulture)));
+            }
+
+            pnlOrigen.Visible = ddlOrigen.Items.Count > 1;
         }
 
         protected void btnRegistrarse_Click(object sender, EventArgs e)
@@ -43,6 +71,11 @@ namespace StageUp.UI
             }
 
             IdUsuarioExternoPendiente = resultado.Valor;
+
+            int idOrigen;
+            _bllOrigen.AsignarAlRegistrarse(resultado.Valor, OrigenDeDifusion.Leer(Context),
+                pnlOrigen.Visible && int.TryParse(ddlOrigen.SelectedValue, out idOrigen) ? idOrigen : (int?)null);
+            OrigenDeDifusion.Olvidar(Context);
 
             pnlDatosRegistro.Visible = false;
             pnlActivacion.Visible = true;

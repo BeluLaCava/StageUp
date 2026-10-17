@@ -150,6 +150,9 @@ DELETE FROM dbo.EspacioArtistico WHERE idEspacioArtistico IN (SELECT id FROM #E)
 PRINT CONCAT(N'Espacios: ', @@ROWCOUNT);
 
 -- Usuarios.
+IF OBJECT_ID(N'dbo.SuscriptorNewsletter', N'U') IS NOT NULL
+    DELETE FROM dbo.SuscriptorNewsletter WHERE idUsuarioExterno IN (SELECT id FROM #U);
+
 DELETE FROM dbo.CodigoActivacion WHERE idUsuarioExterno IN (SELECT id FROM #U);
 DELETE FROM dbo.CodigoRecuperacion WHERE idUsuarioExterno IN (SELECT id FROM #U);
 DELETE FROM dbo.UsuarioExterno WHERE idUsuarioExterno IN (SELECT id FROM #U);

@@ -245,6 +245,10 @@ namespace StageUp.UI.Interno
                 .ToList();
             DateTime? ultimoEnvio = fechasDeEnvio.Count == 0 ? (DateTime?)null : fechasDeEnvio.Max();
 
+            ResumenSuscriptoresNewsletter suscriptores = new BLL_Newsletter().ObtenerResumen();
+            litResumenSuscriptores.Text = "Suscriptores del newsletter: " + suscriptores.Activos + " activos (" + suscriptores.ActivosSinCuenta +
+                " sin cuenta), " + suscriptores.Pendientes + " sin confirmar y " + suscriptores.Bajas + " dados de baja.";
+
             litCantidadBorradores.Text = cantidadBorradores.ToString(CultureInfo.InvariantCulture);
             litCantidadPublicadas.Text = cantidadPublicadas.ToString(CultureInfo.InvariantCulture);
             litCantidadProgramadas.Text = cantidadProgramadas.ToString(CultureInfo.InvariantCulture);

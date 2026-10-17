@@ -51,6 +51,7 @@
     <Compile Include="MPP_NodoAsistente.cs" />
     <Compile Include="MPP_PreguntaEspacio.cs" />
     <Compile Include="MPP_MensajeReserva.cs" />
+    <Compile Include="MPP_SuscriptorNewsletter.cs" />
     <Compile Include="MPP_Encuesta.cs" />
     <Compile Include="MPP_Ticket.cs" />
     <Compile Include="MPP_OpcionMenu.cs" />

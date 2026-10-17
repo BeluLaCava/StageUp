@@ -56,13 +56,14 @@ namespace StageUp.BLL
 
         // Mismos valores que ofrece el desplegable "Destinatarios" en
         // Interno/GestionNovedades.aspx.
+        // Activos y Todos incluyen también a los suscriptores sin cuenta;
+        // Suscriptores es solo para ellos (script 78).
         public static readonly string[] DestinatariosNewsletter =
         {
-            "Activos", "Gestores", "Solicitantes", "Todos"
+            "Activos", "Gestores", "Solicitantes", "Suscriptores", "Todos"
         };
 
         private readonly MPP_Novedad _mpp = new MPP_Novedad();
-        private readonly BLL_UsuarioExterno _bllUsuarioExterno = new BLL_UsuarioExterno();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
 
@@ -372,12 +373,14 @@ namespace StageUp.BLL
                 }
 
                 string criterio = EsDestinatarioValido(destinatarioCodigo) ? destinatarioCodigo : "Activos";
-                List<UsuarioExterno> destinatarios = _bllUsuarioExterno.ListarParaNewsletter(criterio);
+                // Usuarios del criterio y suscriptores confirmados, sin los que
+                // se dieron de baja ni los que eligieron otras categorías.
+                List<DestinatarioNewsletter> destinatarios = new BLL_Newsletter().ListarDestinatarios(criterio, novedad);
                 string urlImagenNewsletter = ConstruirUrlAbsoluta(novedad.UrlImagen, urlBaseAplicacion);
                 string rutaImagenNewsletter = ResolverRutaFisica(novedad.UrlImagen, rutaBaseAplicacion);
 
                 int enviados = 0;
-                foreach (UsuarioExterno destinatario in destinatarios)
+                foreach (DestinatarioNewsletter destinatario in destinatarios)
                 {
                     bool enviado = _servicioCorreo.EnviarNewsletter(
                         destinatario.CorreoElectronico,
@@ -387,7 +390,8 @@ namespace StageUp.BLL
                         "Ver novedades",
                         urlNovedades,
                         urlImagenNewsletter,
-                        rutaImagenNewsletter);
+                        rutaImagenNewsletter,
+                        BLL_Newsletter.UrlPreferencias(urlBaseAplicacion, destinatario.TokenPreferencias));
 
                     if (enviado)
                     {

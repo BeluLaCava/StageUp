@@ -1,25 +1,3 @@
--- ============================================================================
--- 29_FaqAbmYPermiso.sql
---
--- Ítem 37 del checklist de correcciones: la pantalla de administración de
--- FAQ (Interno/GestionFaq.aspx) tenía solo el formulario armado en UI, sin
--- ABM real (04_FaqDinamica.sql solo tenía sp_Faq_ListarActivas, la que usa
--- el centro de ayuda público) y el guard de acceso reutilizaba permisos que
--- no tienen nada que ver con FAQ (GESTIONAR_ROLES / GESTIONAR_IDIOMAS /
--- GESTIONAR_USUARIOS_INTERNOS). Este script agrega:
---   1) Dos columnas de auditoría a dbo.Faq (fechaAlta, fechaUltimaModificacion).
---   2) Los stored procedures de alta, baja, reactivación, modificación y
---      listado completo (el admin necesita ver también las inactivas, no
---      solo las publicadas).
---   3) Un permiso interno propio, GESTIONAR_FAQ, dado de alta tanto en el
---      esquema clásico (PermisoInterno/RolInternoPermiso) como en el árbol
---      de componentes que realmente usa el login para armar la sesión y el
---      menú (ComponentePermiso/RolInternoComponentePermiso — ver
---      BLL_PermisoInterno.ObtenerHojasAsignadas), asignado al rol
---      Administrador. Se sigue el mismo patrón que ya usa GESTIONAR_IDIOMAS
---      en 17_MultidiomaCompleto.sql.
--- ============================================================================
-
 IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;

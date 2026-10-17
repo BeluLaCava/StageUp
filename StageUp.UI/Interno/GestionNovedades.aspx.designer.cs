@@ -36,5 +36,6 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.FileUpload fuImagen;
         protected global::System.Web.UI.WebControls.DropDownList ddlFiltroEstado;
         protected global::System.Web.UI.WebControls.Literal litSinNovedades;
+        protected global::System.Web.UI.WebControls.Literal litResumenSuscriptores;
     }
 }

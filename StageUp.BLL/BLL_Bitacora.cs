@@ -21,7 +21,7 @@ namespace StageUp.BLL
             "UsuarioExterno", "UsuarioInterno", "EspacioArtistico", "Reserva", "Calificacion", "RolInterno", "Idioma", "Traduccion", "ComponentePermiso",
             "Actividad", "Participante", "Encuesta", "Sistema", "Ticket", "OpcionMenu", "BaseDeDatos",
             "Pago", "Comprobante", "CuentaCorriente", "ParametroPlataforma", "SolicitudHabilitacionGestor", "Disponibilidad",
-            "TransaccionEconomica", "TarjetaGuardada", "ClaveCifrado", "Faq", "PreguntaEspacio", "MensajeReserva"
+            "TransaccionEconomica", "TarjetaGuardada", "ClaveCifrado", "Faq", "PreguntaEspacio", "MensajeReserva", "SuscriptorNewsletter"
         };
 
         public void Registrar(

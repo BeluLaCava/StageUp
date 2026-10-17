@@ -15,6 +15,13 @@
         .busqueda-item a:hover { color: #7a0c20; }
         .busqueda-tipo { display: inline-block; padding: 2px 10px; margin-right: 8px; border-radius: 999px; background: #f3dfd4; color: #7a0c20; font-size: 0.75em; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4px; }
         .busqueda-detalle { margin: 4px 0 0; color: var(--color-text-muted, #6b7280); font-size: 0.92em; }
+        .busqueda-filtros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 16px; margin-top: 14px; }
+        .busqueda-filtros .form-field { margin: 0; min-width: 0; }
+        .busqueda-filtros input, .busqueda-filtros select { width: 100%; box-sizing: border-box; min-width: 0; }
+        .busqueda-filtros input { min-height: 2.75rem; padding: 0.55rem 0.8rem; color: var(--color-text); background: #fffaf7; border: 1px solid rgba(137, 102, 80, 0.32); border-radius: 0.75rem; font: inherit; }
+        .busqueda-acciones-avanzadas { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 14px; }
+        @media (max-width: 60rem) { .busqueda-filtros { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 40rem) { .busqueda-filtros { grid-template-columns: 1fr; } }
     </style>
 
     <section class="static-page internal-page internal-management-page">
@@ -32,8 +39,45 @@
                 </div>
                 <details class="busqueda-avanzada" id="busquedaAvanzada" runat="server">
                     <summary>Búsqueda avanzada</summary>
-                    <p class="busqueda-detalle">Elegí en qué tipo de información buscar. Si no elegís ninguno, se busca en todos los que tu rol puede ver.</p>
+                    <p class="busqueda-detalle">Elegí en qué tipo de información buscar y sumá filtros. Si no elegís ningún tipo, se busca en todos los que tu rol puede ver. Con algún filtro, el texto es opcional.</p>
                     <asp:CheckBoxList ID="cblTipos" runat="server" RepeatDirection="Horizontal" />
+
+                    <div class="busqueda-filtros">
+                        <div class="form-field">
+                            <label for="<%= txtDesde.ClientID %>">Desde</label>
+                            <asp:TextBox ID="txtDesde" runat="server" TextMode="Date" />
+                        </div>
+                        <div class="form-field">
+                            <label for="<%= txtHasta.ClientID %>">Hasta</label>
+                            <asp:TextBox ID="txtHasta" runat="server" TextMode="Date" />
+                        </div>
+                        <div class="form-field">
+                            <label for="<%= ddlEstado.ClientID %>">Estado</label>
+                            <asp:DropDownList ID="ddlEstado" runat="server" CssClass="form-select" />
+                        </div>
+                        <div class="form-field">
+                            <label for="<%= txtUbicacion.ClientID %>">Ubicación (espacios y reservas)</label>
+                            <asp:TextBox ID="txtUbicacion" runat="server" MaxLength="100" placeholder="Ciudad, provincia o dirección" />
+                        </div>
+                        <div class="form-field">
+                            <label for="<%= ddlCategoria.ClientID %>">Categoría de novedad</label>
+                            <asp:DropDownList ID="ddlCategoria" runat="server" CssClass="form-select" />
+                        </div>
+                        <div class="form-field">
+                            <label for="<%= ddlOrden.ClientID %>">Ordenar por</label>
+                            <asp:DropDownList ID="ddlOrden" runat="server" CssClass="form-select" />
+                        </div>
+                        <div class="form-field">
+                            <label for="<%= ddlMaximo.ClientID %>">Resultados por tipo</label>
+                            <asp:DropDownList ID="ddlMaximo" runat="server" CssClass="form-select" />
+                        </div>
+                    </div>
+                    <p class="busqueda-detalle">Fechas: alta de usuarios, espacios, novedades y encuestas; día reservado en reservas; última actividad en tickets. Al elegir un estado se busca solo en ese tipo.</p>
+
+                    <div class="busqueda-acciones-avanzadas">
+                        <asp:Button ID="btnBuscarAvanzado" runat="server" CssClass="button button-primary" Text="Buscar con filtros" CausesValidation="false" OnClick="btnBuscar_Click" />
+                        <a class="text-link" href="BusquedaInterna.aspx">Limpiar filtros</a>
+                    </div>
                 </details>
             </asp:Panel>
 

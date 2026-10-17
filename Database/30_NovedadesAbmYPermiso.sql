@@ -1,28 +1,3 @@
--- ============================================================================
--- 30_NovedadesAbmYPermiso.sql
---
--- Ítem 38 del checklist de correcciones: igual que pasaba con FAQ (ítem 37),
--- la pantalla de administración de novedades y newsletter
--- (Interno/GestionNovedades.aspx) tenía solo el formulario armado en UI, con
--- datos de ejemplo hardcodeados, sin ABM real ni conexión con
--- StageUp.Servicios.ServicioCorreo.EnviarNewsletter (que ya existía pero no
--- tenía ningún llamador), y el guard de acceso reutilizaba permisos que no
--- tienen nada que ver con Novedades (GESTIONAR_ROLES / GESTIONAR_IDIOMAS /
--- GESTIONAR_USUARIOS_INTERNOS). Este script agrega:
---   1) La tabla dbo.Novedad (no existía ninguna tabla para esto).
---   2) Los stored procedures de listado (admin y público), alta,
---      modificación, publicación, vuelta a borrador y marcado de envío de
---      newsletter.
---   3) Un stored procedure para listar destinatarios de newsletter
---      (usuarios externos activos) según la categoría elegida en el panel.
---   4) Un permiso interno propio, GESTIONAR_NOVEDADES, dado de alta tanto en
---      el esquema clásico (PermisoInterno/RolInternoPermiso) como en el
---      árbol de componentes que realmente usa el login para armar la sesión
---      y el menú (ComponentePermiso/RolInternoComponentePermiso), asignado
---      al rol Administrador. Mismo patrón que GESTIONAR_FAQ en
---      29_FaqAbmYPermiso.sql y GESTIONAR_IDIOMAS en 17_MultidiomaCompleto.sql.
--- ============================================================================
-
 IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;

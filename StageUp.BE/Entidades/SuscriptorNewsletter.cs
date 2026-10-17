@@ -1,0 +1,65 @@
+using System;
+using System.Collections.Generic;
+
+namespace StageUp.BE.Entidades
+{
+    // Suscriptor del newsletter (con o sin cuenta). Ver
+    // Database/78_NewsletterSuscriptores.sql.
+    public class SuscriptorNewsletter
+    {
+        public const string EstadoPendiente = "Pendiente";
+        public const string EstadoActivo = "Activo";
+        public const string EstadoBaja = "Baja";
+        public const string OrigenFormulario = "Formulario";
+        public const string OrigenCuenta = "Cuenta";
+
+        public int IdSuscriptorNewsletter { get; set; }
+        public string CorreoElectronico { get; set; }
+        public string Nombre { get; set; }
+        public int? IdUsuarioExterno { get; set; }
+        public string Estado { get; set; }
+        public string Origen { get; set; }
+        public DateTime? VencimientoConfirmacion { get; set; }
+        public DateTime? FechaUltimoEnvioConfirmacion { get; set; }
+        public string TokenPreferencias { get; set; }
+        public DateTime FechaAlta { get; set; }
+        public DateTime? FechaConfirmacion { get; set; }
+        public DateTime? FechaBaja { get; set; }
+
+        // Categorías elegidas. Vacía = todas.
+        public List<string> Categorias { get; set; } = new List<string>();
+
+        // Para mostrar el correo sin exponerlo entero: "ju***@gmail.com".
+        public string CorreoEnmascarado
+        {
+            get
+            {
+                string correo = CorreoElectronico ?? string.Empty;
+                int arroba = correo.IndexOf('@');
+                if (arroba <= 0)
+                {
+                    return "***";
+                }
+
+                string usuario = correo.Substring(0, arroba);
+                return usuario.Substring(0, Math.Min(2, usuario.Length)) + "***" + correo.Substring(arroba);
+            }
+        }
+    }
+
+    // Un destinatario de un envío de newsletter.
+    public class DestinatarioNewsletter
+    {
+        public string CorreoElectronico { get; set; }
+        public string Nombre { get; set; }
+        public string TokenPreferencias { get; set; }
+    }
+
+    public class ResumenSuscriptoresNewsletter
+    {
+        public int Activos { get; set; }
+        public int Pendientes { get; set; }
+        public int Bajas { get; set; }
+        public int ActivosSinCuenta { get; set; }
+    }
+}

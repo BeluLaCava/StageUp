@@ -21,6 +21,12 @@
                 <a class="button button-primary" href="Explorar/ResultadosBusqueda.aspx">Explorar espacios</a>
             </asp:Panel>
 
+            <div class="auth-card public-news-newsletter">
+                <strong>¿Querés recibirlas por correo?</strong>
+                <span>Suscribite al newsletter, elegí las categorías que te interesan y date de baja cuando quieras. No hace falta tener cuenta.</span>
+                <a class="button button-secondary button-small" href="Newsletter.aspx">Suscribirme al newsletter</a>
+            </div>
+
             <div class="public-news-list" aria-label="Listado de novedades">
                 <asp:Panel ID="pnlSinMasNovedades" runat="server" CssClass="admin-empty-hint" Visible="false">
                     Por ahora esta es la única novedad publicada.

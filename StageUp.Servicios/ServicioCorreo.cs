@@ -112,6 +112,9 @@ namespace StageUp.Servicios
             return Enviar(destinatario, "Tu cuenta de StageUp fue dada de baja", cuerpo);
         }
 
+        // urlPreferencias: página del suscriptor (elegir categorías o darse de
+        // baja con su token). Va en el pie del correo y en el encabezado
+        // List-Unsubscribe.
         public bool EnviarNewsletter(
             string destinatario,
             string nombreDestinatario,
@@ -120,9 +123,11 @@ namespace StageUp.Servicios
             string llamadaAccionTexto,
             string llamadaAccionUrl,
             string imagenUrl = null,
-            string rutaImagenNewsletter = null)
+            string rutaImagenNewsletter = null,
+            string urlPreferencias = null)
         {
             bool usarImagenEmbebida = !string.IsNullOrWhiteSpace(rutaImagenNewsletter) && File.Exists(rutaImagenNewsletter);
+            string urlBaja = string.IsNullOrWhiteSpace(urlPreferencias) ? null : urlPreferencias + "&baja=1";
             string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
             {
                 Etiqueta = "Novedades StageUp",
@@ -135,10 +140,63 @@ namespace StageUp.Servicios
                 },
                 TextoBoton = llamadaAccionTexto,
                 UrlBoton = llamadaAccionUrl,
-                Nota = "Recibís este correo porque tenés una cuenta en StageUp. Próximamente vas a poder administrar tus preferencias de novedades."
+                Nota = urlPreferencias == null
+                    ? "Recibís este correo porque tenés una cuenta en StageUp."
+                    : "Recibís este correo porque te suscribiste a las novedades de StageUp o tenés una cuenta. Podés elegir qué categorías recibir o darte de baja cuando quieras.",
+                EnlacesPie = urlPreferencias == null
+                    ? null
+                    : new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("Elegir categorías", urlPreferencias),
+                        new KeyValuePair<string, string>("Darme de baja", urlBaja)
+                    }
             });
 
-            return Enviar(destinatario, titulo + " | StageUp", cuerpo, usarImagenEmbebida ? rutaImagenNewsletter : null);
+            return Enviar(destinatario, titulo + " | StageUp", cuerpo, usarImagenEmbebida ? rutaImagenNewsletter : null, null, urlBaja);
+        }
+
+        // Doble confirmación de la suscripción al newsletter.
+        public bool EnviarConfirmacionNewsletter(string destinatario, string nombreDestinatario, string urlConfirmar, int horasValidez)
+        {
+            string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
+            {
+                Etiqueta = "Newsletter StageUp",
+                Titulo = "Confirmá tu suscripción",
+                NombreDestinatario = nombreDestinatario,
+                Parrafos = new[]
+                {
+                    "Recibimos un pedido para suscribir este correo a las novedades de StageUp.",
+                    "Para empezar a recibirlas, confirmá la suscripción con el botón. El enlace vence en " + horasValidez + " horas."
+                },
+                TextoBoton = "Confirmar suscripción",
+                UrlBoton = urlConfirmar,
+                Nota = "Si no pediste esta suscripción, ignorá este correo: sin la confirmación no te vamos a enviar nada."
+            });
+
+            return Enviar(destinatario, "Confirmá tu suscripción a las novedades de StageUp", cuerpo);
+        }
+
+        // Alguien pidió suscribir un correo que ya está suscripto: se le avisa
+        // al dueño del correo (no se muestra en la página, para no revelar
+        // qué correos están suscriptos).
+        public bool EnviarAvisoYaSuscriptoNewsletter(string destinatario, string nombreDestinatario, string urlPreferencias)
+        {
+            string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
+            {
+                Etiqueta = "Newsletter StageUp",
+                Titulo = "Ya estás suscripto",
+                NombreDestinatario = nombreDestinatario,
+                Parrafos = new[]
+                {
+                    "Recibimos un nuevo pedido de suscripción para este correo, pero ya recibís las novedades de StageUp.",
+                    "Si querés cambiar las categorías que recibís o darte de baja, usá el botón."
+                },
+                TextoBoton = "Elegir categorías",
+                UrlBoton = urlPreferencias,
+                Nota = "Si no fuiste vos, no tenés que hacer nada."
+            });
+
+            return Enviar(destinatario, "Ya estás suscripto a las novedades de StageUp", cuerpo);
         }
 
         public bool EnviarNotificacionRespuestaTicket(string destinatario, string nombreDestinatario, string asuntoTicket)
@@ -495,7 +553,7 @@ namespace StageUp.Servicios
         }
 
         private static bool Enviar(string destinatario, string asunto, string cuerpoHtml, string rutaImagenNewsletter = null,
-            ConfiguracionCorreoAdministrativo administrativo = null)
+            ConfiguracionCorreoAdministrativo administrativo = null, string urlBaja = null)
         {
             try
             {
@@ -527,6 +585,11 @@ namespace StageUp.Servicios
                     {
                         mensaje.Bcc.Add(administrativo.CopiaOculta);
                     }
+                    if (!string.IsNullOrWhiteSpace(urlBaja))
+                    {
+                        mensaje.Headers.Add("List-Unsubscribe", "<" + urlBaja + ">");
+                    }
+
                     mensaje.Subject = asunto;
                     mensaje.Body = cuerpoFinal;
                     mensaje.IsBodyHtml = true;
@@ -561,7 +624,7 @@ namespace StageUp.Servicios
             string detalles = ConstruirDetalles(contenido.Detalles);
             string bloqueCodigo = ConstruirBloqueCodigo(contenido.Codigo);
             string boton = ConstruirBoton(contenido.TextoBoton, contenido.UrlBoton);
-            string nota = ConstruirNota(contenido.Nota);
+            string nota = ConstruirNota(contenido.Nota) + ConstruirEnlacesPie(contenido.EnlacesPie);
             string imagen = ConstruirImagen(contenido.ImagenUrl);
 
             return
@@ -712,6 +775,30 @@ namespace StageUp.Servicios
                 "<img src=\"" + Codificar(url) + "\" width=\"556\" alt=\"\" style=\"display:block;width:100%;max-width:556px;height:auto;border:0;border-radius:16px;margin:0 0 26px;\">";
         }
 
+        private static string ConstruirEnlacesPie(List<KeyValuePair<string, string>> enlaces)
+        {
+            if (enlaces == null || enlaces.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            string html = string.Empty;
+            foreach (KeyValuePair<string, string> enlace in enlaces)
+            {
+                if (string.IsNullOrWhiteSpace(enlace.Value))
+                {
+                    continue;
+                }
+
+                html += (html.Length == 0 ? string.Empty : " · ") +
+                    "<a href=\"" + Codificar(enlace.Value) + "\" style=\"color:#7a0c20;font-weight:bold;\">" + Codificar(enlace.Key) + "</a>";
+            }
+
+            return html.Length == 0
+                ? string.Empty
+                : "<p style=\"margin:14px 0 0;font-size:13px;line-height:1.5;color:#6b4a3d;\">" + html + "</p>";
+        }
+
         private static string ConstruirNota(string nota)
         {
             if (string.IsNullOrWhiteSpace(nota))
@@ -824,6 +911,7 @@ namespace StageUp.Servicios
             public string Nota { get; set; }
             public string TextoBoton { get; set; }
             public string UrlBoton { get; set; }
+            public List<KeyValuePair<string, string>> EnlacesPie { get; set; }
         }
     }
 

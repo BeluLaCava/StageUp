@@ -167,6 +167,13 @@
     <Compile Include="MisReservas.aspx.designer.cs">
       <DependentUpon>MisReservas.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Newsletter.aspx.cs">
+      <DependentUpon>Newsletter.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Newsletter.aspx.designer.cs">
+      <DependentUpon>Newsletter.aspx</DependentUpon>
+    </Compile>
     <Compile Include="PreguntasRecibidas.aspx.cs">
       <DependentUpon>PreguntasRecibidas.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -455,6 +462,7 @@
       <DependentUpon>Novedades.aspx</DependentUpon>
     </Compile>
     <Compile Include="Infraestructura\AperturaNotificacion.cs" />
+    <Compile Include="Infraestructura\ConsultaBusqueda.cs" />
     <Compile Include="Infraestructura\ImagenSubida.cs" />
     <Compile Include="Infraestructura\MasterPageMultidioma.cs">
       <SubType>ASPXCodeBehind</SubType>
@@ -495,6 +503,7 @@
     <Content Include="MisActividades.aspx" />
     <Content Include="MisReservas.aspx" />
     <Content Include="SolicitudesRecibidas.aspx" />
+    <Content Include="Newsletter.aspx" />
     <Content Include="PreguntasRecibidas.aspx" />
     <Content Include="Servicios\ServicioEspacios.asmx" />
     <Content Include="Ayuda\AsistenteAyuda.ashx" />

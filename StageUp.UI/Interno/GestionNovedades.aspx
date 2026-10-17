@@ -114,11 +114,13 @@
                     <div class="form-field">
                         <label for="<%= ddlDestinatarios.ClientID %>">Destinatarios</label>
                         <asp:DropDownList ID="ddlDestinatarios" runat="server" CssClass="form-select">
-                            <asp:ListItem Text="Usuarios activos" Value="Activos" Selected="True" />
+                            <asp:ListItem Text="Usuarios activos y suscriptores" Value="Activos" Selected="True" />
                             <asp:ListItem Text="Gestores de espacios" Value="Gestores" />
                             <asp:ListItem Text="Solicitantes" Value="Solicitantes" />
-                            <asp:ListItem Text="Todos los registrados" Value="Todos" />
+                            <asp:ListItem Text="Solo suscriptores del newsletter" Value="Suscriptores" />
+                            <asp:ListItem Text="Todos los registrados y suscriptores" Value="Todos" />
                         </asp:DropDownList>
+                        <small class="field-help"><asp:Literal ID="litResumenSuscriptores" runat="server" Mode="Encode" /> Solo reciben la novedad quienes eligieron su categoría (o todas) y no se dieron de baja; cada correo lleva el enlace para elegir categorías o darse de baja.</small>
                     </div>
 
                     <div class="form-actions">

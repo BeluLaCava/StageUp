@@ -1,28 +1,3 @@
--- =============================================================================
--- 53_PoliticaCancelacionYDetalleReserva.sql  (incremental, no destructivo)
---
--- CU-001-005 Gestionar reservas de espacios artísticos:
---
---  * Política de cancelación del documento (A14, A15 y A16), con los plazos y
---    porcentajes editables en Interno > Parámetros de la plataforma:
---      - 14 días o más antes del inicio: sin cargo;
---      - menos de 14 y al menos 7 días antes: cargo del 50 %;
---      - menos de 7 días antes: cargo del 100 %.
---    Reemplaza a los parámetros HorasCancelacionSinCargo y
---    PenalidadCancelacionPorcentaje (24 h / 10 %) del script 49.
---  * sp_Reserva_Cancelar: el cargo por cancelación de una reserva pagada se
---    reparte entre el gestor y StageUp (A15/A16 paso 7). El cliente recibe
---    NC por lo pagado y ND por el cargo; al gestor se le anula el ingreso de
---    la reserva y se le acredita el cargo, menos la comisión de StageUp (el
---    mismo porcentaje que se aplicó al pago).
---  * sp_Reserva_ObtenerDetalle: datos completos para la pantalla
---    "Detalle de reserva" (A8 y A9).
---  * sp_Reserva_Rechazar: rechaza solo si sigue pendiente e informa si lo
---    hizo, para avisar "la solicitud ya fue procesada" (A11).
---  * Texto de Términos y condiciones sobre cancelaciones.
---
--- Seguro de volver a ejecutar.
--- =============================================================================
 IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;

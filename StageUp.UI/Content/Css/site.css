@@ -9816,6 +9816,22 @@ body.internal-body {
     gap: 1.3rem;
 }
 
+/* Newsletter: invitación a suscribirse en la página de novedades. */
+.public-news-newsletter {
+    grid-column: 1 / -1;
+    order: 10;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1rem;
+    margin: 0;
+}
+
+.public-news-newsletter span {
+    flex: 1 1 22rem;
+    color: var(--color-text-muted);
+}
+
 .public-news-feature,
 .public-news-item {
     background: rgba(255, 252, 250, 0.94);

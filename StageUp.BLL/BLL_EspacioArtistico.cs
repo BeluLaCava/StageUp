@@ -331,6 +331,51 @@ namespace StageUp.BLL
             }
         }
 
+        // Búsqueda interna: consulta de solo lectura de cualquier espacio
+        // (borrador, pausado, publicado o dado de baja). La pantalla controla
+        // el permiso BUSCAR_EN_PLATAFORMA; acá no se publica ni se modifica nada.
+        public ResultadoOperacion<EspacioArtistico> ObtenerDetalleInterno(int idEspacioArtistico)
+        {
+            if (idEspacioArtistico <= 0)
+            {
+                return ResultadoOperacion<EspacioArtistico>.Error("El espacio indicado no es válido.");
+            }
+
+            try
+            {
+                EspacioArtistico espacio = _mppEspacio.ObtenerPorId(new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
+                return espacio == null
+                    ? ResultadoOperacion<EspacioArtistico>.Error("No encontramos el espacio indicado.")
+                    : ResultadoOperacion<EspacioArtistico>.Ok(espacio);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<EspacioArtistico>.Error("No pudimos obtener los datos del espacio. Intentá de nuevo más tarde.");
+            }
+        }
+
+        // Etiqueta legible del estado del espacio para pantallas internas.
+        public static string EtiquetaEstado(EspacioArtistico espacio)
+        {
+            if (espacio == null)
+            {
+                return string.Empty;
+            }
+
+            if (!espacio.Activo || espacio.FechaBaja.HasValue || espacio.EstadoEspacio == "DadoDeBaja")
+            {
+                return "Dado de baja";
+            }
+
+            switch (espacio.EstadoEspacio)
+            {
+                case "Publicado": return espacio.Publicado ? "Publicado" : "Sin publicar";
+                case "Pausado": return "Pausado";
+                case "Borrador": return "Borrador";
+                default: return espacio.Publicado ? "Publicado" : "Sin publicar";
+            }
+        }
+
         public ResultadoOperacion<int> GuardarFicha(EspacioArtistico espacio, int idUsuarioGestor)
         {
             if (!FichaCompletaHabilitada)

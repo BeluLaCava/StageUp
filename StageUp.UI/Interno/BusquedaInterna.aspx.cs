@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using StageUp.BE.Entidades;
@@ -145,6 +146,12 @@ namespace StageUp.UI.Interno
                 return;
             }
 
+            // Aviso cuando un filtro obligó a buscar solo en algunos tipos de contenido.
+            if (!string.IsNullOrWhiteSpace(resultado.Mensaje))
+            {
+                MostrarMensaje(resultado.Mensaje, false);
+            }
+
             int total = resultado.Valor.Sum(g => g.Resultados.Count);
             string queBusco = string.IsNullOrWhiteSpace(filtro.Texto) ? "con los filtros elegidos" : "para \"" + Server.HtmlEncode(filtro.Texto) + "\"";
             string filtros = ConsultaBusqueda.Describir(filtro, _bllBusqueda.ObtenerTiposInternosPermitidos(IdRol), _bllBusqueda.ObtenerEstadosInternosPermitidos(IdRol));
@@ -154,6 +161,17 @@ namespace StageUp.UI.Interno
                     ? "No encontramos resultados " + queBusco + "."
                     : total + (total == 1 ? " resultado " : " resultados ") + queBusco + ".")
                 + (filtros.Length == 0 ? string.Empty : " Filtros: " + Server.HtmlEncode(filtros) + ".");
+
+            // Los espacios abren la consulta interna; se le pasa la búsqueda
+            // actual para que "Volver" regrese a los mismos resultados.
+            string volver = HttpUtility.UrlEncode(ConsultaBusqueda.Armar(string.Empty, filtro).TrimStart('?'));
+            foreach (ResultadoBusqueda item in resultado.Valor.SelectMany(g => g.Resultados))
+            {
+                if (volver.Length > 0 && item.Url != null && item.Url.StartsWith(BLL_Busqueda.UrlDetalleEspacioInterno, StringComparison.OrdinalIgnoreCase))
+                {
+                    item.Url += "&volver=" + volver;
+                }
+            }
 
             rptGrupos.DataSource = resultado.Valor;
             rptGrupos.DataBind();

@@ -135,6 +135,12 @@ namespace StageUp.UI
                 return;
             }
 
+            // Aviso cuando un filtro obligó a buscar solo en algunos tipos de contenido.
+            if (!string.IsNullOrWhiteSpace(resultado.Mensaje))
+            {
+                MostrarMensaje(resultado.Mensaje, false);
+            }
+
             int total = resultado.Valor.Sum(g => g.Resultados.Count);
             string queBusco = string.IsNullOrWhiteSpace(filtro.Texto) ? "con los filtros elegidos" : "para \"" + Server.HtmlEncode(filtro.Texto) + "\"";
             string filtros = ConsultaBusqueda.Describir(filtro, BLL_Busqueda.ObtenerTiposPublicos(), null);

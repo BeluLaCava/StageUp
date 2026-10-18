@@ -39,13 +39,11 @@ namespace StageUp.BLL
             { FiltroBusquedaGlobal.OrdenAlfabetico, "Alfabético" }
         };
 
-        public static readonly Dictionary<string, string> CategoriasNovedad = new Dictionary<string, string>
+        // Categorías de novedades (tabla CategoriaNovedad, script 85): código -> nombre.
+        public static Dictionary<string, string> CategoriasNovedad
         {
-            { "Institucional", "Institucional" },
-            { "Catalogo", "Nuevos espacios" },
-            { "Consejos", "Guías y consejos" },
-            { "Comunidad", "Comunidad artística" }
-        };
+            get { return BLL_CategoriaNovedad.ObtenerEtiquetas(); }
+        }
 
         // Estados que se pueden filtrar en la búsqueda interna, por tipo.
         private static readonly Dictionary<string, Dictionary<string, string>> EstadosPorTipo = new Dictionary<string, Dictionary<string, string>>
@@ -134,7 +132,7 @@ namespace StageUp.BLL
         {
             List<string> publicos = TiposPublicos.Select(t => t.Codigo).ToList();
             FiltroBusquedaGlobal filtro;
-            ResultadoOperacion validacion = ValidarFiltro(pedido, publicos, false, out filtro);
+            ResultadoOperacion validacion = ValidarFiltro(pedido, publicos, false, TiposPublicos, out filtro);
             if (!validacion.Exitoso)
             {
                 return ResultadoOperacion<List<GrupoResultadosBusqueda>>.Error(validacion.Mensaje);
@@ -142,8 +140,9 @@ namespace StageUp.BLL
 
             try
             {
+                // El mensaje (si lo hay) avisa a qué tipos se limitó la búsqueda.
                 return ResultadoOperacion<List<GrupoResultadosBusqueda>>.Ok(
-                    Agrupar(_mpp.BuscarPublico(filtro), TiposPublicos, false));
+                    Agrupar(_mpp.BuscarPublico(filtro), TiposPublicos, false), validacion.Mensaje);
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -166,7 +165,7 @@ namespace StageUp.BLL
             }
 
             FiltroBusquedaGlobal filtro;
-            ResultadoOperacion validacion = ValidarFiltro(pedido, permitidos, true, out filtro);
+            ResultadoOperacion validacion = ValidarFiltro(pedido, permitidos, true, TiposInternos, out filtro);
             if (!validacion.Exitoso)
             {
                 return ResultadoOperacion<List<GrupoResultadosBusqueda>>.Error(validacion.Mensaje);
@@ -175,7 +174,7 @@ namespace StageUp.BLL
             try
             {
                 return ResultadoOperacion<List<GrupoResultadosBusqueda>>.Ok(
-                    Agrupar(_mpp.BuscarInterno(filtro), TiposInternos, true));
+                    Agrupar(_mpp.BuscarInterno(filtro), TiposInternos, true), validacion.Mensaje);
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -200,7 +199,8 @@ namespace StageUp.BLL
         // Valida y normaliza el filtro pedido. Devuelve una copia limpia: los
         // tipos quedan reducidos a los permitidos y los textos, escapados
         // para LIKE.
-        private static ResultadoOperacion ValidarFiltro(FiltroBusquedaGlobal pedido, List<string> permitidos, bool esInterna, out FiltroBusquedaGlobal filtro)
+        private static ResultadoOperacion ValidarFiltro(FiltroBusquedaGlobal pedido, List<string> permitidos, bool esInterna,
+            List<TipoBusqueda> catalogoTipos, out FiltroBusquedaGlobal filtro)
         {
             filtro = null;
             if (pedido == null)
@@ -297,27 +297,84 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("Elegí al menos un tipo de contenido que puedas buscar.");
             }
 
-            // Criterios que solo aplican a algunos tipos.
-            bool conEspacios = limpio.Tipos.Contains("Espacio");
-            if ((limpio.CapacidadMinima.HasValue || limpio.PrecioMaximo.HasValue) && !conEspacios)
+            // Filtros de un tipo de contenido puntual (ítem 6): cada uno se
+            // aplica solo a los tipos que tienen ese dato, igual en la búsqueda
+            // pública y en la interna. Nunca se ignora uno en silencio:
+            //   * si hay filtros de tipos distintos (por ejemplo, ubicación de
+            //     espacios y categoría de novedades), no hay contenido al que
+            //     se apliquen los dos y se avisa;
+            //   * si no, la búsqueda se limita a los tipos donde se aplican y
+            //     el resultado lo dice.
+            List<KeyValuePair<string, List<string>>> especificos = new List<KeyValuePair<string, List<string>>>();
+            if (limpio.CapacidadMinima.HasValue || limpio.PrecioMaximo.HasValue)
             {
-                return ResultadoOperacion.Error("La capacidad y el precio son filtros de espacios: incluí \"Espacios\" en los tipos de contenido.");
+                especificos.Add(new KeyValuePair<string, List<string>>(
+                    limpio.CapacidadMinima.HasValue && limpio.PrecioMaximo.HasValue ? "la capacidad y el precio" : limpio.CapacidadMinima.HasValue ? "la capacidad" : "el precio",
+                    new List<string> { "Espacio" }));
             }
 
-            if (limpio.Ubicacion != null && !conEspacios && !(esInterna && limpio.Tipos.Contains("Reserva")))
+            if (limpio.Ubicacion != null)
             {
-                return ResultadoOperacion.Error(esInterna
-                    ? "La ubicación se aplica a espacios y reservas: incluí alguno de esos tipos."
-                    : "La ubicación es un filtro de espacios: incluí \"Espacios\" en los tipos de contenido.");
+                especificos.Add(new KeyValuePair<string, List<string>>("la ubicación",
+                    esInterna ? new List<string> { "Espacio", "Reserva" } : new List<string> { "Espacio" }));
             }
 
-            if (limpio.CategoriaNovedad != null && !limpio.Tipos.Contains("Novedad"))
+            if (limpio.CategoriaNovedad != null)
             {
-                return ResultadoOperacion.Error("La categoría es un filtro de novedades: incluí \"Novedades\" en los tipos de contenido.");
+                especificos.Add(new KeyValuePair<string, List<string>>("la categoría", new List<string> { "Novedad" }));
+            }
+
+            string aviso = null;
+            if (especificos.Count > 0)
+            {
+                Func<IEnumerable<string>, string> etiquetas = codigos => UnirConY(codigos
+                    .Select(c => catalogoTipos.FirstOrDefault(t => t.Codigo == c))
+                    .Where(t => t != null)
+                    .Select(t => t.Etiqueta.ToLowerInvariant())
+                    .ToList());
+
+                List<string> comunes = permitidos.Where(t => especificos.All(e => e.Value.Contains(t))).ToList();
+                if (comunes.Count == 0)
+                {
+                    return ResultadoOperacion.Error("No se pueden combinar " + UnirConY(especificos
+                        .Select(e => e.Key + " (filtro de " + etiquetas(e.Value.Where(permitidos.Contains)) + ")").ToList()) +
+                        ": cada uno se aplica a un tipo de contenido distinto, así que juntos no darían ningún resultado. Hacé una búsqueda para cada uno.");
+                }
+
+                List<string> restringidos = limpio.Tipos.Where(comunes.Contains).ToList();
+                string filtrosTexto = UnirConY(especificos.Select(e => e.Key).ToList());
+                if (restringidos.Count == 0)
+                {
+                    return ResultadoOperacion.Error(Capitalizar(filtrosTexto) + (especificos.Count == 1 ? " se aplica" : " se aplican") +
+                        " solo a " + etiquetas(comunes) + ": incluí ese tipo de contenido o quitá el filtro.");
+                }
+
+                if (restringidos.Count < limpio.Tipos.Count)
+                {
+                    aviso = "Se buscó solo en " + etiquetas(restringidos) + " porque " + filtrosTexto +
+                        (especificos.Count == 1 ? " se aplica" : " se aplican") + " únicamente a ese contenido.";
+                }
+
+                limpio.Tipos = restringidos;
             }
 
             filtro = limpio;
-            return ResultadoOperacion.Ok();
+            return ResultadoOperacion.Ok(aviso);
+        }
+
+        private static string UnirConY(List<string> partes)
+        {
+            if (partes.Count <= 1)
+            {
+                return partes.Count == 0 ? string.Empty : partes[0];
+            }
+
+            return string.Join(", ", partes.Take(partes.Count - 1)) + " y " + partes[partes.Count - 1];
+        }
+
+        private static string Capitalizar(string texto)
+        {
+            return string.IsNullOrEmpty(texto) ? texto : char.ToUpperInvariant(texto[0]) + texto.Substring(1);
         }
 
         private static string EscaparLike(string texto)
@@ -382,13 +439,17 @@ namespace StageUp.BLL
             }
         }
 
+        public const string UrlDetalleEspacioInterno = "~/Interno/DetalleEspacioInterno.aspx?id=";
+
         private static string ObtenerUrlInterna(ResultadoBusqueda resultado)
         {
             switch (resultado.Tipo)
             {
                 case "UsuarioExterno": return "~/Interno/AprobacionGestores.aspx";
                 case "UsuarioInterno": return "~/Interno/GestionUsuariosInternos.aspx";
-                case "Espacio": return "~/Explorar/DetalleEspacio.aspx?id=" + resultado.IdReferencia;
+                // Consulta interna de solo lectura: sirve también para espacios
+                // sin publicar o dados de baja, sin exponerlos en la ficha pública.
+                case "Espacio": return UrlDetalleEspacioInterno + resultado.IdReferencia;
                 case "Ticket": return "~/Interno/GestionSoporte.aspx?ver=" + resultado.IdReferencia;
                 case "Novedad": return "~/Interno/GestionNovedades.aspx";
                 case "FAQ": return "~/Interno/GestionFaq.aspx";

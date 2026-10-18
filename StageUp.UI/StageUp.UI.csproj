@@ -391,6 +391,20 @@
     <Compile Include="Interno\HistorialFinanciero.aspx.designer.cs">
       <DependentUpon>HistorialFinanciero.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Interno\GestionNewsletter.aspx.cs">
+      <DependentUpon>GestionNewsletter.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\GestionNewsletter.aspx.designer.cs">
+      <DependentUpon>GestionNewsletter.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Interno\DetalleEspacioInterno.aspx.cs">
+      <DependentUpon>DetalleEspacioInterno.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Interno\DetalleEspacioInterno.aspx.designer.cs">
+      <DependentUpon>DetalleEspacioInterno.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Interno\DetalleOperacionFinanciera.aspx.cs">
       <DependentUpon>DetalleOperacionFinanciera.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -539,6 +553,7 @@
     </Compile>
     <Content Include="Ayuda\CentroAyuda.aspx" />
     <Content Include="Content\Css\site.css" />
+    <Content Include="Content\Uploads\Novedades\Web.config" />
     <Content Include="Content\Images\favicon.png" />
     <Content Include="Content\Images\stageup-isotipo.png" />
     <Content Include="Content\Images\stageup-logo.png" />
@@ -597,6 +612,8 @@
     <Content Include="Interno\TransaccionesEconomicas.aspx" />
     <Content Include="Interno\HistorialFinanciero.aspx" />
     <Content Include="MiBilletera.aspx" />
+    <Content Include="Interno\DetalleEspacioInterno.aspx" />
+    <Content Include="Interno\GestionNewsletter.aspx" />
     <Content Include="Interno\DetalleOperacionFinanciera.aspx" />
     <Content Include="Notificaciones.aspx" />
     <Content Include="DisponibilidadEspacio.aspx" />

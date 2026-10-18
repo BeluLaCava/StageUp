@@ -638,11 +638,19 @@ namespace StageUp.BLL
         // gestor (null si no se pudo leer).
         public bool CuentaSigueActiva(int idUsuarioExterno, out string perfilActual)
         {
+            return CuentaSigueActiva(idUsuarioExterno, null, out perfilActual);
+        }
+
+        // Con la fecha de alta guardada en la sesión, además comprueba que el
+        // id siga siendo la misma cuenta (después de restaurar un backup, el
+        // id puede ser de otra persona).
+        public bool CuentaSigueActiva(int idUsuarioExterno, DateTime? fechaAltaEnSesion, out string perfilActual)
+        {
             perfilActual = null;
             try
             {
                 UsuarioExterno usuario = _mppUsuario.ObtenerPorId(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
-                if (usuario == null)
+                if (usuario == null || (fechaAltaEnSesion.HasValue && usuario.FechaAlta != fechaAltaEnSesion.Value))
                 {
                     return false;
                 }

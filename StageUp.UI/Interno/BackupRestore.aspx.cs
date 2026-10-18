@@ -100,8 +100,19 @@ namespace StageUp.UI.Interno
             // permisos que tiene ahí.
             IdBackupARestaurar = null;
             txtConfirmacion.Text = string.Empty;
-            ResultadoRevalidacionSesion sesion = ControlSesionBaseDatos.Verificar();
+            ResultadoRevalidacionSesion sesion = ControlSesionBaseDatos.VerificarSinExcepciones();
             GestorDeSesion.TomarAvisoRestauracion();
+
+            // No se pudo comprobar la cuenta contra la base restaurada: la
+            // sesión queda suspendida y no se usan los permisos anteriores.
+            if (sesion == ResultadoRevalidacionSesion.NoVerificada)
+            {
+                MostrarRestaurado(resultado.Mensaje,
+                    "La base de datos se restauró correctamente, pero no se pudo comprobar tu usuario contra la base restaurada. " +
+                    "Hasta comprobarlo, el panel queda bloqueado y no se usan tus permisos anteriores. Volvé a intentar en unos segundos.",
+                    "~/Interno/PanelAdministrador.aspx", "Volver a intentar");
+                return;
+            }
 
             if (sesion == ResultadoRevalidacionSesion.Invalida)
             {

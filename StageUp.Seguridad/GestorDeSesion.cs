@@ -30,6 +30,24 @@ namespace StageUp.Seguridad
         private const string ClaveMarcaBaseDatos = "StageUp.Sesion.MarcaBaseDatos";
         private const string ClaveAvisoRestauracion = "StageUp.Sesion.AvisoRestauracion";
 
+        // Marca de este pedido (no de la sesión): la base se restauró y no se
+        // pudo comprobar la cuenta contra la base restaurada. Mientras dure,
+        // la sesión se trata como si no hubiera usuario ni permisos.
+        private const string ClaveSesionSuspendida = "StageUp.Pedido.SesionSuspendida";
+
+        public static void SuspenderSesionEnEstePedido()
+        {
+            if (HttpContext.Current != null)
+            {
+                HttpContext.Current.Items[ClaveSesionSuspendida] = true;
+            }
+        }
+
+        public static bool SesionSuspendida
+        {
+            get { return HttpContext.Current != null && HttpContext.Current.Items[ClaveSesionSuspendida] is bool; }
+        }
+
         public static void IniciarSesion(UsuarioExterno usuario)
         {
             if (usuario == null)
@@ -73,24 +91,24 @@ namespace StageUp.Seguridad
 
         public static bool EstaAutenticado()
         {
-            return HttpContext.Current.Session[ClaveIdUsuario] != null;
+            return !SesionSuspendida && HttpContext.Current.Session[ClaveIdUsuario] != null;
         }
 
         public static int? ObtenerIdUsuarioActual()
         {
-            object valor = HttpContext.Current.Session[ClaveIdUsuario];
+            object valor = SesionSuspendida ? null : HttpContext.Current.Session[ClaveIdUsuario];
             return valor == null ? (int?)null : (int)valor;
         }
 
         public static string ObtenerNombreCompletoActual()
         {
-            object valor = HttpContext.Current.Session[ClaveNombreCompleto];
+            object valor = SesionSuspendida ? null : HttpContext.Current.Session[ClaveNombreCompleto];
             return valor == null ? null : valor.ToString();
         }
 
         public static string ObtenerPerfilActual()
         {
-            object valor = HttpContext.Current.Session[ClavePerfil];
+            object valor = SesionSuspendida ? null : HttpContext.Current.Session[ClavePerfil];
             return valor == null ? null : valor.ToString();
         }
 
@@ -138,6 +156,40 @@ namespace StageUp.Seguridad
             GuardarFechaAlta(ClaveAltaCuentaInterna, usuario.FechaAlta);
         }
 
+        // Actualiza nombre, rol y permisos de la sesión interna abierta sin
+        // cambiar su identidad (id y fecha de alta, que solo se fijan al
+        // iniciar sesión). Devuelve false si el usuario leído no es la misma
+        // cuenta: otro id, o el mismo id con otra fecha de alta (por ejemplo,
+        // otra cuenta en una base restaurada).
+        public static bool ActualizarSesionInterna(UsuarioInterno usuario, List<string> codigosPermisos)
+        {
+            if (usuario == null || !EsLaMismaCuentaInterna(usuario.IdUsuarioInterno, usuario.FechaAlta))
+            {
+                return false;
+            }
+
+            HttpContext.Current.Session[ClaveNombreCompletoInterno] = usuario.Nombre + " " + usuario.Apellido;
+            HttpContext.Current.Session[ClaveIdRolInterno] = usuario.IdRolInterno;
+            HttpContext.Current.Session[ClavePermisosInterno] = codigosPermisos == null
+                ? string.Empty
+                : string.Join(",", codigosPermisos);
+            return true;
+        }
+
+        public static bool EsLaMismaCuentaInterna(int idUsuarioInterno, DateTime fechaAlta)
+        {
+            object id = HttpContext.Current.Session[ClaveIdUsuarioInterno];
+            DateTime? alta = HttpContext.Current.Session[ClaveAltaCuentaInterna] as DateTime?;
+            return id is int && (int)id == idUsuarioInterno && alta.HasValue && alta.Value == fechaAlta;
+        }
+
+        public static bool EsLaMismaCuentaExterna(int idUsuarioExterno, DateTime fechaAlta)
+        {
+            object id = HttpContext.Current.Session[ClaveIdUsuario];
+            DateTime? alta = HttpContext.Current.Session[ClaveAltaCuenta] as DateTime?;
+            return id is int && (int)id == idUsuarioExterno && alta.HasValue && alta.Value == fechaAlta;
+        }
+
         public static void CerrarSesionInterna()
         {
             HttpContext.Current.Session.Remove(ClaveIdUsuarioInterno);
@@ -151,30 +203,30 @@ namespace StageUp.Seguridad
 
         public static bool EstaAutenticadoComoInterno()
         {
-            return HttpContext.Current.Session[ClaveIdUsuarioInterno] != null;
+            return !SesionSuspendida && HttpContext.Current.Session[ClaveIdUsuarioInterno] != null;
         }
 
         public static int? ObtenerIdUsuarioInternoActual()
         {
-            object valor = HttpContext.Current.Session[ClaveIdUsuarioInterno];
+            object valor = SesionSuspendida ? null : HttpContext.Current.Session[ClaveIdUsuarioInterno];
             return valor == null ? (int?)null : (int)valor;
         }
 
         public static string ObtenerNombreCompletoInternoActual()
         {
-            object valor = HttpContext.Current.Session[ClaveNombreCompletoInterno];
+            object valor = SesionSuspendida ? null : HttpContext.Current.Session[ClaveNombreCompletoInterno];
             return valor == null ? null : valor.ToString();
         }
 
         public static int? ObtenerIdRolInternoActual()
         {
-            object valor = HttpContext.Current.Session[ClaveIdRolInterno];
+            object valor = SesionSuspendida ? null : HttpContext.Current.Session[ClaveIdRolInterno];
             return valor == null ? (int?)null : (int)valor;
         }
 
         public static bool TienePermisoInterno(string codigoPermiso)
         {
-            object valor = HttpContext.Current.Session[ClavePermisosInterno];
+            object valor = SesionSuspendida ? null : HttpContext.Current.Session[ClavePermisosInterno];
             if (valor == null)
             {
                 return false;

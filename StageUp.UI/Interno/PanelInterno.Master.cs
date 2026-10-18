@@ -25,7 +25,8 @@ namespace StageUp.UI.Interno
         // valide sus permisos, se vuelve a leer la cuenta interna. Si la
         // dieron de baja (o la desactivaron) mientras tenía la sesión abierta,
         // se cierra la sesión; si le cambiaron el rol o los permisos del rol,
-        // la sesión toma los nuevos en ese mismo momento.
+        // la sesión toma los nuevos en ese mismo momento. La identidad de la
+        // sesión (id y fecha de alta) solo se fija al iniciar sesión.
         private void ActualizarSesionInterna()
         {
             int? idUsuarioInterno = GestorDeSesion.ObtenerIdUsuarioInternoActual();
@@ -54,7 +55,14 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-            GestorDeSesion.IniciarSesionInterna(usuario, permisos);
+            // Solo actualiza nombre, rol y permisos. Si el id ya es de otra
+            // cuenta (otra fecha de alta, por ejemplo en una base restaurada),
+            // no adopta esa identidad: cierra la sesión.
+            if (!GestorDeSesion.ActualizarSesionInterna(usuario, permisos))
+            {
+                GestorDeSesion.CerrarSesionInterna();
+                Response.Redirect("~/IniciarSesion.aspx?motivo=" + ControlSesionBaseDatos.MotivoCierre);
+            }
         }
 
         protected void Page_Load(object sender, EventArgs e)

@@ -20,6 +20,7 @@ namespace StageUp.MPP
                 EspaciosIncorporados = Convert.ToInt32(fila["espaciosIncorporados"]),
                 CampaniasActivas = Convert.ToInt32(fila["campaniasActivas"]),
                 ContactosConvertidos = Convert.ToInt32(fila["contactosConvertidos"]),
+                IncorporadosSinCuenta = fila.Table.Columns.Contains("incorporadosSinCuenta") ? Convert.ToInt32(fila["incorporadosSinCuenta"]) : 0,
                 TotalUsuarios = Convert.ToInt32(fila["totalUsuarios"]),
                 TotalCampanias = Convert.ToInt32(fila["totalCampanias"]),
                 TotalContactos = Convert.ToInt32(fila["totalContactos"])

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using StageUp.BE.Entidades;
 using StageUp.BE.Enumerados;
@@ -12,12 +13,34 @@ namespace StageUp.UI.Infraestructura
     //   * Si la marca de la base no cambió, no hace nada (la marca se lee
     //     de memoria; la base se consulta como mucho cada 10 segundos).
     //   * Si cambió, vuelve a validar la cuenta externa y la interna de la
-    //     sesión. Si alguna ya no corresponde, cierra la sesión. Si las dos
-    //     siguen siendo válidas, actualiza nombre, perfil y permisos con los
-    //     datos de la base restaurada y deja un aviso para mostrar una vez.
+    //     sesión (mismo id y misma fecha de alta). Si alguna ya no
+    //     corresponde, cierra la sesión. Si las dos siguen siendo válidas,
+    //     actualiza nombre, perfil y permisos con los datos de la base
+    //     restaurada (sin tocar la identidad) y deja un aviso para mostrar
+    //     una vez.
+    //   * Si no se pudo consultar la cuenta (NoVerificada), la sesión queda
+    //     suspendida en este pedido: no hay usuario ni permisos hasta que se
+    //     compruebe en un pedido siguiente. Nunca sigue con los permisos
+    //     anteriores.
     public static class ControlSesionBaseDatos
     {
         public const string MotivoCierre = "base_restaurada";
+        public const string PaginaVerificacion = "~/SesionNoVerificada.aspx";
+
+        // Igual que Verificar, pero un error inesperado también cuenta como
+        // "no verificada" (y suspende la sesión en este pedido).
+        public static ResultadoRevalidacionSesion VerificarSinExcepciones()
+        {
+            try
+            {
+                return Verificar();
+            }
+            catch (Exception)
+            {
+                GestorDeSesion.SuspenderSesionEnEstePedido();
+                return ResultadoRevalidacionSesion.NoVerificada;
+            }
+        }
 
         public static ResultadoRevalidacionSesion Verificar()
         {
@@ -70,9 +93,9 @@ namespace StageUp.UI.Infraestructura
                 GestorDeSesion.MarcarCuentaVerificada();
             }
 
-            if (usuarioInterno != null)
+            if (usuarioInterno != null && !GestorDeSesion.ActualizarSesionInterna(usuarioInterno, permisos))
             {
-                GestorDeSesion.IniciarSesionInterna(usuarioInterno, permisos);
+                return Cerrar(ResultadoRevalidacionSesion.Invalida);
             }
 
             GestorDeSesion.EstablecerMarcaBaseDatos(marcaActual);
@@ -86,12 +109,16 @@ namespace StageUp.UI.Infraestructura
 
         private static ResultadoRevalidacionSesion Cerrar(ResultadoRevalidacionSesion resultado)
         {
-            // Si no se pudo consultar la base, la sesión sigue como estaba y
-            // se vuelve a intentar en el próximo pedido (la marca no se guarda).
+            // Si no se pudo consultar la base, la sesión se suspende en este
+            // pedido y se vuelve a intentar en el próximo (la marca no se guarda).
             if (resultado == ResultadoRevalidacionSesion.Invalida)
             {
                 GestorDeSesion.CerrarSesion();
                 GestorDeSesion.CerrarSesionInterna();
+            }
+            else
+            {
+                GestorDeSesion.SuspenderSesionEnEstePedido();
             }
 
             return resultado;

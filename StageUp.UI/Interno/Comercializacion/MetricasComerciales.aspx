@@ -66,21 +66,25 @@
                         <span>Nuevos usuarios registrados</span>
                         <strong><asp:Literal ID="litNuevosUsuarios" runat="server" /></strong>
                         <small><asp:Literal ID="litConOrigen" runat="server" Mode="Encode" /></small>
+                        <small class="metricas-filtros"><asp:Literal ID="litFiltrosUsuarios" runat="server" Mode="Encode" /></small>
                     </div>
                     <div class="metricas-tile">
                         <span>Espacios incorporados</span>
                         <strong><asp:Literal ID="litEspacios" runat="server" /></strong>
                         <small>Espacios dados de alta por los gestores</small>
+                        <small class="metricas-filtros"><asp:Literal ID="litFiltrosEspacios" runat="server" Mode="Encode" /></small>
                     </div>
                     <div class="metricas-tile">
                         <span>Campañas comerciales activas</span>
                         <strong><asp:Literal ID="litCampanias" runat="server" /></strong>
                         <small><asp:Literal ID="litCampaniasDetalle" runat="server" Mode="Encode" /></small>
+                        <small class="metricas-filtros"><asp:Literal ID="litFiltrosCampanias" runat="server" Mode="Encode" /></small>
                     </div>
                     <div class="metricas-tile">
                         <span>Contactos convertidos en usuarios</span>
                         <strong><asp:Literal ID="litConvertidos" runat="server" /></strong>
-                        <small>Contactos comerciales incorporados a la plataforma</small>
+                        <small><asp:Literal ID="litConvertidosDetalle" runat="server" Mode="Encode" /></small>
+                        <small class="metricas-filtros"><asp:Literal ID="litFiltrosConvertidos" runat="server" Mode="Encode" /></small>
                     </div>
                 </div>
 

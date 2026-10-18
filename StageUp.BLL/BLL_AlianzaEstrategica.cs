@@ -316,18 +316,18 @@ namespace StageUp.BLL
             int id;
             try
             {
+                // Datos, cambio de estado y vínculos en una sola transacción.
                 id = _mpp.Guardar(alianza, new UsuarioInterno { IdUsuarioInterno = idUsuarioInterno });
                 alianza.IdAlianzaEstrategica = id;
-                _mpp.GuardarVinculos(alianza);
             }
             catch (ErrorAccesoDatosException ex)
             {
                 switch (ex.NumeroErrorSql)
                 {
                     case 51320: return ResultadoOperacion<int>.Error("La alianza ya no existe.");
-                    case 51321: return ResultadoOperacion<int>.Error("El responsable interno tiene que ser un usuario interno activo.", "A17");
-                    case 51322: return ResultadoOperacion<int>.Error("Un vínculo comercial ya no está disponible. Revisá los vínculos y guardá de nuevo.", "A23");
-                    default: return ResultadoOperacion<int>.Error("No fue posible guardar la alianza en este momento. Intentá nuevamente.", "A24");
+                    case 51321: return ResultadoOperacion<int>.Error("El responsable interno tiene que ser un usuario interno activo. No se guardó ningún cambio.", "A17");
+                    case 51322: return ResultadoOperacion<int>.Error("Un vínculo comercial ya no está disponible. No se guardó ningún cambio: revisá los vínculos y guardá de nuevo.", "A23");
+                    default: return ResultadoOperacion<int>.Error("No fue posible guardar la alianza en este momento. No se guardó ningún cambio; intentá nuevamente.", "A24");
                 }
             }
 

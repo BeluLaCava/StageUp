@@ -90,24 +90,14 @@ namespace StageUp.MPP
                     { "@fechaFin", oCampania.FechaFin },
                     { "@estadoCampania", oCampania.EstadoCampania },
                     { "@publicoObjetivo", string.Join(",", oCampania.PublicoObjetivo ?? new List<string>()) },
-                    { "@idUsuarioInternoResponsable", MPP_CatalogoComercial.Nulo(oCampania.IdUsuarioInternoResponsable) }
-                });
-
-            return Convert.ToInt32(resultado);
-        }
-
-        public void GuardarVinculos(CampaniaComercial oCampania)
-        {
-            Conexion.Instance.Guardar(
-                "sp_CampaniaComercial_GuardarVinculos",
-                new Hashtable
-                {
-                    { "@idCampaniaComercial", oCampania.IdCampaniaComercial },
+                    { "@idUsuarioInternoResponsable", MPP_CatalogoComercial.Nulo(oCampania.IdUsuarioInternoResponsable) },
                     { "@idsContactos", MPP_CatalogoComercial.Ids(oCampania.IdsContactos) },
                     { "@idsAlianzas", MPP_CatalogoComercial.Ids(oCampania.IdsAlianzas) },
                     { "@idsContenidos", MPP_CatalogoComercial.Ids(oCampania.IdsContenidos) },
                     { "@idsOrigenes", MPP_CatalogoComercial.Ids(oCampania.IdsOrigenes) }
                 });
+
+            return Convert.ToInt32(resultado);
         }
 
         public bool DarDeBaja(CampaniaComercial oCampania)

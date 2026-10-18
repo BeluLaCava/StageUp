@@ -29,6 +29,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
@@ -69,6 +70,7 @@
     <Compile Include="BLL_AlianzaEstrategica.cs" />
     <Compile Include="BLL_CampaniaComercial.cs" />
     <Compile Include="BLL_ContenidoPromocional.cs" />
+    <Compile Include="ValidadorEstructuraArchivo.cs" />
     <Compile Include="BLL_MetricasComerciales.cs" />
     <Compile Include="BLL_CatalogoComercial.cs" />
     <Compile Include="BLL_ContactoComercial.cs" />

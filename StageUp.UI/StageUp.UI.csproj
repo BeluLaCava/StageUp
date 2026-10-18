@@ -475,6 +475,13 @@
     <Compile Include="PaginaNoEncontrada.aspx.designer.cs">
       <DependentUpon>PaginaNoEncontrada.aspx</DependentUpon>
     </Compile>
+    <Compile Include="SesionNoVerificada.aspx.cs">
+      <DependentUpon>SesionNoVerificada.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="SesionNoVerificada.aspx.designer.cs">
+      <DependentUpon>SesionNoVerificada.aspx</DependentUpon>
+    </Compile>
     <Compile Include="ErrorGeneral.aspx.cs">
       <DependentUpon>ErrorGeneral.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -600,6 +607,7 @@
     <Content Include="Buscar.aspx" />
     <Content Include="PaginaNoEncontrada.aspx" />
     <Content Include="ErrorGeneral.aspx" />
+    <Content Include="SesionNoVerificada.aspx" />
     <Content Include="Global.asax" />
     <Content Include="Encuestas.aspx" />
     <Content Include="Soporte.aspx" />

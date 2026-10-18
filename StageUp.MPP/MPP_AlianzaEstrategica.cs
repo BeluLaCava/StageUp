@@ -123,24 +123,14 @@ namespace StageUp.MPP
                     { "@estadoAlianza", oAlianza.EstadoAlianza },
                     { "@observaciones", MPP_CatalogoComercial.Nulo(oAlianza.Observaciones) },
                     { "@observacionCambio", MPP_CatalogoComercial.Nulo(oAlianza.ObservacionCambioEstado) },
-                    { "@idUsuarioInterno", oUsuario.IdUsuarioInterno }
-                });
-
-            return Convert.ToInt32(resultado);
-        }
-
-        public void GuardarVinculos(AlianzaEstrategica oAlianza)
-        {
-            Conexion.Instance.Guardar(
-                "sp_AlianzaEstrategica_GuardarVinculos",
-                new Hashtable
-                {
-                    { "@idAlianzaEstrategica", oAlianza.IdAlianzaEstrategica },
+                    { "@idUsuarioInterno", oUsuario.IdUsuarioInterno },
                     { "@idsContactos", MPP_CatalogoComercial.Ids(oAlianza.IdsContactos) },
                     { "@idsCampanias", MPP_CatalogoComercial.Ids(oAlianza.IdsCampanias) },
                     { "@idsContenidos", MPP_CatalogoComercial.Ids(oAlianza.IdsContenidos) },
                     { "@idsOrigenes", MPP_CatalogoComercial.Ids(oAlianza.IdsOrigenes) }
                 });
+
+            return Convert.ToInt32(resultado);
         }
 
         public void RegistrarSeguimiento(SeguimientoAlianza oSeguimiento)

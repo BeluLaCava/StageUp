@@ -240,7 +240,13 @@ namespace StageUp.BLL
                     FechaFin = campania.FechaFin,
                     EstadoCampania = campania.EstadoCampania,
                     PublicoObjetivo = campania.PublicoObjetivo,
-                    IdUsuarioInternoResponsable = esAlta ? idUsuarioInternoResponsable : (int?)null
+                    IdUsuarioInternoResponsable = esAlta ? idUsuarioInternoResponsable : (int?)null,
+                    // Pasos 16 y 22: los vínculos se guardan en la misma
+                    // transacción que los datos (todo o nada).
+                    IdsContactos = campania.IdsContactos,
+                    IdsAlianzas = campania.IdsAlianzas,
+                    IdsContenidos = campania.IdsContenidos,
+                    IdsOrigenes = campania.IdsOrigenes
                 });
             }
             catch (ErrorAccesoDatosException ex)
@@ -250,22 +256,15 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error("La campaña ya no existe o fue dada de baja, por eso no se puede editar.");
                 }
 
-                return ResultadoOperacion<int>.Error("No fue posible guardar la campaña en este momento. Intentá guardarla nuevamente.", "A17");
+                if (ex.NumeroErrorSql == 51302)
+                {
+                    return ResultadoOperacion<int>.Error("Un vínculo comercial elegido ya no está disponible. No se guardó ningún cambio: revisá los vínculos y guardá de nuevo.", "A16");
+                }
+
+                return ResultadoOperacion<int>.Error("No fue posible guardar la campaña en este momento. No se guardó ningún cambio; intentá nuevamente.", "A17");
             }
 
-            // Pasos 16 y 22: vínculos comerciales.
             campania.IdCampaniaComercial = id;
-            string avisoVinculos = null;
-            try
-            {
-                _mpp.GuardarVinculos(campania);
-            }
-            catch (ErrorAccesoDatosException ex)
-            {
-                avisoVinculos = ex.NumeroErrorSql == 51302
-                    ? " Pero un vínculo comercial elegido ya no está disponible (A16): revisá los vínculos y guardá de nuevo."
-                    : " Pero no se pudieron guardar los vínculos comerciales: editala y guardá de nuevo.";
-            }
 
             string resumenVinculos = campania.IdsContactos.Count + " contactos, " + campania.IdsAlianzas.Count + " alianzas, " +
                 campania.IdsContenidos.Count + " contenidos y " + campania.IdsOrigenes.Count + " orígenes";
@@ -280,11 +279,6 @@ namespace StageUp.BLL
                 (anterior != null && anterior.EstadoCampania != campania.EstadoCampania
                     ? " Estado anterior: " + TextoEstado(anterior) + "."
                     : string.Empty));
-
-            if (avisoVinculos != null)
-            {
-                return ResultadoOperacion<int>.OkAlternativo(id, (esAlta ? "La campaña se guardó." : "Los datos de la campaña se actualizaron.") + avisoVinculos, "A16");
-            }
 
             return ResultadoOperacion<int>.Ok(id, esAlta
                 ? "La campaña comercial fue guardada correctamente."

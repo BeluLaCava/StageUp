@@ -104,9 +104,14 @@ namespace StageUp.UI.Interno.Comercializacion
             litEspacios.Text = r.EspaciosIncorporados.ToString("N0", CultureInfo.GetCultureInfo("es-AR"));
             litCampanias.Text = r.CampaniasActivas.ToString("N0", CultureInfo.GetCultureInfo("es-AR"));
             litCampaniasDetalle.Text = filtro.Desde.HasValue || filtro.Hasta.HasValue
-                ? "Activas en algún momento del período"
+                ? "Activas en algún momento del período (incluye las que hoy están finalizadas)"
                 : "Campañas en curso marcadas como activas";
             litConvertidos.Text = r.ContactosConvertidos.ToString("N0", CultureInfo.GetCultureInfo("es-AR"));
+            litConvertidosDetalle.Text = "Contactos incorporados que ya tienen una cuenta de StageUp" +
+                (r.IncorporadosSinCuenta > 0
+                    ? " · " + r.IncorporadosSinCuenta + (r.IncorporadosSinCuenta == 1 ? " incorporado" : " incorporados") + " todavía sin cuenta (no se cuentan)"
+                    : string.Empty);
+            MostrarFiltrosPorIndicador(filtro);
 
             ResultadoOperacion<List<MetricaCanalOrigen>> canales = _bll.ListarPorCanal(filtro);
             if (!canales.Exitoso)
@@ -150,6 +155,54 @@ namespace StageUp.UI.Interno.Comercializacion
             Agregar(partes, "canal", ddlCanal.SelectedValue);
             Agregar(partes, "tipo", ddlTipoUsuario.SelectedValue);
             Redirigir(ArmarUrl(Pagina, partes) + "#origen", null);
+        }
+
+        // Qué filtros usa cada indicador (los que no le corresponden se dicen
+        // explícitamente para que no parezca que se aplicaron).
+        private void MostrarFiltrosPorIndicador(FiltroMetricasComerciales filtro)
+        {
+            bool periodo = filtro.Desde.HasValue || filtro.Hasta.HasValue;
+            bool campania = filtro.IdCampaniaComercial.HasValue;
+            bool canal = filtro.CanalOrigen != null;
+            bool tipo = filtro.TipoUsuario != null;
+
+            litFiltrosUsuarios.Text = TextoFiltros(periodo, "fecha de registro", campania, canal, tipo, true, true);
+            litFiltrosEspacios.Text = ConNota(TextoFiltros(periodo, "fecha de alta del espacio", campania, canal, tipo, true, true),
+                canal || tipo || campania ? "según el gestor que lo cargó" : null);
+            litFiltrosCampanias.Text = TextoFiltros(periodo, "vigencia", campania, canal, tipo, false, false);
+            litFiltrosConvertidos.Text = ConNota(TextoFiltros(periodo, "fecha de incorporación", campania, canal, tipo, true, true),
+                tipo ? "el tipo es el de la cuenta asociada" : null);
+        }
+
+        private static string ConNota(string texto, string nota)
+        {
+            return nota == null || !texto.EndsWith(".", StringComparison.Ordinal)
+                ? texto
+                : texto.Substring(0, texto.Length - 1) + " (" + nota + ").";
+        }
+
+        private static string TextoFiltros(bool periodo, string fechaPeriodo, bool campania, bool canal, bool tipo,
+            bool usaCanal, bool usaTipo)
+        {
+            List<string> aplica = new List<string>();
+            List<string> noAplica = new List<string>();
+            if (periodo) aplica.Add("período (" + fechaPeriodo + ")");
+            if (campania) aplica.Add("campaña");
+            if (canal) (usaCanal ? aplica : noAplica).Add("canal de origen");
+            if (tipo) (usaTipo ? aplica : noAplica).Add("tipo de usuario");
+
+            if (aplica.Count == 0 && noAplica.Count == 0)
+            {
+                return "Sin filtros: todo el historial.";
+            }
+
+            string texto = aplica.Count > 0 ? "Filtra por " + string.Join(", ", aplica) + "." : "No usa los filtros elegidos.";
+            if (noAplica.Count > 0)
+            {
+                texto += " No depende del " + string.Join(" ni del ", noAplica) + ".";
+            }
+
+            return texto;
         }
 
         // Ancho de la barra relativo al canal con más usuarios (mínimo visible

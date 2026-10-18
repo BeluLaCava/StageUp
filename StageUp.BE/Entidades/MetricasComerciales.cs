@@ -29,6 +29,9 @@ namespace StageUp.BE.Entidades
         public int EspaciosIncorporados { get; set; }
         public int CampaniasActivas { get; set; }
         public int ContactosConvertidos { get; set; }
+        // Contactos incorporados comercialmente que todavía no tienen una
+        // cuenta de StageUp asociada (no cuentan como convertidos).
+        public int IncorporadosSinCuenta { get; set; }
         public int TotalUsuarios { get; set; }
         public int TotalCampanias { get; set; }
         public int TotalContactos { get; set; }

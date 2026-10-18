@@ -11864,6 +11864,7 @@ table tbody tr:hover {
 .metricas-tile span { color: var(--color-text-muted); font-size: 0.82rem; font-weight: 600; }
 .metricas-tile strong { font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .metricas-tile small { color: var(--color-text-muted); font-size: 0.78rem; }
+.metricas-tile .metricas-filtros { margin-top: auto; padding-top: 0.35rem; border-top: 1px dashed var(--color-border); font-size: 0.74rem; }
 
 .metricas-barras { list-style: none; margin: 0.5rem 0 1.5rem; padding: 0; display: grid; gap: 0.35rem; }
 .metricas-barras li {

@@ -445,7 +445,7 @@ namespace StageUp.UI.Interno
             UsuarioInterno usuario = _bllUsuario.ObtenerParaSesion(idUsuarioInterno, out permisos);
             if (usuario != null)
             {
-                GestorDeSesion.IniciarSesionInterna(usuario, permisos);
+                GestorDeSesion.ActualizarSesionInterna(usuario, permisos);
             }
         }
 

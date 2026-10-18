@@ -32,7 +32,7 @@ namespace StageUp.UI
             if (idUsuario.HasValue && GestorDeSesion.CorrespondeVerificarCuenta())
             {
                 string perfilActual;
-                if (!new BLL_UsuarioExterno().CuentaSigueActiva(idUsuario.Value, out perfilActual))
+                if (!new BLL_UsuarioExterno().CuentaSigueActiva(idUsuario.Value, GestorDeSesion.ObtenerFechaAltaCuentaActual(), out perfilActual))
                 {
                     GestorDeSesion.CerrarSesion();
                     Response.Redirect("~/Default.aspx?cuenta=baja", true);

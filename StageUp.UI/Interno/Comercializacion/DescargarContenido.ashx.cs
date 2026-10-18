@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Web;
 using System.Web.SessionState;
 using StageUp.BE.Entidades;
@@ -10,7 +11,8 @@ namespace StageUp.UI.Interno.Comercializacion
 {
     // CU-004-005: descarga del archivo de una pieza promocional, solo para
     // usuarios internos con el permiso. ?id={id} descarga; &ver=1 muestra
-    // una imagen en el navegador (vista previa del detalle).
+    // una imagen en el navegador (vista previa del detalle). En cada pedido
+    // se revalida la cuenta y el permiso contra la base.
     public class DescargarContenido : IHttpHandler, IRequiresSessionState
     {
         public bool IsReusable
@@ -20,8 +22,36 @@ namespace StageUp.UI.Interno.Comercializacion
 
         public void ProcessRequest(HttpContext context)
         {
-            if (!GestorDeSesion.EstaAutenticadoComoInterno() ||
-                !GestorDeSesion.TienePermisoInterno(BLL_ContenidoPromocional.PermisoGestionar))
+            // Al pedir el archivo directamente no pasa por el panel: se vuelve a
+            // leer la cuenta (activa, misma identidad) y sus permisos actuales.
+            int? idUsuarioInterno = GestorDeSesion.ObtenerIdUsuarioInternoActual();
+            if (!idUsuarioInterno.HasValue)
+            {
+                context.Response.StatusCode = 403;
+                return;
+            }
+
+            List<string> permisos;
+            UsuarioInterno usuario;
+            try
+            {
+                usuario = new BLL_UsuarioInterno().ObtenerParaSesion(idUsuarioInterno.Value, out permisos);
+            }
+            catch (Exception)
+            {
+                // Sin poder comprobar la cuenta no se entrega el archivo.
+                context.Response.StatusCode = 503;
+                return;
+            }
+
+            if (usuario == null || !GestorDeSesion.ActualizarSesionInterna(usuario, permisos))
+            {
+                GestorDeSesion.CerrarSesionInterna();
+                context.Response.StatusCode = 403;
+                return;
+            }
+
+            if (!GestorDeSesion.TienePermisoInterno(BLL_ContenidoPromocional.PermisoGestionar))
             {
                 context.Response.StatusCode = 403;
                 return;

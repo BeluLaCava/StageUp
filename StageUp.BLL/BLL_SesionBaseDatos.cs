@@ -114,7 +114,7 @@ namespace StageUp.BLL
 
             if (usuario == null ||
                 usuario.EstadoCuenta != EstadoCuentaExterno.Activa.ToString() ||
-                (fechaAltaEnSesion.HasValue && usuario.FechaAlta != fechaAltaEnSesion.Value))
+                (!fechaAltaEnSesion.HasValue || usuario.FechaAlta != fechaAltaEnSesion.Value))
             {
                 usuario = null;
                 RegistrarCierre("UsuarioExterno", idUsuarioExterno);
@@ -140,7 +140,7 @@ namespace StageUp.BLL
                 return ResultadoRevalidacionSesion.NoVerificada;
             }
 
-            if (usuario == null || (fechaAltaEnSesion.HasValue && usuario.FechaAlta != fechaAltaEnSesion.Value))
+            if (usuario == null || (!fechaAltaEnSesion.HasValue || usuario.FechaAlta != fechaAltaEnSesion.Value))
             {
                 usuario = null;
                 codigosPermisos = null;

@@ -22,20 +22,26 @@ namespace StageUp.UI
                 return;
             }
 
-            ResultadoRevalidacionSesion resultado;
-            try
+            // Si la base se restauró y no se pudo comprobar la cuenta, la sesión
+            // queda suspendida en este pedido (sin usuario ni permisos): las
+            // páginas van a un aviso y los handlers la ven como sin sesión.
+            ResultadoRevalidacionSesion resultado = ControlSesionBaseDatos.VerificarSinExcepciones();
+            if (!(contexto.Handler is Page))
             {
-                resultado = ControlSesionBaseDatos.Verificar();
-            }
-            catch (Exception)
-            {
-                // Un problema al verificar no debe impedir usar el sitio.
                 return;
             }
 
-            if (resultado == ResultadoRevalidacionSesion.Invalida && contexto.Handler is Page)
+            if (resultado == ResultadoRevalidacionSesion.Invalida)
             {
                 contexto.Response.Redirect("~/IniciarSesion.aspx?motivo=" + ControlSesionBaseDatos.MotivoCierre, false);
+                contexto.ApplicationInstance.CompleteRequest();
+            }
+            else if (resultado == ResultadoRevalidacionSesion.NoVerificada &&
+                !string.Equals(contexto.Request.AppRelativeCurrentExecutionFilePath, ControlSesionBaseDatos.PaginaVerificacion, StringComparison.OrdinalIgnoreCase))
+            {
+                string volver = contexto.Request.HttpMethod == "GET" ? contexto.Request.RawUrl : string.Empty;
+                contexto.Response.Redirect(ControlSesionBaseDatos.PaginaVerificacion +
+                    (volver.Length > 0 ? "?volver=" + HttpUtility.UrlEncode(volver) : string.Empty), false);
                 contexto.ApplicationInstance.CompleteRequest();
             }
         }

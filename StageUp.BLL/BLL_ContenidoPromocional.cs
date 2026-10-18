@@ -103,6 +103,15 @@ namespace StageUp.BLL
                 return ResultadoOperacion<ArchivoPromocional>.Error("El contenido del archivo no corresponde a su extensión.", "A12");
             }
 
+            // La firma inicial no alcanza: se recorre la estructura completa
+            // (archivos truncados, renombrados o un ZIP que no es el documento
+            // de Office que dice ser).
+            if (!ValidadorEstructuraArchivo.EsValido(extension.ToLowerInvariant(), contenido))
+            {
+                return ResultadoOperacion<ArchivoPromocional>.Error("El archivo está dañado, incompleto o no es un " +
+                    extension.TrimStart('.').ToUpperInvariant() + " válido. Revisalo y volvé a adjuntarlo.", "A12");
+            }
+
             if (nombre.Length > 200)
             {
                 nombre = nombre.Substring(0, 200 - extension.Length) + extension;

@@ -20,6 +20,9 @@ namespace StageUp.UI.Interno
         private readonly BLL_Novedad _bllNovedad = new BLL_Novedad();
         private readonly BLL_UsuarioInterno _bllUsuarioInterno = new BLL_UsuarioInterno();
 
+        // Envío de cada novedad (script 85), para el listado.
+        private Dictionary<int, EnvioNewsletter> _envios = new Dictionary<int, EnvioNewsletter>();
+
         private int? IdNovedadEnEdicion
         {
             get { return ViewState["IdNovedadEnEdicion"] as int?; }
@@ -44,6 +47,7 @@ namespace StageUp.UI.Interno
 
             if (!IsPostBack)
             {
+                CargarCategorias(null);
                 CargarNovedades();
             }
         }
@@ -162,6 +166,14 @@ namespace StageUp.UI.Interno
                     MostrarMensaje(resultadoEnvio.Mensaje, !resultadoEnvio.Exitoso);
                     CargarNovedades();
                     return;
+
+                case "ReintentarNewsletter":
+                    ResultadoOperacion<int> resultadoReintento = _bllNovedad.ReintentarNewsletter(
+                        idNovedad, ConstruirUrlNovedadesPublicas(), idResponsable,
+                        ConstruirUrlBaseAplicacion(), Server.MapPath("~/"));
+                    MostrarMensaje(resultadoReintento.Mensaje, !resultadoReintento.Exitoso);
+                    CargarNovedades();
+                    return;
             }
         }
 
@@ -256,6 +268,10 @@ namespace StageUp.UI.Interno
                 ? FormatearFecha(ultimoEnvio.Value)
                 : "Sin envíos";
 
+            _envios = _bllNovedad.ListarEnvios(null, 500)
+                .GroupBy(e => e.IdNovedad)
+                .ToDictionary(g => g.Key, g => g.First());
+
             string filtro = ddlFiltroEstado.SelectedValue;
             List<Novedad> listado = string.IsNullOrEmpty(filtro) ? todas : _bllNovedad.Listar(filtro);
             litSinNovedades.Text = string.IsNullOrEmpty(filtro)
@@ -285,7 +301,7 @@ namespace StageUp.UI.Interno
             txtTitulo.Text = novedad.Titulo;
             txtResumen.Text = novedad.Resumen;
             txtContenido.Text = novedad.Contenido;
-            ddlCategoria.SelectedValue = novedad.Categoria;
+            CargarCategorias(novedad.Categoria);
             txtFechaPublicacion.Text = novedad.FechaPublicacion.HasValue
                 ? novedad.FechaPublicacion.Value.ToString(FormatoFechaHora, CultureInfo.InvariantCulture)
                 : string.Empty;
@@ -308,7 +324,7 @@ namespace StageUp.UI.Interno
             txtTitulo.Text = string.Empty;
             txtResumen.Text = string.Empty;
             txtContenido.Text = string.Empty;
-            ddlCategoria.SelectedIndex = 0;
+            CargarCategorias(null);
             txtFechaPublicacion.Text = string.Empty;
             txtFechaVencimiento.Text = string.Empty;
             MostrarImagenActual(null);
@@ -342,7 +358,7 @@ namespace StageUp.UI.Interno
             error = null;
             if (fuImagen.HasFile)
             {
-                string ruta = ImagenSubida.GuardarComoJpeg(fuImagen.PostedFile, BLL_Novedad.CarpetaImagenes, Server, out error);
+                string ruta = ImagenSubida.Guardar(fuImagen.PostedFile, BLL_Novedad.CarpetaImagenes, Server, out error);
                 if (ruta == null)
                 {
                     return null;
@@ -379,18 +395,82 @@ namespace StageUp.UI.Interno
 
         protected static string ObtenerEtiquetaCategoria(string categoria)
         {
-            switch (categoria)
+            return BLL_CategoriaNovedad.ObtenerEtiqueta(categoria);
+        }
+
+        // Categorías activas; al editar, también la que ya tenía la novedad
+        // aunque se haya desactivado.
+        private void CargarCategorias(string categoriaActual)
+        {
+            ddlCategoria.Items.Clear();
+            foreach (CategoriaNovedad categoria in BLL_CategoriaNovedad.ListarTodas())
             {
-                case "Institucional":
-                    return "Novedad institucional";
-                case "Catalogo":
-                    return "Nuevos espacios";
-                case "Consejos":
-                    return "Consejos para usuarios";
-                case "Comunidad":
-                    return "Comunidad artística";
-                default:
-                    return "Novedades StageUp";
+                bool esLaActual = string.Equals(categoria.Codigo, categoriaActual, StringComparison.OrdinalIgnoreCase);
+                if (categoria.Activa || esLaActual)
+                {
+                    ddlCategoria.Items.Add(new ListItem(categoria.Nombre + (categoria.Activa ? string.Empty : " (desactivada)"), categoria.Codigo));
+                }
+            }
+
+            ListItem elegida = categoriaActual == null ? null : ddlCategoria.Items.Cast<ListItem>()
+                .FirstOrDefault(i => string.Equals(i.Value, categoriaActual, StringComparison.OrdinalIgnoreCase));
+            if (elegida != null)
+            {
+                ddlCategoria.SelectedValue = elegida.Value;
+            }
+            else if (ddlCategoria.Items.Count > 0)
+            {
+                ddlCategoria.SelectedIndex = 0;
+            }
+        }
+
+        protected EnvioNewsletter ObtenerEnvio(object dato)
+        {
+            Novedad novedad = dato as Novedad;
+            EnvioNewsletter envio;
+            return novedad != null && _envios.TryGetValue(novedad.IdNovedad, out envio) ? envio : null;
+        }
+
+        protected bool PuedeReintentar(object dato)
+        {
+            EnvioNewsletter envio = ObtenerEnvio(dato);
+            return envio != null && envio.PuedeReintentar;
+        }
+
+        protected string ObtenerTextoEnvio(object dato)
+        {
+            EnvioNewsletter envio = ObtenerEnvio(dato);
+            if (envio == null)
+            {
+                return string.Empty;
+            }
+
+            string texto = "Newsletter: " + BLL_Novedad.ObtenerEtiquetaEstadoEnvio(envio.Estado);
+            if (envio.Estado == EnvioNewsletter.EstadoEnCurso)
+            {
+                return texto + (envio.PuedeReintentar ? " (se interrumpió; podés reintentar)" : " (enviando…)");
+            }
+
+            if (envio.Estado == EnvioNewsletter.EstadoSinDestinatarios)
+            {
+                return texto;
+            }
+
+            return texto + " · " + envio.CantidadEnviados + " de " + envio.CantidadDestinatarios + " recibieron" +
+                (envio.CantidadFallidos > 0 ? " · " + envio.CantidadFallidos + " fallido(s)" : string.Empty) +
+                (envio.CantidadOmitidos > 0 ? " · " + envio.CantidadOmitidos + " omitido(s)" : string.Empty);
+        }
+
+        protected string ObtenerClaseEnvio(object dato)
+        {
+            EnvioNewsletter envio = ObtenerEnvio(dato);
+            switch (envio == null ? null : envio.Estado)
+            {
+                case EnvioNewsletter.EstadoCompleto: return "envio-resumen envio-resumen-ok";
+                case EnvioNewsletter.EstadoParcial: return "envio-resumen envio-resumen-alerta";
+                case EnvioNewsletter.EstadoFallido: return "envio-resumen envio-resumen-error";
+                case EnvioNewsletter.EstadoEnCurso: return envio.PuedeReintentar ? "envio-resumen envio-resumen-alerta" : "envio-resumen envio-resumen-neutro";
+                default: return "envio-resumen envio-resumen-neutro";
             }
         }
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
@@ -27,7 +28,7 @@ namespace StageUp.BLL
         private const int LongitudMaximaResumen = 300;
 
         public const string CarpetaImagenes = "~/Content/Uploads/Novedades/";
-        private static readonly Regex FormatoImagenSubida = new Regex(@"^~/Content/Uploads/Novedades/[a-f0-9]{32}\.jpg$", RegexOptions.Compiled);
+        private static readonly Regex FormatoImagenSubida = new Regex(@"^~/Content/Uploads/Novedades/[a-f0-9]{32}\.(jpg|webp)$", RegexOptions.Compiled);
 
         public static string ObtenerEtiquetaEstado(string estado)
         {
@@ -47,23 +48,20 @@ namespace StageUp.BLL
             return !string.IsNullOrEmpty(urlImagen) && FormatoImagenSubida.IsMatch(urlImagen);
         }
 
-        // Mismos valores que ofrece el desplegable "Categoría" en
-        // Interno/GestionNovedades.aspx.
-        public static readonly string[] Categorias =
-        {
-            "Institucional", "Catalogo", "Consejos", "Comunidad"
-        };
+        // Las categorías están en la tabla CategoriaNovedad (script 85, ver
+        // BLL_CategoriaNovedad).
 
         // Mismos valores que ofrece el desplegable "Destinatarios" en
-        // Interno/GestionNovedades.aspx.
-        // Activos y Todos incluyen también a los suscriptores sin cuenta;
-        // Suscriptores es solo para ellos (script 78).
+        // Interno/GestionNovedades.aspx. Siempre son suscriptores confirmados
+        // (script 85): Activos (todos; "Todos" es sinónimo), Gestores y
+        // Solicitantes (con cuenta de ese perfil) o Suscriptores (sin cuenta).
         public static readonly string[] DestinatariosNewsletter =
         {
             "Activos", "Gestores", "Solicitantes", "Suscriptores", "Todos"
         };
 
         private readonly MPP_Novedad _mpp = new MPP_Novedad();
+        private readonly MPP_EnvioNewsletter _mppEnvio = new MPP_EnvioNewsletter();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
 
@@ -178,7 +176,7 @@ namespace StageUp.BLL
                 ResultadoOperacion validacion = ValidarDatos(
                     titulo, resumen, contenido, categoria, urlImagen,
                     out tituloNormalizado, out resumenNormalizado, out contenidoNormalizado,
-                    out categoriaNormalizada, out urlImagenNormalizada);
+                    out categoriaNormalizada, out urlImagenNormalizada, actual.Categoria);
                 if (!validacion.Exitoso)
                 {
                     return validacion;
@@ -343,44 +341,157 @@ namespace StageUp.BLL
             });
         }
 
-        // Envía el newsletter de una novedad ya publicada a los usuarios
-        // externos activos de la categoría elegida, usando la plantilla de
-        // StageUp.Servicios.ServicioCorreo. Solo se puede enviar una vez por
-        // novedad (se marca con enviadaPorCorreo) para evitar duplicar
-        // envíos si la novedad se vuelve a editar más adelante.
+        // Envía el newsletter de una novedad vigente a los suscriptores
+        // confirmados del criterio elegido (script 85). Cada envío guarda el
+        // estado de cada destinatario: Completo, Parcial (algunos fallaron),
+        // Fallido (no llegó a nadie) o SinDestinatarios. Una novedad tiene un
+        // único envío; si quedaron fallidos se reintentan solo esos con
+        // ReintentarNewsletter.
         public ResultadoOperacion<int> EnviarNewsletter(
             int idNovedad, string destinatarioCodigo, string urlNovedades, int idUsuarioInternoResponsable,
             string urlBaseAplicacion = null, string rutaBaseAplicacion = null)
         {
-            return EjecutarProtegido<int>(() =>
+            Novedad novedad;
+            try
             {
-                Novedad novedad = _mpp.ObtenerPorId(new Novedad { IdNovedad = idNovedad });
-                if (novedad == null)
-                {
-                    return ResultadoOperacion<int>.Error("No se encontró la novedad seleccionada.");
-                }
+                novedad = _mpp.ObtenerPorId(new Novedad { IdNovedad = idNovedad });
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<int>.Error("No se pudo leer la novedad. Intentá nuevamente.");
+            }
 
-                if (novedad.Estado != Novedad.EstadoVigente)
-                {
-                    return ResultadoOperacion<int>.Error(novedad.Estado == Novedad.EstadoProgramada
-                        ? "La novedad todavía no está vigente: podés enviarla por correo a partir del " + FormatearFechaHora(novedad.FechaPublicacion.Value) + "."
-                        : "Solo se puede enviar por correo una novedad vigente (publicada y sin vencer).");
-                }
+            ResultadoOperacion vigente = ValidarParaEnviar(novedad);
+            if (!vigente.Exitoso)
+            {
+                return ResultadoOperacion<int>.Error(vigente.Mensaje);
+            }
 
-                if (novedad.EnviadaPorCorreo)
-                {
-                    return ResultadoOperacion<int>.Error("Esta novedad ya se envió por correo anteriormente.");
-                }
+            if (novedad.EnviadaPorCorreo)
+            {
+                return ResultadoOperacion<int>.Error("Esta novedad ya se envió por correo anteriormente.");
+            }
 
-                string criterio = EsDestinatarioValido(destinatarioCodigo) ? destinatarioCodigo : "Activos";
-                // Usuarios del criterio y suscriptores confirmados, sin los que
-                // se dieron de baja ni los que eligieron otras categorías.
-                List<DestinatarioNewsletter> destinatarios = new BLL_Newsletter().ListarDestinatarios(criterio, novedad);
-                string urlImagenNewsletter = ConstruirUrlAbsoluta(novedad.UrlImagen, urlBaseAplicacion);
-                string rutaImagenNewsletter = ResolverRutaFisica(novedad.UrlImagen, rutaBaseAplicacion);
+            string criterio = EsDestinatarioValido(destinatarioCodigo) ? NormalizarCriterio(destinatarioCodigo) : "Activos";
+            int idEnvio;
+            try
+            {
+                idEnvio = _mppEnvio.Iniciar(novedad, criterio, idUsuarioInternoResponsable);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion<int>.Error(
+                    ex.NumeroErrorSql == 51081 ? "Esta novedad ya se envió por correo. Si quedaron destinatarios sin recibirla, usá \"Reintentar fallidos\"."
+                    : ex.NumeroErrorSql == 51080 ? "No se encontró la novedad seleccionada."
+                    : "No se pudo preparar el envío del newsletter. Intentá nuevamente.");
+            }
 
-                int enviados = 0;
-                foreach (DestinatarioNewsletter destinatario in destinatarios)
+            return Enviar(idEnvio, novedad, criterio, urlNovedades, idUsuarioInternoResponsable, urlBaseAplicacion, rutaBaseAplicacion, false);
+        }
+
+        // Vuelve a enviar solo a los destinatarios que fallaron (o que
+        // quedaron pendientes si el envío se cortó). Los que se dieron de
+        // baja mientras tanto se omiten.
+        public ResultadoOperacion<int> ReintentarNewsletter(
+            int idNovedad, string urlNovedades, int idUsuarioInternoResponsable,
+            string urlBaseAplicacion = null, string rutaBaseAplicacion = null)
+        {
+            Novedad novedad;
+            try
+            {
+                novedad = _mpp.ObtenerPorId(new Novedad { IdNovedad = idNovedad });
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<int>.Error("No se pudo leer la novedad. Intentá nuevamente.");
+            }
+
+            ResultadoOperacion vigente = ValidarParaEnviar(novedad);
+            if (!vigente.Exitoso)
+            {
+                return ResultadoOperacion<int>.Error(vigente.Mensaje);
+            }
+
+            int? idEnvio;
+            EnvioNewsletter envio;
+            try
+            {
+                idEnvio = _mppEnvio.TomarParaReintento(novedad);
+                envio = idEnvio.HasValue ? _mppEnvio.Listar(idNovedad, 1).FirstOrDefault() : null;
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<int>.Error("No se pudo preparar el reintento. Intentá nuevamente.");
+            }
+
+            if (!idEnvio.HasValue || envio == null)
+            {
+                return ResultadoOperacion<int>.Error("No hay destinatarios pendientes de este envío, o alguien ya lo está reintentando. Recargá la página para ver el estado.");
+            }
+
+            return Enviar(idEnvio.Value, novedad, envio.Criterio, urlNovedades, idUsuarioInternoResponsable, urlBaseAplicacion, rutaBaseAplicacion, true);
+        }
+
+        public List<EnvioNewsletter> ListarEnvios(int? idNovedad = null, int maximo = 100)
+        {
+            try
+            {
+                return _mppEnvio.Listar(idNovedad, maximo);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return new List<EnvioNewsletter>();
+            }
+        }
+
+        public List<EnvioNewsletterDestinatario> ListarDestinatariosDeEnvio(int idEnvioNewsletter)
+        {
+            try
+            {
+                return _mppEnvio.ListarDestinatarios(idEnvioNewsletter);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return new List<EnvioNewsletterDestinatario>();
+            }
+        }
+
+        public static string ObtenerEtiquetaEstadoEnvio(string estado)
+        {
+            switch (estado)
+            {
+                case EnvioNewsletter.EstadoEnCurso: return "En curso";
+                case EnvioNewsletter.EstadoCompleto: return "Completo";
+                case EnvioNewsletter.EstadoParcial: return "Parcial";
+                case EnvioNewsletter.EstadoSinDestinatarios: return "Sin destinatarios";
+                case EnvioNewsletter.EstadoFallido: return "Fallido";
+                default: return estado ?? string.Empty;
+            }
+        }
+
+        public static string ObtenerEtiquetaCriterio(string criterio)
+        {
+            switch (criterio)
+            {
+                case "Gestores": return "Suscriptores con cuenta de gestor";
+                case "Solicitantes": return "Suscriptores con cuenta de solicitante";
+                case "Suscriptores": return "Suscriptores sin cuenta";
+                default: return "Todos los suscriptores confirmados";
+            }
+        }
+
+        private ResultadoOperacion<int> Enviar(
+            int idEnvio, Novedad novedad, string criterio, string urlNovedades, int idUsuarioInternoResponsable,
+            string urlBaseAplicacion, string rutaBaseAplicacion, bool esReintento)
+        {
+            string urlImagenNewsletter = ConstruirUrlAbsoluta(novedad.UrlImagen, urlBaseAplicacion);
+            string rutaImagenNewsletter = ResolverRutaFisica(novedad.UrlImagen, rutaBaseAplicacion);
+            int enviadosAhora = 0;
+            ResultadoEnvioNewsletter resultado;
+
+            try
+            {
+                foreach (DestinatarioNewsletter destinatario in _mppEnvio.ListarPorEnviar(idEnvio))
                 {
                     bool enviado = _servicioCorreo.EnviarNewsletter(
                         destinatario.CorreoElectronico,
@@ -393,52 +504,92 @@ namespace StageUp.BLL
                         rutaImagenNewsletter,
                         BLL_Newsletter.UrlPreferencias(urlBaseAplicacion, destinatario.TokenPreferencias));
 
+                    _mppEnvio.RegistrarResultado(idEnvio, destinatario, enviado);
                     if (enviado)
                     {
-                        enviados++;
+                        enviadosAhora++;
                     }
                 }
 
-                // Ítem 38 del checklist de correcciones: antes se marcaba la
-                // novedad como enviada (EnviadaPorCorreo) sin importar el
-                // resultado real del envío. Como el envío solo se permite
-                // una vez (ver el chequeo de EnviadaPorCorreo más arriba), si
-                // había destinatarios pero el envío falló para todos (por
-                // ejemplo, el servidor de correo saliente estaba caído en
-                // ese momento), la novedad quedaba marcada como "ya
-                // enviada" para siempre, sin haber llegado a nadie y sin
-                // posibilidad de reintentar. Ahora solo se marca como
-                // enviada si no había destinatarios (nada que reintentar) o
-                // si al menos uno recibió el correo.
-                bool huboEnvioONoHabiaNadaQueEnviar = enviados > 0 || destinatarios.Count == 0;
-                if (huboEnvioONoHabiaNadaQueEnviar)
-                {
-                    _mpp.MarcarEnviadaPorCorreo(new Novedad { IdNovedad = idNovedad, DestinatarioNewsletter = criterio });
-                }
+                resultado = _mppEnvio.Finalizar(idEnvio);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                // El envío queda EnCurso: a los 15 minutos se puede retomar
+                // con "Reintentar fallidos" (no se repite a quien ya lo recibió).
+                return ResultadoOperacion<int>.Error(
+                    "El envío se interrumpió por un error de la base de datos después de " + enviadosAhora +
+                    " correo(s). En unos minutos podés usar \"Reintentar fallidos\": no se repite a quien ya lo recibió.");
+            }
 
-                _bitacora.RegistrarInterno(
-                    idUsuarioInternoResponsable, "MODIFICACION", TipoEntidadBitacora, idNovedad,
-                    huboEnvioONoHabiaNadaQueEnviar
-                        ? "Envío del newsletter de la novedad \"" + novedad.Titulo + "\" a " + enviados + " de " +
-                          destinatarios.Count + " destinatario(s) (categoría: " + criterio + ")."
-                        : "Intento fallido de envío del newsletter de la novedad \"" + novedad.Titulo + "\": no se " +
-                          "pudo entregar a ninguno de los " + destinatarios.Count + " destinatario(s) (categoría: " +
-                          criterio + "). No se marcó como enviada; se puede reintentar.");
+            resultado.EnviadosEnEsteIntento = enviadosAhora;
+            string descripcion = (esReintento ? "Reintento del envío" : "Envío") + " del newsletter de la novedad \"" + novedad.Titulo +
+                "\" (" + ObtenerEtiquetaCriterio(criterio) + "): " + ObtenerEtiquetaEstadoEnvio(resultado.Estado) + ", " +
+                resultado.CantidadEnviados + " de " + resultado.CantidadDestinatarios + " destinatario(s) lo recibieron" +
+                (resultado.CantidadFallidos > 0 ? ", " + resultado.CantidadFallidos + " fallido(s)" : string.Empty) +
+                (resultado.CantidadOmitidos > 0 ? ", " + resultado.CantidadOmitidos + " omitido(s) por baja" : string.Empty) + ".";
+            try
+            {
+                _bitacora.RegistrarInterno(idUsuarioInternoResponsable, "MODIFICACION", TipoEntidadBitacora, novedad.IdNovedad, descripcion);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+            }
 
-                if (destinatarios.Count == 0)
-                {
-                    return ResultadoOperacion<int>.Ok(0, "No hay destinatarios activos en esa categoría; no se envió ningún correo.");
-                }
+            return DescribirResultado(resultado, esReintento);
+        }
 
-                if (enviados == 0)
-                {
+        private static ResultadoOperacion<int> DescribirResultado(ResultadoEnvioNewsletter r, bool esReintento)
+        {
+            string detalle = r.CantidadEnviados + " de " + r.CantidadDestinatarios + " destinatario(s) lo recibieron" +
+                (r.CantidadOmitidos > 0 ? " (" + r.CantidadOmitidos + " omitido(s) porque se dieron de baja)" : string.Empty) + ".";
+
+            switch (r.Estado)
+            {
+                case EnvioNewsletter.EstadoSinDestinatarios:
+                    return ResultadoOperacion<int>.Ok(0, r.CantidadOmitidos > 0
+                        ? "No quedaban destinatarios: los pendientes se dieron de baja."
+                        : "No hay suscriptores confirmados para ese criterio y categoría; no se envió ningún correo.");
+                case EnvioNewsletter.EstadoCompleto:
+                    return ResultadoOperacion<int>.Ok(r.EnviadosEnEsteIntento,
+                        (esReintento ? "Reintento completo: " : "Newsletter enviado: ") + detalle);
+                case EnvioNewsletter.EstadoParcial:
                     return ResultadoOperacion<int>.Error(
-                        "No se pudo enviar el newsletter a ninguno de los " + destinatarios.Count +
-                        " destinatario(s). Revisá la configuración de correo saliente e intentá de nuevo.");
-                }
+                        "Envío parcial: " + detalle + " No se pudo enviar a " + r.CantidadFallidos + " destinatario(s); revisá el correo saliente y usá \"Reintentar fallidos\".");
+                default:
+                    return ResultadoOperacion<int>.Error(
+                        "No se pudo enviar el newsletter a ninguno de los " + (r.CantidadFallidos) +
+                        " destinatario(s). Revisá la configuración de correo saliente y usá \"Reintentar fallidos\".");
+            }
+        }
 
-                return ResultadoOperacion<int>.Ok(enviados, "Se envió el newsletter a " + enviados + " de " + destinatarios.Count + " destinatario(s).");
-            });
+        private static ResultadoOperacion ValidarParaEnviar(Novedad novedad)
+        {
+            if (novedad == null)
+            {
+                return ResultadoOperacion.Error("No se encontró la novedad seleccionada.");
+            }
+
+            if (novedad.Estado != Novedad.EstadoVigente)
+            {
+                return ResultadoOperacion.Error(novedad.Estado == Novedad.EstadoProgramada
+                    ? "La novedad todavía no está vigente: podés enviarla por correo a partir del " + FormatearFechaHora(novedad.FechaPublicacion.Value) + "."
+                    : "Solo se puede enviar por correo una novedad vigente (publicada y sin vencer).");
+            }
+
+            return ResultadoOperacion.Ok();
+        }
+
+        private static string NormalizarCriterio(string codigo)
+        {
+            foreach (string valido in DestinatariosNewsletter)
+            {
+                if (string.Equals(valido, codigo, StringComparison.OrdinalIgnoreCase))
+                {
+                    return valido == "Todos" ? "Activos" : valido;
+                }
+            }
+            return "Activos";
         }
 
         // Envío de prueba: manda el contenido tal como está cargado en el
@@ -593,7 +744,7 @@ namespace StageUp.BLL
         private static ResultadoOperacion ValidarDatos(
             string titulo, string resumen, string contenido, string categoria, string urlImagen,
             out string tituloNormalizado, out string resumenNormalizado, out string contenidoNormalizado,
-            out string categoriaNormalizada, out string urlImagenNormalizada)
+            out string categoriaNormalizada, out string urlImagenNormalizada, string categoriaActual = null)
         {
             tituloNormalizado = string.IsNullOrWhiteSpace(titulo) ? null : titulo.Trim();
             resumenNormalizado = string.IsNullOrWhiteSpace(resumen) ? null : resumen.Trim();
@@ -626,24 +777,17 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("Ingresá el contenido de la novedad.");
             }
 
-            if (categoriaNormalizada == null || !EsCategoriaValida(categoriaNormalizada))
+            // Nuevas novedades: solo categorías activas. Al editar se acepta
+            // además la que ya tenía (aunque se haya desactivado).
+            string codigo = BLL_CategoriaNovedad.NormalizarCodigo(categoriaNormalizada);
+            bool esLaActual = codigo != null && string.Equals(codigo, categoriaActual, StringComparison.OrdinalIgnoreCase);
+            if (codigo == null || (!BLL_CategoriaNovedad.EsActiva(codigo) && !esLaActual))
             {
                 return ResultadoOperacion.Error("Seleccioná una categoría válida.");
             }
 
+            categoriaNormalizada = codigo;
             return ResultadoOperacion.Ok();
-        }
-
-        private static bool EsCategoriaValida(string categoria)
-        {
-            foreach (string valida in Categorias)
-            {
-                if (string.Equals(valida, categoria, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         private static ResultadoOperacion EjecutarProtegido(Func<ResultadoOperacion> operacion)

@@ -6,26 +6,29 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Web;
+using StageUp.BE.Entidades;
+using StageUp.BLL;
 
 namespace StageUp.UI.Infraestructura
 {
     // Validación y guardado de una imagen subida desde un formulario.
-    //   * Solo JPG o PNG de hasta 3 MB (extensión y contenido real: el
-    //     archivo tiene que poder abrirse como imagen de ese formato).
-    //   * Se rechazan imágenes de más de 20 megapíxeles.
-    //   * Se vuelve a dibujar en un JPG nuevo de 1600 px como máximo: así se
-    //     descarta cualquier contenido extra del archivo original (metadatos
-    //     o datos ocultos) y el nombre lo genera el sistema (GUID).
+    //   * Las reglas (JPG, PNG o WebP de hasta 3 MB y 20 megapíxeles, con
+    //     extensión y tipo MIME que coincidan con el contenido real) están en
+    //     BLL.ValidadorImagen.
+    //   * JPG y PNG se vuelven a dibujar en un JPG nuevo de 1600 px como
+    //     máximo: así se descarta cualquier contenido extra del archivo
+    //     original (metadatos o datos ocultos).
+    //   * WebP no se puede volver a generar en .NET Framework: se guarda tal
+    //     cual, rearmado sin metadatos por el validador.
+    //   * El nombre lo genera el sistema (GUID).
     public static class ImagenSubida
     {
-        public const int MaximoBytes = 3 * 1024 * 1024;
+        public const int MaximoBytes = ValidadorImagen.MaximoBytes;
         private const int LadoMaximo = 1600;
-        private const long PixelesMaximos = 20000000;
-        private static readonly string[] ExtensionesPermitidas = { ".jpg", ".jpeg", ".png" };
 
-        // Devuelve la ruta virtual del archivo guardado ("~/carpeta/guid.jpg")
-        // o null con el motivo en error.
-        public static string GuardarComoJpeg(HttpPostedFile archivo, string carpetaVirtual, HttpServerUtility servidor, out string error)
+        // Devuelve la ruta virtual del archivo guardado ("~/carpeta/guid.jpg"
+        // o ".webp") o null con el motivo en error.
+        public static string Guardar(HttpPostedFile archivo, string carpetaVirtual, HttpServerUtility servidor, out string error)
         {
             if (archivo == null)
             {
@@ -33,11 +36,11 @@ namespace StageUp.UI.Infraestructura
                 return null;
             }
 
-            return GuardarComoJpeg(archivo.InputStream, archivo.FileName, archivo.ContentLength, carpetaVirtual, servidor.MapPath, out error);
+            return Guardar(archivo.InputStream, archivo.FileName, archivo.ContentLength, archivo.ContentType, carpetaVirtual, servidor.MapPath, out error);
         }
 
         // mapPath convierte la ruta virtual en física (Server.MapPath).
-        public static string GuardarComoJpeg(Stream contenido, string nombreArchivo, int bytes, string carpetaVirtual, Func<string, string> mapPath, out string error)
+        public static string Guardar(Stream contenido, string nombreArchivo, int bytes, string tipoMime, string carpetaVirtual, Func<string, string> mapPath, out string error)
         {
             error = null;
             if (contenido == null || bytes <= 0)
@@ -52,16 +55,33 @@ namespace StageUp.UI.Infraestructura
                 return null;
             }
 
-            string extension = (Path.GetExtension(nombreArchivo) ?? string.Empty).ToLowerInvariant();
-            if (!ExtensionesPermitidas.Contains(extension))
+            byte[] datos;
+            using (MemoryStream copia = new MemoryStream())
             {
-                error = "La imagen tiene que ser JPG o PNG.";
+                contenido.CopyTo(copia);
+                datos = copia.ToArray();
+            }
+
+            ResultadoOperacion<ImagenValidada> validacion = ValidadorImagen.Validar(datos, nombreArchivo, tipoMime);
+            if (!validacion.Exitoso)
+            {
+                error = validacion.Mensaje;
                 return null;
             }
 
+            string carpeta = carpetaVirtual.EndsWith("/", StringComparison.Ordinal) ? carpetaVirtual : carpetaVirtual + "/";
             try
             {
-                using (Image original = Image.FromStream(contenido, true, true))
+                if (validacion.Valor.EsWebP)
+                {
+                    string rutaWebP = carpeta + Guid.NewGuid().ToString("N") + ".webp";
+                    Directory.CreateDirectory(mapPath(carpeta));
+                    File.WriteAllBytes(mapPath(rutaWebP), validacion.Valor.ContenidoLimpio);
+                    return rutaWebP;
+                }
+
+                using (MemoryStream lectura = new MemoryStream(datos))
+                using (Image original = Image.FromStream(lectura, true, true))
                 {
                     if (original.RawFormat.Guid != ImageFormat.Jpeg.Guid && original.RawFormat.Guid != ImageFormat.Png.Guid)
                     {
@@ -69,7 +89,7 @@ namespace StageUp.UI.Infraestructura
                         return null;
                     }
 
-                    if ((long)original.Width * original.Height > PixelesMaximos)
+                    if ((long)original.Width * original.Height > ValidadorImagen.PixelesMaximos)
                     {
                         error = "La imagen es demasiado grande (más de 20 megapíxeles).";
                         return null;
@@ -88,7 +108,6 @@ namespace StageUp.UI.Infraestructura
                             dibujo.DrawImage(original, 0, 0, ancho, alto);
                         }
 
-                        string carpeta = carpetaVirtual.EndsWith("/", StringComparison.Ordinal) ? carpetaVirtual : carpetaVirtual + "/";
                         string ruta = carpeta + Guid.NewGuid().ToString("N") + ".jpg";
                         Directory.CreateDirectory(mapPath(carpeta));
                         GuardarJpeg(imagen, mapPath(ruta));

@@ -71,6 +71,7 @@
     <Compile Include="BLL_CampaniaComercial.cs" />
     <Compile Include="BLL_ContenidoPromocional.cs" />
     <Compile Include="ValidadorEstructuraArchivo.cs" />
+    <Compile Include="ValidadorImagen.cs" />
     <Compile Include="BLL_MetricasComerciales.cs" />
     <Compile Include="BLL_CatalogoComercial.cs" />
     <Compile Include="BLL_ContactoComercial.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="BLL_ParametroPlataforma.cs" />
     <Compile Include="ValidadorTarjeta.cs" />
     <Compile Include="BLL_Busqueda.cs" />
+    <Compile Include="BLL_CategoriaNovedad.cs" />
     <Compile Include="BLL_SolicitudHabilitacionGestor.cs" />
   </ItemGroup>
   <ItemGroup>

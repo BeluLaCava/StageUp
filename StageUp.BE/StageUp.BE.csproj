@@ -40,6 +40,9 @@
     <Compile Include="Entidades\BackupBaseDatos.cs" />
     <Compile Include="Entidades\Reportes.cs" />
     <Compile Include="Entidades\Pagos.cs" />
+    <Compile Include="Entidades\CategoriaNovedad.cs" />
+    <Compile Include="Entidades\EnvioNewsletter.cs" />
+    <Compile Include="Entidades\ImagenValidada.cs" />
     <Compile Include="Entidades\ResultadoBusqueda.cs" />
     <Compile Include="Enumerados\ModoRecurrenciaActividad.cs" />
     <Compile Include="Enumerados\TipoNotificacion.cs" />

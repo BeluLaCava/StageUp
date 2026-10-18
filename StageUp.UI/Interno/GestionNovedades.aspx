@@ -5,7 +5,10 @@
         <div class="static-page-header internal-page-hero">
             <span class="section-label">Comunicación</span>
             <h1>Novedades y newsletter</h1>
-            <p>Administrá noticias públicas de StageUp y prepará envíos por correo para usuarios activos.</p>
+            <p>Administrá noticias públicas de StageUp y prepará envíos por correo para los suscriptores del newsletter.</p>
+            <div class="newsletter-admin-links">
+                <a class="button button-secondary" href="GestionNewsletter.aspx">Suscriptores, categorías y envíos</a>
+            </div>
         </div>
 
         <asp:Panel ID="pnlMensaje" runat="server" Visible="false" CssClass="form-message">
@@ -66,12 +69,8 @@
 
                     <div class="form-field">
                         <label for="<%= ddlCategoria.ClientID %>">Categoría</label>
-                        <asp:DropDownList ID="ddlCategoria" runat="server" CssClass="form-select">
-                            <asp:ListItem Text="Novedad institucional" Value="Institucional" />
-                            <asp:ListItem Text="Nuevos espacios" Value="Catalogo" Selected="True" />
-                            <asp:ListItem Text="Consejos para usuarios" Value="Consejos" />
-                            <asp:ListItem Text="Comunidad artística" Value="Comunidad" />
-                        </asp:DropDownList>
+                        <asp:DropDownList ID="ddlCategoria" runat="server" CssClass="form-select" />
+                        <small class="field-help">Las categorías se administran en <a href="GestionNewsletter.aspx#categorias">Suscriptores, categorías y envíos</a>.</small>
                     </div>
 
                     <div class="newsletter-form-grid novedad-vigencia-grid">
@@ -92,13 +91,26 @@
                         <label for="<%= fuImagen.ClientID %>">Imagen destacada</label>
                         <asp:Panel ID="pnlImagenActual" runat="server" Visible="false" CssClass="novedad-imagen-actual">
                             <asp:Image ID="imgImagenActual" runat="server" AlternateText="Imagen actual de la novedad" />
-                            <label class="newsletter-check-option">
-                                <asp:CheckBox ID="chkQuitarImagen" runat="server" />
-                                <span>Quitar la imagen</span>
-                            </label>
+                            <div class="novedad-imagen-detalle">
+                                <strong>Imagen actual</strong>
+                                <small id="novedadImagenActualEstado">Se mantiene si no elegís otra.</small>
+                                <label class="newsletter-check-option">
+                                    <asp:CheckBox ID="chkQuitarImagen" runat="server" />
+                                    <span>Quitar la imagen</span>
+                                </label>
+                            </div>
                         </asp:Panel>
-                        <asp:FileUpload ID="fuImagen" runat="server" accept=".jpg,.jpeg,.png,image/jpeg,image/png" />
-                        <small class="field-help">JPG o PNG de hasta 3 MB. Se ajusta a 1600 px y se guarda como JPG. Si elegís una nueva, reemplaza a la actual.</small>
+                        <div id="novedadImagenNueva" class="novedad-imagen-actual novedad-imagen-nueva" hidden>
+                            <img id="novedadImagenNuevaVista" alt="Vista previa de la imagen elegida" />
+                            <div class="novedad-imagen-detalle">
+                                <strong>Imagen elegida (sin guardar)</strong>
+                                <small id="novedadImagenNuevaDetalle"></small>
+                                <button type="button" id="novedadImagenNuevaQuitar" class="text-link novedad-imagen-quitar">Quitar la imagen elegida</button>
+                            </div>
+                        </div>
+                        <p id="novedadImagenAviso" class="field-error-text" role="alert" hidden></p>
+                        <asp:FileUpload ID="fuImagen" runat="server" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+                        <small class="field-help">JPG, PNG o WebP de hasta 3 MB. JPG y PNG se ajustan a 1600 px y se guardan como JPG; WebP se guarda tal cual, sin metadatos (algunos programas de correo no muestran WebP). Si elegís una nueva, reemplaza a la actual.</small>
                     </div>
 
                     <div class="newsletter-options">
@@ -106,7 +118,7 @@
                             <asp:CheckBox ID="chkEnviarMail" runat="server" />
                             <span>
                                 <strong>Enviar también por mail al publicar</strong>
-                                <small>Usa la plantilla StageUp y la categoría de destinatarios elegida abajo. Solo se envía una vez por novedad.</small>
+                                <small>Usa la plantilla StageUp y los destinatarios elegidos abajo. Se envía una vez por novedad; si algún correo falla, se reintentan solo esos.</small>
                             </span>
                         </label>
                     </div>
@@ -114,13 +126,12 @@
                     <div class="form-field">
                         <label for="<%= ddlDestinatarios.ClientID %>">Destinatarios</label>
                         <asp:DropDownList ID="ddlDestinatarios" runat="server" CssClass="form-select">
-                            <asp:ListItem Text="Usuarios activos y suscriptores" Value="Activos" Selected="True" />
-                            <asp:ListItem Text="Gestores de espacios" Value="Gestores" />
-                            <asp:ListItem Text="Solicitantes" Value="Solicitantes" />
-                            <asp:ListItem Text="Solo suscriptores del newsletter" Value="Suscriptores" />
-                            <asp:ListItem Text="Todos los registrados y suscriptores" Value="Todos" />
+                            <asp:ListItem Text="Todos los suscriptores confirmados" Value="Activos" Selected="True" />
+                            <asp:ListItem Text="Suscriptores con cuenta de gestor" Value="Gestores" />
+                            <asp:ListItem Text="Suscriptores con cuenta de solicitante" Value="Solicitantes" />
+                            <asp:ListItem Text="Suscriptores sin cuenta" Value="Suscriptores" />
                         </asp:DropDownList>
-                        <small class="field-help"><asp:Literal ID="litResumenSuscriptores" runat="server" Mode="Encode" /> Solo reciben la novedad quienes eligieron su categoría (o todas) y no se dieron de baja; cada correo lleva el enlace para elegir categorías o darse de baja.</small>
+                        <small class="field-help"><asp:Literal ID="litResumenSuscriptores" runat="server" Mode="Encode" /> Solo reciben el newsletter quienes confirmaron su suscripción, eligieron la categoría de la novedad (o todas) y no se dieron de baja; tener cuenta no suscribe a nadie. Cada correo lleva el enlace para elegir categorías o darse de baja.</small>
                     </div>
 
                     <div class="form-actions">
@@ -159,7 +170,7 @@
                                 <p>Hola artista,</p>
                                 <p><asp:Literal ID="litPreviewResumen" runat="server" Text="Completá el formulario y guardá para actualizar esta vista previa." /></p>
                                 <a href="#" class="newsletter-mail-button">Ver novedades</a>
-                                <small>Recibís este correo porque tenés una cuenta en StageUp.</small>
+                                <small>Recibís este correo porque te suscribiste al newsletter de StageUp.</small>
                             </div>
                         </div>
                     </div>
@@ -194,6 +205,9 @@
                                         <div>
                                             <h3><%#: Eval("Titulo") %></h3>
                                             <p><%#: ObtenerTextoFechaNovedad((StageUp.BE.Entidades.Novedad)Container.DataItem) %></p>
+                                            <asp:Panel runat="server" CssClass='<%# ObtenerClaseEnvio(Container.DataItem) %>' Visible='<%# ObtenerEnvio(Container.DataItem) != null %>'>
+                                                <%#: ObtenerTextoEnvio(Container.DataItem) %>
+                                            </asp:Panel>
                                             <div class="space-row-actions">
                                                 <asp:LinkButton runat="server" CssClass="admin-action-link" CausesValidation="false"
                                                     CommandName="Editar" CommandArgument='<%# Eval("IdNovedad") %>' Text="Editar"
@@ -208,8 +222,12 @@
                                                     OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Volver esta novedad a borrador? Deja de mostrarse en la página pública.')) return false;" />
                                                 <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
                                                     CommandName="EnviarNewsletter" CommandArgument='<%# Eval("IdNovedad") %>' Text="Enviar newsletter"
-                                                    Visible='<%# EsEstado(Container.DataItem, "Vigente") && !Convert.ToBoolean(Eval("EnviadaPorCorreo")) %>'
-                                                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Enviar el newsletter de esta novedad a la categoría de destinatarios seleccionada arriba?')) return false;" />
+                                                    Visible='<%# EsEstado(Container.DataItem, "Vigente") && !Convert.ToBoolean(Eval("EnviadaPorCorreo")) && ObtenerEnvio(Container.DataItem) == null %>'
+                                                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Enviar el newsletter de esta novedad a los destinatarios seleccionados arriba?')) return false;" />
+                                                <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
+                                                    CommandName="ReintentarNewsletter" CommandArgument='<%# Eval("IdNovedad") %>' Text="Reintentar fallidos"
+                                                    Visible='<%# EsEstado(Container.DataItem, "Vigente") && PuedeReintentar(Container.DataItem) %>'
+                                                    OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Reintentar el envío solo a los destinatarios que no lo recibieron?')) return false;" />
                                                 <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-danger" CausesValidation="false"
                                                     CommandName="DarDeBaja" CommandArgument='<%# Eval("IdNovedad") %>' Text="Dar de baja"
                                                     Visible='<%# !EsEstado(Container.DataItem, "DadaDeBaja") %>'
@@ -232,13 +250,142 @@
         </div>
     </section>
     <style>
-        .novedad-imagen-actual { display: flex; align-items: center; gap: 12px; margin: 6px 0 10px; }
+        .novedad-imagen-actual { display: flex; align-items: center; gap: 12px; margin: 6px 0 10px; flex-wrap: wrap; }
+        .novedad-imagen-actual[hidden] { display: none; }
         .novedad-imagen-actual img { width: 120px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--color-border); }
+        .novedad-imagen-detalle { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .novedad-imagen-detalle small { color: var(--color-text-muted); overflow-wrap: anywhere; }
+        .novedad-imagen-nueva { padding: 8px; border: 1px dashed var(--color-border); border-radius: 10px; }
+        .novedad-imagen-quitar { align-self: flex-start; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; }
+        .novedad-imagen-reemplazada img { opacity: 0.4; }
+        #novedadImagenAviso[hidden] { display: none; }
         .novedad-vigencia-grid input { width: 100%; min-width: 0; box-sizing: border-box; }
         .admin-status-badge-programada { background: #fff4e5; color: #8a4b08; }
         .admin-status-badge-vencida { background: #eef2f7; color: #33475b; }
+        .newsletter-admin-links { margin-top: 0.9rem; }
+        .newsletter-admin-links .button { background: #fff; color: var(--color-primary); border-color: #fff; }
+        .newsletter-admin-links .button:hover, .newsletter-admin-links .button:focus-visible { background: var(--color-nude); color: var(--color-primary-dark); }
+        .envio-resumen { margin: 4px 0 6px; font-size: 0.85rem; padding: 4px 10px; border-radius: 8px; display: inline-block; }
+        .envio-resumen-ok { background: #e6f5eb; color: #236240; }
+        .envio-resumen-alerta { background: #fff4e5; color: #8a4b0f; }
+        .envio-resumen-error { background: #fdecec; color: #8f1d1d; }
+        .envio-resumen-neutro { background: #eef2f7; color: #33475b; }
     </style>
     <script>
+        // Vista previa de la imagen elegida antes de guardar (las
+        // validaciones definitivas las hace el servidor).
+        (function () {
+            var entrada = document.getElementById("<%= fuImagen.ClientID %>");
+            var quitarActual = document.getElementById("<%= chkQuitarImagen.ClientID %>");
+            var panelActual = document.getElementById("<%= pnlImagenActual.ClientID %>");
+            var estadoActual = document.getElementById("novedadImagenActualEstado");
+            var nueva = document.getElementById("novedadImagenNueva");
+            var vista = document.getElementById("novedadImagenNuevaVista");
+            var detalle = document.getElementById("novedadImagenNuevaDetalle");
+            var quitarNueva = document.getElementById("novedadImagenNuevaQuitar");
+            var aviso = document.getElementById("novedadImagenAviso");
+            var maximo = <%= StageUp.UI.Infraestructura.ImagenSubida.MaximoBytes %>;
+            var tipos = ["image/jpeg", "image/png", "image/webp"];
+            var extension = /\.(jpe?g|png|webp)$/i;
+            var urlVista = null;
+
+            if (!entrada || !nueva) {
+                return;
+            }
+
+            function liberar() {
+                if (urlVista && window.URL) {
+                    URL.revokeObjectURL(urlVista);
+                }
+                urlVista = null;
+            }
+
+            function avisar(texto) {
+                aviso.textContent = texto || "";
+                aviso.hidden = !texto;
+            }
+
+            function actualizarActual() {
+                if (!panelActual) {
+                    return;
+                }
+                var hayNueva = !nueva.hidden;
+                var seQuita = quitarActual && quitarActual.checked;
+                panelActual.classList.toggle("novedad-imagen-reemplazada", hayNueva || seQuita);
+                if (estadoActual) {
+                    estadoActual.textContent = hayNueva
+                        ? "Se va a reemplazar por la imagen elegida al guardar."
+                        : seQuita ? "Se va a quitar al guardar." : "Se mantiene si no elegís otra.";
+                }
+            }
+
+            function limpiarSeleccion() {
+                entrada.value = "";
+                liberar();
+                vista.removeAttribute("src");
+                nueva.hidden = true;
+                actualizarActual();
+            }
+
+            function tamanio(bytes) {
+                return bytes >= 1048576
+                    ? (bytes / 1048576).toFixed(1).replace(".", ",") + " MB"
+                    : Math.max(1, Math.round(bytes / 1024)) + " KB";
+            }
+
+            entrada.addEventListener("change", function () {
+                avisar("");
+                var archivo = entrada.files && entrada.files[0];
+                if (!archivo) {
+                    limpiarSeleccion();
+                    return;
+                }
+
+                if (tipos.indexOf((archivo.type || "").toLowerCase()) < 0 || !extension.test(archivo.name)) {
+                    limpiarSeleccion();
+                    avisar("La imagen tiene que ser JPG, PNG o WebP.");
+                    return;
+                }
+
+                if (archivo.size > maximo) {
+                    limpiarSeleccion();
+                    avisar("La imagen no puede superar los 3 MB.");
+                    return;
+                }
+
+                liberar();
+                urlVista = URL.createObjectURL(archivo);
+                vista.onerror = function () {
+                    limpiarSeleccion();
+                    avisar("No se pudo mostrar la imagen: el archivo parece dañado.");
+                };
+                vista.src = urlVista;
+                detalle.textContent = archivo.name + " · " + tamanio(archivo.size);
+                nueva.hidden = false;
+                if (quitarActual) {
+                    quitarActual.checked = false;
+                }
+                actualizarActual();
+            });
+
+            quitarNueva.addEventListener("click", function () {
+                avisar("");
+                limpiarSeleccion();
+                entrada.focus();
+            });
+
+            if (quitarActual) {
+                quitarActual.addEventListener("change", function () {
+                    if (quitarActual.checked && !nueva.hidden) {
+                        limpiarSeleccion();
+                    }
+                    actualizarActual();
+                });
+            }
+
+            window.addEventListener("pagehide", liberar);
+        })();
+
         function confirmarPublicacionNovedad(btn, event) {
             var enviarMail = document.getElementById("<%= chkEnviarMail.ClientID %>");
             var mensaje = enviarMail && enviarMail.checked

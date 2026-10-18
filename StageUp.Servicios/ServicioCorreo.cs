@@ -872,6 +872,11 @@ namespace StageUp.Servicios
                 return "image/gif";
             }
 
+            if (string.Equals(extension, ".webp", StringComparison.OrdinalIgnoreCase))
+            {
+                return "image/webp";
+            }
+
             return "image/png";
         }
 

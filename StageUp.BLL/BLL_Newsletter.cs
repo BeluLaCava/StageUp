@@ -24,6 +24,18 @@ namespace StageUp.BLL
     //     5 minutos.
     //   * Preferencias: con el token de cada newsletter se eligen categorías,
     //     se da de baja o se vuelve a suscribir, sin iniciar sesión.
+    // Script 85:
+    //   * Una sola suscripción por correo, la misma desde el formulario, el
+    //     enlace de preferencias y Mi perfil. Desde el perfil también hay
+    //     doble confirmación (el correo de la cuenta se puede cambiar sin
+    //     verificarlo); confirmada así, queda vinculada a la cuenta y se
+    //     administra desde ahí.
+    //   * Si el correo de confirmación (o el aviso) no sale, se informa un
+    //     error igual para todos los casos (no revela si el correo ya estaba
+    //     suscripto) y el envío no cuenta para la espera de 5 minutos.
+    //   * Las categorías válidas son las activas de CategoriaNovedad.
+    //   * Administración: listado de suscriptores, baja y reenvío de la
+    //     confirmación.
     public class BLL_Newsletter
     {
         public const int HorasValidezConfirmacion = 48;
@@ -34,6 +46,9 @@ namespace StageUp.BLL
         private static readonly Regex FormatoToken = new Regex("^[0-9A-F]{64}$", RegexOptions.Compiled);
         private static readonly Regex FormatoCorreo = new Regex(@"^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$", RegexOptions.Compiled);
 
+        public const string MensajeFalloCorreo =
+            "No pudimos enviar el correo en este momento. Intentá nuevamente en unos minutos.";
+
         public const string MensajeSuscripcion =
             "¡Listo! Si el correo es válido, te enviamos un mensaje para confirmar la suscripción. Revisá tu bandeja de entrada (y la carpeta de spam). El enlace vence en 48 horas.";
 
@@ -41,6 +56,7 @@ namespace StageUp.BLL
         private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
         private readonly ServicioRecaptcha _servicioRecaptcha = new ServicioRecaptcha();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
+        private readonly MPP_UsuarioExterno _mppUsuario = new MPP_UsuarioExterno();
 
         // urlBase: dirección de la aplicación ("https://.../"), para los enlaces.
         public ResultadoOperacion Suscribir(string correo, string nombre, IEnumerable<string> categorias, bool aceptaRecibir,
@@ -76,56 +92,114 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error(BLL_Autenticacion.ObtenerMensajeCaptcha(captcha.Estado));
             }
 
+            return PedirConfirmacion(correoNormalizado, nombreNormalizado, elegidas, null, urlBase, false);
+        }
+
+        // Pedido de suscripción (formulario o Mi perfil): queda Pendiente y
+        // se manda el enlace de confirmación. desdeCuenta: la respuesta puede
+        // decir el estado real, porque el correo es el de la propia cuenta.
+        private ResultadoOperacion PedirConfirmacion(string correoNormalizado, string nombreNormalizado, List<string> elegidas,
+            int? idUsuarioExterno, string urlBase, bool desdeCuenta)
+        {
+            SuscriptorNewsletter existente;
             try
             {
-                SuscriptorNewsletter existente = _mpp.ObtenerPorCorreo(new SuscriptorNewsletter { CorreoElectronico = correoNormalizado });
-
-                // Pedido repetido hace muy poco: no se vuelve a mandar nada.
-                if (existente != null && existente.FechaUltimoEnvioConfirmacion.HasValue &&
-                    DateTime.Now - existente.FechaUltimoEnvioConfirmacion.Value < EsperaEntreCorreos)
-                {
-                    return ResultadoOperacion.Ok(MensajeSuscripcion);
-                }
-
-                if (existente != null && existente.Estado == SuscriptorNewsletter.EstadoActivo)
-                {
-                    _servicioCorreo.EnviarAvisoYaSuscriptoNewsletter(existente.CorreoElectronico, existente.Nombre ?? nombreNormalizado,
-                        UrlPreferencias(urlBase, existente.TokenPreferencias));
-                    _mpp.MarcarAvisoEnviado(existente);
-                    return ResultadoOperacion.Ok(MensajeSuscripcion);
-                }
-
-                string tokenConfirmacion = GenerarToken();
-                SuscriptorNewsletter suscriptor = existente ?? new SuscriptorNewsletter
-                {
-                    CorreoElectronico = correoNormalizado,
-                    TokenPreferencias = GenerarToken()
-                };
-                suscriptor.Nombre = nombreNormalizado;
-                suscriptor.VencimientoConfirmacion = DateTime.Now.AddHours(HorasValidezConfirmacion);
-                suscriptor.Categorias = elegidas;
-
-                if (existente == null)
-                {
-                    suscriptor.IdSuscriptorNewsletter = _mpp.Insertar(suscriptor, Hash(tokenConfirmacion));
-                    Bitacora("ALTA", suscriptor.IdSuscriptorNewsletter, "Pedido de suscripción al newsletter (pendiente de confirmación).");
-                }
-                else
-                {
-                    _mpp.RenovarConfirmacion(suscriptor, Hash(tokenConfirmacion));
-                    Bitacora("MODIFICACION", suscriptor.IdSuscriptorNewsletter, "Nuevo pedido de suscripción al newsletter (pendiente de confirmación).");
-                }
-
-                _mpp.GuardarCategorias(suscriptor);
-                _servicioCorreo.EnviarConfirmacionNewsletter(suscriptor.CorreoElectronico, suscriptor.Nombre,
-                    UrlBaseConBarra(urlBase) + "Newsletter.aspx?confirmar=" + tokenConfirmacion, HorasValidezConfirmacion);
-
-                return ResultadoOperacion.Ok(MensajeSuscripcion);
+                existente = _mpp.ObtenerPorCorreo(new SuscriptorNewsletter { CorreoElectronico = correoNormalizado });
             }
             catch (ErrorAccesoDatosException)
             {
                 return ResultadoOperacion.Error("No pudimos registrar la suscripción en este momento. Intentá nuevamente.");
             }
+
+            // Pedido repetido hace muy poco (y el correo anterior salió): no
+            // se vuelve a mandar nada.
+            if (existente != null && existente.FechaUltimoEnvioConfirmacion.HasValue &&
+                DateTime.Now - existente.FechaUltimoEnvioConfirmacion.Value < EsperaEntreCorreos)
+            {
+                return desdeCuenta
+                    ? ResultadoOperacion.Error("Ya te enviamos un correo hace menos de 5 minutos. Revisá tu bandeja de entrada (y spam) antes de pedir otro.")
+                    : ResultadoOperacion.Ok(MensajeSuscripcion);
+            }
+
+            if (existente != null && existente.Estado == SuscriptorNewsletter.EstadoActivo)
+            {
+                if (desdeCuenta)
+                {
+                    return ResultadoOperacion.Error("Tu correo ya recibe el newsletter.");
+                }
+
+                bool avisoEnviado = _servicioCorreo.EnviarAvisoYaSuscriptoNewsletter(existente.CorreoElectronico, existente.Nombre ?? nombreNormalizado,
+                    UrlPreferencias(urlBase, existente.TokenPreferencias));
+                if (!avisoEnviado)
+                {
+                    Bitacora("ERROR", existente.IdSuscriptorNewsletter, "No se pudo enviar el aviso de suscripción existente al newsletter.");
+                    return ResultadoOperacion.Error(MensajeFalloCorreo);
+                }
+
+                try
+                {
+                    _mpp.MarcarAvisoEnviado(existente);
+                }
+                catch (ErrorAccesoDatosException)
+                {
+                }
+                return ResultadoOperacion.Ok(MensajeSuscripcion);
+            }
+
+            string tokenConfirmacion = GenerarToken();
+            SuscriptorNewsletter suscriptor = existente ?? new SuscriptorNewsletter
+            {
+                CorreoElectronico = correoNormalizado,
+                TokenPreferencias = GenerarToken(),
+                Origen = idUsuarioExterno.HasValue ? SuscriptorNewsletter.OrigenCuenta : SuscriptorNewsletter.OrigenFormulario
+            };
+            suscriptor.Nombre = nombreNormalizado;
+            suscriptor.IdUsuarioExterno = idUsuarioExterno;
+            suscriptor.VencimientoConfirmacion = DateTime.Now.AddHours(HorasValidezConfirmacion);
+            suscriptor.Categorias = elegidas;
+
+            try
+            {
+                if (existente == null)
+                {
+                    suscriptor.IdSuscriptorNewsletter = _mpp.Insertar(suscriptor, Hash(tokenConfirmacion));
+                    Bitacora("ALTA", suscriptor.IdSuscriptorNewsletter, "Pedido de suscripción al newsletter (pendiente de confirmación)" +
+                        (desdeCuenta ? " desde Mi perfil." : "."));
+                }
+                else
+                {
+                    _mpp.RenovarConfirmacion(suscriptor, Hash(tokenConfirmacion));
+                    Bitacora("MODIFICACION", suscriptor.IdSuscriptorNewsletter, "Nuevo pedido de suscripción al newsletter (pendiente de confirmación)" +
+                        (desdeCuenta ? " desde Mi perfil." : "."));
+                }
+
+                _mpp.GuardarCategorias(suscriptor);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error("No pudimos registrar la suscripción en este momento. Intentá nuevamente.");
+            }
+
+            bool enviado = _servicioCorreo.EnviarConfirmacionNewsletter(suscriptor.CorreoElectronico, suscriptor.Nombre,
+                UrlBaseConBarra(urlBase) + "Newsletter.aspx?confirmar=" + tokenConfirmacion, HorasValidezConfirmacion);
+            if (!enviado)
+            {
+                // No cuenta para la espera: se puede volver a pedir enseguida.
+                try
+                {
+                    _mpp.AnularEnvioConfirmacion(suscriptor);
+                }
+                catch (ErrorAccesoDatosException)
+                {
+                }
+
+                Bitacora("ERROR", suscriptor.IdSuscriptorNewsletter, "No se pudo enviar el correo de confirmación del newsletter.");
+                return ResultadoOperacion.Error(MensajeFalloCorreo);
+            }
+
+            return ResultadoOperacion.Ok(desdeCuenta
+                ? "Te enviamos un correo a " + suscriptor.CorreoElectronico + " para confirmar la suscripción. El enlace vence en " + HorasValidezConfirmacion + " horas."
+                : MensajeSuscripcion);
         }
 
         // Doble confirmación. Devuelve el suscriptor confirmado (para mostrar
@@ -233,6 +307,272 @@ namespace StageUp.BLL
                 "Nueva suscripción al newsletter desde el enlace de preferencias.");
         }
 
+        // ------------------------------------------------------------------
+        // Mi perfil: la suscripción del correo de la cuenta.
+        // ------------------------------------------------------------------
+        public ResultadoOperacion<SuscripcionDeCuenta> ObtenerDeCuenta(int idUsuarioExterno)
+        {
+            UsuarioExterno cuenta;
+            ResultadoOperacion validacion = ObtenerCuentaActiva(idUsuarioExterno, out cuenta);
+            if (!validacion.Exitoso)
+            {
+                return ResultadoOperacion<SuscripcionDeCuenta>.Error(validacion.Mensaje);
+            }
+
+            try
+            {
+                string correo = cuenta.CorreoElectronico.Trim().ToLowerInvariant();
+                SuscriptorNewsletter suscripcion = _mpp.ObtenerPorCorreo(new SuscriptorNewsletter { CorreoElectronico = correo });
+                return ResultadoOperacion<SuscripcionDeCuenta>.Ok(new SuscripcionDeCuenta
+                {
+                    CorreoElectronico = correo,
+                    Suscripcion = suscripcion,
+                    Vinculada = suscripcion != null && suscripcion.IdUsuarioExterno == idUsuarioExterno
+                });
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<SuscripcionDeCuenta>.Error("No pudimos consultar tu suscripción al newsletter en este momento.");
+            }
+        }
+
+        // Suscribirse (o volver a pedir la confirmación) desde Mi perfil.
+        public ResultadoOperacion SuscribirDesdeCuenta(int idUsuarioExterno, IEnumerable<string> categorias, string urlBase)
+        {
+            UsuarioExterno cuenta;
+            ResultadoOperacion validacion = ObtenerCuentaActiva(idUsuarioExterno, out cuenta);
+            if (!validacion.Exitoso)
+            {
+                return validacion;
+            }
+
+            List<string> elegidas;
+            ResultadoOperacion validacionCategorias = ValidarCategorias(categorias, out elegidas);
+            if (!validacionCategorias.Exitoso)
+            {
+                return validacionCategorias;
+            }
+
+            string correo = cuenta.CorreoElectronico.Trim().ToLowerInvariant();
+            if (!EsCorreoValido(correo))
+            {
+                return ResultadoOperacion.Error("El correo de tu cuenta no es válido para recibir el newsletter. Revisalo en Tus datos.");
+            }
+
+            string nombre = string.IsNullOrWhiteSpace(cuenta.Nombre) ? null : cuenta.Nombre.Trim();
+            if (nombre != null && nombre.Length > LongitudMaximaNombre)
+            {
+                nombre = nombre.Substring(0, LongitudMaximaNombre);
+            }
+
+            return PedirConfirmacion(correo, nombre, elegidas, idUsuarioExterno, urlBase, true);
+        }
+
+        public ResultadoOperacion GuardarPreferenciasDeCuenta(int idUsuarioExterno, IEnumerable<string> categorias)
+        {
+            SuscriptorNewsletter suscriptor;
+            ResultadoOperacion validacion = ObtenerVinculadaActiva(idUsuarioExterno, out suscriptor);
+            if (!validacion.Exitoso)
+            {
+                return validacion;
+            }
+
+            List<string> elegidas;
+            ResultadoOperacion validacionCategorias = ValidarCategorias(categorias, out elegidas);
+            if (!validacionCategorias.Exitoso)
+            {
+                return validacionCategorias;
+            }
+
+            try
+            {
+                suscriptor.Categorias = elegidas;
+                _mpp.GuardarCategorias(suscriptor);
+                Bitacora("MODIFICACION", suscriptor.IdSuscriptorNewsletter, "Cambio de categorías del newsletter desde Mi perfil.", idUsuarioExterno);
+                return ResultadoOperacion.Ok("Guardamos tus preferencias del newsletter.");
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error("No pudimos guardar tus preferencias en este momento. Intentá nuevamente.");
+            }
+        }
+
+        public ResultadoOperacion DarDeBajaDesdeCuenta(int idUsuarioExterno)
+        {
+            SuscriptorNewsletter suscriptor;
+            ResultadoOperacion validacion = ObtenerVinculadaActiva(idUsuarioExterno, out suscriptor);
+            if (!validacion.Exitoso)
+            {
+                return validacion;
+            }
+
+            try
+            {
+                if (!_mpp.CambiarEstado(suscriptor, SuscriptorNewsletter.EstadoBaja))
+                {
+                    return ResultadoOperacion.Error("No pudimos actualizar la suscripción. Recargá la página e intentá nuevamente.");
+                }
+
+                Bitacora("BAJA", suscriptor.IdSuscriptorNewsletter, "Baja del newsletter desde Mi perfil.", idUsuarioExterno);
+                return ResultadoOperacion.Ok("Listo, te diste de baja: no vas a recibir más el newsletter de StageUp.");
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error("No pudimos actualizar la suscripción en este momento. Intentá nuevamente.");
+            }
+        }
+
+        // El correo ya recibe el newsletter por una suscripción hecha sin
+        // iniciar sesión: se le manda al correo el enlace para administrarla.
+        public ResultadoOperacion EnviarEnlacePreferenciasDeCuenta(int idUsuarioExterno, string urlBase)
+        {
+            ResultadoOperacion<SuscripcionDeCuenta> actual = ObtenerDeCuenta(idUsuarioExterno);
+            if (!actual.Exitoso)
+            {
+                return ResultadoOperacion.Error(actual.Mensaje);
+            }
+
+            SuscriptorNewsletter suscriptor = actual.Valor.Suscripcion;
+            if (suscriptor == null || suscriptor.Estado != SuscriptorNewsletter.EstadoActivo)
+            {
+                return ResultadoOperacion.Error("Tu correo no tiene una suscripción activa.");
+            }
+
+            if (suscriptor.FechaUltimoEnvioConfirmacion.HasValue && DateTime.Now - suscriptor.FechaUltimoEnvioConfirmacion.Value < EsperaEntreCorreos)
+            {
+                return ResultadoOperacion.Error("Ya te enviamos un correo hace menos de 5 minutos. Revisá tu bandeja de entrada (y spam) antes de pedir otro.");
+            }
+
+            if (!_servicioCorreo.EnviarAvisoYaSuscriptoNewsletter(suscriptor.CorreoElectronico, suscriptor.Nombre, UrlPreferencias(urlBase, suscriptor.TokenPreferencias)))
+            {
+                return ResultadoOperacion.Error(MensajeFalloCorreo);
+            }
+
+            try
+            {
+                _mpp.MarcarAvisoEnviado(suscriptor);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+            }
+            return ResultadoOperacion.Ok("Te enviamos a " + suscriptor.CorreoElectronico + " el enlace para administrar tu suscripción.");
+        }
+
+        // ------------------------------------------------------------------
+        // Administración (Interno/GestionNewsletter.aspx).
+        // ------------------------------------------------------------------
+        public List<SuscriptorNewsletter> Listar(FiltroSuscriptoresNewsletter filtro, out int totalFiltrado)
+        {
+            totalFiltrado = 0;
+            FiltroSuscriptoresNewsletter limpio = new FiltroSuscriptoresNewsletter
+            {
+                Texto = string.IsNullOrWhiteSpace(filtro == null ? null : filtro.Texto) ? null : filtro.Texto.Trim(),
+                Estado = filtro != null && (filtro.Estado == SuscriptorNewsletter.EstadoActivo || filtro.Estado == SuscriptorNewsletter.EstadoPendiente ||
+                    filtro.Estado == SuscriptorNewsletter.EstadoBaja) ? filtro.Estado : null,
+                ConCuenta = filtro == null ? null : filtro.ConCuenta,
+                Maximo = filtro == null || filtro.Maximo < 1 || filtro.Maximo > 1000 ? 200 : filtro.Maximo
+            };
+
+            if (limpio.Texto != null && limpio.Texto.Length > LongitudMaximaCorreo)
+            {
+                limpio.Texto = limpio.Texto.Substring(0, LongitudMaximaCorreo);
+            }
+
+            try
+            {
+                return _mpp.Listar(limpio, out totalFiltrado);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return new List<SuscriptorNewsletter>();
+            }
+        }
+
+        // Baja hecha por un usuario interno (por ejemplo, a pedido de la
+        // persona por otro canal).
+        public ResultadoOperacion DarDeBajaAdministrativa(int idSuscriptorNewsletter, int idUsuarioInternoResponsable)
+        {
+            SuscriptorNewsletter suscriptor = ObtenerPorIdSeguro(idSuscriptorNewsletter);
+            if (suscriptor == null)
+            {
+                return ResultadoOperacion.Error("No se encontró el suscriptor.");
+            }
+
+            if (suscriptor.Estado == SuscriptorNewsletter.EstadoBaja)
+            {
+                return ResultadoOperacion.Error("El suscriptor ya estaba dado de baja.");
+            }
+
+            try
+            {
+                if (!_mpp.CambiarEstado(suscriptor, SuscriptorNewsletter.EstadoBaja))
+                {
+                    return ResultadoOperacion.Error("El estado del suscriptor cambió mientras tanto. Recargá la lista.");
+                }
+
+                BitacoraInterna(idUsuarioInternoResponsable, "BAJA", suscriptor.IdSuscriptorNewsletter,
+                    "Baja administrativa del suscriptor " + suscriptor.CorreoEnmascarado + " (estaba " + suscriptor.Estado + ").");
+                return ResultadoOperacion.Ok("Se dio de baja a " + suscriptor.CorreoElectronico + ".");
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error("No se pudo dar de baja al suscriptor. Intentá nuevamente.");
+            }
+        }
+
+        // Reenvía el enlace de confirmación a un suscriptor pendiente.
+        public ResultadoOperacion ReenviarConfirmacion(int idSuscriptorNewsletter, int idUsuarioInternoResponsable, string urlBase)
+        {
+            SuscriptorNewsletter suscriptor = ObtenerPorIdSeguro(idSuscriptorNewsletter);
+            if (suscriptor == null)
+            {
+                return ResultadoOperacion.Error("No se encontró el suscriptor.");
+            }
+
+            if (suscriptor.Estado != SuscriptorNewsletter.EstadoPendiente)
+            {
+                return ResultadoOperacion.Error("Solo se reenvía la confirmación a suscriptores pendientes.");
+            }
+
+            if (suscriptor.FechaUltimoEnvioConfirmacion.HasValue && DateTime.Now - suscriptor.FechaUltimoEnvioConfirmacion.Value < EsperaEntreCorreos)
+            {
+                return ResultadoOperacion.Error("Ya se le envió un correo hace menos de 5 minutos. Esperá un poco antes de reenviarlo.");
+            }
+
+            string tokenConfirmacion = GenerarToken();
+            suscriptor.VencimientoConfirmacion = DateTime.Now.AddHours(HorasValidezConfirmacion);
+            suscriptor.Nombre = null;
+            suscriptor.IdUsuarioExterno = null;
+            try
+            {
+                if (!_mpp.RenovarConfirmacion(suscriptor, Hash(tokenConfirmacion)))
+                {
+                    return ResultadoOperacion.Error("El estado del suscriptor cambió mientras tanto. Recargá la lista.");
+                }
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error("No se pudo preparar el reenvío. Intentá nuevamente.");
+            }
+
+            if (!_servicioCorreo.EnviarConfirmacionNewsletter(suscriptor.CorreoElectronico, null,
+                UrlBaseConBarra(urlBase) + "Newsletter.aspx?confirmar=" + tokenConfirmacion, HorasValidezConfirmacion))
+            {
+                try
+                {
+                    _mpp.AnularEnvioConfirmacion(suscriptor);
+                }
+                catch (ErrorAccesoDatosException)
+                {
+                }
+                return ResultadoOperacion.Error("No se pudo enviar el correo de confirmación. Revisá la configuración de correo saliente e intentá de nuevo.");
+            }
+
+            BitacoraInterna(idUsuarioInternoResponsable, "MODIFICACION", suscriptor.IdSuscriptorNewsletter,
+                "Reenvío de la confirmación del newsletter a " + suscriptor.CorreoEnmascarado + ".");
+            return ResultadoOperacion.Ok("Se reenvió el correo de confirmación a " + suscriptor.CorreoElectronico + ".");
+        }
+
         public ResumenSuscriptoresNewsletter ObtenerResumen()
         {
             try
@@ -245,7 +585,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Destinatarios de un envío (lo usa BLL_Novedad).
+        // Destinatarios que tendría hoy un envío (solo suscriptores
+        // confirmados; no crea suscripciones).
         public List<DestinatarioNewsletter> ListarDestinatarios(string criterio, Novedad novedad)
         {
             return _mpp.ListarDestinatarios(criterio, novedad);
@@ -292,8 +633,10 @@ namespace StageUp.BLL
 
         private static ResultadoOperacion ValidarCategorias(IEnumerable<string> categorias, out List<string> elegidas)
         {
+            List<string> activas = BLL_CategoriaNovedad.ListarActivas().Select(c => c.Codigo).ToList();
             elegidas = (categorias ?? Enumerable.Empty<string>())
-                .Where(c => BLL_Novedad.Categorias.Contains(c))
+                .Select(c => activas.FirstOrDefault(a => string.Equals(a, (c ?? string.Empty).Trim(), StringComparison.OrdinalIgnoreCase)))
+                .Where(c => c != null)
                 .Distinct()
                 .ToList();
 
@@ -350,11 +693,78 @@ namespace StageUp.BLL
             return url.EndsWith("/", StringComparison.Ordinal) ? url : url + "/";
         }
 
-        private void Bitacora(string operacion, int idSuscriptor, string descripcion)
+        private ResultadoOperacion ObtenerCuentaActiva(int idUsuarioExterno, out UsuarioExterno cuenta)
+        {
+            cuenta = null;
+            try
+            {
+                cuenta = _mppUsuario.ObtenerPorId(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error("No pudimos consultar tu cuenta en este momento.");
+            }
+
+            if (cuenta == null || !cuenta.Activo || string.IsNullOrWhiteSpace(cuenta.CorreoElectronico))
+            {
+                return ResultadoOperacion.Error("Tu cuenta no está activa.");
+            }
+
+            return ResultadoOperacion.Ok();
+        }
+
+        // La suscripción del correo de la cuenta, activa y vinculada a ella.
+        private ResultadoOperacion ObtenerVinculadaActiva(int idUsuarioExterno, out SuscriptorNewsletter suscriptor)
+        {
+            suscriptor = null;
+            ResultadoOperacion<SuscripcionDeCuenta> actual = ObtenerDeCuenta(idUsuarioExterno);
+            if (!actual.Exitoso)
+            {
+                return ResultadoOperacion.Error(actual.Mensaje);
+            }
+
+            if (actual.Valor.Suscripcion == null || actual.Valor.Estado != SuscriptorNewsletter.EstadoActivo)
+            {
+                return ResultadoOperacion.Error("No tenés una suscripción activa al newsletter.");
+            }
+
+            if (!actual.Valor.Vinculada)
+            {
+                return ResultadoOperacion.Error("Esta suscripción se hizo sin iniciar sesión: administrala desde el enlace que figura en cada newsletter.");
+            }
+
+            suscriptor = actual.Valor.Suscripcion;
+            return ResultadoOperacion.Ok();
+        }
+
+        private SuscriptorNewsletter ObtenerPorIdSeguro(int idSuscriptorNewsletter)
         {
             try
             {
-                _bitacora.Registrar(null, operacion, TipoEntidadBitacora, idSuscriptor, descripcion);
+                return idSuscriptorNewsletter <= 0 ? null : _mpp.ObtenerPorId(new SuscriptorNewsletter { IdSuscriptorNewsletter = idSuscriptorNewsletter });
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return null;
+            }
+        }
+
+        private void Bitacora(string operacion, int idSuscriptor, string descripcion, int? idUsuarioExterno = null)
+        {
+            try
+            {
+                _bitacora.Registrar(idUsuarioExterno, operacion, TipoEntidadBitacora, idSuscriptor, descripcion);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+            }
+        }
+
+        private void BitacoraInterna(int idUsuarioInterno, string operacion, int idSuscriptor, string descripcion)
+        {
+            try
+            {
+                _bitacora.RegistrarInterno(idUsuarioInterno, operacion, TipoEntidadBitacora, idSuscriptor, descripcion);
             }
             catch (ErrorAccesoDatosException)
             {

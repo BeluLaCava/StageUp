@@ -15,6 +15,12 @@
         .button-danger { background: #b3261e; border-color: #b3261e; color: #fff; }
         .button-danger:hover, .button-danger:focus-visible { background: #8c1d18; border-color: #8c1d18; color: #fff; }
         @media (max-width: 39rem) { .profile-delete-final .profile-form-actions { flex-direction: column; align-items: stretch; } }
+        .profile-nl-estado { margin: 0 0 0.85rem; color: var(--color-text-muted); }
+        .profile-nl-categorias { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; margin: 0.35rem 0 0.9rem; padding: 0; list-style: none; }
+        .profile-nl-categorias li { display: flex; align-items: center; gap: 0.55rem; padding: 0.55rem 0.75rem; border: 1px solid var(--color-border); border-radius: 0.8rem; }
+        .profile-nl-categorias li input { margin: 0; flex: 0 0 auto; accent-color: var(--color-primary); }
+        .profile-nl-categorias li label { margin: 0; cursor: pointer; }
+        @media (max-width: 39rem) { .profile-nl-categorias { grid-template-columns: 1fr; } }
     </style>
     <section class="profile-page user-module-page">
         <div class="container-wide">
@@ -217,6 +223,29 @@
                             <asp:HyperLink ID="lnkGestorAccion" runat="server" CssClass="button button-secondary button-small" />
                         </div>
                         <p><asp:Literal ID="litGestorTexto" runat="server" Mode="Encode" /></p>
+                    </section>
+
+                    <%-- Newsletter: la suscripción del correo de la cuenta (la misma que se administra desde el enlace de cada newsletter). --%>
+                    <section class="profile-card" aria-labelledby="newsletter-title">
+                        <div class="profile-card-header">
+                            <div>
+                                <span class="profile-card-eyebrow">Newsletter</span>
+                                <h2 id="newsletter-title">Novedades por correo</h2>
+                            </div>
+                        </div>
+                        <p class="profile-nl-estado"><asp:Literal ID="litNewsletterEstado" runat="server" Mode="Encode" /></p>
+                        <asp:Panel ID="pnlNewsletterCategorias" runat="server" CssClass="form-field">
+                            <span class="form-label">Categorías que querés recibir</span>
+                            <asp:CheckBoxList ID="cblNewsletterCategorias" runat="server" RepeatLayout="UnorderedList" CssClass="profile-nl-categorias" />
+                        </asp:Panel>
+                        <div class="profile-form-actions">
+                            <asp:Button ID="btnNewsletterSuscribir" runat="server" CssClass="button button-primary" Text="Suscribirme" CausesValidation="false" OnClick="btnNewsletterSuscribir_Click" />
+                            <asp:Button ID="btnNewsletterReenviar" runat="server" CssClass="button button-secondary" Text="Reenviar el correo de confirmación" CausesValidation="false" OnClick="btnNewsletterSuscribir_Click" />
+                            <asp:Button ID="btnNewsletterGuardar" runat="server" CssClass="button button-primary" Text="Guardar preferencias" CausesValidation="false" OnClick="btnNewsletterGuardar_Click" />
+                            <asp:Button ID="btnNewsletterBaja" runat="server" CssClass="button button-secondary" Text="Darme de baja" CausesValidation="false" OnClick="btnNewsletterBaja_Click"
+                                OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Dejar de recibir el newsletter de StageUp? Podés volver a suscribirte cuando quieras.', { title: 'Darme de baja', confirmText: 'Sí, darme de baja', cancelText: 'Volver' })) return false;" />
+                            <asp:Button ID="btnNewsletterEnlace" runat="server" CssClass="button button-secondary" Text="Enviarme el enlace para administrarla" CausesValidation="false" OnClick="btnNewsletterEnlace_Click" />
+                        </div>
                     </section>
 
                     <section class="profile-card" aria-labelledby="security-title">

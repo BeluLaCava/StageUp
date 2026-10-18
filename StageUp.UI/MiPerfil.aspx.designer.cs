@@ -91,5 +91,21 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Button btnBajaDefinitiva;
 
         protected global::System.Web.UI.WebControls.LinkButton lnkCancelarBajaFinal;
+
+        protected global::System.Web.UI.WebControls.Literal litNewsletterEstado;
+
+        protected global::System.Web.UI.WebControls.Panel pnlNewsletterCategorias;
+
+        protected global::System.Web.UI.WebControls.CheckBoxList cblNewsletterCategorias;
+
+        protected global::System.Web.UI.WebControls.Button btnNewsletterSuscribir;
+
+        protected global::System.Web.UI.WebControls.Button btnNewsletterReenviar;
+
+        protected global::System.Web.UI.WebControls.Button btnNewsletterGuardar;
+
+        protected global::System.Web.UI.WebControls.Button btnNewsletterBaja;
+
+        protected global::System.Web.UI.WebControls.Button btnNewsletterEnlace;
     }
 }

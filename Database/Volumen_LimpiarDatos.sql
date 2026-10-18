@@ -153,6 +153,10 @@ PRINT CONCAT(N'Espacios: ', @@ROWCOUNT);
 IF OBJECT_ID(N'dbo.ContactoComercial', N'U') IS NOT NULL
     UPDATE dbo.ContactoComercial SET idUsuarioExterno = NULL WHERE idUsuarioExterno IN (SELECT id FROM #U);
 
+IF OBJECT_ID(N'dbo.EnvioNewsletterDestinatario', N'U') IS NOT NULL
+    DELETE FROM dbo.EnvioNewsletterDestinatario
+    WHERE idSuscriptorNewsletter IN (SELECT idSuscriptorNewsletter FROM dbo.SuscriptorNewsletter WHERE idUsuarioExterno IN (SELECT id FROM #U));
+
 IF OBJECT_ID(N'dbo.SuscriptorNewsletter', N'U') IS NOT NULL
     DELETE FROM dbo.SuscriptorNewsletter WHERE idUsuarioExterno IN (SELECT id FROM #U);
 

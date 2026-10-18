@@ -29,6 +29,15 @@ namespace StageUp.BE.Entidades
         // Categorías elegidas. Vacía = todas.
         public List<string> Categorias { get; set; } = new List<string>();
 
+        // Cuenta externa activa con el mismo correo (listado de administración).
+        public int? IdCuenta { get; set; }
+        public string PerfilCuenta { get; set; }
+
+        public bool TieneCuenta
+        {
+            get { return IdCuenta.HasValue; }
+        }
+
         // Para mostrar el correo sin exponerlo entero: "ju***@gmail.com".
         public string CorreoEnmascarado
         {
@@ -50,9 +59,37 @@ namespace StageUp.BE.Entidades
     // Un destinatario de un envío de newsletter.
     public class DestinatarioNewsletter
     {
+        public int IdSuscriptorNewsletter { get; set; }
         public string CorreoElectronico { get; set; }
         public string Nombre { get; set; }
         public string TokenPreferencias { get; set; }
+    }
+
+    // Suscripción del correo de una cuenta, vista desde Mi perfil.
+    public class SuscripcionDeCuenta
+    {
+        public string CorreoElectronico { get; set; }
+
+        // null: el correo no tiene suscripción.
+        public SuscriptorNewsletter Suscripcion { get; set; }
+
+        // La suscripción se pidió o confirmó desde esta cuenta: se puede
+        // administrar desde el perfil.
+        public bool Vinculada { get; set; }
+
+        public string Estado
+        {
+            get { return Suscripcion == null ? null : Suscripcion.Estado; }
+        }
+    }
+
+    // Filtros del listado de suscriptores (administración).
+    public class FiltroSuscriptoresNewsletter
+    {
+        public string Texto { get; set; }
+        public string Estado { get; set; }
+        public bool? ConCuenta { get; set; }
+        public int Maximo { get; set; } = 200;
     }
 
     public class ResumenSuscriptoresNewsletter

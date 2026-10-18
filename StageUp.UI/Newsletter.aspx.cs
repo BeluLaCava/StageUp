@@ -158,10 +158,11 @@ namespace StageUp.UI
 
         private static void CargarCategorias(CheckBoxList lista)
         {
+            // Categorías activas (administrables, script 85).
             lista.Items.Clear();
-            foreach (KeyValuePair<string, string> categoria in BLL_Busqueda.CategoriasNovedad)
+            foreach (CategoriaNovedad categoria in BLL_CategoriaNovedad.ListarActivas())
             {
-                lista.Items.Add(new ListItem(categoria.Value, categoria.Key));
+                lista.Items.Add(new ListItem(categoria.Nombre, categoria.Codigo));
             }
         }
 

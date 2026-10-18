@@ -51,6 +51,8 @@
     <Compile Include="MPP_NodoAsistente.cs" />
     <Compile Include="MPP_PreguntaEspacio.cs" />
     <Compile Include="MPP_MensajeReserva.cs" />
+    <Compile Include="MPP_CategoriaNovedad.cs" />
+    <Compile Include="MPP_EnvioNewsletter.cs" />
     <Compile Include="MPP_SuscriptorNewsletter.cs" />
     <Compile Include="MPP_CampaniaComercial.cs" />
     <Compile Include="MPP_AlianzaEstrategica.cs" />

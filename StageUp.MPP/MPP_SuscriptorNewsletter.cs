@@ -36,7 +36,9 @@ namespace StageUp.MPP
                     { "@nombre", (object)oSuscriptor.Nombre ?? DBNull.Value },
                     { "@hashTokenConfirmacion", hashTokenConfirmacion },
                     { "@vencimientoConfirmacion", oSuscriptor.VencimientoConfirmacion.Value },
-                    { "@tokenPreferencias", oSuscriptor.TokenPreferencias }
+                    { "@tokenPreferencias", oSuscriptor.TokenPreferencias },
+                    { "@idUsuarioExterno", (object)oSuscriptor.IdUsuarioExterno ?? DBNull.Value },
+                    { "@origen", oSuscriptor.Origen ?? SuscriptorNewsletter.OrigenFormulario }
                 }));
         }
 
@@ -49,7 +51,8 @@ namespace StageUp.MPP
                     { "@idSuscriptorNewsletter", oSuscriptor.IdSuscriptorNewsletter },
                     { "@nombre", (object)oSuscriptor.Nombre ?? DBNull.Value },
                     { "@hashTokenConfirmacion", hashTokenConfirmacion },
-                    { "@vencimientoConfirmacion", oSuscriptor.VencimientoConfirmacion.Value }
+                    { "@vencimientoConfirmacion", oSuscriptor.VencimientoConfirmacion.Value },
+                    { "@idUsuarioExterno", (object)oSuscriptor.IdUsuarioExterno ?? DBNull.Value }
                 })) > 0;
         }
 
@@ -57,6 +60,15 @@ namespace StageUp.MPP
         {
             Conexion.Instance.Guardar(
                 "sp_SuscriptorNewsletter_MarcarAvisoEnviado",
+                new Hashtable { { "@idSuscriptorNewsletter", oSuscriptor.IdSuscriptorNewsletter } });
+        }
+
+        // El correo de confirmación o el aviso no salió: no cuenta para la
+        // espera entre envíos.
+        public void AnularEnvioConfirmacion(SuscriptorNewsletter oSuscriptor)
+        {
+            Conexion.Instance.Guardar(
+                "sp_SuscriptorNewsletter_AnularEnvioConfirmacion",
                 new Hashtable { { "@idSuscriptorNewsletter", oSuscriptor.IdSuscriptorNewsletter } });
         }
 
@@ -91,10 +103,7 @@ namespace StageUp.MPP
                 new Hashtable
                 {
                     { "@idSuscriptorNewsletter", oSuscriptor.IdSuscriptorNewsletter },
-                    { "@institucional", categorias.Contains("Institucional") },
-                    { "@catalogo", categorias.Contains("Catalogo") },
-                    { "@consejos", categorias.Contains("Consejos") },
-                    { "@comunidad", categorias.Contains("Comunidad") }
+                    { "@categorias", string.Join(",", categorias) }
                 });
         }
 
@@ -131,6 +140,7 @@ namespace StageUp.MPP
             {
                 lista.Add(new DestinatarioNewsletter
                 {
+                    IdSuscriptorNewsletter = Convert.ToInt32(fila["idSuscriptorNewsletter"]),
                     CorreoElectronico = fila["correoElectronico"].ToString(),
                     Nombre = fila["nombre"] == DBNull.Value ? null : fila["nombre"].ToString(),
                     TokenPreferencias = fila["tokenPreferencias"].ToString()
@@ -139,15 +149,48 @@ namespace StageUp.MPP
             return lista;
         }
 
+        public SuscriptorNewsletter ObtenerPorId(SuscriptorNewsletter oSuscriptor)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_SuscriptorNewsletter_ObtenerPorId",
+                new Hashtable { { "@idSuscriptorNewsletter", oSuscriptor.IdSuscriptorNewsletter } });
+            return tabla.Rows.Count == 0 ? null : Mapear(tabla.Rows[0]);
+        }
+
+        // Administración: suscriptores filtrados (los más recientes primero).
+        public List<SuscriptorNewsletter> Listar(FiltroSuscriptoresNewsletter oFiltro, out int totalFiltrado)
+        {
+            DataTable tabla = Conexion.Instance.Leer(
+                "sp_SuscriptorNewsletter_Listar",
+                new Hashtable
+                {
+                    { "@texto", (object)oFiltro.Texto ?? DBNull.Value },
+                    { "@estado", (object)oFiltro.Estado ?? DBNull.Value },
+                    { "@conCuenta", oFiltro.ConCuenta.HasValue ? (object)oFiltro.ConCuenta.Value : DBNull.Value },
+                    { "@maximo", oFiltro.Maximo }
+                });
+
+            totalFiltrado = 0;
+            List<SuscriptorNewsletter> lista = new List<SuscriptorNewsletter>();
+            foreach (DataRow fila in tabla.Rows)
+            {
+                SuscriptorNewsletter suscriptor = Mapear(fila);
+                suscriptor.IdCuenta = fila["idCuenta"] == DBNull.Value ? (int?)null : Convert.ToInt32(fila["idCuenta"]);
+                suscriptor.PerfilCuenta = fila["perfilCuenta"] == DBNull.Value ? null : fila["perfilCuenta"].ToString();
+                totalFiltrado = Convert.ToInt32(fila["totalFiltrado"]);
+                lista.Add(suscriptor);
+            }
+            return lista;
+        }
+
         private static SuscriptorNewsletter Obtener(Hashtable parametros)
         {
             DataTable tabla = Conexion.Instance.Leer("sp_SuscriptorNewsletter_Obtener", parametros);
-            if (tabla.Rows.Count == 0)
-            {
-                return null;
-            }
+            return tabla.Rows.Count == 0 ? null : Mapear(tabla.Rows[0]);
+        }
 
-            DataRow fila = tabla.Rows[0];
+        private static SuscriptorNewsletter Mapear(DataRow fila)
+        {
             string categorias = fila["categorias"] == DBNull.Value ? string.Empty : fila["categorias"].ToString();
             return new SuscriptorNewsletter
             {

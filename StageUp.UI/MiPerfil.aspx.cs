@@ -14,6 +14,7 @@ namespace StageUp.UI
         private const int MaximoBytesFoto = 5 * 1024 * 1024;
         private readonly BLL_UsuarioExterno _bllUsuario = new BLL_UsuarioExterno();
         private readonly BLL_Calificacion _bllCalificacion = new BLL_Calificacion();
+        private readonly BLL_Newsletter _bllNewsletter = new BLL_Newsletter();
 
         private string FotoPerfilRutaActual
         {
@@ -328,6 +329,122 @@ namespace StageUp.UI
             }
 
             CargarCalificaciones(idUsuario);
+            CargarNewsletter();
+        }
+
+        // ------------------------------------------------------------------
+        // Newsletter (script 85): suscripción del correo de la cuenta.
+        // ------------------------------------------------------------------
+        protected void btnNewsletterSuscribir_Click(object sender, EventArgs e)
+        {
+            ResultadoOperacion resultado = _bllNewsletter.SuscribirDesdeCuenta(
+                GestorDeSesion.ObtenerIdUsuarioActual().Value, CategoriasNewsletterElegidas(), UrlBase());
+            CargarNewsletter(resultado.Exitoso ? null : CategoriasNewsletterElegidas());
+            MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+        }
+
+        protected void btnNewsletterGuardar_Click(object sender, EventArgs e)
+        {
+            ResultadoOperacion resultado = _bllNewsletter.GuardarPreferenciasDeCuenta(
+                GestorDeSesion.ObtenerIdUsuarioActual().Value, CategoriasNewsletterElegidas());
+            CargarNewsletter(resultado.Exitoso ? null : CategoriasNewsletterElegidas());
+            MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+        }
+
+        protected void btnNewsletterBaja_Click(object sender, EventArgs e)
+        {
+            ResultadoOperacion resultado = _bllNewsletter.DarDeBajaDesdeCuenta(GestorDeSesion.ObtenerIdUsuarioActual().Value);
+            CargarNewsletter();
+            MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+        }
+
+        protected void btnNewsletterEnlace_Click(object sender, EventArgs e)
+        {
+            ResultadoOperacion resultado = _bllNewsletter.EnviarEnlacePreferenciasDeCuenta(GestorDeSesion.ObtenerIdUsuarioActual().Value, UrlBase());
+            CargarNewsletter();
+            MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+        }
+
+        // elegidas: para conservar lo tildado cuando la operación falla.
+        private void CargarNewsletter(List<string> elegidas = null)
+        {
+            btnNewsletterSuscribir.Visible = false;
+            btnNewsletterReenviar.Visible = false;
+            btnNewsletterGuardar.Visible = false;
+            btnNewsletterBaja.Visible = false;
+            btnNewsletterEnlace.Visible = false;
+            pnlNewsletterCategorias.Visible = false;
+
+            ResultadoOperacion<SuscripcionDeCuenta> resultado = _bllNewsletter.ObtenerDeCuenta(GestorDeSesion.ObtenerIdUsuarioActual().Value);
+            if (!resultado.Exitoso)
+            {
+                litNewsletterEstado.Text = resultado.Mensaje;
+                return;
+            }
+
+            SuscripcionDeCuenta cuenta = resultado.Valor;
+            SuscriptorNewsletter suscripcion = cuenta.Suscripcion;
+            cblNewsletterCategorias.Items.Clear();
+            foreach (CategoriaNovedad categoria in BLL_CategoriaNovedad.ListarActivas())
+            {
+                cblNewsletterCategorias.Items.Add(new System.Web.UI.WebControls.ListItem(categoria.Nombre, categoria.Codigo));
+            }
+
+            List<string> marcadas = elegidas ?? (suscripcion == null ? new List<string>() : suscripcion.Categorias);
+            foreach (System.Web.UI.WebControls.ListItem item in cblNewsletterCategorias.Items)
+            {
+                item.Selected = marcadas.Count == 0 || marcadas.Contains(item.Value);
+            }
+
+            string estado = suscripcion == null ? null : suscripcion.Estado;
+            if (estado == SuscriptorNewsletter.EstadoActivo && !cuenta.Vinculada)
+            {
+                litNewsletterEstado.Text = "Tu correo " + cuenta.CorreoElectronico + " ya recibe el newsletter por una suscripción hecha sin iniciar sesión. " +
+                    "Para cambiar las categorías o darte de baja usá el enlace que figura al pie de cada newsletter; si no lo tenés a mano, te lo enviamos.";
+                btnNewsletterEnlace.Visible = true;
+                return;
+            }
+
+            pnlNewsletterCategorias.Visible = true;
+            if (estado == SuscriptorNewsletter.EstadoActivo)
+            {
+                litNewsletterEstado.Text = "Recibís el newsletter en " + cuenta.CorreoElectronico +
+                    (suscripcion.FechaConfirmacion.HasValue ? " desde el " + suscripcion.FechaConfirmacion.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) : string.Empty) + ".";
+                btnNewsletterGuardar.Visible = true;
+                btnNewsletterBaja.Visible = true;
+            }
+            else if (estado == SuscriptorNewsletter.EstadoPendiente)
+            {
+                litNewsletterEstado.Text = "Tu suscripción con " + cuenta.CorreoElectronico + " está pendiente: confirmala con el enlace del correo que te enviamos" +
+                    (suscripcion.VencimientoConfirmacion.HasValue && suscripcion.VencimientoConfirmacion.Value > DateTime.Now
+                        ? " (vence el " + suscripcion.VencimientoConfirmacion.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture) + ")."
+                        : "; el enlace ya venció, pedí uno nuevo.");
+                btnNewsletterReenviar.Visible = true;
+            }
+            else
+            {
+                litNewsletterEstado.Text = "No recibís el newsletter en " + cuenta.CorreoElectronico +
+                    ". Elegí las categorías y te enviamos un correo para confirmar la suscripción.";
+                btnNewsletterSuscribir.Visible = true;
+            }
+        }
+
+        private List<string> CategoriasNewsletterElegidas()
+        {
+            List<string> elegidas = new List<string>();
+            foreach (System.Web.UI.WebControls.ListItem item in cblNewsletterCategorias.Items)
+            {
+                if (item.Selected)
+                {
+                    elegidas.Add(item.Value);
+                }
+            }
+            return elegidas;
+        }
+
+        private string UrlBase()
+        {
+            return new Uri(Request.Url, ResolveUrl("~/")).ToString();
         }
 
         private void CargarCalificaciones(int idUsuario)

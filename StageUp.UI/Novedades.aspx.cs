@@ -43,21 +43,10 @@ namespace StageUp.UI
             rptNovedades.DataBind();
         }
 
+        // Nombre de la categoría (tabla CategoriaNovedad, script 85).
         protected static string ObtenerEtiquetaCategoria(string categoria)
         {
-            switch (categoria)
-            {
-                case "Institucional":
-                    return "Institucional";
-                case "Catalogo":
-                    return "Nuevos espacios";
-                case "Consejos":
-                    return "Guías StageUp";
-                case "Comunidad":
-                    return "Comunidad artística";
-                default:
-                    return "Novedades";
-            }
+            return BLL_CategoriaNovedad.ObtenerEtiqueta(categoria);
         }
 
         protected string ResolverUrlImagen(object valor)

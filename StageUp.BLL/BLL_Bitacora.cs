@@ -23,6 +23,7 @@ namespace StageUp.BLL
             "Actividad", "Participante", "Encuesta", "Sistema", "Ticket", "OpcionMenu", "BaseDeDatos",
             "Pago", "Comprobante", "CuentaCorriente", "ParametroPlataforma", "SolicitudHabilitacionGestor", "Disponibilidad",
             "TransaccionEconomica", "TarjetaGuardada", "ClaveCifrado", "Faq", "PreguntaEspacio", "MensajeReserva", "SuscriptorNewsletter",
+            "Novedad", "CategoriaNovedad",
             "CampaniaComercial", "ContactoComercial", "AlianzaEstrategica", "ContenidoPromocional", "OrigenUsuario"
         };
 

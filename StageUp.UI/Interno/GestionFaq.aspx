@@ -5,7 +5,7 @@
         <div class="static-page-header internal-page-hero">
             <span class="section-label">Centro de ayuda</span>
             <h1>Contenido de ayuda</h1>
-            <p>Preguntas frecuentes por categoría que se muestran en el centro de ayuda. El asistente guiado tiene su propio contenido: una pregunta frecuente solo se ofrece en el asistente si la marcás para eso.</p>
+            <p>Preguntas frecuentes por categoría. En el centro de ayuda se muestra solo una lista breve de preguntas básicas, sin filtros; las categorías organizan el contenido internamente. Las consultas específicas las resuelve el asistente, que tiene su propio contenido y no usa estas preguntas.</p>
         </div>
 
         <div class="static-page-body internal-admin-stack">
@@ -17,7 +17,7 @@
                 <div><span>Publicados</span><strong><asp:Literal ID="litCantidadActivos" runat="server" /></strong></div>
                 <div><span>Borradores</span><strong><asp:Literal ID="litCantidadBorradores" runat="server" /></strong></div>
                 <div><span>Desactivados</span><strong><asp:Literal ID="litCantidadInactivos" runat="server" /></strong></div>
-                <div><span>En el asistente</span><strong><asp:Literal ID="litCantidadAsistente" runat="server" /></strong></div>
+                <div><span>Básicas publicadas</span><strong><asp:Literal ID="litCantidadBasicas" runat="server" /></strong></div>
             </div>
 
             <%-- Alta y edición (pasos 8 a 15, A5, A15). --%>
@@ -52,12 +52,12 @@
                     </div>
                 </div>
                 <div class="form-field">
-                    <label for="<%= txtPalabrasClave.ClientID %>">Palabras clave (opcional, para encontrarla desde el asistente)</label>
+                    <label for="<%= txtPalabrasClave.ClientID %>">Palabras clave (opcional, ayudan a encontrarla en la búsqueda)</label>
                     <asp:TextBox ID="txtPalabrasClave" runat="server" MaxLength="300" placeholder="Ej: cancelar cancelación devolución cargo" />
                 </div>
                 <div class="ayuda-check">
-                    <asp:CheckBox ID="chkAsistente" runat="server" />
-                    <label for="<%= chkAsistente.ClientID %>">Ofrecerla también en el asistente, cuando la consulta escrita no coincide con ninguna de sus opciones</label>
+                    <asp:CheckBox ID="chkBasica" runat="server" />
+                    <label for="<%= chkBasica.ClientID %>">Mostrarla entre las preguntas básicas del centro de ayuda (conviene que sea una lista breve; lo específico lo resuelve el asistente)</label>
                 </div>
                 <%-- A6: guardar como publicado también pide confirmación. --%>
                 <asp:Panel ID="pnlConfirmarGuardar" runat="server" Visible="false" CssClass="ayuda-confirmar">
@@ -86,7 +86,7 @@
                 <p class="ayuda-detalle-respuesta"><asp:Literal ID="litDetalleRespuesta" runat="server" Mode="Encode" /></p>
                 <dl class="internal-detail-grid">
                     <div><dt>Categoría</dt><dd><asp:Literal ID="litDetalleCategoria" runat="server" Mode="Encode" /></dd></div>
-                    <div><dt>Asistente</dt><dd><asp:Literal ID="litDetalleAsistente" runat="server" Mode="Encode" /></dd></div>
+                    <div><dt>Centro de ayuda</dt><dd><asp:Literal ID="litDetalleBasica" runat="server" Mode="Encode" /></dd></div>
                     <div><dt>Orden</dt><dd><asp:Literal ID="litDetalleOrden" runat="server" Mode="Encode" /></dd></div>
                     <div><dt>Palabras clave</dt><dd><asp:Literal ID="litDetallePalabras" runat="server" Mode="Encode" /></dd></div>
                     <div><dt>Alta</dt><dd><asp:Literal ID="litDetalleAlta" runat="server" Mode="Encode" /></dd></div>
@@ -99,7 +99,7 @@
                     <asp:Button ID="btnCancelarPublicar" runat="server" CssClass="button button-secondary button-small" Text="No" CausesValidation="false" OnClick="btnCancelarPublicar_Click" />
                 </asp:Panel>
                 <asp:Panel ID="pnlConfirmarDesactivar" runat="server" Visible="false" CssClass="ayuda-confirmar">
-                    <p><strong>¿Desactivar este contenido?</strong> Deja de verse en el centro de ayuda<asp:Literal ID="litConfirmarAsistente" runat="server" Text=" y el asistente deja de ofrecerla" />. Se conserva su historial.</p>
+                    <p><strong>¿Desactivar este contenido?</strong> Deja de verse en el centro de ayuda<asp:Literal ID="litConfirmarBasica" runat="server" Text=" y sale de las preguntas básicas" />. Se conserva su historial.</p>
                     <asp:Button ID="btnConfirmarDesactivar" runat="server" CssClass="button button-primary button-small" Text="Sí, desactivar" CausesValidation="false" OnClick="btnConfirmarDesactivar_Click" />
                     <asp:Button ID="btnCancelarDesactivar" runat="server" CssClass="button button-secondary button-small" Text="No" CausesValidation="false" OnClick="btnCancelarDesactivar_Click" />
                 </asp:Panel>
@@ -148,7 +148,7 @@
                     <asp:Repeater ID="rptFaq" runat="server" OnItemCommand="rptFaq_ItemCommand">
                         <HeaderTemplate>
                             <table class="pagos-tabla">
-                                <thead><tr><th>Pregunta o título</th><th>Categoría</th><th>Estado</th><th>Asistente</th><th>Última actualización</th><th></th></tr></thead>
+                                <thead><tr><th>Pregunta o título</th><th>Categoría</th><th>Estado</th><th>Básica</th><th>Última actualización</th><th></th></tr></thead>
                                 <tbody>
                         </HeaderTemplate>
                         <ItemTemplate>
@@ -156,7 +156,7 @@
                                 <td><strong><%# Server.HtmlEncode(Convert.ToString(Eval("Pregunta"))) %></strong></td>
                                 <td><%# Server.HtmlEncode(Convert.ToString(Eval("NombreCategoria") ?? "Sin categoría")) %></td>
                                 <td><span class="faq-estado faq-estado-<%# Eval("Estado") %>"><%# Server.HtmlEncode(StageUp.BLL.BLL_Faq.DescribirEstado(Convert.ToString(Eval("Estado")))) %></span></td>
-                                <td><%# Convert.ToBoolean(Eval("UsarEnAsistente")) ? "Sí" : "No" %></td>
+                                <td><%# Convert.ToBoolean(Eval("EsBasica")) ? "Sí" : "No" %></td>
                                 <td><%# Server.HtmlEncode(Fecha(Container.DataItem)) %></td>
                                 <td><asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false" CommandName="Ver" CommandArgument='<%# Eval("IdFaq") %>' Text="Ver detalle" /></td>
                             </tr>

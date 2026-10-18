@@ -52,14 +52,15 @@ namespace StageUp.MPP
             return lista;
         }
 
-        public int MarcarLeidos(Reserva oReserva, UsuarioExterno oUsuario)
+        public int MarcarLeidos(Reserva oReserva, UsuarioExterno oUsuario, List<int> idsMensajes)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_MensajeReserva_MarcarLeidos",
                 new Hashtable
                 {
                     { "@idReserva", oReserva.IdReserva },
-                    { "@idUsuarioExterno", oUsuario.IdUsuarioExterno }
+                    { "@idUsuarioExterno", oUsuario.IdUsuarioExterno },
+                    { "@idsMensajes", string.Join(",", idsMensajes) }
                 });
 
             return resultado == null || resultado == DBNull.Value ? 0 : Convert.ToInt32(resultado);

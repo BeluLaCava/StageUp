@@ -805,7 +805,7 @@ namespace StageUp.BLL
 
         public static string DescribirPoliticaCancelacion(PoliticaCancelacion politica)
         {
-            return "Una solicitud pendiente se cancela sin cargo. Una reserva aceptada se cancela sin cargo con al menos " +
+            return "Una solicitud pendiente, o una reserva aceptada que todavía no se pagó, se cancela sin cargo. Una reserva pagada se cancela sin cargo con al menos " +
                 politica.DiasSinCargo + " días de anticipación; con menos de " + politica.DiasSinCargo + " y al menos " +
                 politica.DiasCargoParcial + " días se cobra el " + FormatearPorcentaje(politica.PorcentajeCargoParcial) +
                 " de su valor, y con menos de " + politica.DiasCargoParcial + " días, el " +

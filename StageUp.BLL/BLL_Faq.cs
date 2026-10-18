@@ -136,6 +136,50 @@ namespace StageUp.BLL
             }
         }
 
+        // La lista pública de preguntas básicas conviene breve: no hay un
+        // límite rígido, pero se avisa cuando crece.
+        public const int SugerenciaMaximaBasicas = 12;
+
+        private string AvisoListaBasica(Faq faq)
+        {
+            if (faq == null || !faq.EsBasica || faq.Estado != EstadoActivo)
+            {
+                return string.Empty;
+            }
+
+            int cantidad;
+            try
+            {
+                cantidad = _mpp.ListarActivas().Count(f => f.EsBasica);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return string.Empty;
+            }
+
+            return cantidad > SugerenciaMaximaBasicas
+                ? " Atención: hay " + cantidad + " preguntas básicas publicadas. Conviene que la lista sea breve (hasta " + SugerenciaMaximaBasicas +
+                  " aprox.) y que lo específico lo resuelva el asistente."
+                : string.Empty;
+        }
+
+        // CU-003-001: preguntas básicas publicadas, para el centro de ayuda.
+        public ResultadoOperacion<List<Faq>> ObtenerPreguntasBasicas()
+        {
+            ResultadoOperacion<List<Faq>> contenido = ObtenerContenidoPublico();
+            if (!contenido.Exitoso)
+            {
+                return contenido;
+            }
+
+            return ResultadoOperacion<List<Faq>>.Ok(contenido.Valor
+                .Where(f => f.EsBasica)
+                .OrderBy(f => f.Orden)
+                .ThenBy(f => f.OrdenCategoria)
+                .ThenBy(f => f.IdFaq)
+                .ToList());
+        }
+
         public static string DescribirEstado(string estado)
         {
             return estado == EstadoActivo ? "Publicado" : estado == EstadoInactivo ? "Desactivado" : "Borrador";
@@ -167,7 +211,7 @@ namespace StageUp.BLL
             _bitacora.RegistrarInterno(idUsuarioInternoResponsable, "ALTA", TipoEntidadBitacora, idFaq,
                 "Alta de contenido de ayuda \"" + normalizado.Pregunta + "\"" +
                 (normalizado.IdCategoriaAyuda.HasValue ? " en la categoría " + NombreCategoria(normalizado.IdCategoriaAyuda) : " sin categoría") +
-                " (" + DescribirEstado(normalizado.Estado).ToLowerInvariant() + (normalizado.UsarEnAsistente ? ", usado por el asistente" : string.Empty) + ").");
+                " (" + DescribirEstado(normalizado.Estado).ToLowerInvariant() + (normalizado.EsBasica ? ", pregunta básica" : string.Empty) + ").");
 
             if (!string.IsNullOrWhiteSpace(textoConsultaOrigen))
             {
@@ -180,9 +224,11 @@ namespace StageUp.BLL
                 }
             }
 
-            return ResultadoOperacion<int>.Ok(idFaq, normalizado.Estado == EstadoActivo
-                ? "El contenido de ayuda se guardó y quedó publicado en el centro de ayuda" + (normalizado.UsarEnAsistente ? " y en el asistente." : ".")
-                : "El contenido de ayuda se guardó como borrador. Todavía no lo ven los usuarios.");
+            return ResultadoOperacion<int>.Ok(idFaq, (normalizado.Estado == EstadoActivo
+                ? (normalizado.EsBasica
+                    ? "El contenido de ayuda se guardó y quedó publicado entre las preguntas básicas del centro de ayuda."
+                    : "El contenido de ayuda se guardó y quedó publicado. No es una pregunta básica: no aparece en la lista del centro de ayuda, pero sí en la búsqueda.")
+                : "El contenido de ayuda se guardó como borrador. Todavía no lo ven los usuarios.") + AvisoListaBasica(normalizado));
         }
 
         // A5.
@@ -219,7 +265,7 @@ namespace StageUp.BLL
             if (actual.Respuesta != normalizado.Respuesta) cambios.Add("respuesta");
             if (actual.IdCategoriaAyuda != normalizado.IdCategoriaAyuda) cambios.Add("categoría (" + NombreCategoria(normalizado.IdCategoriaAyuda) + ")");
             if (actual.Estado != normalizado.Estado) cambios.Add("estado (" + DescribirEstado(actual.Estado) + " → " + DescribirEstado(normalizado.Estado) + ")");
-            if (actual.UsarEnAsistente != normalizado.UsarEnAsistente) cambios.Add(normalizado.UsarEnAsistente ? "se usa en el asistente" : "ya no se usa en el asistente");
+            if (actual.EsBasica != normalizado.EsBasica) cambios.Add(normalizado.EsBasica ? "pasó a pregunta básica" : "dejó de ser pregunta básica");
             if ((actual.PalabrasClave ?? string.Empty) != (normalizado.PalabrasClave ?? string.Empty)) cambios.Add("palabras clave");
             if (actual.Orden != normalizado.Orden) cambios.Add("orden");
 
@@ -227,9 +273,9 @@ namespace StageUp.BLL
                 "Modificación del contenido de ayuda \"" + normalizado.Pregunta + "\"" +
                 (cambios.Count == 0 ? " (sin cambios)." : ": " + string.Join(", ", cambios) + "."));
 
-            return ResultadoOperacion.Ok(normalizado.Estado == EstadoActivo
-                ? "El contenido de ayuda se actualizó correctamente y ya se ve así en el centro de ayuda" + (normalizado.UsarEnAsistente ? " y en el asistente." : ".")
-                : "El contenido de ayuda se actualizó correctamente.");
+            return ResultadoOperacion.Ok((normalizado.Estado == EstadoActivo && normalizado.EsBasica
+                ? "El contenido de ayuda se actualizó correctamente y ya se ve así entre las preguntas básicas del centro de ayuda."
+                : "El contenido de ayuda se actualizó correctamente.") + AvisoListaBasica(normalizado));
         }
 
         // A6 (y A8 si ya estaba publicado, A9 para republicar uno inactivo).
@@ -256,7 +302,9 @@ namespace StageUp.BLL
 
             return CambiarEstado(faq, EstadoActivo, idUsuarioInternoResponsable,
                 "Publicación del contenido de ayuda \"" + faq.Pregunta + "\".",
-                "El contenido se publicó en el centro de ayuda" + (faq.UsarEnAsistente ? " y quedó disponible para el asistente." : "."));
+                faq.EsBasica
+                    ? "El contenido se publicó entre las preguntas básicas del centro de ayuda."
+                    : "El contenido se publicó (se encuentra con la búsqueda; no está en la lista de preguntas básicas).");
         }
 
         // A7.
@@ -274,8 +322,8 @@ namespace StageUp.BLL
             }
 
             return CambiarEstado(faq, EstadoInactivo, idUsuarioInternoResponsable,
-                "Desactivación del contenido de ayuda \"" + faq.Pregunta + "\" (deja de verse en el centro de ayuda y en el asistente).",
-                "El contenido se desactivó: ya no se ve en el centro de ayuda" + (faq.UsarEnAsistente ? " ni lo usa el asistente." : ".") + " Se conserva su historial.");
+                "Desactivación del contenido de ayuda \"" + faq.Pregunta + "\" (deja de verse en el centro de ayuda).",
+                "El contenido se desactivó: ya no se ve en el centro de ayuda" + (faq.EsBasica ? " ni entre las preguntas básicas." : ".") + " Se conserva su historial.");
         }
 
         private ResultadoOperacion CambiarEstado(Faq faq, string estado, int idUsuarioInternoResponsable, string descripcionBitacora, string mensaje)
@@ -394,7 +442,7 @@ namespace StageUp.BLL
                 Orden = datos.Orden,
                 Estado = estado,
                 IdCategoriaAyuda = categoria == null ? (int?)null : categoria.IdCategoriaAyuda,
-                UsarEnAsistente = datos.UsarEnAsistente,
+                EsBasica = datos.EsBasica,
                 PalabrasClave = palabras.Length == 0 ? null : palabras
             };
             return ResultadoOperacion.Ok();

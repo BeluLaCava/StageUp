@@ -25,25 +25,13 @@
             <section class="help-section faq-section" aria-labelledby="faq-title">
                 <div class="faq-introduction">
                     <div><span class="eyebrow">Primera opción</span><h2 id="faq-title">Preguntas frecuentes</h2></div>
-                    <p>Reunimos respuestas esenciales para ayudarte a comprender las funciones principales de StageUp.</p>
+                    <p>Las preguntas más comunes sobre StageUp. Para una consulta más específica, usá el asistente.</p>
                 </div>
 
-                <%-- CU-003-001 pasos 4 y 5: filtro opcional por tema (sin elegir, se ven todas). --%>
-                <nav class="ayuda-categorias" aria-label="Filtrar por tema">
-                    <asp:HyperLink ID="lnkTodas" runat="server" NavigateUrl="~/Ayuda/CentroAyuda.aspx#faq-title" Text="Todas" />
-                    <asp:Repeater ID="rptCategorias" runat="server">
-                        <ItemTemplate>
-                            <a class='<%# Convert.ToInt32(Eval("IdCategoriaAyuda")) == CategoriaElegida ? "is-current" : "" %>'
-                               href='<%# ResolveUrl("~/Ayuda/CentroAyuda.aspx") + "?tema=" + Eval("IdCategoriaAyuda") + "#faq-title" %>'
-                               aria-current='<%# Convert.ToInt32(Eval("IdCategoriaAyuda")) == CategoriaElegida ? "true" : "false" %>'><%# Server.HtmlEncode(Convert.ToString(Eval("Nombre"))) %></a>
-                        </ItemTemplate>
-                    </asp:Repeater>
-                </nav>
-
-                <%-- A2: tema sin preguntas activas. --%>
-                <asp:Panel ID="pnlCategoriaVacia" runat="server" Visible="false" CssClass="ayuda-vacia">
-                    <p><strong>Todavía no hay preguntas para <asp:Literal ID="litCategoriaVacia" runat="server" Mode="Encode" />.</strong></p>
-                    <p>Elegí otro tema o consultá al asistente.</p>
+                <%-- CU-003-001: selección breve de preguntas básicas, sin filtros. --%>
+                <asp:Panel ID="pnlSinBasicas" runat="server" Visible="false" CssClass="ayuda-vacia">
+                    <p><strong>Por ahora no hay preguntas frecuentes publicadas.</strong></p>
+                    <p>Consultá al asistente: te guía paso a paso según lo que necesites.</p>
                 </asp:Panel>
 
                 <div class="faq-list">
@@ -156,5 +144,5 @@
         .support-path-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 0.6rem; }
         .asistente-form input:disabled { cursor: not-allowed; }
     </style>
-    <script src="<%= ResolveUrl("~/Scripts/asistente-ayuda.js") %>?v=20261017-2" defer></script>
+    <script src="<%= ResolveUrl("~/Scripts/asistente-ayuda.js") %>?v=20261018-1" defer></script>
 </asp:Content>

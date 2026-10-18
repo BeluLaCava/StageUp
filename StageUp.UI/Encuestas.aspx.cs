@@ -18,8 +18,13 @@ namespace StageUp.UI
     //   Encuestas.aspx?responder={id}  -> formulario para responder
     //   Encuestas.aspx?ver={id}        -> resultados en barras, al instante
     // Sin iniciar sesión se pueden responder las encuestas para "Todos": el
-    // navegador guarda una cookie con un identificador al azar (solo se crea
-    // al responder) para que no se responda dos veces, y se pide el CAPTCHA.
+    // navegador guarda una cookie con un identificador al azar para que no se
+    // responda dos veces, y se pide el CAPTCHA. La cookie se crea al abrir la
+    // página (antes de enviar) y en el envío se exige que el navegador la
+    // devuelva: así dos envíos simultáneos llevan la misma identidad y un
+    // navegador que bloquea cookies no puede responder como visitante. Con
+    // sesión, la respuesta también guarda el navegador, para que después no
+    // se pueda volver a responder desde ahí sin sesión.
     public partial class Encuestas : Page
     {
         private const string NombreCookieEncuestado = "StageUp_Encuestado";
@@ -69,7 +74,7 @@ namespace StageUp.UI
                 return;
             }
 
-            Encuestado encuestado = EncuestadoActual(IdentificadorNavegador);
+            Encuestado encuestado = EncuestadoActual(AsegurarIdentificadorNavegador());
 
             int idResponder;
             int idVer;
@@ -107,12 +112,17 @@ namespace StageUp.UI
                 return;
             }
 
-            // Sin sesión: se usa la cookie del navegador o, si no hay, se
-            // genera un identificador nuevo que se guarda al responder.
-            string identificadorNavegador = IdentificadorNavegador;
-            if (!UsuarioAutenticado && BLL_Encuesta.EncuestadoSinSesion(identificadorNavegador).IdentificadorAnonimo == null)
+            // La identidad del navegador se estableció al abrir la encuesta:
+            // si el navegador no devuelve la cookie (bloqueada o borrada), sin
+            // sesión no se acepta la respuesta.
+            string identificadorNavegador = EsIdentificadorValido(IdentificadorNavegador) ? IdentificadorNavegador : null;
+            if (!UsuarioAutenticado && identificadorNavegador == null)
             {
-                identificadorNavegador = BLL_Encuesta.GenerarIdentificadorNavegador();
+                AsegurarIdentificadorNavegador();
+                MostrarMensaje("No pudimos comprobar este navegador: para responder sin iniciar sesión, tu navegador tiene que aceptar cookies de StageUp. " +
+                    "Habilitalas y volvé a enviar la encuesta, o iniciá sesión.", true);
+                CargarResponder(idEncuesta, EncuestadoActual(null));
+                return;
             }
 
             Encuestado encuestado = EncuestadoActual(identificadorNavegador);
@@ -144,11 +154,6 @@ namespace StageUp.UI
                 return;
             }
 
-            if (!UsuarioAutenticado)
-            {
-                GuardarCookieEncuestado(identificadorNavegador);
-            }
-
             Response.Redirect("~/Encuestas.aspx?ver=" + idEncuesta);
         }
 
@@ -176,6 +181,26 @@ namespace StageUp.UI
             Repeater rptOpciones = (Repeater)e.Item.FindControl("rptOpcionesResultado");
             rptOpciones.DataSource = resultado == null ? new List<ResultadoOpcionEncuesta>() : resultado.Opciones;
             rptOpciones.DataBind();
+        }
+
+        private static bool EsIdentificadorValido(string identificadorNavegador)
+        {
+            return BLL_Encuesta.EncuestadoSinSesion(identificadorNavegador).IdentificadorAnonimo != null;
+        }
+
+        // Devuelve el identificador del navegador; si no tiene uno válido,
+        // genera uno nuevo y lo envía en la cookie en esta misma respuesta.
+        private string AsegurarIdentificadorNavegador()
+        {
+            string actual = IdentificadorNavegador;
+            if (EsIdentificadorValido(actual))
+            {
+                return actual;
+            }
+
+            string nuevo = BLL_Encuesta.GenerarIdentificadorNavegador();
+            GuardarCookieEncuestado(nuevo);
+            return nuevo;
         }
 
         // Solo guarda un identificador al azar (sin datos personales). Dura

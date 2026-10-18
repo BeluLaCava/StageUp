@@ -150,7 +150,7 @@ namespace StageUp.UI.Interno
                 Orden = orden,
                 Estado = ddlEstado.SelectedValue,
                 IdCategoriaAyuda = int.TryParse(ddlCategoria.SelectedValue, out idCategoria) ? idCategoria : (int?)null,
-                UsarEnAsistente = chkAsistente.Checked,
+                EsBasica = chkBasica.Checked,
                 PalabrasClave = txtPalabrasClave.Text
             };
 
@@ -295,7 +295,7 @@ namespace StageUp.UI.Interno
             txtRespuesta.Text = faq == null ? string.Empty : faq.Respuesta;
             txtOrden.Text = (faq == null ? 10 : faq.Orden).ToString(CultureInfo.InvariantCulture);
             txtPalabrasClave.Text = faq == null ? string.Empty : faq.PalabrasClave;
-            chkAsistente.Checked = faq != null && faq.UsarEnAsistente;
+            chkBasica.Checked = faq != null && faq.EsBasica;
             ViewState["EstadoOriginal"] = faq == null ? string.Empty : faq.Estado;
             pnlConfirmarGuardar.Visible = false;
             btnGuardar.Visible = true;
@@ -324,7 +324,7 @@ namespace StageUp.UI.Interno
             lblDetalleEstado.CssClass = "faq-estado faq-estado-" + faq.Estado;
             litDetalleRespuesta.Text = faq.Respuesta;
             litDetalleCategoria.Text = faq.NombreCategoria ?? "Sin categoría";
-            litDetalleAsistente.Text = faq.UsarEnAsistente ? "Se ofrece en el asistente cuando la consulta escrita no coincide con sus opciones" : "No se ofrece en el asistente";
+            litDetalleBasica.Text = faq.EsBasica ? "Pregunta básica: aparece en la lista del centro de ayuda" : "No aparece en la lista del centro de ayuda (sí en la búsqueda, si está publicada)";
             litDetalleOrden.Text = faq.Orden.ToString(CultureInfo.InvariantCulture);
             litDetallePalabras.Text = string.IsNullOrWhiteSpace(faq.PalabrasClave) ? "—" : faq.PalabrasClave;
             litDetalleAlta.Text = faq.FechaAlta == DateTime.MinValue ? "—" : faq.FechaAlta.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
@@ -340,7 +340,7 @@ namespace StageUp.UI.Interno
             btnDesactivar.Visible = faq.Estado == BLL_Faq.EstadoActivo;
             pnlConfirmarDesactivar.Visible = false;
             pnlConfirmarPublicar.Visible = false;
-            litConfirmarAsistente.Visible = faq.UsarEnAsistente;
+            litConfirmarBasica.Visible = faq.EsBasica;
 
             pnlDetalle.Visible = true;
             pnlFormulario.Visible = false;
@@ -379,7 +379,7 @@ namespace StageUp.UI.Interno
             litCantidadActivos.Text = todos.Count(f => f.Estado == BLL_Faq.EstadoActivo).ToString(CultureInfo.InvariantCulture);
             litCantidadBorradores.Text = todos.Count(f => f.Estado == BLL_Faq.EstadoBorrador).ToString(CultureInfo.InvariantCulture);
             litCantidadInactivos.Text = todos.Count(f => f.Estado == BLL_Faq.EstadoInactivo).ToString(CultureInfo.InvariantCulture);
-            litCantidadAsistente.Text = todos.Count(f => f.Estado == BLL_Faq.EstadoActivo && f.UsarEnAsistente).ToString(CultureInfo.InvariantCulture);
+            litCantidadBasicas.Text = todos.Count(f => f.Estado == BLL_Faq.EstadoActivo && f.EsBasica).ToString(CultureInfo.InvariantCulture);
 
             int idCategoria;
             FiltroFaq filtro = new FiltroFaq

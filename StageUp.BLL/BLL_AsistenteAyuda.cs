@@ -18,19 +18,18 @@ namespace StageUp.BLL
     // simples y llega a una respuesta con acciones (ir a la pantalla que
     // corresponde, ver otra respuesta o registrar una solicitud de soporte).
     //
-    // También se puede escribir la consulta (A4 paso 4): se compara con las
-    // opciones y palabras clave del árbol y, si no coincide con ninguna, con
-    // las preguntas frecuentes que se marcaron para el asistente en
-    // "Contenido de ayuda" (CU-003-004). Si tampoco hay coincidencia y está
-    // configurado el asistente automático por API (ServicioAsistenteExterno),
-    // se le consulta con el contenido público de ayuda como referencia y sin
-    // datos personales; si responde, se muestra como respuesta automática.
-    // Si no hay respuesta, o la API falla o tarda, se ofrece registrar una
-    // solicitud de soporte (A5). La consulta queda guardada para que el
-    // equipo cree contenido.
+    // También se puede escribir la consulta (A4 paso 4): se compara solo con
+    // las opciones y palabras clave del árbol; el asistente no busca en las
+    // preguntas frecuentes (son contenido aparte, del centro de ayuda). Si
+    // no hay coincidencia y está configurado el asistente automático por API
+    // (ServicioAsistenteExterno), se le consulta con las respuestas del árbol
+    // como referencia y sin datos personales; si responde, se muestra como
+    // respuesta automática. Si no hay respuesta, o la API falla o tarda, se
+    // ofrece registrar una solicitud de soporte (A5). La consulta queda
+    // guardada para que el equipo cree contenido.
     public class BLL_AsistenteAyuda
     {
-        public const string MensajeNoDisponible = "El asistente no está disponible en este momento. Podés consultar las preguntas frecuentes o registrar una solicitud de soporte.";
+        public const string MensajeNoDisponible = "El asistente no está disponible en este momento. Podés consultar las preguntas básicas del centro de ayuda o registrar una solicitud de soporte.";
         public const string CodigoInicio = "inicio";
         private const int LongitudMinimaConsulta = 3;
         private const int LongitudMaximaConsulta = 200;
@@ -112,6 +111,7 @@ namespace StageUp.BLL
 
             string normalizada = BLL_Faq.Normalizar(limpio);
             List<string> palabras = Palabras(normalizada);
+            bool datosPrivados = ServicioAsistenteExterno.ContieneDatosPrivados(limpio);
 
             List<KeyValuePair<NodoAsistente, double>> puntajes = arbol.Values
                 .Where(n => n.Codigo != CodigoInicio)
@@ -121,7 +121,7 @@ namespace StageUp.BLL
                 .ThenBy(p => p.Key.Recorrido.Length)
                 .ToList();
 
-            RespuestaAsistente respuesta = new RespuestaAsistente();
+            RespuestaAsistente respuesta = new RespuestaAsistente { ConDatosPrivados = datosPrivados };
             if (puntajes.Count > 0 && puntajes[0].Value >= PuntajeMinimo)
             {
                 respuesta.Reconocida = true;
@@ -130,18 +130,15 @@ namespace StageUp.BLL
             }
             else
             {
-                // Sin coincidencia en el árbol: preguntas frecuentes marcadas
-                // para el asistente (CU-003-004), si las hay.
-                respuesta.PreguntaFrecuente = BuscarPreguntaFrecuente(palabras);
-                respuesta.Reconocida = respuesta.PreguntaFrecuente != null;
+                respuesta.Reconocida = false;
                 respuesta.Sugerencias = puntajes.Take(3).Select(p => p.Key).ToList();
             }
 
-            // Sin contenido propio: asistente automático por API, si está
+            // Sin coincidencia en el árbol: asistente automático por API, si está
             // configurado. Su respuesta no cuenta como "reconocida" para
             // la lista de consultas sin respuesta (CU-003-004 A15).
             string resultadoApi = null;
-            if (!respuesta.Reconocida && _asistenteExterno.EstaHabilitado)
+            if (!respuesta.Reconocida && !datosPrivados && _asistenteExterno.EstaHabilitado)
             {
                 ResultadoAsistenteExterno externo = _asistenteExterno.Consultar(limpio, ArmarContexto(arbol));
                 resultadoApi = externo.Estado.ToString();
@@ -155,11 +152,24 @@ namespace StageUp.BLL
                 }
             }
 
+            // Lo que se guarda para el equipo nunca lleva datos privados: con
+            // un secreto no se guarda el texto; si no, se ocultan correos,
+            // teléfonos, documentos y números.
+            string textoGuardado = datosPrivados
+                ? "[Consulta con datos privados: el texto no se guardó]"
+                : ServicioAsistenteExterno.OcultarDatosSensibles(limpio);
+            string normalizadaGuardada = BLL_Faq.Normalizar(textoGuardado);
+            if (datosPrivados)
+            {
+                resultadoApi = EstadoAsistenteExterno.Bloqueada.ToString();
+            }
+
             try
             {
-                _mppFaq.RegistrarConsultaAsistente(limpio, normalizada.Length > 200 ? normalizada.Substring(0, 200) : normalizada,
+                _mppFaq.RegistrarConsultaAsistente(textoGuardado.Length > 200 ? textoGuardado.Substring(0, 200) : textoGuardado,
+                    normalizadaGuardada.Length > 200 ? normalizadaGuardada.Substring(0, 200) : normalizadaGuardada,
                     respuesta.Nodo == null ? (int?)null : respuesta.Nodo.IdNodoAsistente,
-                    respuesta.PreguntaFrecuente == null ? (int?)null : respuesta.PreguntaFrecuente.IdFaq,
+                    null,
                     idUsuarioExterno, resultadoApi);
             }
             catch (ErrorAccesoDatosException)
@@ -266,7 +276,7 @@ namespace StageUp.BLL
             }
             catch (Exception)
             {
-                valores["{PoliticaCancelacion}"] = "Una solicitud pendiente se cancela sin cargo; en una reserva aceptada el cargo depende de la anticipación.";
+                valores["{PoliticaCancelacion}"] = "Una solicitud pendiente, o una reserva aceptada que todavía no pagaste, se cancela sin cargo; en una reserva pagada el cargo depende de la anticipación.";
             }
 
             try
@@ -294,24 +304,6 @@ namespace StageUp.BLL
             }
 
             return texto;
-        }
-
-        private Faq BuscarPreguntaFrecuente(List<string> palabras)
-        {
-            try
-            {
-                return _mppFaq.ListarActivas()
-                    .Where(f => f.UsarEnAsistente)
-                    .Select(f => new KeyValuePair<Faq, double>(f, Puntuar(palabras, f.PalabrasClave, f.Pregunta, f.Respuesta)))
-                    .Where(p => p.Value >= PuntajeMinimo)
-                    .OrderByDescending(p => p.Value)
-                    .Select(p => p.Key)
-                    .FirstOrDefault();
-            }
-            catch (ErrorAccesoDatosException)
-            {
-                return null;
-            }
         }
 
         private static List<string> Palabras(string normalizada)

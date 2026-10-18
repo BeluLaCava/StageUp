@@ -48,6 +48,31 @@
     let ultimaPregunta = "";
     let cola = Promise.resolve();
 
+    // Cada acción del usuario (escribir, elegir una opción, "menú") abre un
+    // turno nuevo. Las respuestas y los mensajes en cola de un turno
+    // anterior se descartan, y el pedido anterior se cancela: así una
+    // consulta lenta no puede reemplazar las opciones del recorrido actual.
+    let turno = 0;
+    let pedidoEnCurso = null;
+    let esperandoConsulta = null;
+
+    function nuevoTurno() {
+        turno++;
+        if (pedidoEnCurso) {
+            pedidoEnCurso.abort();
+            pedidoEnCurso = null;
+        }
+        if (esperandoConsulta) {
+            esperandoConsulta.remove();
+            esperandoConsulta = null;
+        }
+        return turno;
+    }
+
+    function vigente(numeroTurno) {
+        return numeroTurno === turno;
+    }
+
     // ---------------------------------------------------------------- util
 
     function hora() {
@@ -77,7 +102,11 @@
     // Los mensajes del asistente se muestran en orden, con un "escribiendo…"
     // breve antes de cada uno.
     function enCola(tarea) {
+        const turnoDelMensaje = turno;
         cola = cola.then(function () {
+            if (!vigente(turnoDelMensaje)) {
+                return;
+            }
             const escribiendo = elemento("div", "asistente-escribiendo");
             escribiendo.setAttribute("aria-hidden", "true");
             escribiendo.appendChild(elemento("span"));
@@ -88,7 +117,9 @@
             return new Promise(function (resolver) {
                 setTimeout(function () {
                     escribiendo.remove();
-                    tarea();
+                    if (vigente(turnoDelMensaje)) {
+                        tarea();
+                    }
                     bajar();
                     resolver();
                 }, demoraEscritura);
@@ -185,6 +216,7 @@
         }
 
         cerrarHoja();
+        nuevoTurno();
         desactivarOpcionesAnteriores();
         mensajeUsuario(opcion.texto, opcion.descripcion, ultimaPregunta);
         opcion.accion();
@@ -326,14 +358,36 @@
 
     // ------------------------------------------------------------- pasos
 
+    // Devuelve una promesa que solo se cumple si el pedido sigue siendo del
+    // turno actual; si el usuario hizo otra cosa mientras tanto, la
+    // respuesta se descarta (la promesa queda pendiente y no muestra nada).
     function pedir(parametros, metodo) {
+        const numeroTurno = turno;
+        const controlador = typeof AbortController === "function" ? new AbortController() : null;
+        pedidoEnCurso = controlador;
         const cuerpo = new URLSearchParams(parametros);
         const opcionesFetch = metodo === "POST"
             ? { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: cuerpo.toString(), credentials: "same-origin" }
             : { method: "GET", credentials: "same-origin" };
+        if (controlador) {
+            opcionesFetch.signal = controlador.signal;
+        }
         const url = metodo === "POST" ? urlAsistente : urlAsistente + "?" + cuerpo.toString();
-        return fetch(url, opcionesFetch).then(function (respuesta) {
-            return respuesta.json();
+        return new Promise(function (resolver, rechazar) {
+            fetch(url, opcionesFetch).then(function (respuesta) {
+                return respuesta.json();
+            }).then(function (datos) {
+                if (vigente(numeroTurno)) {
+                    if (pedidoEnCurso === controlador) {
+                        pedidoEnCurso = null;
+                    }
+                    resolver(datos);
+                }
+            }).catch(function (error) {
+                if (vigente(numeroTurno) && !(error && error.name === "AbortError")) {
+                    rechazar(error);
+                }
+            });
         });
     }
 
@@ -494,9 +548,12 @@
         entrada.value = "";
         cerrarHoja();
 
-        // Un número elige la opción correspondiente de la última lista.
+        // Un número elige la opción correspondiente de la última lista
+        // (antes de abrir el turno nuevo, que la vacía).
+        const opcionesDelTurno = opcionesActuales.slice();
+        nuevoTurno();
         if (/^\d{1,2}$/.test(texto)) {
-            const elegida = opcionesActuales[parseInt(texto, 10) - 1];
+            const elegida = opcionesDelTurno[parseInt(texto, 10) - 1];
             if (elegida) {
                 elegir(elegida);
             } else {
@@ -531,10 +588,12 @@
         esperando.appendChild(elemento("span"));
         esperando.appendChild(elemento("span"));
         chat.appendChild(esperando);
+        esperandoConsulta = esperando;
         bajar();
 
         pedir({ accion: "consultar", texto: texto }, "POST").then(function (datos) {
             esperando.remove();
+            esperandoConsulta = null;
             if (!datos.ok) {
                 if (datos.codigo === "A7") {
                     noDisponible(datos.mensaje);
@@ -544,15 +603,24 @@
                 return;
             }
 
-            if (datos.reconocida && datos.nodo) {
-                mostrarNodo(datos.nodo, datos.sugerencias);
-                return;
+            // La consulta traía datos privados: no se envió al asistente
+            // automático ni se guardó su texto. Se avisa y, si no hubo
+            // respuesta propia, se ofrece soporte sin copiar la consulta.
+            if (datos.conDatosPrivados) {
+                mensajeBot({
+                    titulo: "\u{1F512} Cuidá tus datos",
+                    texto: "Tu consulta parece incluir datos privados (una contraseña, un código de seguridad, un número de tarjeta o una clave). No la enviamos al asistente automático ni guardamos su texto. Nunca compartas esos datos: StageUp no te los va a pedir."
+                });
+                if (!(datos.reconocida && datos.nodo)) {
+                    recorridoActual = "";
+                    mensajeBot({ texto: "Si necesitás ayuda, registrá una solicitud de soporte describiendo el problema sin incluir esos datos." },
+                        [{ texto: "Registrar solicitud de soporte", destacada: true, accion: function () { confirmarSoporte(""); } }, opcionMenuPrincipal], "botones");
+                    return;
+                }
             }
 
-            if (datos.reconocida && datos.preguntaFrecuente) {
-                recorridoActual = texto;
-                mensajeBot({ titulo: datos.preguntaFrecuente.pregunta, texto: datos.preguntaFrecuente.respuesta },
-                    [{ texto: "Necesito más ayuda", accion: necesitoMasAyuda }, opcionMenuPrincipal], "botones");
+            if (datos.reconocida && datos.nodo) {
+                mostrarNodo(datos.nodo, datos.sugerencias);
                 return;
             }
 
@@ -583,6 +651,7 @@
             }, lista, "botones");
         }).catch(function () {
             esperando.remove();
+            esperandoConsulta = null;
             noDisponible();
         });
     }
@@ -596,6 +665,7 @@
             }
 
             iniciado = true;
+            nuevoTurno();
             chat.appendChild(elemento("div", "asistente-dia", "Hoy"));
             saludar();
         });

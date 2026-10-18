@@ -513,48 +513,60 @@ namespace StageUp.BLL
                     }
                 }
 
-                int idRespuestaEncuesta;
+                // Cabecera y respuestas en una sola transacción: queda todo o
+                // nada, así un fallo no deja una respuesta incompleta que
+                // impida volver a intentar.
                 try
                 {
-                    idRespuestaEncuesta = _mpp.InsertarRespuesta(new RespuestaEncuesta
-                    {
-                        IdEncuesta = idEncuesta,
-                        IdUsuarioExterno = encuestado.IdUsuarioExterno,
-                        IdentificadorAnonimo = encuestado.EsAnonimo ? encuestado.IdentificadorAnonimo : null
-                    });
+                    _mpp.RegistrarRespuesta(
+                        new RespuestaEncuesta
+                        {
+                            IdEncuesta = idEncuesta,
+                            IdUsuarioExterno = encuestado.IdUsuarioExterno,
+                            IdentificadorAnonimo = encuestado.IdentificadorAnonimo
+                        },
+                        respuestasPorPregunta.Select(r => new RespuestaEncuestaDetalle
+                        {
+                            IdPreguntaEncuesta = r.Key,
+                            IdOpcionPregunta = r.Value
+                        }).ToList());
                 }
                 catch (ErrorAccesoDatosException ex)
                 {
-                    // 2601/2627: otra respuesta del mismo respondente entró
-                    // primero (doble envío). 51060/51061: el SP la rechazó.
-                    if (ex.NumeroErrorSql == 2601 || ex.NumeroErrorSql == 2627)
+                    // 51062 / 2601 / 2627: ya había una respuesta de la cuenta o
+                    // del navegador (por ejemplo, un doble envío simultáneo).
+                    switch (ex.NumeroErrorSql)
                     {
-                        return ResultadoOperacion.Error("Ya respondiste esta encuesta.");
+                        case 51062:
+                        case 2601:
+                        case 2627:
+                            return ResultadoOperacion.Error(encuestado.EsAnonimo
+                                ? "Ya se respondió esta encuesta desde este navegador."
+                                : "Ya respondiste esta encuesta.");
+                        case 51060:
+                            return ResultadoOperacion.Error("No pudimos identificar este navegador. Habilitá las cookies para responder sin iniciar sesión.");
+                        case 51061:
+                            return ResultadoOperacion.Error("Esta encuesta no está disponible en este momento.");
+                        case 51063:
+                            return ResultadoOperacion.Error("Una de las respuestas seleccionadas no es válida. Volvé a intentarlo.");
+                        default:
+                            return ResultadoOperacion.Error("No pudimos guardar tu respuesta. No se guardó nada: podés volver a intentarlo.");
                     }
-
-                    if (ex.NumeroErrorSql == 51060 || ex.NumeroErrorSql == 51061)
-                    {
-                        return ResultadoOperacion.Error("Esta encuesta no está disponible en este momento.");
-                    }
-
-                    throw;
                 }
 
-                foreach (KeyValuePair<int, int> respuesta in respuestasPorPregunta)
+                // La respuesta ya quedó guardada: un problema con la bitácora
+                // no cambia el resultado que se le informa al usuario.
+                try
                 {
-                    _mpp.InsertarRespuestaDetalle(new RespuestaEncuestaDetalle
-                    {
-                        IdRespuestaEncuesta = idRespuestaEncuesta,
-                        IdPreguntaEncuesta = respuesta.Key,
-                        IdOpcionPregunta = respuesta.Value
-                    });
+                    _bitacora.Registrar(
+                        encuestado.IdUsuarioExterno, "ASOCIACION", TipoEntidadBitacora, idEncuesta,
+                        encuestado.EsAnonimo
+                            ? "Un visitante sin sesión respondió la encuesta \"" + encuesta.Titulo + "\"."
+                            : "El usuario respondió la encuesta \"" + encuesta.Titulo + "\".");
                 }
-
-                _bitacora.Registrar(
-                    encuestado.IdUsuarioExterno, "ASOCIACION", TipoEntidadBitacora, idEncuesta,
-                    encuestado.EsAnonimo
-                        ? "Un visitante sin sesión respondió la encuesta \"" + encuesta.Titulo + "\"."
-                        : "El usuario respondió la encuesta \"" + encuesta.Titulo + "\".");
+                catch (Exception)
+                {
+                }
 
                 return ResultadoOperacion.Ok("¡Gracias por responder! Ya podés ver los resultados al instante.");
             });

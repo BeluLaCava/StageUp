@@ -333,7 +333,9 @@ namespace StageUp.UI
 
             if (_mensajesNuevos.Count > 0)
             {
-                _bllMensajes.MarcarLeidos(reserva, idUsuario);
+                // Solo los que se mostraron: si llega otro mientras tanto,
+                // queda sin leer.
+                _bllMensajes.MarcarLeidos(reserva, idUsuario, _mensajesNuevos);
             }
 
             bool admite = BLL_MensajeReserva.AdmiteMensajes(reserva);

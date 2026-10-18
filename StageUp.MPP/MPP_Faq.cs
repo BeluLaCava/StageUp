@@ -93,7 +93,7 @@ namespace StageUp.MPP
                     Orden = Convert.ToInt32(fila["orden"]),
                     Activa = Convert.ToBoolean(fila["activa"]),
                     CantidadActivas = Convert.ToInt32(fila["cantidadActivas"]),
-                    CantidadAsistente = Convert.ToInt32(fila["cantidadAsistente"])
+                    CantidadBasicas = fila.Table.Columns.Contains("cantidadBasicas") ? Convert.ToInt32(fila["cantidadBasicas"]) : 0
                 });
             }
             return lista;
@@ -149,7 +149,7 @@ namespace StageUp.MPP
                 { "@orden", oFaq.Orden },
                 { "@estado", oFaq.Estado },
                 { "@idCategoriaAyuda", oFaq.IdCategoriaAyuda.HasValue ? (object)oFaq.IdCategoriaAyuda.Value : DBNull.Value },
-                { "@usarEnAsistente", oFaq.UsarEnAsistente },
+                { "@esBasica", oFaq.EsBasica },
                 { "@palabrasClave", string.IsNullOrWhiteSpace(oFaq.PalabrasClave) ? (object)DBNull.Value : oFaq.PalabrasClave }
             };
 
@@ -187,7 +187,7 @@ namespace StageUp.MPP
                 NombreCategoria = columnas.Contains("nombreCategoria") && fila["nombreCategoria"] != DBNull.Value ? fila["nombreCategoria"].ToString() : null,
                 OrdenCategoria = columnas.Contains("ordenCategoria") && fila["ordenCategoria"] != DBNull.Value ? Convert.ToInt32(fila["ordenCategoria"]) : 0,
                 CategoriaActiva = !columnas.Contains("categoriaActiva") || (fila["categoriaActiva"] != DBNull.Value && Convert.ToBoolean(fila["categoriaActiva"])),
-                UsarEnAsistente = columnas.Contains("usarEnAsistente") && fila["usarEnAsistente"] != DBNull.Value && Convert.ToBoolean(fila["usarEnAsistente"]),
+                EsBasica = columnas.Contains("esBasica") && fila["esBasica"] != DBNull.Value && Convert.ToBoolean(fila["esBasica"]),
                 PalabrasClave = columnas.Contains("palabrasClave") && fila["palabrasClave"] != DBNull.Value ? fila["palabrasClave"].ToString() : null,
                 FechaAlta = columnas.Contains("fechaAlta") && fila["fechaAlta"] != DBNull.Value ? Convert.ToDateTime(fila["fechaAlta"]) : DateTime.MinValue,
                 FechaUltimaModificacion = columnas.Contains("fechaUltimaModificacion") && fila["fechaUltimaModificacion"] != DBNull.Value

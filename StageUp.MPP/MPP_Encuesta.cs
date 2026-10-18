@@ -196,30 +196,29 @@ namespace StageUp.MPP
             return resultado != null && Convert.ToBoolean(resultado);
         }
 
-        public int InsertarRespuesta(RespuestaEncuesta oRespuesta)
+        // Cabecera y detalle en una sola transacción (script 83): se guarda
+        // la respuesta completa o nada. IdentificadorAnonimo trae el hash
+        // del navegador (con o sin sesión).
+        public int RegistrarRespuesta(RespuestaEncuesta oRespuesta, List<RespuestaEncuestaDetalle> detalles)
         {
+            List<string> pares = new List<string>();
+            foreach (RespuestaEncuestaDetalle detalle in detalles)
+            {
+                pares.Add(detalle.IdPreguntaEncuesta.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":" +
+                    detalle.IdOpcionPregunta.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+
             object resultado = Conexion.Instance.LeerEscalar(
-                "sp_RespuestaEncuesta_Insertar",
+                "sp_RespuestaEncuesta_Registrar",
                 new Hashtable
                 {
                     { "@idEncuesta", oRespuesta.IdEncuesta },
                     { "@idUsuarioExterno", Valor(oRespuesta.IdUsuarioExterno) },
-                    { "@identificadorAnonimo", Valor(oRespuesta.IdentificadorAnonimo) }
+                    { "@identificadorNavegador", Valor(oRespuesta.IdentificadorAnonimo) },
+                    { "@opciones", string.Join(",", pares) }
                 });
 
             return Convert.ToInt32(resultado);
-        }
-
-        public void InsertarRespuestaDetalle(RespuestaEncuestaDetalle oDetalle)
-        {
-            Conexion.Instance.Guardar(
-                "sp_RespuestaEncuestaDetalle_Insertar",
-                new Hashtable
-                {
-                    { "@idRespuestaEncuesta", oDetalle.IdRespuestaEncuesta },
-                    { "@idPreguntaEncuesta", oDetalle.IdPreguntaEncuesta },
-                    { "@idOpcionPregunta", oDetalle.IdOpcionPregunta }
-                });
         }
 
         // Filas planas pregunta+opción con los conteos calculados en el

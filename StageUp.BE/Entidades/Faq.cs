@@ -17,7 +17,9 @@ namespace StageUp.BE.Entidades
         public string NombreCategoria { get; set; }
         public int OrdenCategoria { get; set; }
         public bool CategoriaActiva { get; set; }
-        public bool UsarEnAsistente { get; set; }
+        // CU-003-001: pregunta básica que se muestra en el centro de ayuda
+        // (la lista pública es breve; lo específico lo resuelve el asistente).
+        public bool EsBasica { get; set; }
         public string PalabrasClave { get; set; }
         public DateTime FechaAlta { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
@@ -39,7 +41,7 @@ namespace StageUp.BE.Entidades
         public int Orden { get; set; }
         public bool Activa { get; set; }
         public int CantidadActivas { get; set; }
-        public int CantidadAsistente { get; set; }
+        public int CantidadBasicas { get; set; }
     }
 
     // CU-003-001 A4 a A6 (corrección de María): paso del asistente guiado.
@@ -97,14 +99,12 @@ namespace StageUp.BE.Entidades
         public int Orden { get; set; }
     }
 
-    // CU-003-001 A4 y A5: resultado de una consulta escrita. Primero se busca
-    // en los pasos del asistente; si no hay coincidencia, en las preguntas
-    // frecuentes que se marcaron para el asistente (CU-003-004).
+    // CU-003-001 A4 y A5: resultado de una consulta escrita, buscada solo en
+    // los pasos del asistente (no usa las preguntas frecuentes).
     public class RespuestaAsistente
     {
         public bool Reconocida { get; set; }
         public NodoAsistente Nodo { get; set; }
-        public Faq PreguntaFrecuente { get; set; }
         public List<NodoAsistente> Sugerencias { get; set; } = new List<NodoAsistente>();
 
         // Respuesta del asistente automático por API (solo si no hubo
@@ -112,6 +112,11 @@ namespace StageUp.BE.Entidades
         // estaba configurada pero falló o tardó; se deriva a soporte.
         public string RespuestaAutomatica { get; set; }
         public bool AsistenteAutomaticoNoDisponible { get; set; }
+
+        // La consulta traía datos privados (contraseña, código de seguridad,
+        // tarjeta, clave o token): no se envió al asistente automático ni se
+        // guardó su texto.
+        public bool ConDatosPrivados { get; set; }
     }
 
     // CU-003-004 A15: consulta del asistente sin respuesta, agrupada.

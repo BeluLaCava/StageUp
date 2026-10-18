@@ -68,17 +68,19 @@ namespace StageUp.BLL
             }
         }
 
-        // Marca como leídos los mensajes que recibió el usuario.
-        public int MarcarLeidos(Reserva reserva, int idUsuarioExterno)
+        // Marca como leídos solo los mensajes indicados (los que se le
+        // mostraron al usuario), y solo si los recibió él en esa reserva.
+        public int MarcarLeidos(Reserva reserva, int idUsuarioExterno, IEnumerable<int> idsMostrados)
         {
-            if (!EsParticipante(reserva, idUsuarioExterno))
+            List<int> ids = idsMostrados == null ? new List<int>() : idsMostrados.Where(id => id > 0).Distinct().ToList();
+            if (ids.Count == 0 || !EsParticipante(reserva, idUsuarioExterno))
             {
                 return 0;
             }
 
             try
             {
-                return _mpp.MarcarLeidos(reserva, new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
+                return _mpp.MarcarLeidos(reserva, new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno }, ids);
             }
             catch (ErrorAccesoDatosException)
             {

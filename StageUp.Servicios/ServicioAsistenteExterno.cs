@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.IO;
@@ -16,7 +17,10 @@ namespace StageUp.Servicios
         SinRespuesta,
         NoConfigurado,
         TiempoAgotado,
-        NoDisponible
+        NoDisponible,
+        // La consulta tenía datos privados (contraseña, código de seguridad,
+        // número de tarjeta, clave o token): no se envió al proveedor.
+        Bloqueada
     }
 
     public sealed class ResultadoAsistenteExterno
@@ -32,7 +36,7 @@ namespace StageUp.Servicios
 
     // Asistente automático de soporte por API (servicio externo de lenguaje).
     // Lo usa BLL_AsistenteAyuda solo cuando una consulta escrita no coincide
-    // con el árbol del asistente ni con las preguntas frecuentes.
+    // con el árbol del asistente.
     //   * API compatible con "chat completions" (OpenAI, Azure OpenAI o un
     //     servidor local como Ollama o LM Studio).
     //   * Configuración privada (AppSettings.private.config o variables de
@@ -41,8 +45,13 @@ namespace StageUp.Servicios
     //   * Tiempo de espera corto (por defecto 8 s). Si la API falla o tarda,
     //     se deja de llamar durante un minuto para no hacer esperar a los
     //     siguientes usuarios, y el asistente deriva a soporte.
-    //   * Antes de enviar la consulta se ocultan correos, teléfonos, números
-    //     de tarjeta, documentos y CBU. Nunca se envían datos del usuario.
+    //   * Una consulta con datos privados (contraseñas, claves, PIN, código de
+    //     seguridad/CVV, números de tarjeta válidos, tokens o claves de API)
+    //     no se envía: el proveedor nunca la recibe y se ofrece soporte.
+    //     Pedirle al modelo que no repita datos no alcanza, porque ya los
+    //     habría recibido.
+    //   * En el resto se ocultan correos, teléfonos, documentos y CBU antes
+    //     de enviar. Nunca se envían datos de la cuenta del usuario.
     public class ServicioAsistenteExterno
     {
         private const int TiempoEsperaPorDefecto = 8000;
@@ -56,10 +65,28 @@ namespace StageUp.Servicios
         private static DateTime _pausadoHasta = DateTime.MinValue;
 
         private static readonly Regex Correo = new Regex(@"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}", RegexOptions.Compiled);
-        private static readonly Regex Tarjeta = new Regex(@"\b(?:\d[ \-]?){13,19}\b", RegexOptions.Compiled);
+        private static readonly Regex Tarjeta = new Regex(@"\b\d(?:[ \-]?\d){12,18}\b", RegexOptions.Compiled);
         private static readonly Regex Cbu = new Regex(@"\b\d{22}\b", RegexOptions.Compiled);
         private static readonly Regex Telefono = new Regex(@"(\+?\d[\s\-\.\(\)]?){8,}", RegexOptions.Compiled);
         private static readonly Regex Documento = new Regex(@"\b\d{1,2}\.?\d{3}\.?\d{3}\b", RegexOptions.Compiled);
+
+        // Palabra que anuncia un secreto, seguida (o no) de un conector y del
+        // valor: "mi contraseña es ...", "clave: ...", "cvv 123".
+        private static readonly Regex Secreto = new Regex(
+            @"\b(contrasena|contrasenia|password|passwd|pass|clave|pin|token|cvv2?|cvc|codigo de seguridad|codigo de verificacion|codigo verificador)\b" +
+            @"(?:\s+(?:de\s+\w+\s+)?(?<conector>es|era|seria|sera|son|:|=)\s*|\s*(?<conector>[:=])\s*|\s+)(?<valor>[^\s,;]+)",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex Token = new Regex(@"\b(?:sk-[A-Za-z0-9_\-]{10,}|[A-Za-z0-9_\-]{24,})\b", RegexOptions.Compiled);
+
+        // Palabras que pueden seguir a "contraseña" o "clave" en una consulta
+        // común ("olvidé mi contraseña", "la clave no funciona").
+        private static readonly HashSet<string> NoEsValor = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "no", "nueva", "nuevo", "anterior", "actual", "vieja", "incorrecta", "incorrecto", "invalida", "invalido", "correcta", "correcto",
+            "y", "o", "que", "para", "por", "del", "de", "la", "el", "mi", "en", "con", "sin", "se", "me", "a", "al", "si", "funciona", "anda",
+            "olvide", "olvidada", "cambiar", "cambio", "recuperar", "restablecer", "segura", "temporal", "vencida", "expiro", "caduco",
+            "bloqueada", "bloqueado", "funcionaba", "sirve", "aparece", "pide", "llega", "llego", "valida", "valido", "porque", "cuando"
+        };
 
         public bool EstaHabilitado
         {
@@ -92,6 +119,12 @@ namespace StageUp.Servicios
                 {
                     return ResultadoAsistenteExterno.Crear(EstadoAsistenteExterno.NoDisponible);
                 }
+            }
+
+            // Con datos privados no se envía nada: el proveedor no los recibe.
+            if (ContieneDatosPrivados(consulta))
+            {
+                return ResultadoAsistenteExterno.Crear(EstadoAsistenteExterno.Bloqueada);
             }
 
             string textoSeguro = OcultarDatosSensibles(consulta);
@@ -171,6 +204,80 @@ namespace StageUp.Servicios
                 Pausar();
                 return ResultadoAsistenteExterno.Crear(EstadoAsistenteExterno.NoDisponible);
             }
+        }
+
+        // true si la consulta trae un secreto que no puede salir de StageUp.
+        public static bool ContieneDatosPrivados(string texto)
+        {
+            if (string.IsNullOrWhiteSpace(texto))
+            {
+                return false;
+            }
+
+            string normalizado = SinTildes(texto);
+            foreach (Match coincidencia in Secreto.Matches(normalizado))
+            {
+                string valor = coincidencia.Groups["valor"].Value.Trim('.', '"', '\'', '(', ')');
+                bool conConector = coincidencia.Groups["conector"].Success;
+                bool pareceValor = Regex.IsMatch(valor, @"\d") || Regex.IsMatch(valor, @"[^\p{L}\p{N}]") ||
+                    (Regex.IsMatch(valor, @"\p{Lu}") && Regex.IsMatch(valor, @"\p{Ll}") && valor.Length >= 6);
+                if (valor.Length > 0 && !NoEsValor.Contains(valor) && (conConector || pareceValor))
+                {
+                    return true;
+                }
+            }
+
+            foreach (Match posible in Tarjeta.Matches(texto))
+            {
+                string digitos = Regex.Replace(posible.Value, @"\D", string.Empty);
+                if (digitos.Length >= 13 && digitos.Length <= 19 && CumpleLuhn(digitos))
+                {
+                    return true;
+                }
+            }
+
+            foreach (Match posible in Token.Matches(texto))
+            {
+                if (posible.Value.StartsWith("sk-", StringComparison.Ordinal) ||
+                    (Regex.IsMatch(posible.Value, @"\d") && Regex.IsMatch(posible.Value, @"[A-Za-z]")))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool CumpleLuhn(string digitos)
+        {
+            int suma = 0;
+            bool doble = false;
+            for (int i = digitos.Length - 1; i >= 0; i--)
+            {
+                int d = digitos[i] - '0';
+                if (doble)
+                {
+                    d *= 2;
+                    if (d > 9) d -= 9;
+                }
+                suma += d;
+                doble = !doble;
+            }
+            return suma % 10 == 0;
+        }
+
+        private static string SinTildes(string texto)
+        {
+            string descompuesto = texto.Normalize(System.Text.NormalizationForm.FormD);
+            System.Text.StringBuilder resultado = new System.Text.StringBuilder(descompuesto.Length);
+            foreach (char c in descompuesto)
+            {
+                if (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    resultado.Append(c == 'ñ' || c == 'Ñ' ? 'n' : c);
+                }
+            }
+            return resultado.ToString().Normalize(System.Text.NormalizationForm.FormC);
         }
 
         // Oculta datos personales o de pago que el usuario haya escrito.

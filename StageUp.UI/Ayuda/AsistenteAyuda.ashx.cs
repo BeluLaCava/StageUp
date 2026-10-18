@@ -58,12 +58,10 @@ namespace StageUp.UI.Ayuda
                                 ok = true,
                                 reconocida = consulta.Valor.Reconocida,
                                 nodo = consulta.Valor.Nodo == null ? null : Paso(consulta.Valor.Nodo),
-                                preguntaFrecuente = consulta.Valor.PreguntaFrecuente == null
-                                    ? null
-                                    : new { pregunta = consulta.Valor.PreguntaFrecuente.Pregunta, respuesta = consulta.Valor.PreguntaFrecuente.Respuesta },
                                 sugerencias = consulta.Valor.Sugerencias.Select(s => new { codigo = s.Codigo, texto = s.Recorrido }),
                                 respuestaAutomatica = consulta.Valor.RespuestaAutomatica,
-                                asistenteAutomaticoNoDisponible = consulta.Valor.AsistenteAutomaticoNoDisponible
+                                asistenteAutomaticoNoDisponible = consulta.Valor.AsistenteAutomaticoNoDisponible,
+                                conDatosPrivados = consulta.Valor.ConDatosPrivados
                             }
                             : Error(consulta.Mensaje, consulta.CodigoAlternativo);
                         break;

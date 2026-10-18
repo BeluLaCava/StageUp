@@ -7,7 +7,7 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.Literal litCantidadActivos;
         protected global::System.Web.UI.WebControls.Literal litCantidadBorradores;
         protected global::System.Web.UI.WebControls.Literal litCantidadInactivos;
-        protected global::System.Web.UI.WebControls.Literal litCantidadAsistente;
+        protected global::System.Web.UI.WebControls.Literal litCantidadBasicas;
         protected global::System.Web.UI.WebControls.Panel pnlFormulario;
         protected global::System.Web.UI.WebControls.Literal litTituloFormulario;
         protected global::System.Web.UI.WebControls.HiddenField hfIdFaq;
@@ -19,7 +19,7 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.TextBox txtOrden;
         protected global::System.Web.UI.WebControls.DropDownList ddlEstado;
         protected global::System.Web.UI.WebControls.TextBox txtPalabrasClave;
-        protected global::System.Web.UI.WebControls.CheckBox chkAsistente;
+        protected global::System.Web.UI.WebControls.CheckBox chkBasica;
         protected global::System.Web.UI.WebControls.Panel pnlConfirmarGuardar;
         protected global::System.Web.UI.WebControls.Button btnConfirmarGuardar;
         protected global::System.Web.UI.WebControls.Button btnCancelarGuardar;
@@ -32,7 +32,7 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.Literal litAvisoEstado;
         protected global::System.Web.UI.WebControls.Literal litDetalleRespuesta;
         protected global::System.Web.UI.WebControls.Literal litDetalleCategoria;
-        protected global::System.Web.UI.WebControls.Literal litDetalleAsistente;
+        protected global::System.Web.UI.WebControls.Literal litDetalleBasica;
         protected global::System.Web.UI.WebControls.Literal litDetalleOrden;
         protected global::System.Web.UI.WebControls.Literal litDetallePalabras;
         protected global::System.Web.UI.WebControls.Literal litDetalleAlta;
@@ -41,7 +41,7 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.Button btnConfirmarPublicar;
         protected global::System.Web.UI.WebControls.Button btnCancelarPublicar;
         protected global::System.Web.UI.WebControls.Panel pnlConfirmarDesactivar;
-        protected global::System.Web.UI.WebControls.Literal litConfirmarAsistente;
+        protected global::System.Web.UI.WebControls.Literal litConfirmarBasica;
         protected global::System.Web.UI.WebControls.Button btnConfirmarDesactivar;
         protected global::System.Web.UI.WebControls.Button btnCancelarDesactivar;
         protected global::System.Web.UI.WebControls.Button btnEditar;

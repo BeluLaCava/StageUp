@@ -278,10 +278,11 @@ BEGIN
     SELECT ISNULL(SUM(CASE WHEN s.estado = N'Activo' THEN 1 ELSE 0 END), 0) AS activos,
            ISNULL(SUM(CASE WHEN s.estado = N'Pendiente' THEN 1 ELSE 0 END), 0) AS pendientes,
            ISNULL(SUM(CASE WHEN s.estado = N'Baja' THEN 1 ELSE 0 END), 0) AS bajas,
-           ISNULL(SUM(CASE WHEN s.estado = N'Activo' AND NOT EXISTS
-                (SELECT 1 FROM dbo.UsuarioExterno u WHERE u.correoElectronico = s.correoElectronico AND u.activo = 1 AND u.estadoCuenta = N'Activa')
-                THEN 1 ELSE 0 END), 0) AS activosSinCuenta
-    FROM dbo.SuscriptorNewsletter s;
+           ISNULL(SUM(CASE WHEN s.estado = N'Activo' AND c.tieneCuenta = 0 THEN 1 ELSE 0 END), 0) AS activosSinCuenta
+    FROM dbo.SuscriptorNewsletter s
+    CROSS APPLY (SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.UsuarioExterno u
+                                          WHERE u.correoElectronico = s.correoElectronico AND u.activo = 1 AND u.estadoCuenta = N'Activa')
+                             THEN 1 ELSE 0 END AS tieneCuenta) c;
 END
 GO
 

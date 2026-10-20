@@ -22,6 +22,8 @@ namespace StageUp.UI.Interno.Comercializacion
         protected global::System.Web.UI.WebControls.Literal litEspacios;
         protected global::System.Web.UI.WebControls.Literal litFiltrosEspacios;
         protected global::System.Web.UI.WebControls.Literal litCampanias;
+        protected global::System.Web.UI.WebControls.Literal litCampaniasTitulo;
+
         protected global::System.Web.UI.WebControls.Literal litCampaniasDetalle;
         protected global::System.Web.UI.WebControls.Literal litFiltrosCampanias;
         protected global::System.Web.UI.WebControls.Literal litConvertidos;

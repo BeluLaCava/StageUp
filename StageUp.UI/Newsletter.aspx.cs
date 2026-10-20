@@ -14,6 +14,8 @@ namespace StageUp.UI
     // Newsletter (script 78), sin necesidad de cuenta:
     //   Newsletter.aspx                     -> formulario de suscripción
     //   Newsletter.aspx?confirmar={token}   -> doble confirmación
+    //   Newsletter.aspx?vincular={token}    -> vincula la suscripción con la
+    //       cuenta que lo pidió desde Mi perfil
     //   Newsletter.aspx?token={token}       -> preferencias (categorías, baja)
     //   Newsletter.aspx?token={token}&baja=1 -> preferencias con la baja a
     //       la vista (enlace "Darme de baja" de cada correo). La baja nunca
@@ -64,7 +66,15 @@ namespace StageUp.UI
 
             string confirmar = Request.QueryString["confirmar"];
             string token = Request.QueryString["token"];
-            if (!string.IsNullOrEmpty(confirmar))
+            string vincular = Request.QueryString["vincular"];
+            if (!string.IsNullOrEmpty(vincular))
+            {
+                // Vínculo con la cuenta pedido desde Mi perfil.
+                ResultadoOperacion resultado = _bllNewsletter.ConfirmarVinculo(vincular);
+                MostrarSolo(null);
+                MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+            }
+            else if (!string.IsNullOrEmpty(confirmar))
             {
                 Confirmar(confirmar);
             }

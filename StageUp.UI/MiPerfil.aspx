@@ -244,7 +244,7 @@
                             <asp:Button ID="btnNewsletterGuardar" runat="server" CssClass="button button-primary" Text="Guardar preferencias" CausesValidation="false" OnClick="btnNewsletterGuardar_Click" />
                             <asp:Button ID="btnNewsletterBaja" runat="server" CssClass="button button-secondary" Text="Darme de baja" CausesValidation="false" OnClick="btnNewsletterBaja_Click"
                                 OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Dejar de recibir el newsletter de StageUp? Podés volver a suscribirte cuando quieras.', { title: 'Darme de baja', confirmText: 'Sí, darme de baja', cancelText: 'Volver' })) return false;" />
-                            <asp:Button ID="btnNewsletterEnlace" runat="server" CssClass="button button-secondary" Text="Enviarme el enlace para administrarla" CausesValidation="false" OnClick="btnNewsletterEnlace_Click" />
+                            <asp:Button ID="btnNewsletterEnlace" runat="server" CssClass="button button-secondary" Text="Vincular a mi cuenta" CausesValidation="false" OnClick="btnNewsletterEnlace_Click" />
                         </div>
                     </section>
 

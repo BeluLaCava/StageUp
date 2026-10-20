@@ -422,9 +422,13 @@ namespace StageUp.BLL
             }
         }
 
-        // El correo ya recibe el newsletter por una suscripción hecha sin
-        // iniciar sesión: se le manda al correo el enlace para administrarla.
-        public ResultadoOperacion EnviarEnlacePreferenciasDeCuenta(int idUsuarioExterno, string urlBase)
+        // El correo de la cuenta ya recibe el newsletter por una suscripción
+        // hecha sin iniciar sesión. Para administrarla desde el perfil se
+        // vincula esa misma suscripción (no se crea otra), pero solo si el
+        // dueño del correo lo confirma con el enlace que le llega: el correo
+        // de la cuenta se puede cambiar sin verificarlo, así que coincidir no
+        // alcanza.
+        public ResultadoOperacion SolicitarVinculoDesdeCuenta(int idUsuarioExterno, string urlBase)
         {
             ResultadoOperacion<SuscripcionDeCuenta> actual = ObtenerDeCuenta(idUsuarioExterno);
             if (!actual.Exitoso)
@@ -438,24 +442,87 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("Tu correo no tiene una suscripción activa.");
             }
 
+            if (actual.Valor.Vinculada)
+            {
+                return ResultadoOperacion.Error("La suscripción ya está vinculada a tu cuenta.");
+            }
+
             if (suscriptor.FechaUltimoEnvioConfirmacion.HasValue && DateTime.Now - suscriptor.FechaUltimoEnvioConfirmacion.Value < EsperaEntreCorreos)
             {
                 return ResultadoOperacion.Error("Ya te enviamos un correo hace menos de 5 minutos. Revisá tu bandeja de entrada (y spam) antes de pedir otro.");
             }
 
-            if (!_servicioCorreo.EnviarAvisoYaSuscriptoNewsletter(suscriptor.CorreoElectronico, suscriptor.Nombre, UrlPreferencias(urlBase, suscriptor.TokenPreferencias)))
-            {
-                return ResultadoOperacion.Error(MensajeFalloCorreo);
-            }
-
+            string token = GenerarToken();
             try
             {
-                _mpp.MarcarAvisoEnviado(suscriptor);
+                if (!_mpp.SolicitarVinculo(suscriptor, new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno }, Hash(token),
+                    DateTime.Now.AddHours(HorasValidezConfirmacion)))
+                {
+                    return ResultadoOperacion.Error("La suscripción cambió mientras tanto. Recargá la página e intentá nuevamente.");
+                }
             }
             catch (ErrorAccesoDatosException)
             {
+                return ResultadoOperacion.Error("No pudimos preparar la vinculación en este momento. Intentá nuevamente.");
             }
-            return ResultadoOperacion.Ok("Te enviamos a " + suscriptor.CorreoElectronico + " el enlace para administrar tu suscripción.");
+
+            if (!_servicioCorreo.EnviarVinculoNewsletter(suscriptor.CorreoElectronico, suscriptor.Nombre,
+                UrlBaseConBarra(urlBase) + "Newsletter.aspx?vincular=" + token, HorasValidezConfirmacion))
+            {
+                try
+                {
+                    _mpp.AnularEnvioConfirmacion(suscriptor);
+                }
+                catch (ErrorAccesoDatosException)
+                {
+                }
+                return ResultadoOperacion.Error(MensajeFalloCorreo);
+            }
+
+            Bitacora("MODIFICACION", suscriptor.IdSuscriptorNewsletter, "Pedido de vinculación de la suscripción al newsletter con una cuenta (pendiente de confirmación).", idUsuarioExterno);
+            return ResultadoOperacion.Ok("Te enviamos un correo a " + suscriptor.CorreoElectronico + " para confirmar la vinculación. El enlace vence en " +
+                HorasValidezConfirmacion + " horas.");
+        }
+
+        // Enlace del correo de vinculación (Newsletter.aspx?vincular=...).
+        public ResultadoOperacion ConfirmarVinculo(string tokenVinculo)
+        {
+            const string invalido = "El enlace para vincular la suscripción no es válido o ya venció. Pedí uno nuevo desde Mi perfil.";
+            if (!EsToken(tokenVinculo))
+            {
+                return ResultadoOperacion.Error(invalido);
+            }
+
+            string hash = Hash(tokenVinculo.ToUpperInvariant());
+            try
+            {
+                SuscriptorNewsletter suscriptor = _mpp.ObtenerPorHashVinculo(hash);
+                if (suscriptor == null || suscriptor.Estado != SuscriptorNewsletter.EstadoActivo || !suscriptor.IdUsuarioExternoVinculoPendiente.HasValue ||
+                    !suscriptor.VencimientoVinculo.HasValue || suscriptor.VencimientoVinculo.Value < DateTime.Now)
+                {
+                    return ResultadoOperacion.Error(invalido);
+                }
+
+                // La cuenta que lo pidió tiene que seguir activa y con este correo.
+                UsuarioExterno cuenta = _mppUsuario.ObtenerPorId(new UsuarioExterno { IdUsuarioExterno = suscriptor.IdUsuarioExternoVinculoPendiente.Value });
+                if (cuenta == null || !cuenta.Activo ||
+                    !string.Equals((cuenta.CorreoElectronico ?? string.Empty).Trim(), suscriptor.CorreoElectronico, StringComparison.OrdinalIgnoreCase))
+                {
+                    return ResultadoOperacion.Error("No se pudo vincular: la cuenta que lo pidió ya no está activa o ya no usa este correo.");
+                }
+
+                if (!_mpp.ConfirmarVinculo(suscriptor, hash))
+                {
+                    return ResultadoOperacion.Error(invalido);
+                }
+
+                Bitacora("ASOCIACION", suscriptor.IdSuscriptorNewsletter, "Suscripción al newsletter vinculada a la cuenta (confirmado desde el correo).", cuenta.IdUsuarioExterno);
+                return ResultadoOperacion.Ok("¡Listo! Tu suscripción quedó vinculada a tu cuenta: ya podés elegir categorías o darte de baja desde Mi perfil.");
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error("No pudimos vincular la suscripción en este momento. Intentá nuevamente.");
+            }
         }
 
         // ------------------------------------------------------------------

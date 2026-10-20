@@ -47,9 +47,15 @@ namespace StageUp.BE.Entidades
             get { return TotalUsuarios == 0 && TotalCampanias == 0 && TotalContactos == 0; }
         }
 
+        // Los incorporados sin cuenta también son un resultado (se muestran
+        // aparte de los convertidos).
         public bool SinResultados
         {
-            get { return NuevosUsuarios == 0 && EspaciosIncorporados == 0 && CampaniasActivas == 0 && ContactosConvertidos == 0; }
+            get
+            {
+                return NuevosUsuarios == 0 && EspaciosIncorporados == 0 && CampaniasActivas == 0 && ContactosConvertidos == 0 &&
+                    IncorporadosSinCuenta == 0;
+            }
         }
     }
 

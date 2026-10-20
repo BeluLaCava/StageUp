@@ -22,6 +22,10 @@ namespace StageUp.UI.Infraestructura
     //     suspendida en este pedido: no hay usuario ni permisos hasta que se
     //     compruebe en un pedido siguiente. Nunca sigue con los permisos
     //     anteriores.
+    //   * Si no se pudo comprobar si hubo una restauración (falló la consulta
+    //     de la marca), no se da la sesión por válida por tener la misma
+    //     marca: se vuelve a validar la cuenta en cada pedido, sin guardar la
+    //     marca, hasta que la consulta vuelva a responder.
     public static class ControlSesionBaseDatos
     {
         public const string MotivoCierre = "base_restaurada";
@@ -52,16 +56,18 @@ namespace StageUp.UI.Infraestructura
             }
 
             BLL_SesionBaseDatos bll = new BLL_SesionBaseDatos();
-            string marcaActual = bll.ObtenerMarcaActual();
+            bool marcaConfiable;
+            string marcaActual = bll.ObtenerMarcaActual(out marcaConfiable);
             string marcaSesion = GestorDeSesion.ObtenerMarcaBaseDatos();
-            if (marcaActual == null || marcaActual == marcaSesion)
+            if (marcaConfiable && marcaActual == marcaSesion)
             {
                 return ResultadoRevalidacionSesion.Valida;
             }
 
             // Sin marca guardada es una sesión recién iniciada: se valida
-            // igual, pero no se muestra el aviso de restauración.
-            bool huboRestauracion = marcaSesion != null;
+            // igual, pero no se muestra el aviso de restauración. Con una marca
+            // no confiable tampoco se avisa (no se sabe si hubo restauración).
+            bool huboRestauracion = marcaConfiable && marcaSesion != null;
 
             UsuarioExterno usuarioExterno = null;
             if (idUsuarioExterno.HasValue)
@@ -96,6 +102,13 @@ namespace StageUp.UI.Infraestructura
             if (usuarioInterno != null && !GestorDeSesion.ActualizarSesionInterna(usuarioInterno, permisos))
             {
                 return Cerrar(ResultadoRevalidacionSesion.Invalida);
+            }
+
+            if (!marcaConfiable)
+            {
+                // La cuenta se comprobó, pero la marca no se guarda: en el
+                // próximo pedido se vuelve a comprobar.
+                return ResultadoRevalidacionSesion.Valida;
             }
 
             GestorDeSesion.EstablecerMarcaBaseDatos(marcaActual);

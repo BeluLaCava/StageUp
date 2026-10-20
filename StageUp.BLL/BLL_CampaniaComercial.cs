@@ -127,17 +127,23 @@ namespace StageUp.BLL
             }
         }
 
-        public List<VinculoComercial> ListarVinculos(int idCampaniaComercial)
+        // Distingue "sin vínculos" (lista vacía) de "no se pudieron consultar"
+        // (error): con una carga incompleta no se puede guardar el formulario,
+        // porque se borrarían las asociaciones existentes.
+        public ResultadoOperacion<List<VinculoComercial>> ListarVinculos(int idCampaniaComercial)
         {
             try
             {
-                return _mpp.ListarVinculos(new CampaniaComercial { IdCampaniaComercial = idCampaniaComercial });
+                return ResultadoOperacion<List<VinculoComercial>>.Ok(_mpp.ListarVinculos(new CampaniaComercial { IdCampaniaComercial = idCampaniaComercial }));
             }
             catch (ErrorAccesoDatosException)
             {
-                return new List<VinculoComercial>();
+                return ResultadoOperacion<List<VinculoComercial>>.Error(MensajeVinculosNoDisponibles);
             }
         }
+
+        public const string MensajeVinculosNoDisponibles =
+            "No se pudieron consultar los vínculos de la campaña. Para no perder las asociaciones existentes, no se puede guardar hasta que se puedan consultar: recargá la página en unos minutos.";
 
         // Pasos 9 a 25 (alta) y A6 (modificación), con A10 a A17.
         public ResultadoOperacion<int> Guardar(CampaniaComercial campania, string fechaInicioTexto, string fechaFinTexto, int idUsuarioInternoResponsable)
@@ -221,11 +227,38 @@ namespace StageUp.BLL
 
             // A16: lo elegido tiene que existir y estar disponible (lo que ya
             // estaba vinculado se puede conservar).
-            string errorVinculos = ValidarVinculos(campania, esAlta ? new List<VinculoComercial>() : ListarVinculos(campania.IdCampaniaComercial));
+            List<VinculoComercial> actuales = new List<VinculoComercial>();
+            if (!esAlta)
+            {
+                ResultadoOperacion<List<VinculoComercial>> vinculos = ListarVinculos(campania.IdCampaniaComercial);
+                if (!vinculos.Exitoso)
+                {
+                    return ResultadoOperacion<int>.Error("No se pudieron consultar los vínculos actuales de la campaña. No se guardó ningún cambio; intentá nuevamente.", "A17");
+                }
+
+                actuales = vinculos.Valor;
+            }
+
+            string errorVinculos = ValidarVinculos(campania, actuales);
             if (errorVinculos != null)
             {
                 return ResultadoOperacion<int>.Error(errorVinculos, "A16");
             }
+
+            // La auditoría se arma antes y se registra dentro de la misma
+            // transacción que los datos: no queda un cambio sin su registro.
+            string resumenVinculos = campania.IdsContactos.Count + " contactos, " + campania.IdsAlianzas.Count + " alianzas, " +
+                campania.IdsContenidos.Count + " contenidos y " + campania.IdsOrigenes.Count + " orígenes";
+            string descripcionBitacora = BLL_CatalogoComercial.Recortar(
+                (esAlta ? "Alta" : "Modificación") + " de la campaña comercial \"" + campania.Nombre + "\" (" + TextoEstado(new CampaniaComercial
+                {
+                    Activa = true,
+                    EstadoCampania = campania.EstadoCampania
+                }) + ", " + campania.FechaInicio.ToString("dd/MM/yyyy") + " al " + campania.FechaFin.ToString("dd/MM/yyyy") +
+                "). Vínculos: " + resumenVinculos + "." +
+                (anterior != null && anterior.EstadoCampania != campania.EstadoCampania
+                    ? " Estado anterior: " + TextoEstado(anterior) + "."
+                    : string.Empty));
 
             int id;
             try
@@ -247,7 +280,7 @@ namespace StageUp.BLL
                     IdsAlianzas = campania.IdsAlianzas,
                     IdsContenidos = campania.IdsContenidos,
                     IdsOrigenes = campania.IdsOrigenes
-                });
+                }, new UsuarioInterno { IdUsuarioInterno = idUsuarioInternoResponsable }, descripcionBitacora);
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -265,20 +298,6 @@ namespace StageUp.BLL
             }
 
             campania.IdCampaniaComercial = id;
-
-            string resumenVinculos = campania.IdsContactos.Count + " contactos, " + campania.IdsAlianzas.Count + " alianzas, " +
-                campania.IdsContenidos.Count + " contenidos y " + campania.IdsOrigenes.Count + " orígenes";
-
-            BLL_CatalogoComercial.Registrar(idUsuarioInternoResponsable, esAlta ? "ALTA" : "MODIFICACION", EntidadBitacora, id,
-                (esAlta ? "Alta" : "Modificación") + " de la campaña comercial \"" + campania.Nombre + "\" (" + TextoEstado(new CampaniaComercial
-                {
-                    Activa = true,
-                    EstadoCampania = campania.EstadoCampania
-                }) + ", " + campania.FechaInicio.ToString("dd/MM/yyyy") + " al " + campania.FechaFin.ToString("dd/MM/yyyy") +
-                "). Vínculos: " + resumenVinculos + "." +
-                (anterior != null && anterior.EstadoCampania != campania.EstadoCampania
-                    ? " Estado anterior: " + TextoEstado(anterior) + "."
-                    : string.Empty));
 
             return ResultadoOperacion<int>.Ok(id, esAlta
                 ? "La campaña comercial fue guardada correctamente."

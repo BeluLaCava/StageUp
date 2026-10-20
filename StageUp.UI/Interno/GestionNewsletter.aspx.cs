@@ -213,6 +213,24 @@ namespace StageUp.UI.Interno
             CargarEnvios();
         }
 
+        protected void btnReenviarInciertos_Click(object sender, EventArgs e)
+        {
+            if (!TieneAcceso() || !IdEnvioSeleccionado.HasValue)
+            {
+                return;
+            }
+
+            ResultadoOperacion<int> resultado = _bllNovedad.ReenviarInciertos(
+                IdEnvioSeleccionado.Value,
+                new Uri(Request.Url, ResolveUrl("~/Novedades.aspx")).ToString(),
+                GestorDeSesion.ObtenerIdUsuarioInternoActual().Value,
+                UrlBase(),
+                Server.MapPath("~/"));
+            MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
+            CargarResumen();
+            CargarEnvios();
+        }
+
         protected void lnkCerrarDetalle_Click(object sender, EventArgs e)
         {
             IdEnvioSeleccionado = null;
@@ -292,6 +310,7 @@ namespace StageUp.UI.Interno
                 BLL_Novedad.ObtenerEtiquetaEstadoEnvio(seleccionado.Estado) + ", " + seleccionado.CantidadEnviados + " de " +
                 seleccionado.CantidadDestinatarios + " recibieron";
             btnReintentarEnvio.Visible = seleccionado.PuedeReintentar;
+            btnReenviarInciertos.Visible = seleccionado.PuedeReenviarInciertos;
             rptDestinatarios.DataSource = _bllNovedad.ListarDestinatariosDeEnvio(seleccionado.IdEnvioNewsletter);
             rptDestinatarios.DataBind();
         }
@@ -342,6 +361,7 @@ namespace StageUp.UI.Interno
             {
                 case EnvioNewsletter.EstadoCompleto: return "nl-estado nl-estado-ok";
                 case EnvioNewsletter.EstadoParcial: return "nl-estado nl-estado-alerta";
+                case EnvioNewsletter.EstadoIncierto: return "nl-estado nl-estado-alerta";
                 case EnvioNewsletter.EstadoFallido: return "nl-estado nl-estado-error";
                 default: return "nl-estado";
             }
@@ -354,7 +374,18 @@ namespace StageUp.UI.Interno
                 case EnvioNewsletterDestinatario.EstadoEnviado: return "nl-estado nl-estado-ok";
                 case EnvioNewsletterDestinatario.EstadoFallido: return "nl-estado nl-estado-error";
                 case EnvioNewsletterDestinatario.EstadoPendiente: return "nl-estado nl-estado-alerta";
+                case EnvioNewsletterDestinatario.EstadoEnviando: return "nl-estado nl-estado-alerta";
                 default: return "nl-estado";
+            }
+        }
+
+        protected static string EtiquetaEstadoDestinatario(object estado)
+        {
+            switch (Convert.ToString(estado))
+            {
+                case EnvioNewsletterDestinatario.EstadoEnviando: return "Incierto";
+                case EnvioNewsletterDestinatario.EstadoOmitido: return "Omitido (baja)";
+                default: return Convert.ToString(estado);
             }
         }
 

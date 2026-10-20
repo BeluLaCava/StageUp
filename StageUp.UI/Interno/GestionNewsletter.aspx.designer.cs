@@ -29,6 +29,7 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.Panel pnlDetalleEnvio;
         protected global::System.Web.UI.WebControls.Literal litDetalleEnvio;
         protected global::System.Web.UI.WebControls.Button btnReintentarEnvio;
+        protected global::System.Web.UI.WebControls.Button btnReenviarInciertos;
         protected global::System.Web.UI.WebControls.LinkButton lnkCerrarDetalle;
         protected global::System.Web.UI.WebControls.Repeater rptDestinatarios;
     }

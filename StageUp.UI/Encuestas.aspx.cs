@@ -113,14 +113,13 @@ namespace StageUp.UI
             }
 
             // La identidad del navegador se estableció al abrir la encuesta:
-            // si el navegador no devuelve la cookie (bloqueada o borrada), sin
-            // sesión no se acepta la respuesta.
+            // si el navegador no devuelve la cookie (bloqueada o borrada), no se
+            // acepta la respuesta, con o sin sesión (una respuesta por navegador).
             string identificadorNavegador = EsIdentificadorValido(IdentificadorNavegador) ? IdentificadorNavegador : null;
-            if (!UsuarioAutenticado && identificadorNavegador == null)
+            if (identificadorNavegador == null)
             {
                 AsegurarIdentificadorNavegador();
-                MostrarMensaje("No pudimos comprobar este navegador: para responder sin iniciar sesión, tu navegador tiene que aceptar cookies de StageUp. " +
-                    "Habilitalas y volvé a enviar la encuesta, o iniciá sesión.", true);
+                MostrarMensaje(BLL_Encuesta.MensajeSinCookie, true);
                 CargarResponder(idEncuesta, EncuestadoActual(null));
                 return;
             }

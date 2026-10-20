@@ -176,6 +176,28 @@ namespace StageUp.Servicios
             return Enviar(destinatario, "Confirmá tu suscripción a las novedades de StageUp", cuerpo);
         }
 
+        // Mi perfil: vincular a la cuenta una suscripción que se hizo sin
+        // iniciar sesión. Solo el dueño del correo puede confirmar el vínculo.
+        public bool EnviarVinculoNewsletter(string destinatario, string nombreDestinatario, string urlVincular, int horasValidez)
+        {
+            string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
+            {
+                Etiqueta = "Newsletter StageUp",
+                Titulo = "Vinculá tu suscripción a tu cuenta",
+                NombreDestinatario = nombreDestinatario,
+                Parrafos = new[]
+                {
+                    "Desde tu cuenta de StageUp pediste administrar en Mi perfil la suscripción al newsletter de este correo.",
+                    "Para confirmarlo, usá el botón. El enlace vence en " + horasValidez + " horas."
+                },
+                TextoBoton = "Vincular a mi cuenta",
+                UrlBoton = urlVincular,
+                Nota = "Si no lo pediste vos, ignorá este correo: la suscripción sigue igual y se administra desde el enlace de cada newsletter."
+            });
+
+            return Enviar(destinatario, "Vinculá tu suscripción al newsletter con tu cuenta de StageUp", cuerpo);
+        }
+
         // Alguien pidió suscribir un correo que ya está suscripto: se le avisa
         // al dueño del correo (no se muestra en la página, para no revelar
         // qué correos están suscriptos).

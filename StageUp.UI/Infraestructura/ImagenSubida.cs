@@ -18,8 +18,9 @@ namespace StageUp.UI.Infraestructura
     //   * JPG y PNG se vuelven a dibujar en un JPG nuevo de 1600 px como
     //     máximo: así se descarta cualquier contenido extra del archivo
     //     original (metadatos o datos ocultos).
-    //   * WebP no se puede volver a generar en .NET Framework: se guarda tal
-    //     cual, rearmado sin metadatos por el validador.
+    //   * WebP no se puede volver a generar en .NET Framework: se comprueba
+    //     que se pueda decodificar completa con el códec de Windows
+    //     (DecodificadorWebP) y se guarda tal cual, rearmada sin metadatos.
     //   * El nombre lo genera el sistema (GUID).
     public static class ImagenSubida
     {
@@ -74,6 +75,17 @@ namespace StageUp.UI.Infraestructura
             {
                 if (validacion.Valor.EsWebP)
                 {
+                    // La estructura ya se validó; además tiene que poder
+                    // decodificarse completa (no se confía en las cabeceras).
+                    bool faltaCodec;
+                    if (!DecodificadorWebP.SePuedeDecodificar(datos, validacion.Valor.Ancho, validacion.Valor.Alto, out faltaCodec))
+                    {
+                        error = faltaCodec
+                            ? "El servidor no tiene el códec para abrir imágenes WebP, así que no se puede comprobar la imagen. Subila como JPG o PNG."
+                            : "El archivo no es una imagen WebP válida: no se pudo abrir completa (está incompleto o dañado).";
+                        return null;
+                    }
+
                     string rutaWebP = carpeta + Guid.NewGuid().ToString("N") + ".webp";
                     Directory.CreateDirectory(mapPath(carpeta));
                     File.WriteAllBytes(mapPath(rutaWebP), validacion.Valor.ContenidoLimpio);

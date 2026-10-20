@@ -43,8 +43,13 @@ namespace StageUp.UI.Interno
             }
             catch (Exception)
             {
-                // Si la base no responde se mantiene la sesión tal como estaba;
-                // cada página igual valida sus permisos.
+                // No se pudo comprobar la cuenta: no se sigue con los permisos
+                // anteriores. La sesión queda suspendida en este pedido y se
+                // muestra el aviso (en el próximo pedido se vuelve a intentar).
+                GestorDeSesion.SuspenderSesionEnEstePedido();
+                string volver = Request.HttpMethod == "GET" ? Request.RawUrl : string.Empty;
+                Response.Redirect(ControlSesionBaseDatos.PaginaVerificacion +
+                    (volver.Length > 0 ? "?volver=" + Server.UrlEncode(volver) : string.Empty));
                 return;
             }
 

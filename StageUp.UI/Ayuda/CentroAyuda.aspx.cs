@@ -72,6 +72,29 @@ namespace StageUp.UI.Ayuda
             pnlSinBasicas.Visible = basicas.Valor.Count == 0;
             rptFaq.DataSource = basicas.Valor;
             rptFaq.DataBind();
+            MostrarPreguntaBuscada();
+        }
+
+        // ?faq={id}: la pregunta que se eligió en los resultados de la
+        // búsqueda, con su respuesta. La lista sigue siendo la breve.
+        private void MostrarPreguntaBuscada()
+        {
+            int idFaq;
+            if (!int.TryParse(Request.QueryString["faq"], NumberStyles.Integer, CultureInfo.InvariantCulture, out idFaq))
+            {
+                return;
+            }
+
+            ResultadoOperacion<Faq> resultado = _bllFaq.ObtenerPublicada(idFaq);
+            if (!resultado.Exitoso || resultado.Valor == null)
+            {
+                pnlFaqBuscadaNoDisponible.Visible = true;
+                return;
+            }
+
+            pnlFaqBuscada.Visible = true;
+            litFaqBuscadaPregunta.Text = resultado.Valor.Pregunta;
+            litFaqBuscadaRespuesta.Text = resultado.Valor.Respuesta;
         }
     }
 }

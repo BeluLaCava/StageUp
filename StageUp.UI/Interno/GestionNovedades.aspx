@@ -222,7 +222,7 @@
                                                     OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Volver esta novedad a borrador? Deja de mostrarse en la página pública.')) return false;" />
                                                 <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
                                                     CommandName="EnviarNewsletter" CommandArgument='<%# Eval("IdNovedad") %>' Text="Enviar newsletter"
-                                                    Visible='<%# EsEstado(Container.DataItem, "Vigente") && !Convert.ToBoolean(Eval("EnviadaPorCorreo")) && ObtenerEnvio(Container.DataItem) == null %>'
+                                                    Visible='<%# EsEstado(Container.DataItem, "Vigente") && !Convert.ToBoolean(Eval("EnviadaPorCorreo")) && PuedeEnviarNewsletter(Container.DataItem) %>'
                                                     OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Enviar el newsletter de esta novedad a los destinatarios seleccionados arriba?')) return false;" />
                                                 <asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
                                                     CommandName="ReintentarNewsletter" CommandArgument='<%# Eval("IdNovedad") %>' Text="Reintentar fallidos"

@@ -434,7 +434,8 @@ namespace StageUp.BLL
             {
                 case "Espacio": return "~/Explorar/DetalleEspacio.aspx?id=" + resultado.IdReferencia;
                 case "Novedad": return "~/Novedades.aspx";
-                case "FAQ": return "~/Ayuda/CentroAyuda.aspx";
+                // Abre esa pregunta con su respuesta, aunque no sea de las básicas.
+                case "FAQ": return "~/Ayuda/CentroAyuda.aspx?faq=" + resultado.IdReferencia + "#faq-title";
                 default: return null;
             }
         }

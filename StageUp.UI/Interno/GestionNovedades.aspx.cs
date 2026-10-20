@@ -431,6 +431,13 @@ namespace StageUp.UI.Interno
             return novedad != null && _envios.TryGetValue(novedad.IdNovedad, out envio) ? envio : null;
         }
 
+        // Sin envío, o con un intento anterior sin destinatarios.
+        protected bool PuedeEnviarNewsletter(object dato)
+        {
+            EnvioNewsletter envio = ObtenerEnvio(dato);
+            return envio == null || envio.PermiteNuevoEnvio;
+        }
+
         protected bool PuedeReintentar(object dato)
         {
             EnvioNewsletter envio = ObtenerEnvio(dato);
@@ -453,11 +460,12 @@ namespace StageUp.UI.Interno
 
             if (envio.Estado == EnvioNewsletter.EstadoSinDestinatarios)
             {
-                return texto;
+                return texto + " (se puede volver a enviar)";
             }
 
             return texto + " · " + envio.CantidadEnviados + " de " + envio.CantidadDestinatarios + " recibieron" +
                 (envio.CantidadFallidos > 0 ? " · " + envio.CantidadFallidos + " fallido(s)" : string.Empty) +
+                (envio.CantidadInciertos > 0 ? " · " + envio.CantidadInciertos + " incierto(s)" : string.Empty) +
                 (envio.CantidadOmitidos > 0 ? " · " + envio.CantidadOmitidos + " omitido(s)" : string.Empty);
         }
 
@@ -468,6 +476,7 @@ namespace StageUp.UI.Interno
             {
                 case EnvioNewsletter.EstadoCompleto: return "envio-resumen envio-resumen-ok";
                 case EnvioNewsletter.EstadoParcial: return "envio-resumen envio-resumen-alerta";
+                case EnvioNewsletter.EstadoIncierto: return "envio-resumen envio-resumen-alerta";
                 case EnvioNewsletter.EstadoFallido: return "envio-resumen envio-resumen-error";
                 case EnvioNewsletter.EstadoEnCurso: return envio.PuedeReintentar ? "envio-resumen envio-resumen-alerta" : "envio-resumen envio-resumen-neutro";
                 default: return "envio-resumen envio-resumen-neutro";

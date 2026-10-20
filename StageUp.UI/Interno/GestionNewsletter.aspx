@@ -158,14 +158,14 @@
                 <div class="auth-card-header">
                     <span class="admin-card-eyebrow">Envíos</span>
                     <h2>Resultado de cada envío</h2>
-                    <p>Completo: todos lo recibieron. Parcial: algunos correos fallaron y se pueden reintentar solo esos. Fallido: no llegó a nadie. Omitido: se dio de baja antes del reintento.</p>
+                    <p>Completo: todos lo recibieron. Parcial: algunos correos fallaron y se pueden reintentar solo esos. Fallido: no llegó a nadie. Incierto: el correo pudo haber salido pero no se pudo registrar el resultado; no se reenvía solo y podés decidir reenviarlo. Omitido: se dio de baja antes del reintento. Un intento sin destinatarios no marca la novedad como enviada.</p>
                 </div>
 
                 <div class="nl-tabla-wrap">
                     <asp:Repeater ID="rptEnvios" runat="server" OnItemCommand="rptEnvios_ItemCommand">
                         <HeaderTemplate>
                             <table class="nl-tabla">
-                                <thead><tr><th>Novedad</th><th>Fecha</th><th>Destinatarios</th><th>Estado</th><th>Recibieron</th><th>Fallidos</th><th>Omitidos</th><th>Acciones</th></tr></thead>
+                                <thead><tr><th>Novedad</th><th>Fecha</th><th>Destinatarios</th><th>Estado</th><th>Recibieron</th><th>Fallidos</th><th>Inciertos</th><th>Omitidos</th><th>Acciones</th></tr></thead>
                                 <tbody>
                         </HeaderTemplate>
                         <ItemTemplate>
@@ -176,6 +176,7 @@
                                 <td data-label="Estado"><span class='<%# ClaseEstadoEnvio(Eval("Estado")) %>'><%#: StageUp.BLL.BLL_Novedad.ObtenerEtiquetaEstadoEnvio(Convert.ToString(Eval("Estado"))) %></span></td>
                                 <td data-label="Recibieron"><%#: Eval("CantidadEnviados") %> de <%#: Eval("CantidadDestinatarios") %></td>
                                 <td data-label="Fallidos"><%#: Eval("CantidadFallidos") %></td>
+                                <td data-label="Inciertos"><%#: Eval("CantidadInciertos") %></td>
                                 <td data-label="Omitidos"><%#: Eval("CantidadOmitidos") %></td>
                                 <td data-label="Acciones" class="nl-acciones-celda">
                                     <asp:LinkButton runat="server" CssClass="admin-action-link" CausesValidation="false"
@@ -194,6 +195,8 @@
                         <div class="nl-admin-detalle-acciones">
                             <asp:Button ID="btnReintentarEnvio" runat="server" CssClass="button button-primary" Text="Reintentar fallidos" CausesValidation="false" OnClick="btnReintentarEnvio_Click"
                                 OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, '¿Reintentar el envío solo a los destinatarios que no lo recibieron?')) return false;" />
+                            <asp:Button ID="btnReenviarInciertos" runat="server" CssClass="button button-secondary" Text="Reenviar a los de resultado incierto" CausesValidation="false" OnClick="btnReenviarInciertos_Click"
+                                OnClientClick="if (!StageUpConfirm.confirmPostback(this, event, 'Puede que algunos de estos destinatarios ya hayan recibido el correo y lo reciban dos veces. ¿Reenviarles igual?', { title: 'Resultado incierto', confirmText: 'Sí, reenviar', cancelText: 'Volver' })) return false;" />
                             <asp:LinkButton ID="lnkCerrarDetalle" runat="server" CssClass="text-link" Text="Cerrar" CausesValidation="false" OnClick="lnkCerrarDetalle_Click" />
                         </div>
                     </div>
@@ -207,7 +210,7 @@
                             <ItemTemplate>
                                 <tr>
                                     <td data-label="Correo"><%#: Eval("CorreoElectronico") %></td>
-                                    <td data-label="Estado"><span class='<%# ClaseEstadoDestinatario(Eval("Estado")) %>'><%#: Eval("Estado") %></span></td>
+                                    <td data-label="Estado"><span class='<%# ClaseEstadoDestinatario(Eval("Estado")) %>'><%#: EtiquetaEstadoDestinatario(Eval("Estado")) %></span></td>
                                     <td data-label="Intentos"><%#: Eval("Intentos") %></td>
                                     <td data-label="Último intento"><%#: Eval("FechaUltimoIntento") == null ? "—" : Convert.ToDateTime(Eval("FechaUltimoIntento")).ToString("dd/MM/yyyy HH:mm") %></td>
                                 </tr>

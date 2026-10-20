@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -71,10 +72,20 @@ namespace StageUp.Servicios
         private static readonly Regex Documento = new Regex(@"\b\d{1,2}\.?\d{3}\.?\d{3}\b", RegexOptions.Compiled);
 
         // Palabra que anuncia un secreto, seguida (o no) de un conector y del
-        // valor: "mi contraseña es ...", "clave: ...", "cvv 123".
+        // valor: "mi contraseña es ...", "clave: ...", "cvv 123". Entre la
+        // palabra y el conector puede haber palabras que la describen: "mi
+        // contraseña actual es ...", "el código de seguridad de mi tarjeta
+        // es ...", "mi PIN nuevo: ...". Solo palabras de esa lista, para no
+        // tomar como secreto el resto de una frase común.
+        private const string PalabrasIntermedias =
+            @"(?:\s+(?:actual|actuales|nueva|nuevo|vieja|viejo|anterior|temporal|provisoria|provisorio|definitiva|real|verdadera|" +
+            @"de|del|la|el|los|las|mi|mis|tu|tus|su|sus|esta|este|cuenta|tarjeta|tarjetas|banco|bancaria|bancario|home|banking|" +
+            @"acceso|ingreso|stageup|seguridad|usuario|correo|mail|email|debito|credito|visa|mastercard|amex|mercadopago|mercado|pago|" +
+            @"compra|compras|cajero|celular|telefono|app|aplicacion|sistema|plataforma|web|sitio|pagina)){0,6}";
+
         private static readonly Regex Secreto = new Regex(
-            @"\b(contrasena|contrasenia|password|passwd|pass|clave|pin|token|cvv2?|cvc|codigo de seguridad|codigo de verificacion|codigo verificador)\b" +
-            @"(?:\s+(?:de\s+\w+\s+)?(?<conector>es|era|seria|sera|son|:|=)\s*|\s*(?<conector>[:=])\s*|\s+)(?<valor>[^\s,;]+)",
+            @"\b(contrasenas?|contrasenias?|password|passwd|pass|claves?|pin|token|cvv2?|cvc|codigo de seguridad|codigo de verificacion|codigo verificador)\b" +
+            @"(?:" + PalabrasIntermedias + @"\s*(?<conector>\bes\b|\bera\b|\bseria\b|\bsera\b|\bson\b|\bfue\b|:|=)\s*|\s*(?<conector>[:=])\s*|\s+)(?<valor>[^\s,;]+)",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex Token = new Regex(@"\b(?:sk-[A-Za-z0-9_\-]{10,}|[A-Za-z0-9_\-]{24,})\b", RegexOptions.Compiled);
 
@@ -217,11 +228,7 @@ namespace StageUp.Servicios
             string normalizado = SinTildes(texto);
             foreach (Match coincidencia in Secreto.Matches(normalizado))
             {
-                string valor = coincidencia.Groups["valor"].Value.Trim('.', '"', '\'', '(', ')');
-                bool conConector = coincidencia.Groups["conector"].Success;
-                bool pareceValor = Regex.IsMatch(valor, @"\d") || Regex.IsMatch(valor, @"[^\p{L}\p{N}]") ||
-                    (Regex.IsMatch(valor, @"\p{Lu}") && Regex.IsMatch(valor, @"\p{Ll}") && valor.Length >= 6);
-                if (valor.Length > 0 && !NoEsValor.Contains(valor) && (conConector || pareceValor))
+                if (EsSecreto(coincidencia))
                 {
                     return true;
                 }
@@ -238,14 +245,60 @@ namespace StageUp.Servicios
 
             foreach (Match posible in Token.Matches(texto))
             {
-                if (posible.Value.StartsWith("sk-", StringComparison.Ordinal) ||
-                    (Regex.IsMatch(posible.Value, @"\d") && Regex.IsMatch(posible.Value, @"[A-Za-z]")))
+                if (EsToken(posible.Value))
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        // El valor que sigue a la palabra (contraseña, PIN, CVV...) es un
+        // secreto si viene con conector ("es", ":") o si tiene forma de clave
+        // (números, símbolos, o mayúsculas y minúsculas).
+        private static bool EsSecreto(Match coincidencia)
+        {
+            string valor = coincidencia.Groups["valor"].Value.Trim('.', '"', '\'', '(', ')', '!', '?');
+            if (valor.Length == 0 || NoEsValor.Contains(valor))
+            {
+                return false;
+            }
+
+            bool conConector = coincidencia.Groups["conector"].Success;
+            bool pareceValor = Regex.IsMatch(valor, @"\d") || Regex.IsMatch(valor, @"[^\p{L}\p{N}]") ||
+                (Regex.IsMatch(valor, @"\p{Lu}") && Regex.IsMatch(valor, @"\p{Ll}") && valor.Length >= 6);
+            return conConector || pareceValor;
+        }
+
+        private static bool EsToken(string valor)
+        {
+            return valor.StartsWith("sk-", StringComparison.Ordinal) ||
+                (Regex.IsMatch(valor, @"\d") && Regex.IsMatch(valor, @"[A-Za-z]"));
+        }
+
+        // Reemplaza el valor de cada secreto. La búsqueda se hace sobre el
+        // texto sin tildes (mismo largo que el original), así las posiciones
+        // coinciden y el resto del texto queda igual.
+        private static string OcultarSecretos(string texto)
+        {
+            string normalizado = SinTildes(texto);
+            if (normalizado.Length != texto.Length)
+            {
+                // Caso raro (caracteres que cambian de largo al normalizar):
+                // se trabaja directamente sobre el texto sin tildes.
+                texto = normalizado;
+            }
+
+            StringBuilder resultado = new StringBuilder(texto);
+            List<Match> secretos = Secreto.Matches(normalizado).Cast<Match>().Where(EsSecreto).ToList();
+            for (int i = secretos.Count - 1; i >= 0; i--)
+            {
+                Group valor = secretos[i].Groups["valor"];
+                resultado.Remove(valor.Index, valor.Length).Insert(valor.Index, "[dato oculto]");
+            }
+
+            return resultado.ToString();
         }
 
         private static bool CumpleLuhn(string digitos)
@@ -288,7 +341,11 @@ namespace StageUp.Servicios
                 return string.Empty;
             }
 
-            string resultado = Correo.Replace(texto, "[correo oculto]");
+            // Primero los secretos ("mi PIN actual es 4321" -> "mi PIN actual
+            // es [dato oculto]"), con el mismo criterio que ContieneDatosPrivados.
+            string resultado = OcultarSecretos(texto);
+            resultado = Token.Replace(resultado, m => EsToken(m.Value) ? "[dato oculto]" : m.Value);
+            resultado = Correo.Replace(resultado, "[correo oculto]");
             resultado = Cbu.Replace(resultado, "[dato oculto]");
             resultado = Tarjeta.Replace(resultado, "[número oculto]");
             resultado = Telefono.Replace(resultado, "[número oculto]");

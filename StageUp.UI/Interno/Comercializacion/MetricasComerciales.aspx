@@ -75,7 +75,7 @@
                         <small class="metricas-filtros"><asp:Literal ID="litFiltrosEspacios" runat="server" Mode="Encode" /></small>
                     </div>
                     <div class="metricas-tile">
-                        <span>Campañas comerciales activas</span>
+                        <span><asp:Literal ID="litCampaniasTitulo" runat="server" Mode="Encode" Text="Campañas comerciales activas" /></span>
                         <strong><asp:Literal ID="litCampanias" runat="server" /></strong>
                         <small><asp:Literal ID="litCampaniasDetalle" runat="server" Mode="Encode" /></small>
                         <small class="metricas-filtros"><asp:Literal ID="litFiltrosCampanias" runat="server" Mode="Encode" /></small>

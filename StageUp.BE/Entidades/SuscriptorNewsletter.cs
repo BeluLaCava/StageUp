@@ -26,6 +26,11 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaConfirmacion { get; set; }
         public DateTime? FechaBaja { get; set; }
 
+        // Vínculo con una cuenta pedido desde Mi perfil y todavía no
+        // confirmado por el dueño del correo.
+        public int? IdUsuarioExternoVinculoPendiente { get; set; }
+        public DateTime? VencimientoVinculo { get; set; }
+
         // Categorías elegidas. Vacía = todas.
         public List<string> Categorias { get; set; } = new List<string>();
 

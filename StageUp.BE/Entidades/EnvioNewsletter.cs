@@ -10,6 +10,9 @@ namespace StageUp.BE.Entidades
         public const string EstadoParcial = "Parcial";
         public const string EstadoSinDestinatarios = "SinDestinatarios";
         public const string EstadoFallido = "Fallido";
+        // Sin fallidos, pero con destinatarios de resultado incierto (el
+        // correo pudo haber salido y no se pudo registrar).
+        public const string EstadoIncierto = "Incierto";
 
         // Un envío que quedó EnCurso sin actividad este tiempo se puede retomar.
         public const int MinutosEnvioTrabado = 15;
@@ -24,6 +27,7 @@ namespace StageUp.BE.Entidades
         public int CantidadEnviados { get; set; }
         public int CantidadFallidos { get; set; }
         public int CantidadOmitidos { get; set; }
+        public int CantidadInciertos { get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime FechaUltimaActividad { get; set; }
         public DateTime? FechaFin { get; set; }
@@ -34,9 +38,26 @@ namespace StageUp.BE.Entidades
         {
             get
             {
-                return Estado == EstadoParcial || Estado == EstadoFallido ||
-                    (Estado == EstadoEnCurso && FechaUltimaActividad < DateTime.Now.AddMinutes(-MinutosEnvioTrabado));
+                return Estado == EstadoParcial || Estado == EstadoFallido || EstaTrabado;
             }
+        }
+
+        public bool EstaTrabado
+        {
+            get { return Estado == EstadoEnCurso && FechaUltimaActividad < DateTime.Now.AddMinutes(-MinutosEnvioTrabado); }
+        }
+
+        // Hay destinatarios con resultado incierto y el envío no está en curso:
+        // la administración puede decidir reenviarles.
+        public bool PuedeReenviarInciertos
+        {
+            get { return CantidadInciertos > 0 && (Estado != EstadoEnCurso || EstaTrabado); }
+        }
+
+        // Un intento sin destinatarios no cuenta como envío: se puede volver a enviar.
+        public bool PermiteNuevoEnvio
+        {
+            get { return Estado == EstadoSinDestinatarios; }
         }
     }
 
@@ -44,6 +65,8 @@ namespace StageUp.BE.Entidades
     public class EnvioNewsletterDestinatario
     {
         public const string EstadoPendiente = "Pendiente";
+        // Se estaba enviando y no se registró el resultado: incierto.
+        public const string EstadoEnviando = "Enviando";
         public const string EstadoEnviado = "Enviado";
         public const string EstadoFallido = "Fallido";
         public const string EstadoOmitido = "Omitido";
@@ -65,6 +88,7 @@ namespace StageUp.BE.Entidades
         public int CantidadEnviados { get; set; }
         public int CantidadFallidos { get; set; }
         public int CantidadOmitidos { get; set; }
+        public int CantidadInciertos { get; set; }
 
         // Correos que salieron en este intento.
         public int EnviadosEnEsteIntento { get; set; }

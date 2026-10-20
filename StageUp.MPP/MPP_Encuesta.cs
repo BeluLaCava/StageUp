@@ -199,7 +199,8 @@ namespace StageUp.MPP
         // Cabecera y detalle en una sola transacción (script 83): se guarda
         // la respuesta completa o nada. IdentificadorAnonimo trae el hash
         // del navegador (con o sin sesión).
-        public int RegistrarRespuesta(RespuestaEncuesta oRespuesta, List<RespuestaEncuestaDetalle> detalles)
+        // descripcionBitacora: la auditoría se registra en la misma transacción.
+        public int RegistrarRespuesta(RespuestaEncuesta oRespuesta, List<RespuestaEncuestaDetalle> detalles, string descripcionBitacora)
         {
             List<string> pares = new List<string>();
             foreach (RespuestaEncuestaDetalle detalle in detalles)
@@ -215,7 +216,8 @@ namespace StageUp.MPP
                     { "@idEncuesta", oRespuesta.IdEncuesta },
                     { "@idUsuarioExterno", Valor(oRespuesta.IdUsuarioExterno) },
                     { "@identificadorNavegador", Valor(oRespuesta.IdentificadorAnonimo) },
-                    { "@opciones", string.Join(",", pares) }
+                    { "@opciones", string.Join(",", pares) },
+                    { "@descripcionBitacora", Valor(descripcionBitacora) }
                 });
 
             return Convert.ToInt32(resultado);

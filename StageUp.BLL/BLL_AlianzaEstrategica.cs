@@ -145,17 +145,23 @@ namespace StageUp.BLL
             }
         }
 
-        public List<VinculoComercial> ListarVinculos(int idAlianza)
+        // Distingue "sin vínculos" (lista vacía) de "no se pudieron consultar"
+        // (error): con una carga incompleta no se puede guardar el formulario,
+        // porque se borrarían las asociaciones existentes.
+        public ResultadoOperacion<List<VinculoComercial>> ListarVinculos(int idAlianza)
         {
             try
             {
-                return _mpp.ListarVinculos(new AlianzaEstrategica { IdAlianzaEstrategica = idAlianza });
+                return ResultadoOperacion<List<VinculoComercial>>.Ok(_mpp.ListarVinculos(new AlianzaEstrategica { IdAlianzaEstrategica = idAlianza }));
             }
             catch (ErrorAccesoDatosException)
             {
-                return new List<VinculoComercial>();
+                return ResultadoOperacion<List<VinculoComercial>>.Error(MensajeVinculosNoDisponibles);
             }
         }
+
+        public const string MensajeVinculosNoDisponibles =
+            "No se pudieron consultar los vínculos de la alianza. Para no perder las asociaciones existentes, no se puede guardar hasta que se puedan consultar: recargá la página en unos minutos.";
 
         public List<SeguimientoAlianza> ListarSeguimientos(int idAlianza)
         {
@@ -290,7 +296,19 @@ namespace StageUp.BLL
             }
 
             // A23.
-            string errorVinculos = ValidarVinculos(alianza, esAlta ? new List<VinculoComercial>() : ListarVinculos(alianza.IdAlianzaEstrategica));
+            List<VinculoComercial> actuales = new List<VinculoComercial>();
+            if (!esAlta)
+            {
+                ResultadoOperacion<List<VinculoComercial>> cargaVinculos = ListarVinculos(alianza.IdAlianzaEstrategica);
+                if (!cargaVinculos.Exitoso)
+                {
+                    return ResultadoOperacion<int>.Error("No se pudieron consultar los vínculos actuales de la alianza. No se guardó ningún cambio; intentá nuevamente.");
+                }
+
+                actuales = cargaVinculos.Valor;
+            }
+
+            string errorVinculos = ValidarVinculos(alianza, actuales);
             if (errorVinculos != null)
             {
                 return ResultadoOperacion<int>.Error(errorVinculos, "A23");
@@ -313,11 +331,22 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("No fue posible guardar la alianza en este momento. Intentá nuevamente.", "A24");
             }
 
+            // La auditoría se arma antes y se registra dentro de la misma
+            // transacción que los datos: no queda un cambio sin su registro.
+            string vinculos = alianza.IdsContactos.Count + " contactos, " + alianza.IdsCampanias.Count + " campañas, " +
+                alianza.IdsContenidos.Count + " contenidos y " + alianza.IdsOrigenes.Count + " orígenes";
+            string descripcionBitacora = BLL_CatalogoComercial.Recortar(
+                (esAlta ? "Alta" : "Modificación") + " de la alianza estratégica con \"" + alianza.NombreEntidad + "\" (" +
+                TextoEstado(alianza.EstadoAlianza) + ", " + TextoVigencia(alianza) + "). Vínculos: " + vinculos + "." +
+                (anterior != null && anterior.EstadoAlianza != alianza.EstadoAlianza
+                    ? " Estado anterior: " + TextoEstado(anterior.EstadoAlianza) + "."
+                    : string.Empty));
+
             int id;
             try
             {
-                // Datos, cambio de estado y vínculos en una sola transacción.
-                id = _mpp.Guardar(alianza, new UsuarioInterno { IdUsuarioInterno = idUsuarioInterno });
+                // Datos, cambio de estado, vínculos y auditoría en una sola transacción.
+                id = _mpp.Guardar(alianza, new UsuarioInterno { IdUsuarioInterno = idUsuarioInterno }, descripcionBitacora);
                 alianza.IdAlianzaEstrategica = id;
             }
             catch (ErrorAccesoDatosException ex)
@@ -330,15 +359,6 @@ namespace StageUp.BLL
                     default: return ResultadoOperacion<int>.Error("No fue posible guardar la alianza en este momento. No se guardó ningún cambio; intentá nuevamente.", "A24");
                 }
             }
-
-            string vinculos = alianza.IdsContactos.Count + " contactos, " + alianza.IdsCampanias.Count + " campañas, " +
-                alianza.IdsContenidos.Count + " contenidos y " + alianza.IdsOrigenes.Count + " orígenes";
-            BLL_CatalogoComercial.Registrar(idUsuarioInterno, esAlta ? "ALTA" : "MODIFICACION", EntidadBitacora, id,
-                (esAlta ? "Alta" : "Modificación") + " de la alianza estratégica con \"" + alianza.NombreEntidad + "\" (" +
-                TextoEstado(alianza.EstadoAlianza) + ", " + TextoVigencia(alianza) + "). Vínculos: " + vinculos + "." +
-                (anterior != null && anterior.EstadoAlianza != alianza.EstadoAlianza
-                    ? " Estado anterior: " + TextoEstado(anterior.EstadoAlianza) + "."
-                    : string.Empty));
 
             return ResultadoOperacion<int>.Ok(id, esAlta
                 ? "La alianza estratégica fue guardada correctamente."

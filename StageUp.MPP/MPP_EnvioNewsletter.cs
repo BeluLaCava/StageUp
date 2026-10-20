@@ -51,6 +51,29 @@ namespace StageUp.MPP
             return lista;
         }
 
+        // Antes de mandar el correo. false si el destinatario ya no estaba pendiente.
+        public bool MarcarEnviando(int idEnvioNewsletter, DestinatarioNewsletter oDestinatario)
+        {
+            object filas = Conexion.Instance.LeerEscalar(
+                "sp_EnvioNewsletter_MarcarEnviando",
+                new Hashtable
+                {
+                    { "@idEnvioNewsletter", idEnvioNewsletter },
+                    { "@idSuscriptorNewsletter", oDestinatario.IdSuscriptorNewsletter }
+                });
+            return filas != null && filas != DBNull.Value && Convert.ToInt32(filas) > 0;
+        }
+
+        // Los de resultado incierto vuelven a quedar como fallidos. Devuelve
+        // cuántos se reabrieron (0 si el envío está en curso).
+        public int ReabrirInciertos(int idEnvioNewsletter)
+        {
+            object filas = Conexion.Instance.LeerEscalar(
+                "sp_EnvioNewsletter_ReabrirInciertos",
+                new Hashtable { { "@idEnvioNewsletter", idEnvioNewsletter } });
+            return filas == null || filas == DBNull.Value ? 0 : Convert.ToInt32(filas);
+        }
+
         public void RegistrarResultado(int idEnvioNewsletter, DestinatarioNewsletter oDestinatario, bool enviado)
         {
             Conexion.Instance.Guardar(
@@ -76,7 +99,8 @@ namespace StageUp.MPP
                 CantidadDestinatarios = Convert.ToInt32(fila["cantidadDestinatarios"]),
                 CantidadEnviados = Convert.ToInt32(fila["cantidadEnviados"]),
                 CantidadFallidos = Convert.ToInt32(fila["cantidadFallidos"]),
-                CantidadOmitidos = Convert.ToInt32(fila["cantidadOmitidos"])
+                CantidadOmitidos = Convert.ToInt32(fila["cantidadOmitidos"]),
+                CantidadInciertos = Entero(fila, "cantidadInciertos")
             };
         }
 
@@ -105,6 +129,7 @@ namespace StageUp.MPP
                     CantidadEnviados = Convert.ToInt32(fila["cantidadEnviados"]),
                     CantidadFallidos = Convert.ToInt32(fila["cantidadFallidos"]),
                     CantidadOmitidos = Convert.ToInt32(fila["cantidadOmitidos"]),
+                    CantidadInciertos = Entero(fila, "cantidadInciertos"),
                     FechaInicio = Convert.ToDateTime(fila["fechaInicio"]),
                     FechaUltimaActividad = Convert.ToDateTime(fila["fechaUltimaActividad"]),
                     FechaFin = fila["fechaFin"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(fila["fechaFin"]),
@@ -112,6 +137,11 @@ namespace StageUp.MPP
                 });
             }
             return lista;
+        }
+
+        private static int Entero(DataRow fila, string columna)
+        {
+            return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value ? Convert.ToInt32(fila[columna]) : 0;
         }
 
         public List<EnvioNewsletterDestinatario> ListarDestinatarios(int idEnvioNewsletter)

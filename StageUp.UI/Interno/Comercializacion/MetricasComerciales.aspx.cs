@@ -103,8 +103,13 @@ namespace StageUp.UI.Interno.Comercializacion
                 : r.UsuariosConOrigen + " con origen informado · " + r.UsuariosSinOrigen + " sin informar";
             litEspacios.Text = r.EspaciosIncorporados.ToString("N0", CultureInfo.GetCultureInfo("es-AR"));
             litCampanias.Text = r.CampaniasActivas.ToString("N0", CultureInfo.GetCultureInfo("es-AR"));
-            litCampaniasDetalle.Text = filtro.Desde.HasValue || filtro.Hasta.HasValue
-                ? "Activas en algún momento del período (incluye las que hoy están finalizadas)"
+            // Con período, el cálculo es por vigencia y estado actual (las
+            // campañas no guardan historial de estados): se nombra así.
+            bool conPeriodo = filtro.Desde.HasValue || filtro.Hasta.HasValue;
+            litCampaniasTitulo.Text = conPeriodo ? "Campañas con vigencia en el período" : "Campañas comerciales activas";
+            litCampaniasDetalle.Text = conPeriodo
+                ? "Vigencia que se cruza con el período y estado actual Activa o Finalizada. No se cuentan las canceladas ni las planificadas, " +
+                  "aunque hayan estado activas en ese período: no se guarda el historial de estados."
                 : "Campañas en curso marcadas como activas";
             litConvertidos.Text = r.ContactosConvertidos.ToString("N0", CultureInfo.GetCultureInfo("es-AR"));
             litConvertidosDetalle.Text = "Contactos incorporados que ya tienen una cuenta de StageUp" +

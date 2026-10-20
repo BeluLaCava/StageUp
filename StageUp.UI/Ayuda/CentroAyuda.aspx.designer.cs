@@ -4,6 +4,10 @@ namespace StageUp.UI.Ayuda
     {
         protected global::System.Web.UI.WebControls.Panel pnlNoDisponible;
         protected global::System.Web.UI.WebControls.Literal litNoDisponible;
+        protected global::System.Web.UI.WebControls.Panel pnlFaqBuscada;
+        protected global::System.Web.UI.WebControls.Literal litFaqBuscadaPregunta;
+        protected global::System.Web.UI.WebControls.Literal litFaqBuscadaRespuesta;
+        protected global::System.Web.UI.WebControls.Panel pnlFaqBuscadaNoDisponible;
         protected global::System.Web.UI.WebControls.Panel pnlSinBasicas;
         protected global::System.Web.UI.WebControls.Repeater rptFaq;
         protected global::System.Web.UI.WebControls.HyperLink lnkContactarSoporte;

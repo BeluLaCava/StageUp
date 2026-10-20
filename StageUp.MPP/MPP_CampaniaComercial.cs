@@ -76,7 +76,8 @@ namespace StageUp.MPP
             return lista;
         }
 
-        public int Guardar(CampaniaComercial oCampania)
+        // descripcionBitacora: la auditoría se registra en la misma transacción.
+        public int Guardar(CampaniaComercial oCampania, UsuarioInterno oResponsableBitacora = null, string descripcionBitacora = null)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_CampaniaComercial_Guardar",
@@ -94,7 +95,9 @@ namespace StageUp.MPP
                     { "@idsContactos", MPP_CatalogoComercial.Ids(oCampania.IdsContactos) },
                     { "@idsAlianzas", MPP_CatalogoComercial.Ids(oCampania.IdsAlianzas) },
                     { "@idsContenidos", MPP_CatalogoComercial.Ids(oCampania.IdsContenidos) },
-                    { "@idsOrigenes", MPP_CatalogoComercial.Ids(oCampania.IdsOrigenes) }
+                    { "@idsOrigenes", MPP_CatalogoComercial.Ids(oCampania.IdsOrigenes) },
+                    { "@idUsuarioInternoBitacora", oResponsableBitacora == null ? (object)DBNull.Value : oResponsableBitacora.IdUsuarioInterno },
+                    { "@descripcionBitacora", MPP_CatalogoComercial.Nulo(descripcionBitacora) }
                 });
 
             return Convert.ToInt32(resultado);

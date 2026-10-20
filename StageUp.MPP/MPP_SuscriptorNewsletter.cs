@@ -21,6 +21,37 @@ namespace StageUp.MPP
             return Obtener(new Hashtable { { "@tokenPreferencias", oSuscriptor.TokenPreferencias } });
         }
 
+        public SuscriptorNewsletter ObtenerPorHashVinculo(string hashTokenVinculo)
+        {
+            return Obtener(new Hashtable { { "@hashTokenVinculo", hashTokenVinculo } });
+        }
+
+        // Mi perfil: la cuenta pide vincular la suscripción (queda pendiente
+        // hasta que el dueño del correo confirme con el enlace).
+        public bool SolicitarVinculo(SuscriptorNewsletter oSuscriptor, UsuarioExterno oCuenta, string hashTokenVinculo, DateTime vencimiento)
+        {
+            return Filas(Conexion.Instance.LeerEscalar(
+                "sp_SuscriptorNewsletter_SolicitarVinculo",
+                new Hashtable
+                {
+                    { "@idSuscriptorNewsletter", oSuscriptor.IdSuscriptorNewsletter },
+                    { "@idUsuarioExterno", oCuenta.IdUsuarioExterno },
+                    { "@hashTokenVinculo", hashTokenVinculo },
+                    { "@vencimientoVinculo", vencimiento }
+                })) > 0;
+        }
+
+        public bool ConfirmarVinculo(SuscriptorNewsletter oSuscriptor, string hashTokenVinculo)
+        {
+            return Filas(Conexion.Instance.LeerEscalar(
+                "sp_SuscriptorNewsletter_ConfirmarVinculo",
+                new Hashtable
+                {
+                    { "@idSuscriptorNewsletter", oSuscriptor.IdSuscriptorNewsletter },
+                    { "@hashTokenVinculo", hashTokenVinculo }
+                })) > 0;
+        }
+
         public SuscriptorNewsletter ObtenerPorHashConfirmacion(string hashTokenConfirmacion)
         {
             return Obtener(new Hashtable { { "@hashTokenConfirmacion", hashTokenConfirmacion } });
@@ -206,6 +237,9 @@ namespace StageUp.MPP
                 FechaAlta = Convert.ToDateTime(fila["fechaAlta"]),
                 FechaConfirmacion = Fecha(fila["fechaConfirmacion"]),
                 FechaBaja = Fecha(fila["fechaBaja"]),
+                IdUsuarioExternoVinculoPendiente = fila.Table.Columns.Contains("idUsuarioExternoVinculoPendiente") && fila["idUsuarioExternoVinculoPendiente"] != DBNull.Value
+                    ? Convert.ToInt32(fila["idUsuarioExternoVinculoPendiente"]) : (int?)null,
+                VencimientoVinculo = fila.Table.Columns.Contains("vencimientoVinculo") ? Fecha(fila["vencimientoVinculo"]) : null,
                 Categorias = categorias.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList()
             };
         }

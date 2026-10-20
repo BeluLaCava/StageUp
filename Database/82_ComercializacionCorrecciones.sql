@@ -360,12 +360,14 @@ GO
 --   * Contactos convertidos: solo los incorporados con una cuenta de
 --     StageUp asociada; el tipo de usuario se aplica al perfil de esa
 --     cuenta. Los incorporados sin cuenta se informan aparte.
---   * Campañas activas: sin período, las campañas en curso marcadas como
---     activas; con período, las que estuvieron activas en algún momento del
---     período (vigencia que se cruza con el período, en estado Activa o ya
---     Finalizada, y sin baja anterior al comienzo del período). Este
---     indicador usa el período y la campaña; no depende del canal de origen
---     ni del tipo de usuario.
+--   * Campañas: sin período, las campañas en curso marcadas como activas;
+--     con período, "campañas con vigencia en el período": vigencia que se
+--     cruza con el período y estado actual Activa o Finalizada, sin baja
+--     anterior al comienzo del período. Es un cálculo por vigencia y estado
+--     actual: como no se guarda el historial de estados, una campaña hoy
+--     cancelada o planificada no se cuenta aunque haya estado activa en ese
+--     período. Este indicador usa el período y la campaña; no depende del
+--     canal de origen ni del tipo de usuario.
 -- ===========================================================================
 IF OBJECT_ID('dbo.sp_MetricasComerciales_Resumen', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_MetricasComerciales_Resumen;
 GO

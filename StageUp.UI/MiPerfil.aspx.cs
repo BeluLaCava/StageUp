@@ -360,7 +360,7 @@ namespace StageUp.UI
 
         protected void btnNewsletterEnlace_Click(object sender, EventArgs e)
         {
-            ResultadoOperacion resultado = _bllNewsletter.EnviarEnlacePreferenciasDeCuenta(GestorDeSesion.ObtenerIdUsuarioActual().Value, UrlBase());
+            ResultadoOperacion resultado = _bllNewsletter.SolicitarVinculoDesdeCuenta(GestorDeSesion.ObtenerIdUsuarioActual().Value, UrlBase());
             CargarNewsletter();
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
         }
@@ -399,8 +399,13 @@ namespace StageUp.UI
             string estado = suscripcion == null ? null : suscripcion.Estado;
             if (estado == SuscriptorNewsletter.EstadoActivo && !cuenta.Vinculada)
             {
+                bool vinculoPedido = suscripcion.IdUsuarioExternoVinculoPendiente == GestorDeSesion.ObtenerIdUsuarioActual() &&
+                    suscripcion.VencimientoVinculo.HasValue && suscripcion.VencimientoVinculo.Value > DateTime.Now;
                 litNewsletterEstado.Text = "Tu correo " + cuenta.CorreoElectronico + " ya recibe el newsletter por una suscripción hecha sin iniciar sesión. " +
-                    "Para cambiar las categorías o darte de baja usá el enlace que figura al pie de cada newsletter; si no lo tenés a mano, te lo enviamos.";
+                    (vinculoPedido
+                        ? "Te enviamos un correo para vincularla a tu cuenta: confirmalo con el enlace y vas a poder administrarla desde acá."
+                        : "Para administrarla desde acá, vinculala a tu cuenta: te enviamos un correo para confirmarlo. Mientras tanto, podés usar el enlace que figura al pie de cada newsletter.");
+                btnNewsletterEnlace.Text = vinculoPedido ? "Reenviar el correo para vincular" : "Vincular a mi cuenta";
                 btnNewsletterEnlace.Visible = true;
                 return;
             }

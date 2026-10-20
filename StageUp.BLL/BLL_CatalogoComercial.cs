@@ -129,6 +129,12 @@ namespace StageUp.BLL
             return false;
         }
 
+        // Descripción de la bitácora con el largo máximo que se guarda.
+        internal static string Recortar(string descripcion)
+        {
+            return descripcion != null && descripcion.Length > 1900 ? descripcion.Substring(0, 1900) : descripcion;
+        }
+
         internal static void Registrar(int idUsuarioInterno, string operacion, string entidad, int? id, string descripcion)
         {
             try

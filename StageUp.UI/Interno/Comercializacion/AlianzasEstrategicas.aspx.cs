@@ -210,8 +210,14 @@ namespace StageUp.UI.Interno.Comercializacion
                     ". Podés renovarla, finalizarla o mantenerla para consulta.";
             }
 
-            List<VinculoComercial> vinculos = _bll.ListarVinculos(id);
-            pnlSinVinculos.Visible = vinculos.Count == 0;
+            ResultadoOperacion<List<VinculoComercial>> cargaVinculos = _bll.ListarVinculos(id);
+            if (!cargaVinculos.Exitoso)
+            {
+                MostrarMensaje(pnlMensaje, litMensaje, cargaVinculos.Mensaje, true);
+            }
+
+            List<VinculoComercial> vinculos = cargaVinculos.Exitoso ? cargaVinculos.Valor : new List<VinculoComercial>();
+            pnlSinVinculos.Visible = cargaVinculos.Exitoso && vinculos.Count == 0;
             rptVinculos.Visible = vinculos.Count > 0;
             rptVinculos.DataSource = vinculos;
             rptVinculos.DataBind();
@@ -309,17 +315,41 @@ namespace StageUp.UI.Interno.Comercializacion
             txtObservaciones.Text = a.Observaciones;
             lnkCancelar.NavigateUrl = Pagina + "?ver=" + a.IdAlianzaEstrategica;
 
-            List<VinculoComercial> vinculos = _bll.ListarVinculos(a.IdAlianzaEstrategica);
+            // Si no se pudieron consultar los vínculos, el formulario quedaría
+            // sin ellos y al guardar se borrarían: no se permite guardar.
+            ResultadoOperacion<List<VinculoComercial>> cargaVinculos = _bll.ListarVinculos(a.IdAlianzaEstrategica);
+            if (!cargaVinculos.Exitoso)
+            {
+                VinculosNoCargados = true;
+                btnGuardar.Enabled = false;
+                MostrarMensaje(pnlMensaje, litMensaje, cargaVinculos.Mensaje, true);
+                return;
+            }
+
+            List<VinculoComercial> vinculos = cargaVinculos.Valor;
             MarcarVinculos(cblContactos, vinculos, OpcionVinculoComercial.TipoContacto);
             MarcarVinculos(cblCampanias, vinculos, OpcionVinculoComercial.TipoCampania);
             MarcarVinculos(cblContenidos, vinculos, OpcionVinculoComercial.TipoContenido);
             MarcarVinculos(cblOrigenes, vinculos, OpcionVinculoComercial.TipoOrigen);
         }
 
+        // Los vínculos de la edición no se pudieron cargar (ver CargarFormulario).
+        private bool VinculosNoCargados
+        {
+            get { return ViewState["VinculosNoCargados"] as bool? ?? false; }
+            set { ViewState["VinculosNoCargados"] = value; }
+        }
+
         protected void btnGuardar_Click(object sender, EventArgs e)
         {
             if (!TieneAcceso())
             {
+                return;
+            }
+
+            if (VinculosNoCargados)
+            {
+                MostrarMensaje(pnlMensaje, litMensaje, BLL_AlianzaEstrategica.MensajeVinculosNoDisponibles, true);
                 return;
             }
 

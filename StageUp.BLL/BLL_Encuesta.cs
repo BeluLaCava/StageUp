@@ -29,6 +29,11 @@ namespace StageUp.BLL
 
         private const string TipoEntidadBitacora = "Encuesta";
 
+        // Ítem 3: se responde una vez por navegador (con cualquier cuenta o sin
+        // sesión), así que hace falta la cookie de StageUp también con sesión.
+        public const string MensajeSinCookie =
+            "No pudimos comprobar este navegador: para responder encuestas tu navegador tiene que aceptar cookies de StageUp. Habilitalas y volvé a intentarlo.";
+
         // ------------------------------------------------------------------
         // Administración
         // ------------------------------------------------------------------
@@ -470,9 +475,11 @@ namespace StageUp.BLL
         public ResultadoOperacion RegistrarRespuesta(
             int idEncuesta, Encuestado encuestado, Dictionary<int, int> respuestasPorPregunta, string respuestaCaptcha)
         {
-            if (encuestado.EsAnonimo && string.IsNullOrEmpty(encuestado.IdentificadorAnonimo))
+            // Una respuesta por navegador, con o sin sesión: sin la cookie del
+            // navegador no se puede aplicar la regla, así que no se acepta.
+            if (string.IsNullOrEmpty(encuestado.IdentificadorAnonimo))
             {
-                return ResultadoOperacion.Error("No pudimos identificar este navegador. Habilitá las cookies para responder sin iniciar sesión.");
+                return ResultadoOperacion.Error(MensajeSinCookie);
             }
 
             return EjecutarProtegido(() =>
@@ -513,9 +520,12 @@ namespace StageUp.BLL
                     }
                 }
 
-                // Cabecera y respuestas en una sola transacción: queda todo o
-                // nada, así un fallo no deja una respuesta incompleta que
-                // impida volver a intentar.
+                // Cabecera, respuestas y auditoría en una sola transacción:
+                // queda todo o nada, así un fallo no deja una respuesta
+                // incompleta ni una respuesta sin su registro en la bitácora.
+                string descripcionBitacora = encuestado.EsAnonimo
+                    ? "Un visitante sin sesión respondió la encuesta \"" + encuesta.Titulo + "\"."
+                    : "El usuario respondió la encuesta \"" + encuesta.Titulo + "\".";
                 try
                 {
                     _mpp.RegistrarRespuesta(
@@ -529,7 +539,8 @@ namespace StageUp.BLL
                         {
                             IdPreguntaEncuesta = r.Key,
                             IdOpcionPregunta = r.Value
-                        }).ToList());
+                        }).ToList(),
+                        descripcionBitacora.Length > 2000 ? descripcionBitacora.Substring(0, 2000) : descripcionBitacora);
                 }
                 catch (ErrorAccesoDatosException ex)
                 {
@@ -540,11 +551,9 @@ namespace StageUp.BLL
                         case 51062:
                         case 2601:
                         case 2627:
-                            return ResultadoOperacion.Error(encuestado.EsAnonimo
-                                ? "Ya se respondió esta encuesta desde este navegador."
-                                : "Ya respondiste esta encuesta.");
+                            return ResultadoOperacion.Error("Esta encuesta ya se respondió desde esta cuenta o desde este navegador.");
                         case 51060:
-                            return ResultadoOperacion.Error("No pudimos identificar este navegador. Habilitá las cookies para responder sin iniciar sesión.");
+                            return ResultadoOperacion.Error(MensajeSinCookie);
                         case 51061:
                             return ResultadoOperacion.Error("Esta encuesta no está disponible en este momento.");
                         case 51063:
@@ -552,20 +561,6 @@ namespace StageUp.BLL
                         default:
                             return ResultadoOperacion.Error("No pudimos guardar tu respuesta. No se guardó nada: podés volver a intentarlo.");
                     }
-                }
-
-                // La respuesta ya quedó guardada: un problema con la bitácora
-                // no cambia el resultado que se le informa al usuario.
-                try
-                {
-                    _bitacora.Registrar(
-                        encuestado.IdUsuarioExterno, "ASOCIACION", TipoEntidadBitacora, idEncuesta,
-                        encuestado.EsAnonimo
-                            ? "Un visitante sin sesión respondió la encuesta \"" + encuesta.Titulo + "\"."
-                            : "El usuario respondió la encuesta \"" + encuesta.Titulo + "\".");
-                }
-                catch (Exception)
-                {
                 }
 
                 return ResultadoOperacion.Ok("¡Gracias por responder! Ya podés ver los resultados al instante.");
@@ -654,8 +649,8 @@ namespace StageUp.BLL
                 _mpp.ExisteRespuestaDeUsuario(RespuestaDe(idEncuesta, encuestado)))
             {
                 return ResultadoOperacion.Error(encuestado.EsAnonimo
-                    ? "Ya respondiste esta encuesta desde este navegador."
-                    : "Ya respondiste esta encuesta.");
+                    ? "Ya se respondió esta encuesta desde este navegador."
+                    : "Esta encuesta ya se respondió desde tu cuenta o desde este navegador.");
             }
 
             return ResultadoOperacion.Ok();

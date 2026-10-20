@@ -163,6 +163,20 @@ namespace StageUp.BLL
                 : string.Empty;
         }
 
+        // CU-003-001: una pregunta publicada (de una categoría activa),
+        // básica o no. La usa el centro de ayuda cuando se llega desde un
+        // resultado de la búsqueda. null si no existe o no está publicada.
+        public ResultadoOperacion<Faq> ObtenerPublicada(int idFaq)
+        {
+            ResultadoOperacion<List<Faq>> contenido = ObtenerContenidoPublico();
+            if (!contenido.Exitoso)
+            {
+                return ResultadoOperacion<Faq>.Error(contenido.Mensaje, "A1");
+            }
+
+            return ResultadoOperacion<Faq>.Ok(contenido.Valor.FirstOrDefault(f => f.IdFaq == idFaq));
+        }
+
         // CU-003-001: preguntas básicas publicadas, para el centro de ayuda.
         public ResultadoOperacion<List<Faq>> ObtenerPreguntasBasicas()
         {

@@ -23,6 +23,11 @@ namespace StageUp.BLL
     //     cuenta se vuelve a leer de la base: la sesión sigue abierta solo si
     //     la cuenta existe, tiene la misma fecha de alta (si no, el id es de
     //     otra cuenta) y está activa. Si no, se cierra y queda en la bitácora.
+    //   * "No hubo restauración" no es lo mismo que "no se pudo comprobar":
+    //     si la última consulta de la marca falló (o todavía no hay una), la
+    //     marca no es confiable y la sesión no puede darse por válida solo por
+    //     tenerla. En ese caso la cuenta se vuelve a leer en cada pedido, y si
+    //     tampoco se puede leer, la sesión queda suspendida.
     public class BLL_SesionBaseDatos
     {
         private const int SegundosEntreConsultas = 10;
@@ -32,6 +37,7 @@ namespace StageUp.BLL
         private static string _marcaSql;
         private static DateTime _ultimaConsultaUtc = DateTime.MinValue;
         private static int _restauracionesDesdeLaAplicacion;
+        private static bool _ultimaConsultaFallo = true;
 
         private readonly MPP_Backup _mppBackup = new MPP_Backup();
         private readonly MPP_UsuarioExterno _mppUsuarioExterno = new MPP_UsuarioExterno();
@@ -39,6 +45,15 @@ namespace StageUp.BLL
 
         // Null mientras no se sepa (la primera consulta todavía no terminó).
         public string ObtenerMarcaActual()
+        {
+            bool confiable;
+            return ObtenerMarcaActual(out confiable);
+        }
+
+        // confiable: la última consulta de restauraciones respondió. Si es
+        // false, la marca puede estar desactualizada (una restauración hecha
+        // desde SSMS no se vería) y no alcanza para dar la sesión por válida.
+        public string ObtenerMarcaActual(out bool confiable)
         {
             bool consultar;
             lock (Bloqueo)
@@ -72,6 +87,7 @@ namespace StageUp.BLL
 
                 lock (Bloqueo)
                 {
+                    _ultimaConsultaFallo = marca == null;
                     if (marca != null)
                     {
                         _marcaSql = marca;
@@ -85,6 +101,7 @@ namespace StageUp.BLL
 
             lock (Bloqueo)
             {
+                confiable = !_ultimaConsultaFallo && _marcaSql != null && _marcaSql != SinDatosDeRestauraciones;
                 return _marcaSql == null ? null : _marcaSql + "-" + _restauracionesDesdeLaAplicacion;
             }
         }

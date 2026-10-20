@@ -17,6 +17,11 @@
             </div>
         </header>
 
+        <style>
+            .faq-buscada { margin: 0 0 1.4rem; padding: 1.1rem 1.25rem; border: 2px solid var(--color-primary); border-radius: 1rem; background: #fff7f4; scroll-margin-top: 6rem; }
+            .faq-buscada h3 { margin: 0.35rem 0 0.6rem; font-size: 1.1rem; }
+            .faq-buscada-respuesta { margin: 0; white-space: pre-line; }
+        </style>
         <div class="help-content container-narrow">
             <asp:Panel ID="pnlNoDisponible" runat="server" Visible="false" CssClass="form-message form-message-error" role="status">
                 <asp:Literal ID="litNoDisponible" runat="server" Mode="Encode" />
@@ -27,6 +32,16 @@
                     <div><span class="eyebrow">Primera opción</span><h2 id="faq-title">Preguntas frecuentes</h2></div>
                     <p>Las preguntas más comunes sobre StageUp. Para una consulta más específica, usá el asistente.</p>
                 </div>
+
+                <%-- Pregunta abierta desde un resultado de la búsqueda (puede no ser básica). --%>
+                <asp:Panel ID="pnlFaqBuscada" runat="server" Visible="false" CssClass="faq-buscada">
+                    <span class="eyebrow">Resultado de tu búsqueda</span>
+                    <h3><asp:Literal ID="litFaqBuscadaPregunta" runat="server" Mode="Encode" /></h3>
+                    <p class="faq-buscada-respuesta"><asp:Literal ID="litFaqBuscadaRespuesta" runat="server" Mode="Encode" /></p>
+                </asp:Panel>
+                <asp:Panel ID="pnlFaqBuscadaNoDisponible" runat="server" Visible="false" CssClass="ayuda-vacia" role="status">
+                    <p><strong>La pregunta que buscaste ya no está disponible.</strong> Revisá las preguntas frecuentes de abajo o consultá al asistente.</p>
+                </asp:Panel>
 
                 <%-- CU-003-001: selección breve de preguntas básicas, sin filtros. --%>
                 <asp:Panel ID="pnlSinBasicas" runat="server" Visible="false" CssClass="ayuda-vacia">

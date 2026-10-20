@@ -432,6 +432,47 @@ namespace StageUp.BLL
             return Enviar(idEnvio.Value, novedad, envio.Criterio, urlNovedades, idUsuarioInternoResponsable, urlBaseAplicacion, rutaBaseAplicacion, true);
         }
 
+        // La administración decide reenviar a los destinatarios con resultado
+        // incierto (puede que alguno ya lo haya recibido): vuelven a quedar
+        // como fallidos y se reintenta solo a los que no lo recibieron.
+        public ResultadoOperacion<int> ReenviarInciertos(
+            int idEnvioNewsletter, string urlNovedades, int idUsuarioInternoResponsable,
+            string urlBaseAplicacion = null, string rutaBaseAplicacion = null)
+        {
+            EnvioNewsletter envio = ListarEnvios(null, 500).FirstOrDefault(e => e.IdEnvioNewsletter == idEnvioNewsletter);
+            if (envio == null || !envio.PuedeReenviarInciertos)
+            {
+                return ResultadoOperacion<int>.Error("Este envío no tiene destinatarios con resultado incierto para reenviar, o todavía está en curso.");
+            }
+
+            int reabiertos;
+            try
+            {
+                reabiertos = _mppEnvio.ReabrirInciertos(idEnvioNewsletter);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<int>.Error("No se pudo preparar el reenvío. Intentá nuevamente.");
+            }
+
+            if (reabiertos == 0)
+            {
+                return ResultadoOperacion<int>.Error("Este envío no tiene destinatarios con resultado incierto para reenviar, o todavía está en curso.");
+            }
+
+            try
+            {
+                _bitacora.RegistrarInterno(idUsuarioInternoResponsable, "MODIFICACION", TipoEntidadBitacora, envio.IdNovedad,
+                    "Se decidió reenviar el newsletter de la novedad \"" + envio.TituloNovedad + "\" a " + reabiertos +
+                    " destinatario(s) con resultado incierto.");
+            }
+            catch (ErrorAccesoDatosException)
+            {
+            }
+
+            return ReintentarNewsletter(envio.IdNovedad, urlNovedades, idUsuarioInternoResponsable, urlBaseAplicacion, rutaBaseAplicacion);
+        }
+
         public List<EnvioNewsletter> ListarEnvios(int? idNovedad = null, int maximo = 100)
         {
             try
@@ -465,6 +506,7 @@ namespace StageUp.BLL
                 case EnvioNewsletter.EstadoParcial: return "Parcial";
                 case EnvioNewsletter.EstadoSinDestinatarios: return "Sin destinatarios";
                 case EnvioNewsletter.EstadoFallido: return "Fallido";
+                case EnvioNewsletter.EstadoIncierto: return "Con resultado incierto";
                 default: return estado ?? string.Empty;
             }
         }
@@ -487,12 +529,21 @@ namespace StageUp.BLL
             string urlImagenNewsletter = ConstruirUrlAbsoluta(novedad.UrlImagen, urlBaseAplicacion);
             string rutaImagenNewsletter = ResolverRutaFisica(novedad.UrlImagen, rutaBaseAplicacion);
             int enviadosAhora = 0;
+            bool quedoIncierto = false;
             ResultadoEnvioNewsletter resultado;
 
             try
             {
                 foreach (DestinatarioNewsletter destinatario in _mppEnvio.ListarPorEnviar(idEnvio))
                 {
+                    // Primero se marca "Enviando": si después de mandar el
+                    // correo no se puede registrar el resultado, queda como
+                    // incierto en lugar de volver a mandarse solo.
+                    if (!_mppEnvio.MarcarEnviando(idEnvio, destinatario))
+                    {
+                        continue;
+                    }
+
                     bool enviado = _servicioCorreo.EnviarNewsletter(
                         destinatario.CorreoElectronico,
                         destinatario.Nombre,
@@ -504,22 +555,28 @@ namespace StageUp.BLL
                         rutaImagenNewsletter,
                         BLL_Newsletter.UrlPreferencias(urlBaseAplicacion, destinatario.TokenPreferencias));
 
-                    _mppEnvio.RegistrarResultado(idEnvio, destinatario, enviado);
                     if (enviado)
                     {
                         enviadosAhora++;
                     }
+
+                    quedoIncierto = true;
+                    _mppEnvio.RegistrarResultado(idEnvio, destinatario, enviado);
+                    quedoIncierto = false;
                 }
 
                 resultado = _mppEnvio.Finalizar(idEnvio);
             }
             catch (ErrorAccesoDatosException)
             {
-                // El envío queda EnCurso: a los 15 minutos se puede retomar
-                // con "Reintentar fallidos" (no se repite a quien ya lo recibió).
+                // El envío queda EnCurso: a los 15 minutos se puede retomar con
+                // "Reintentar fallidos". No se repite a quien ya lo recibió, y
+                // el destinatario cuyo resultado no se pudo registrar queda como
+                // incierto (no se reenvía solo).
                 return ResultadoOperacion<int>.Error(
-                    "El envío se interrumpió por un error de la base de datos después de " + enviadosAhora +
-                    " correo(s). En unos minutos podés usar \"Reintentar fallidos\": no se repite a quien ya lo recibió.");
+                    "El envío se interrumpió por un error de la base de datos después de " + enviadosAhora + " correo(s)." +
+                    (quedoIncierto ? " El último correo quedó con resultado incierto: no se va a reenviar solo." : string.Empty) +
+                    " En unos minutos podés usar \"Reintentar fallidos\": no se repite a quien ya lo recibió.");
             }
 
             resultado.EnviadosEnEsteIntento = enviadosAhora;
@@ -527,7 +584,8 @@ namespace StageUp.BLL
                 "\" (" + ObtenerEtiquetaCriterio(criterio) + "): " + ObtenerEtiquetaEstadoEnvio(resultado.Estado) + ", " +
                 resultado.CantidadEnviados + " de " + resultado.CantidadDestinatarios + " destinatario(s) lo recibieron" +
                 (resultado.CantidadFallidos > 0 ? ", " + resultado.CantidadFallidos + " fallido(s)" : string.Empty) +
-                (resultado.CantidadOmitidos > 0 ? ", " + resultado.CantidadOmitidos + " omitido(s) por baja" : string.Empty) + ".";
+                (resultado.CantidadOmitidos > 0 ? ", " + resultado.CantidadOmitidos + " omitido(s) por baja" : string.Empty) +
+                (resultado.CantidadInciertos > 0 ? ", " + resultado.CantidadInciertos + " con resultado incierto" : string.Empty) + ".";
             try
             {
                 _bitacora.RegistrarInterno(idUsuarioInternoResponsable, "MODIFICACION", TipoEntidadBitacora, novedad.IdNovedad, descripcion);
@@ -549,7 +607,13 @@ namespace StageUp.BLL
                 case EnvioNewsletter.EstadoSinDestinatarios:
                     return ResultadoOperacion<int>.Ok(0, r.CantidadOmitidos > 0
                         ? "No quedaban destinatarios: los pendientes se dieron de baja."
-                        : "No hay suscriptores confirmados para ese criterio y categoría; no se envió ningún correo.");
+                        : "No hay suscriptores confirmados para ese criterio y categoría; no se envió ningún correo. " +
+                          "La novedad no queda como enviada: podés volver a enviarla cuando haya suscriptores.");
+                case EnvioNewsletter.EstadoIncierto:
+                    return ResultadoOperacion<int>.Error(
+                        "Envío con resultado incierto: " + detalle + " " + r.CantidadInciertos +
+                        " destinatario(s) quedaron con resultado incierto (el correo pudo haber salido) y no se reenvían solos. " +
+                        "Revisalos en \"Suscriptores, categorías y envíos\" y decidí si reenviarles.");
                 case EnvioNewsletter.EstadoCompleto:
                     return ResultadoOperacion<int>.Ok(r.EnviadosEnEsteIntento,
                         (esReintento ? "Reintento completo: " : "Newsletter enviado: ") + detalle);

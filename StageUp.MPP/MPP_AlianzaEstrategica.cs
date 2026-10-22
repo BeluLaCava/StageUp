@@ -135,7 +135,7 @@ namespace StageUp.MPP
             return Convert.ToInt32(resultado);
         }
 
-        public void RegistrarSeguimiento(SeguimientoAlianza oSeguimiento)
+        public void RegistrarSeguimiento(SeguimientoAlianza oSeguimiento, string descripcionBitacora)
         {
             Conexion.Instance.Leer(
                 "sp_SeguimientoAlianza_Insertar",
@@ -149,7 +149,8 @@ namespace StageUp.MPP
                     { "@accionPendiente", MPP_CatalogoComercial.Nulo(oSeguimiento.AccionPendiente) },
                     { "@idUsuarioInternoAsignado", MPP_CatalogoComercial.Nulo(oSeguimiento.IdUsuarioInternoAsignado) },
                     { "@estadoResultante", MPP_CatalogoComercial.Nulo(oSeguimiento.EstadoResultante) },
-                    { "@idUsuarioInterno", oSeguimiento.IdUsuarioInternoRegistro }
+                    { "@idUsuarioInterno", oSeguimiento.IdUsuarioInternoRegistro },
+                    { "@descripcionBitacora", descripcionBitacora }
                 });
         }
 
@@ -184,7 +185,7 @@ namespace StageUp.MPP
             return lista;
         }
 
-        public void Renovar(RenovacionAlianza oRenovacion, UsuarioInterno oUsuario)
+        public void Renovar(RenovacionAlianza oRenovacion, UsuarioInterno oUsuario, string operacionBitacora, string descripcionBitacora)
         {
             Conexion.Instance.Guardar(
                 "sp_AlianzaEstrategica_Renovar",
@@ -198,7 +199,9 @@ namespace StageUp.MPP
                     { "@idUsuarioInternoResponsable", MPP_CatalogoComercial.Nulo(oRenovacion.IdUsuarioInternoResponsable) },
                     { "@observacion", MPP_CatalogoComercial.Nulo(oRenovacion.Observacion) },
                     { "@reactivar", oRenovacion.Reactivar },
-                    { "@idUsuarioInterno", oUsuario.IdUsuarioInterno }
+                    { "@idUsuarioInterno", oUsuario.IdUsuarioInterno },
+                    { "@operacionBitacora", operacionBitacora },
+                    { "@descripcionBitacora", descripcionBitacora }
                 });
         }
 
@@ -227,7 +230,7 @@ namespace StageUp.MPP
         }
 
 
-        public void Cerrar(AlianzaEstrategica oAlianza, SeguimientoAlianza oCierre)
+        public void Cerrar(AlianzaEstrategica oAlianza, SeguimientoAlianza oCierre, string operacionBitacora, string descripcionBitacora)
         {
             Conexion.Instance.Guardar(
                 "sp_AlianzaEstrategica_Cerrar",
@@ -236,7 +239,9 @@ namespace StageUp.MPP
                     { "@idAlianzaEstrategica", oAlianza.IdAlianzaEstrategica },
                     { "@estadoNuevo", oCierre.EstadoResultante },
                     { "@observacion", MPP_CatalogoComercial.Nulo(oCierre.Observacion) },
-                    { "@idUsuarioInterno", oCierre.IdUsuarioInternoRegistro }
+                    { "@idUsuarioInterno", oCierre.IdUsuarioInternoRegistro },
+                    { "@operacionBitacora", operacionBitacora },
+                    { "@descripcionBitacora", descripcionBitacora }
                 });
         }
 

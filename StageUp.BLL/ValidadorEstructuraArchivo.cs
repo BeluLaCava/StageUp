@@ -562,6 +562,11 @@ namespace StageUp.BLL
             string diccionarioTrailer;
             if (Regex.IsMatch(enXref, @"^\s*xref\b"))
             {
+                if (!ValidarXrefTradicional(texto, (int)desplazamiento))
+                {
+                    return false;
+                }
+
                 int posTrailer = texto.IndexOf("trailer", (int)desplazamiento, StringComparison.Ordinal);
                 if (posTrailer < 0)
                 {
@@ -599,11 +604,162 @@ namespace StageUp.BLL
                     return false;
                 }
 
-                string arbol = BuscarObjeto(texto, paginas.Groups[1].Value, paginas.Groups[2].Value);
-                return arbol == null ? HayEnFlujoDeObjetos(texto, b, @"/Type\s*/Pages\b") : Regex.IsMatch(arbol, @"/Type\s*/Pages\b");
+                int paginasReales;
+                if (ValidarArbolPaginas(texto, paginas.Groups[1].Value, paginas.Groups[2].Value, new HashSet<string>(), out paginasReales))
+                {
+                    return paginasReales > 0;
+                }
+
+                return HayArbolPaginasComprimido(texto, b);
             }
 
-            return HayEnFlujoDeObjetos(texto, b, @"/Type\s*/Catalog\b") && HayEnFlujoDeObjetos(texto, b, @"/Type\s*/Pages\b");
+            return HayEnFlujoDeObjetos(texto, b, @"/Type\s*/Catalog\b") && HayArbolPaginasComprimido(texto, b);
+        }
+
+        private static bool ValidarXrefTradicional(string texto, int inicio)
+        {
+            int fin = texto.IndexOf("trailer", inicio, StringComparison.Ordinal);
+            if (fin < 0)
+            {
+                return false;
+            }
+
+            string seccion = texto.Substring(inicio, fin - inicio);
+            using (StringReader lector = new StringReader(seccion))
+            {
+                string linea = lector.ReadLine();
+                if (linea == null || linea.Trim() != "xref")
+                {
+                    return false;
+                }
+
+                bool hayEntrada = false;
+                while ((linea = lector.ReadLine()) != null)
+                {
+                    linea = linea.Trim();
+                    if (linea.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    Match cabecera = Regex.Match(linea, @"^(\d+)\s+(\d+)$");
+                    int primero;
+                    int cantidad;
+                    if (!cabecera.Success || !int.TryParse(cabecera.Groups[1].Value, out primero) ||
+                        !int.TryParse(cabecera.Groups[2].Value, out cantidad) || cantidad < 1 || cantidad > 1000000)
+                    {
+                        return false;
+                    }
+
+                    for (int i = 0; i < cantidad; i++)
+                    {
+                        string entrada = lector.ReadLine();
+                        Match dato = Regex.Match(entrada ?? string.Empty, @"^\s*(\d{10})\s+(\d{5})\s+([nf])\b");
+                        int offset;
+                        int generacion;
+                        if (!dato.Success || !int.TryParse(dato.Groups[1].Value, out offset) ||
+                            !int.TryParse(dato.Groups[2].Value, out generacion))
+                        {
+                            return false;
+                        }
+
+                        if (dato.Groups[3].Value == "n")
+                        {
+                            if (!ObjetoEnOffset(texto, offset, primero + i, generacion))
+                            {
+                                return false;
+                            }
+                            hayEntrada = true;
+                        }
+                    }
+                }
+
+                return hayEntrada;
+            }
+        }
+
+        private static bool ObjetoEnOffset(string texto, int offset, int numero, int generacion)
+        {
+            if (offset < 0 || offset >= texto.Length)
+            {
+                return false;
+            }
+
+            int largo = Math.Min(80, texto.Length - offset);
+            return Regex.IsMatch(texto.Substring(offset, largo), @"^\s*" + numero + @"\s+" + generacion + @"\s+obj\b");
+        }
+
+        private static bool ValidarArbolPaginas(string texto, string numero, string generacion, HashSet<string> visitados, out int paginas)
+        {
+            paginas = 0;
+            string clave = numero + ":" + generacion;
+            if (!visitados.Add(clave) || visitados.Count > 10000)
+            {
+                return false;
+            }
+
+            string objeto = BuscarObjeto(texto, numero, generacion);
+            if (objeto == null)
+            {
+                return false;
+            }
+
+            if (Regex.IsMatch(objeto, @"/Type\s*/Page\b(?!s)"))
+            {
+                if (!Regex.IsMatch(objeto, @"/Parent\s+\d+\s+\d+\s+R"))
+                {
+                    return false;
+                }
+
+                paginas = 1;
+                return true;
+            }
+
+            if (!Regex.IsMatch(objeto, @"/Type\s*/Pages\b"))
+            {
+                return false;
+            }
+
+            Match cantidadDeclarada = Regex.Match(objeto, @"/Count\s+(\d+)");
+            Match hijos = Regex.Match(objeto, @"/Kids\s*\[(?<hijos>[^\]]+)\]", RegexOptions.Singleline);
+            int esperadas;
+            if (!cantidadDeclarada.Success || !int.TryParse(cantidadDeclarada.Groups[1].Value, out esperadas) ||
+                esperadas < 1 || esperadas > 1000000 || !hijos.Success)
+            {
+                return false;
+            }
+
+            MatchCollection referencias = Regex.Matches(hijos.Groups["hijos"].Value, @"(\d+)\s+(\d+)\s+R");
+            if (referencias.Count == 0)
+            {
+                return false;
+            }
+
+            int total = 0;
+            foreach (Match referencia in referencias)
+            {
+                int encontradas;
+                if (!ValidarArbolPaginas(texto, referencia.Groups[1].Value, referencia.Groups[2].Value, visitados, out encontradas))
+                {
+                    return false;
+                }
+                total += encontradas;
+                if (total > 1000000)
+                {
+                    return false;
+                }
+            }
+
+            paginas = total;
+            return total == esperadas;
+        }
+
+        private static bool HayArbolPaginasComprimido(string texto, byte[] b)
+        {
+            return HayEnFlujoDeObjetos(texto, b, @"/Type\s*/Pages\b") &&
+                HayEnFlujoDeObjetos(texto, b, @"/Count\s+[1-9]\d*") &&
+                HayEnFlujoDeObjetos(texto, b, @"/Kids\s*\[[^\]]*\d+\s+\d+\s+R") &&
+                HayEnFlujoDeObjetos(texto, b, @"/Type\s*/Page\b(?!s)");
         }
 
 
@@ -673,8 +829,8 @@ namespace StageUp.BLL
 
             List<Caja> raiz = LeerCajas(b, 0, b.Length);
             Caja moov = raiz == null ? null : raiz.Find(c => c.Tipo == "moov");
-            Caja mdat = raiz == null ? null : raiz.Find(c => c.Tipo == "mdat");
-            if (moov == null || mdat == null || mdat.LargoDatos <= 0)
+            List<Caja> mdats = raiz == null ? null : raiz.FindAll(c => c.Tipo == "mdat" && c.LargoDatos > 0);
+            if (moov == null || mdats == null || mdats.Count == 0)
             {
                 return false;
             }
@@ -686,14 +842,14 @@ namespace StageUp.BLL
             }
 
             Caja mvhd = enMoov.Find(c => c.Tipo == "mvhd");
-            if (mvhd == null || mvhd.LargoDatos < 100)
+            if (mvhd == null || mvhd.LargoDatos < 24 || !TieneDuracion(b, mvhd))
             {
                 return false;
             }
 
             foreach (Caja trak in enMoov.FindAll(c => c.Tipo == "trak"))
             {
-                if (EsPistaValida(b, trak))
+                if (EsPistaValida(b, trak, mdats))
                 {
                     return true;
                 }
@@ -702,7 +858,7 @@ namespace StageUp.BLL
             return false;
         }
 
-        private static bool EsPistaValida(byte[] b, Caja trak)
+        private static bool EsPistaValida(byte[] b, Caja trak, List<Caja> mdats)
         {
             List<Caja> enTrak = LeerCajas(b, trak.InicioDatos, trak.FinDatos);
             Caja tkhd = enTrak == null ? null : enTrak.Find(c => c.Tipo == "tkhd");
@@ -716,7 +872,14 @@ namespace StageUp.BLL
             Caja mdhd = enMdia == null ? null : enMdia.Find(c => c.Tipo == "mdhd");
             Caja hdlr = enMdia == null ? null : enMdia.Find(c => c.Tipo == "hdlr");
             Caja minf = enMdia == null ? null : enMdia.Find(c => c.Tipo == "minf");
-            if (mdhd == null || mdhd.LargoDatos < 24 || hdlr == null || hdlr.LargoDatos < 24 || minf == null)
+            if (mdhd == null || mdhd.LargoDatos < 24 || !TieneDuracion(b, mdhd) ||
+                hdlr == null || hdlr.LargoDatos < 12 || minf == null)
+            {
+                return false;
+            }
+
+            string manejador = Encoding.ASCII.GetString(b, hdlr.InicioDatos + 8, 4);
+            if (manejador != "vide" && manejador != "soun")
             {
                 return false;
             }
@@ -731,15 +894,235 @@ namespace StageUp.BLL
 
             Caja stsd = enStbl.Find(c => c.Tipo == "stsd");
             Caja stsz = enStbl.Find(c => c.Tipo == "stsz" || c.Tipo == "stz2");
-            bool hayDesplazamientos = enStbl.Exists(c => (c.Tipo == "stco" || c.Tipo == "co64") && c.LargoDatos >= 8 && Entero32(b, c.InicioDatos + 4) > 0);
-            return stsd != null && stsd.LargoDatos >= 16 && Entero32(b, stsd.InicioDatos + 4) > 0 &&
-                stsz != null && stsz.LargoDatos >= 12 && Entero32(b, stsz.InicioDatos + 8) > 0 &&
-                hayDesplazamientos;
+            Caja stts = enStbl.Find(c => c.Tipo == "stts");
+            Caja stsc = enStbl.Find(c => c.Tipo == "stsc");
+            Caja offsets = enStbl.Find(c => c.Tipo == "stco" || c.Tipo == "co64");
+            Muestras muestras = LeerMuestras(b, stsz);
+            List<long> desplazamientos = LeerDesplazamientos(b, offsets);
+            if (!DescripcionValida(b, stsd, manejador) || muestras == null || desplazamientos == null ||
+                !TablaTiempoValida(b, stts, muestras.Cantidad) || !TablaMuestrasPorChunkValida(b, stsc))
+            {
+                return false;
+            }
+
+            foreach (long desplazamiento in desplazamientos)
+            {
+                Caja datos = mdats.Find(c => desplazamiento >= c.InicioDatos && desplazamiento < c.FinDatos);
+                if (datos != null && muestras.Primera > 0 && desplazamiento + muestras.Primera <= datos.FinDatos &&
+                    HayDatosNoNulos(b, (int)desplazamiento, (int)muestras.Primera))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool TieneDuracion(byte[] b, Caja caja)
+        {
+            int inicio = caja.InicioDatos;
+            if (caja.LargoDatos < 20)
+            {
+                return false;
+            }
+
+            if (b[inicio] == 0)
+            {
+                return caja.LargoDatos >= 20 && (uint)Entero32(b, inicio + 12) > 0 && (uint)Entero32(b, inicio + 16) > 0;
+            }
+
+            return b[inicio] == 1 && caja.LargoDatos >= 32 && (uint)Entero32(b, inicio + 20) > 0 && LeerEntero64(b, inicio + 24) > 0;
+        }
+
+        private static bool DescripcionValida(byte[] b, Caja stsd, string manejador)
+        {
+            if (stsd == null || stsd.LargoDatos < 16 || (uint)Entero32(b, stsd.InicioDatos + 4) == 0)
+            {
+                return false;
+            }
+
+            int entrada = stsd.InicioDatos + 8;
+            long largo = (uint)Entero32(b, entrada);
+            if (largo < 16 || entrada + largo > stsd.FinDatos)
+            {
+                return false;
+            }
+
+            string tipo = Encoding.ASCII.GetString(b, entrada + 4, 4);
+            if (manejador == "vide")
+            {
+                return tipo == "avc1" || tipo == "avc3" || tipo == "hvc1" || tipo == "hev1" ||
+                    tipo == "vp08" || tipo == "vp09" || tipo == "av01" || tipo == "mp4v";
+            }
+
+            return tipo == "mp4a" || tipo == "ac-3" || tipo == "ec-3" || tipo == "Opus" ||
+                tipo == "fLaC" || tipo == "alac";
+        }
+
+        private sealed class Muestras
+        {
+            public int Cantidad;
+            public long Primera;
+        }
+
+        private static Muestras LeerMuestras(byte[] b, Caja caja)
+        {
+            if (caja == null || caja.LargoDatos < 12)
+            {
+                return null;
+            }
+
+            uint cantidad = (uint)Entero32(b, caja.InicioDatos + 8);
+            if (cantidad == 0 || cantidad > 10000000)
+            {
+                return null;
+            }
+
+            if (caja.Tipo == "stsz")
+            {
+                uint fijo = (uint)Entero32(b, caja.InicioDatos + 4);
+                if (fijo > 0)
+                {
+                    return new Muestras { Cantidad = (int)cantidad, Primera = fijo };
+                }
+
+                long requerido = 12L + cantidad * 4L;
+                if (requerido > caja.LargoDatos)
+                {
+                    return null;
+                }
+
+                uint primerTamano = (uint)Entero32(b, caja.InicioDatos + 12);
+                return primerTamano == 0 ? null : new Muestras { Cantidad = (int)cantidad, Primera = primerTamano };
+            }
+
+            int bits = b[caja.InicioDatos + 7];
+            if (bits != 4 && bits != 8 && bits != 16)
+            {
+                return null;
+            }
+
+            long bytesNecesarios = (cantidad * bits + 7L) / 8L;
+            if (12L + bytesNecesarios > caja.LargoDatos)
+            {
+                return null;
+            }
+
+            int pos = caja.InicioDatos + 12;
+            int primera = bits == 4 ? (b[pos] >> 4) : bits == 8 ? b[pos] : (b[pos] << 8) | b[pos + 1];
+            return primera == 0 ? null : new Muestras { Cantidad = (int)cantidad, Primera = primera };
+        }
+
+        private static List<long> LeerDesplazamientos(byte[] b, Caja caja)
+        {
+            if (caja == null || caja.LargoDatos < 12)
+            {
+                return null;
+            }
+
+            uint cantidad = (uint)Entero32(b, caja.InicioDatos + 4);
+            int ancho = caja.Tipo == "co64" ? 8 : 4;
+            if (cantidad == 0 || cantidad > 1000000 || 8L + cantidad * ancho > caja.LargoDatos)
+            {
+                return null;
+            }
+
+            List<long> resultado = new List<long>((int)cantidad);
+            for (int i = 0; i < cantidad; i++)
+            {
+                int pos = caja.InicioDatos + 8 + i * ancho;
+                long valor = ancho == 8 ? LeerEntero64(b, pos) : (uint)Entero32(b, pos);
+                if (valor <= 0 || valor >= b.Length)
+                {
+                    return null;
+                }
+                resultado.Add(valor);
+            }
+            return resultado;
+        }
+
+        private static bool TablaTiempoValida(byte[] b, Caja caja, int muestras)
+        {
+            if (caja == null || caja.LargoDatos < 16)
+            {
+                return false;
+            }
+
+            uint entradas = (uint)Entero32(b, caja.InicioDatos + 4);
+            if (entradas == 0 || entradas > 1000000 || 8L + entradas * 8L > caja.LargoDatos)
+            {
+                return false;
+            }
+
+            long total = 0;
+            for (int i = 0; i < entradas; i++)
+            {
+                int pos = caja.InicioDatos + 8 + i * 8;
+                uint cantidad = (uint)Entero32(b, pos);
+                uint duracion = (uint)Entero32(b, pos + 4);
+                if (cantidad == 0 || duracion == 0)
+                {
+                    return false;
+                }
+                total += cantidad;
+                if (total > int.MaxValue)
+                {
+                    return false;
+                }
+            }
+            return total == muestras;
+        }
+
+        private static bool TablaMuestrasPorChunkValida(byte[] b, Caja caja)
+        {
+            if (caja == null || caja.LargoDatos < 20)
+            {
+                return false;
+            }
+
+            uint entradas = (uint)Entero32(b, caja.InicioDatos + 4);
+            if (entradas == 0 || entradas > 1000000 || 8L + entradas * 12L > caja.LargoDatos)
+            {
+                return false;
+            }
+
+            uint anterior = 0;
+            for (int i = 0; i < entradas; i++)
+            {
+                int pos = caja.InicioDatos + 8 + i * 12;
+                uint primerChunk = (uint)Entero32(b, pos);
+                uint muestras = (uint)Entero32(b, pos + 4);
+                uint descripcion = (uint)Entero32(b, pos + 8);
+                if ((i == 0 && primerChunk != 1) || primerChunk <= anterior || muestras == 0 || descripcion == 0)
+                {
+                    return false;
+                }
+                anterior = primerChunk;
+            }
+            return true;
+        }
+
+        private static bool HayDatosNoNulos(byte[] b, int inicio, int largo)
+        {
+            if (inicio < 0 || largo < 1 || inicio + (long)largo > b.Length)
+            {
+                return false;
+            }
+
+            for (int i = inicio; i < inicio + largo; i++)
+            {
+                if (b[i] != 0)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private class Caja
         {
             public string Tipo;
+            public int InicioCaja;
             public int InicioDatos;
             public int FinDatos;
             public int LargoDatos { get { return FinDatos - InicioDatos; } }
@@ -782,6 +1165,7 @@ namespace StageUp.BLL
                 cajas.Add(new Caja
                 {
                     Tipo = Encoding.ASCII.GetString(b, (int)pos + 4, 4),
+                    InicioCaja = (int)pos,
                     InicioDatos = (int)pos + cabecera,
                     FinDatos = (int)(pos + largo)
                 });
@@ -889,6 +1273,14 @@ namespace StageUp.BLL
         private static int Entero32(byte[] b, int pos)
         {
             return (b[pos] << 24) | (b[pos + 1] << 16) | (b[pos + 2] << 8) | b[pos + 3];
+        }
+
+        private static long LeerEntero64(byte[] b, int pos)
+        {
+            ulong alto = (uint)Entero32(b, pos);
+            ulong bajo = (uint)Entero32(b, pos + 4);
+            ulong valor = (alto << 32) | bajo;
+            return valor > long.MaxValue ? -1 : (long)valor;
         }
 
         private static uint[] _tablaCrc;

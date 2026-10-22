@@ -29,58 +29,69 @@
                     </div>
                     <div class="activity-workspace-tools">
                         <span class="admin-workspace-hint" data-i18n="AdminUI_ActividadReciente">Actividad ordenada desde la más reciente.</span>
-                        <details class="activity-filter-details">
-                            <summary aria-label="Abrir filtros de bitácora" title="Filtrar registros">
-                                <span class="activity-filter-icon" aria-hidden="true"></span>
-                            </summary>
+                        <div class="activity-workspace-actions">
+                            <details class="activity-filter-details">
+                                <summary aria-label="Abrir filtros de bitácora" title="Filtrar registros">
+                                    <span class="activity-filter-icon" aria-hidden="true"></span>
+                                </summary>
 
-                            <asp:Panel ID="pnlFiltros" runat="server" CssClass="auth-card admin-filter-card activity-filter-card" role="search" aria-labelledby="filtros-bitacora-title">
-                                <div class="auth-card-header">
-                                    <span class="admin-card-eyebrow" data-i18n="AdminUI_BusquedaAvanzada">Búsqueda avanzada</span>
-                                    <h2 id="filtros-bitacora-title">Filtros</h2>
-                                    <p>Todos los filtros son opcionales. Se muestran los registros más recientes que cumplan los filtros (hasta 500).</p>
-                                </div>
+                                <asp:Panel ID="pnlFiltros" runat="server" CssClass="auth-card admin-filter-card activity-filter-card" role="search" aria-labelledby="filtros-bitacora-title">
+                                    <div class="auth-card-header">
+                                        <span class="admin-card-eyebrow" data-i18n="AdminUI_BusquedaAvanzada">Búsqueda avanzada</span>
+                                        <h2 id="filtros-bitacora-title">Filtros</h2>
+                                        <p>Todos los filtros son opcionales. Se muestran los registros más recientes que cumplan los filtros (hasta 500).</p>
+                                    </div>
 
-                                <div class="filter-form-grid">
-                                    <div class="form-field">
-                                        <label for="<%= txtResponsable.ClientID %>">Usuario responsable (nombre o correo)</label>
-                                        <asp:TextBox ID="txtResponsable" runat="server" MaxLength="150" placeholder="Nombre, apellido o correo" />
+                                    <div class="filter-form-grid">
+                                        <div class="form-field">
+                                            <label for="<%= txtResponsable.ClientID %>">Usuario responsable (nombre o correo)</label>
+                                            <asp:TextBox ID="txtResponsable" runat="server" MaxLength="150" placeholder="Nombre, apellido o correo" />
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="<%= ddlTipoResponsable.ClientID %>">Tipo de usuario</label>
+                                            <asp:DropDownList ID="ddlTipoResponsable" runat="server">
+                                                <asp:ListItem Value="">Todos</asp:ListItem>
+                                                <asp:ListItem Value="Interno">Usuarios internos</asp:ListItem>
+                                                <asp:ListItem Value="Externo">Usuarios externos</asp:ListItem>
+                                                <asp:ListItem Value="Sistema">Sistema (procesos automáticos)</asp:ListItem>
+                                            </asp:DropDownList>
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="<%= ddlTipoOperacion.ClientID %>">Tipo de operación</label>
+                                            <asp:DropDownList ID="ddlTipoOperacion" runat="server" />
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="<%= txtFechaDesde.ClientID %>">Fecha desde</label>
+                                            <asp:TextBox ID="txtFechaDesde" runat="server" TextMode="Date" />
+                                        </div>
+                                        <div class="form-field">
+                                            <label for="<%= txtFechaHasta.ClientID %>">Fecha hasta</label>
+                                            <asp:TextBox ID="txtFechaHasta" runat="server" TextMode="Date" />
+                                        </div>
+                                        <div class="form-field form-field-wide">
+                                            <label for="<%= ddlTipoEntidad.ClientID %>">Entidad afectada</label>
+                                            <asp:DropDownList ID="ddlTipoEntidad" runat="server" />
+                                        </div>
                                     </div>
-                                    <div class="form-field">
-                                        <label for="<%= ddlTipoResponsable.ClientID %>">Tipo de usuario</label>
-                                        <asp:DropDownList ID="ddlTipoResponsable" runat="server">
-                                            <asp:ListItem Value="">Todos</asp:ListItem>
-                                            <asp:ListItem Value="Interno">Usuarios internos</asp:ListItem>
-                                            <asp:ListItem Value="Externo">Usuarios externos</asp:ListItem>
-                                            <asp:ListItem Value="Sistema">Sistema (procesos automáticos)</asp:ListItem>
-                                        </asp:DropDownList>
-                                    </div>
-                                    <div class="form-field">
-                                        <label for="<%= ddlTipoOperacion.ClientID %>">Tipo de operación</label>
-                                        <asp:DropDownList ID="ddlTipoOperacion" runat="server" />
-                                    </div>
-                                    <div class="form-field">
-                                        <label for="<%= txtFechaDesde.ClientID %>">Fecha desde</label>
-                                        <asp:TextBox ID="txtFechaDesde" runat="server" TextMode="Date" />
-                                    </div>
-                                    <div class="form-field">
-                                        <label for="<%= txtFechaHasta.ClientID %>">Fecha hasta</label>
-                                        <asp:TextBox ID="txtFechaHasta" runat="server" TextMode="Date" />
-                                    </div>
-                                    <div class="form-field form-field-wide">
-                                        <label for="<%= ddlTipoEntidad.ClientID %>">Entidad afectada</label>
-                                        <asp:DropDownList ID="ddlTipoEntidad" runat="server" />
-                                    </div>
-                                </div>
 
-                                <div class="form-actions">
-                                    <asp:Button ID="btnBuscar" runat="server" CssClass="button button-primary" Text="Aplicar filtros"
-                                        CausesValidation="false" OnClick="btnBuscar_Click" />
-                                    <asp:LinkButton ID="lnkLimpiarFiltros" runat="server" CssClass="text-link" CausesValidation="false"
-                                        Text="Limpiar filtros" OnClick="lnkLimpiarFiltros_Click" />
-                                </div>
-                            </asp:Panel>
-                        </details>
+                                    <div class="form-actions">
+                                        <asp:Button ID="btnBuscar" runat="server" CssClass="button button-primary" Text="Aplicar filtros"
+                                            CausesValidation="false" OnClick="btnBuscar_Click" />
+                                        <asp:LinkButton ID="lnkLimpiarFiltros" runat="server" CssClass="text-link" CausesValidation="false"
+                                            Text="Limpiar filtros" OnClick="lnkLimpiarFiltros_Click" />
+                                    </div>
+                                </asp:Panel>
+                            </details>
+                            <asp:LinkButton ID="btnExportar" runat="server" CssClass="activity-export-button" CausesValidation="false"
+                                OnClick="btnExportar_Click" ToolTip="Exportar filtro actual a XML cifrado" aria-label="Exportar filtro actual a XML cifrado">
+                                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 3v12"></path>
+                                    <path d="M7.5 10.5L12 15l4.5-4.5"></path>
+                                    <path d="M5 14v5h14v-5"></path>
+                                </svg>
+                                <span class="sr-only">Exportar filtro actual a XML cifrado</span>
+                            </asp:LinkButton>
+                        </div>
                     </div>
                 </div>
 
@@ -139,18 +150,6 @@
                     <h3><asp:Literal ID="litTituloSinResultados" runat="server" /></h3>
                     <p><asp:Literal ID="litDescripcionSinResultados" runat="server" /></p>
                 </asp:Panel>
-            </div>
-
-            <div class="auth-card admin-workspace-card">
-                <div class="auth-card-header admin-workspace-header">
-                    <div>
-                        <span class="admin-card-eyebrow">Exportación</span>
-                        <h2>Exportar registros cifrados</h2>
-                    </div>
-                </div>
-                <p>Genera un archivo XML con los registros que ves arriba (según los filtros aplicados), protegido con cifrado híbrido (AES + RSA). Para volver a leerlo hace falta la clave privada configurada en <a href="HerramientasSeguridad.aspx">Herramientas de seguridad</a>.</p>
-                <asp:Button ID="btnExportar" runat="server" CssClass="button button-secondary" Text="Exportar filtro actual a XML cifrado"
-                    CausesValidation="false" OnClick="btnExportar_Click" />
             </div>
 
         </div>

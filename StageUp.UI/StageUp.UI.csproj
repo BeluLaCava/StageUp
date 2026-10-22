@@ -298,7 +298,9 @@
     <Compile Include="Interno\Comercializacion\ComercializacionTabs.ascx.designer.cs">
       <DependentUpon>ComercializacionTabs.ascx</DependentUpon>
     </Compile>
-    <Compile Include="Interno\Comercializacion\PaginaComercial.cs" />
+    <Compile Include="Interno\Comercializacion\PaginaComercial.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Interno\Comercializacion\AlianzasEstrategicas.aspx.cs">
       <DependentUpon>AlianzasEstrategicas.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -556,22 +558,7 @@
     </Compile>
     <Content Include="Ayuda\CentroAyuda.aspx" />
     <Content Include="Content\Css\site.css" />
-    <Content Include="Content\Uploads\Espacios\estudio-fotografico-norte-equipamiento.jpg" />
-    <Content Include="Content\Uploads\Espacios\estudio-fotografico-norte-vista-general.jpg" />
-    <Content Include="Content\Uploads\Espacios\estudio-sonoro-colegiales-equipamiento.jpg" />
-    <Content Include="Content\Uploads\Espacios\estudio-sonoro-colegiales-vista-general.jpg" />
-    <Content Include="Content\Uploads\Espacios\sala-ensayo-palermo-equipamiento.jpg" />
-    <Content Include="Content\Uploads\Espacios\sala-ensayo-palermo-vista-general.jpg" />
-    <Content Include="Content\Uploads\Espacios\sala-principal-stageup-equipamiento.jpg" />
-    <Content Include="Content\Uploads\Espacios\sala-principal-stageup-vista-lateral.jpg" />
-    <Content Include="Content\Uploads\Espacios\teatro-colon-palcos.jpg" />
-    <Content Include="Content\Uploads\Espacios\teatro-colon-vista-escenario.jpg" />
-    <Content Include="Content\Uploads\Novedades\guia-preparar-ensayo-stageup.png" />
-    <Content Include="Content\Uploads\Novedades\newsletter-nuevos-espacios-stageup.png" />
-    <Content Include="Content\Uploads\Novedades\preguntas-respuestas-espacios-stageup.png" />
     <Content Include="Content\Uploads\Novedades\Web.config" />
-    <Content Include="Content\Uploads\Perfiles\ana-solicitante-demo.jpg" />
-    <Content Include="Content\Uploads\Perfiles\marcos-gestor-demo.jpg" />
     <Content Include="Content\Images\favicon.png" />
     <Content Include="Content\Images\stageup-isotipo.png" />
     <Content Include="Content\Images\stageup-logo.png" />
@@ -659,8 +646,8 @@
     <Content Include="Content\Images\Espacios\estudio-fotografico-ia.png" />
     <Content Include="Site.Master" />
     <Content Include="Web.config" />
-
-
+    <!-- AppSettings.private.config tiene secretos reales: esta en .gitignore y no se versiona.
+         La condicion evita que Visual Studio lo marque como faltante en un clon limpio. -->
     <Content Include="AppSettings.private.config" Condition="Exists('AppSettings.private.config')" />
     <None Include="AppSettings.private.config.example" />
   </ItemGroup>

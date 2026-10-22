@@ -29,8 +29,24 @@ namespace StageUp.UI.Infraestructura
                 FechaDesde = Fecha(consulta["desde"]),
                 FechaHasta = Fecha(consulta["hasta"]),
                 Ubicacion = Texto(consulta["ubicacion"]),
+                TipoEspacio = Texto(consulta["tipoEspacio"]),
+                Provincia = Texto(consulta["provincia"]),
+                Ciudad = Texto(consulta["ciudad"]),
+                Zona = Texto(consulta["zona"]),
+                FechaDisponibilidad = Fecha(consulta["fechaDisponible"]),
+                Equipamiento = string.IsNullOrWhiteSpace(consulta["equipamiento"])
+                    ? new List<string>()
+                    : consulta["equipamiento"].Split(',').Select(t => t.Trim()).Where(t => t.Length > 0).Distinct().ToList(),
+                Caracteristicas = Texto(consulta["caracteristicas"]),
                 CategoriaNovedad = Texto(consulta["categoria"]),
                 Estado = Texto(consulta["estado"]),
+                Perfil = Texto(consulta["perfil"]),
+                Rol = Texto(consulta["rol"]),
+                Responsable = Texto(consulta["responsable"]),
+                Nombre = Texto(consulta["nombre"]),
+                Correo = Texto(consulta["correo"]),
+                Operacion = Texto(consulta["operacion"]),
+                EntidadAfectada = Texto(consulta["entidad"]),
                 Orden = Texto(consulta["orden"]) ?? FiltroBusquedaGlobal.OrdenRelevancia
             };
 
@@ -41,9 +57,27 @@ namespace StageUp.UI.Infraestructura
             }
 
             decimal precio;
+            if (decimal.TryParse((consulta["precioMin"] ?? string.Empty).Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out precio))
+            {
+                filtro.PrecioMinimo = precio;
+            }
+
             if (decimal.TryParse((consulta["precio"] ?? string.Empty).Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out precio))
             {
                 filtro.PrecioMaximo = precio;
+            }
+
+            if (decimal.TryParse((consulta["calificacion"] ?? string.Empty).Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out precio))
+            {
+                filtro.CalificacionMinima = precio;
+            }
+
+            filtro.MinutoDesde = Minutos(consulta["horaDesde"]);
+            filtro.MinutoHasta = Minutos(consulta["horaHasta"]);
+
+            if (int.TryParse(consulta["idRegistro"], NumberStyles.Integer, CultureInfo.InvariantCulture, out entero))
+            {
+                filtro.IdRegistro = entero;
             }
 
             if (int.TryParse(consulta["max"], NumberStyles.Integer, CultureInfo.InvariantCulture, out entero))
@@ -73,10 +107,29 @@ namespace StageUp.UI.Infraestructura
             Agregar(partes, "desde", filtro.FechaDesde.HasValue ? filtro.FechaDesde.Value.ToString(FormatoFecha, CultureInfo.InvariantCulture) : null);
             Agregar(partes, "hasta", filtro.FechaHasta.HasValue ? filtro.FechaHasta.Value.ToString(FormatoFecha, CultureInfo.InvariantCulture) : null);
             Agregar(partes, "ubicacion", filtro.Ubicacion);
+            Agregar(partes, "tipoEspacio", filtro.TipoEspacio);
+            Agregar(partes, "provincia", filtro.Provincia);
+            Agregar(partes, "ciudad", filtro.Ciudad);
+            Agregar(partes, "zona", filtro.Zona);
+            Agregar(partes, "precioMin", filtro.PrecioMinimo.HasValue ? filtro.PrecioMinimo.Value.ToString("0.##", CultureInfo.InvariantCulture) : null);
             Agregar(partes, "capacidad", filtro.CapacidadMinima.HasValue ? filtro.CapacidadMinima.Value.ToString(CultureInfo.InvariantCulture) : null);
             Agregar(partes, "precio", filtro.PrecioMaximo.HasValue ? filtro.PrecioMaximo.Value.ToString("0.##", CultureInfo.InvariantCulture) : null);
+            Agregar(partes, "fechaDisponible", filtro.FechaDisponibilidad.HasValue ? filtro.FechaDisponibilidad.Value.ToString(FormatoFecha, CultureInfo.InvariantCulture) : null);
+            Agregar(partes, "horaDesde", Hora(filtro.MinutoDesde));
+            Agregar(partes, "horaHasta", Hora(filtro.MinutoHasta));
+            Agregar(partes, "equipamiento", filtro.Equipamiento.Count == 0 ? null : string.Join(",", filtro.Equipamiento));
+            Agregar(partes, "caracteristicas", filtro.Caracteristicas);
+            Agregar(partes, "calificacion", filtro.CalificacionMinima.HasValue ? filtro.CalificacionMinima.Value.ToString("0.##", CultureInfo.InvariantCulture) : null);
             Agregar(partes, "categoria", filtro.CategoriaNovedad);
             Agregar(partes, "estado", filtro.Estado);
+            Agregar(partes, "perfil", filtro.Perfil);
+            Agregar(partes, "rol", filtro.Rol);
+            Agregar(partes, "responsable", filtro.Responsable);
+            Agregar(partes, "nombre", filtro.Nombre);
+            Agregar(partes, "correo", filtro.Correo);
+            Agregar(partes, "operacion", filtro.Operacion);
+            Agregar(partes, "entidad", filtro.EntidadAfectada);
+            Agregar(partes, "idRegistro", filtro.IdRegistro.HasValue ? filtro.IdRegistro.Value.ToString(CultureInfo.InvariantCulture) : null);
             Agregar(partes, "orden", filtro.Orden == FiltroBusquedaGlobal.OrdenRelevancia ? null : filtro.Orden);
             Agregar(partes, "max", filtro.Maximo == 25 ? null : filtro.Maximo.ToString(CultureInfo.InvariantCulture));
             return partes.Count == 0 ? pagina : pagina + "?" + string.Join("&", partes);
@@ -114,10 +167,22 @@ namespace StageUp.UI.Infraestructura
                 partes.Add("para " + filtro.CapacidadMinima.Value.ToString(CultureInfo.InvariantCulture) + " personas o más");
             }
 
+            if (!string.IsNullOrEmpty(filtro.TipoEspacio)) partes.Add("tipo " + filtro.TipoEspacio);
+            if (!string.IsNullOrEmpty(filtro.Provincia)) partes.Add("provincia " + filtro.Provincia);
+            if (!string.IsNullOrEmpty(filtro.Ciudad)) partes.Add("ciudad " + filtro.Ciudad);
+            if (!string.IsNullOrEmpty(filtro.Zona)) partes.Add("zona " + filtro.Zona);
+            if (filtro.PrecioMinimo.HasValue) partes.Add("desde " + filtro.PrecioMinimo.Value.ToString("0.##", CultureInfo.InvariantCulture) + " por hora");
+
             if (filtro.PrecioMaximo.HasValue)
             {
                 partes.Add("hasta " + filtro.PrecioMaximo.Value.ToString("0.##", CultureInfo.InvariantCulture) + " por hora");
             }
+
+            if (filtro.FechaDisponibilidad.HasValue) partes.Add("disponible el " + filtro.FechaDisponibilidad.Value.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture));
+            if (filtro.MinutoDesde.HasValue && filtro.MinutoHasta.HasValue) partes.Add("de " + Hora(filtro.MinutoDesde) + " a " + Hora(filtro.MinutoHasta));
+            if (filtro.Equipamiento.Count > 0) partes.Add("equipamiento: " + string.Join(", ", filtro.Equipamiento));
+            if (!string.IsNullOrEmpty(filtro.Caracteristicas)) partes.Add("características: " + filtro.Caracteristicas);
+            if (filtro.CalificacionMinima.HasValue) partes.Add(filtro.CalificacionMinima.Value.ToString("0.#", CultureInfo.InvariantCulture) + " estrellas o más");
 
             if (!string.IsNullOrEmpty(filtro.CategoriaNovedad))
             {
@@ -128,6 +193,15 @@ namespace StageUp.UI.Infraestructura
             {
                 partes.Add(etiquetasEstados != null && etiquetasEstados.ContainsKey(filtro.Estado) ? etiquetasEstados[filtro.Estado] : filtro.Estado);
             }
+
+            if (!string.IsNullOrEmpty(filtro.Perfil)) partes.Add("perfil " + filtro.Perfil);
+            if (!string.IsNullOrEmpty(filtro.Rol)) partes.Add("rol " + filtro.Rol);
+            if (!string.IsNullOrEmpty(filtro.Responsable)) partes.Add("responsable " + filtro.Responsable);
+            if (!string.IsNullOrEmpty(filtro.Nombre)) partes.Add("nombre " + filtro.Nombre);
+            if (!string.IsNullOrEmpty(filtro.Correo)) partes.Add("correo " + filtro.Correo);
+            if (!string.IsNullOrEmpty(filtro.Operacion)) partes.Add("operación " + filtro.Operacion);
+            if (!string.IsNullOrEmpty(filtro.EntidadAfectada)) partes.Add("entidad " + filtro.EntidadAfectada);
+            if (filtro.IdRegistro.HasValue) partes.Add("identificador " + filtro.IdRegistro.Value.ToString(CultureInfo.InvariantCulture));
 
             if (filtro.Orden != FiltroBusquedaGlobal.OrdenRelevancia && BLL_Busqueda.Ordenes.ContainsKey(filtro.Orden))
             {
@@ -156,6 +230,19 @@ namespace StageUp.UI.Infraestructura
             return DateTime.TryParseExact((valor ?? string.Empty).Trim(), FormatoFecha, CultureInfo.InvariantCulture, DateTimeStyles.None, out fecha)
                 ? fecha
                 : (DateTime?)null;
+        }
+
+        private static int? Minutos(string valor)
+        {
+            TimeSpan hora;
+            return TimeSpan.TryParseExact((valor ?? string.Empty).Trim(), @"hh\:mm", CultureInfo.InvariantCulture, out hora)
+                ? (int?)hora.TotalMinutes
+                : null;
+        }
+
+        private static string Hora(int? minutos)
+        {
+            return minutos.HasValue ? TimeSpan.FromMinutes(minutos.Value).ToString(@"hh\:mm", CultureInfo.InvariantCulture) : null;
         }
     }
 }

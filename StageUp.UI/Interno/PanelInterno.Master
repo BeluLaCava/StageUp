@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><asp:ContentPlaceHolder ID="TitleContent" runat="server">Panel administrativo | StageUp</asp:ContentPlaceHolder></title>
     <link rel="icon" type="image/png" href="<%= ResolveUrl("~/Content/Images/favicon.png") %>" />
-    <link href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20261018-1" rel="stylesheet" />
+    <link href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20261022-7" rel="stylesheet" />
 </head>
 <body class="internal-body">
     <form id="form1" runat="server">
@@ -35,11 +35,24 @@
 
         <div class="internal-shell container-wide">
             <nav class="internal-nav" aria-label="Navegación del panel administrativo">
-                <asp:Repeater ID="rptMenu" runat="server">
-                    <ItemTemplate>
-                        <a href='<%# ResolveUrl(Eval("Url").ToString()) %>'><%# Eval("Nombre") %><%# ObtenerIndicadorPendientes(Eval("Url")) %></a>
-                    </ItemTemplate>
-                </asp:Repeater>
+                <div class="internal-nav-search">
+                    <span aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="5.5"></circle><path d="M15 15l5 5"></path></svg></span>
+                    <label class="sr-only" for="internal-menu-search">Buscar una opción del menú</label>
+                    <input id="internal-menu-search" type="search" placeholder="Buscar en el menú" autocomplete="off" data-internal-menu-search />
+                </div>
+                <div class="internal-nav-list" data-internal-menu-list>
+                    <asp:Repeater ID="rptMenu" runat="server">
+                        <ItemTemplate>
+                            <a class="internal-nav-link" href='<%# ResolveUrl(Eval("Url").ToString()) %>'
+                                data-menu-name='<%# System.Web.HttpUtility.HtmlAttributeEncode(Eval("Nombre").ToString()) %>'>
+                                <span class="internal-nav-icon" aria-hidden="true"><%# ObtenerIconoMenu(Eval("Url")) %></span>
+                                <span class="internal-nav-text"><%#: Eval("Nombre") %></span>
+                                <%# ObtenerIndicadorPendientes(Eval("Url")) %>
+                            </a>
+                        </ItemTemplate>
+                    </asp:Repeater>
+                    <p class="internal-nav-empty" data-internal-menu-empty hidden>No hay opciones con ese nombre.</p>
+                </div>
             </nav>
 
             <main class="internal-content">
@@ -55,6 +68,8 @@
         <script src="<%= ResolveUrl("~/Scripts/stageup-confirm.js") %>?v=20261012-1"></script>
         <script src="<%= ResolveUrl("~/Scripts/charts-stageup.js") %>?v=20261008-1"></script>
         <script src="<%= ResolveUrl("~/Scripts/ui-motion.js") %>?v=20261008-1"></script>
+        <script src="<%= ResolveUrl("~/Scripts/internal-menu.js") %>?v=20261022-1"></script>
+        <script src="<%= ResolveUrl("~/Scripts/internal-filters.js") %>?v=20261022-2"></script>
     </form>
 </body>
 </html>

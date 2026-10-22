@@ -104,16 +104,21 @@
                                         <span class="request-reputation-stars" aria-hidden="true"><%#: ObtenerEstrellasSolicitante((StageUp.BE.Entidades.Reserva)Container.DataItem) %></span>
                                         <strong><%#: ObtenerResumenReputacionSolicitante((StageUp.BE.Entidades.Reserva)Container.DataItem) %></strong>
                                         <p><%#: ObtenerActividadSolicitante((StageUp.BE.Entidades.Reserva)Container.DataItem) %></p>
-                                        <asp:Panel ID="pnlHistorialReputacion" runat="server" CssClass="request-reputation-history"
-                                            Visible='<%# ((StageUp.BE.Entidades.Reserva)Container.DataItem).CalificacionesSolicitante.Count > 0 %>'>
-                                            <small data-i18n="Calificacion_UltimasOpiniones">Últimas opiniones de gestores</small>
-                                            <asp:Repeater ID="rptHistorialReputacion" runat="server"
-                                                DataSource='<%# ((StageUp.BE.Entidades.Reserva)Container.DataItem).CalificacionesSolicitante %>'>
-                                                <ItemTemplate>
-                                                    <blockquote><span aria-hidden="true"><%#: ObtenerEstrellas(Convert.ToInt32(Eval("Puntaje"))) %></span><%#: Eval("Comentario") %></blockquote>
-                                                </ItemTemplate>
-                                            </asp:Repeater>
-                                        </asp:Panel>
+                                        <details id="detHistorialReputacion" runat="server" class="request-reputation-history"
+                                            visible='<%# ((StageUp.BE.Entidades.Reserva)Container.DataItem).CalificacionesSolicitante.Count > 0 %>'>
+                                            <summary>
+                                                <span data-i18n="Calificacion_UltimasOpiniones">Últimas opiniones de gestores</span>
+                                                <span class="request-reputation-history-count"><%#: ((StageUp.BE.Entidades.Reserva)Container.DataItem).CalificacionesSolicitante.Count %></span>
+                                            </summary>
+                                            <div class="request-reputation-history-list" role="region" aria-label="Últimas opiniones de gestores" tabindex="0">
+                                                <asp:Repeater ID="rptHistorialReputacion" runat="server"
+                                                    DataSource='<%# ((StageUp.BE.Entidades.Reserva)Container.DataItem).CalificacionesSolicitante %>'>
+                                                    <ItemTemplate>
+                                                        <blockquote><span aria-hidden="true"><%#: ObtenerEstrellas(Convert.ToInt32(Eval("Puntaje"))) %></span><%#: Eval("Comentario") %></blockquote>
+                                                    </ItemTemplate>
+                                                </asp:Repeater>
+                                            </div>
+                                        </details>
                                     </div>
                                 </aside>
                             </div>

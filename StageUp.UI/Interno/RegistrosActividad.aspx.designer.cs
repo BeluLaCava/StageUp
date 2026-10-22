@@ -31,6 +31,6 @@ namespace StageUp.UI.Interno
         protected global::System.Web.UI.WebControls.Literal litTituloSinResultados;
         protected global::System.Web.UI.WebControls.Literal litDescripcionSinResultados;
 
-        protected global::System.Web.UI.WebControls.Button btnExportar;
+        protected global::System.Web.UI.WebControls.LinkButton btnExportar;
     }
 }

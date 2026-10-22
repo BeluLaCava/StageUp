@@ -89,6 +89,7 @@ namespace StageUp.UI
                 litFacturaCliente.Text = d.NombreUsuario + (string.IsNullOrEmpty(d.CorreoUsuario) ? string.Empty : " (" + d.CorreoUsuario + ")");
                 litFacturaConcepto.Text = "Reserva N° " + d.IdReserva + " · " + d.NombreEspacio + " · " + BLL_Pago.DescribirFechaReserva(d);
                 litFacturaFormaPago.Text = BLL_Pago.DescribirMedioPago(d);
+                litFacturaOperacion.Text = d.IdentificadorExterno ?? "-";
                 litFacturaTotal.Text = BLL_CuentaCorriente.FormatearImporte(d.ImporteTotal, moneda);
                 litFacturaLeyenda.Text = emisor.Leyenda;
             }

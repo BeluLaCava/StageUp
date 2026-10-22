@@ -55,6 +55,14 @@
                             <label for="<%= ddlEstado.ClientID %>">Estado</label>
                             <asp:DropDownList ID="ddlEstado" runat="server" CssClass="form-select" />
                         </div>
+                        <div class="form-field"><label for="<%= ddlPerfil.ClientID %>">Perfil externo</label><asp:DropDownList ID="ddlPerfil" runat="server" CssClass="form-select"><asp:ListItem Value="">Todos</asp:ListItem><asp:ListItem Value="ExternoSolicitante">Solicitante</asp:ListItem><asp:ListItem Value="GestorEspacios">Gestor de espacios</asp:ListItem><asp:ListItem Value="PendienteHabilitacionGestor">Pendiente de habilitación</asp:ListItem></asp:DropDownList></div>
+                        <div class="form-field"><label for="<%= txtRol.ClientID %>">Rol interno</label><asp:TextBox ID="txtRol" runat="server" MaxLength="100" placeholder="Nombre del rol" /></div>
+                        <div class="form-field"><label for="<%= txtResponsable.ClientID %>">Responsable</label><asp:TextBox ID="txtResponsable" runat="server" MaxLength="150" placeholder="Nombre o correo" /></div>
+                        <div class="form-field"><label for="<%= txtNombre.ClientID %>">Nombre o título</label><asp:TextBox ID="txtNombre" runat="server" MaxLength="150" /></div>
+                        <div class="form-field"><label for="<%= txtCorreo.ClientID %>">Correo</label><asp:TextBox ID="txtCorreo" runat="server" MaxLength="150" TextMode="Email" /></div>
+                        <div class="form-field"><label for="<%= txtOperacion.ClientID %>">Operación realizada</label><asp:TextBox ID="txtOperacion" runat="server" MaxLength="150" placeholder="Alta, modificación, login..." /></div>
+                        <div class="form-field"><label for="<%= txtEntidad.ClientID %>">Entidad afectada</label><asp:TextBox ID="txtEntidad" runat="server" MaxLength="150" placeholder="Reserva, usuario, pago..." /></div>
+                        <div class="form-field"><label for="<%= txtIdRegistro.ClientID %>">Identificador</label><asp:TextBox ID="txtIdRegistro" runat="server" TextMode="Number" min="1" step="1" /></div>
                         <div class="form-field">
                             <label for="<%= txtUbicacion.ClientID %>">Ubicación (espacios y reservas)</label>
                             <asp:TextBox ID="txtUbicacion" runat="server" MaxLength="100" placeholder="Ciudad, provincia o dirección" />
@@ -72,7 +80,7 @@
                             <asp:DropDownList ID="ddlMaximo" runat="server" CssClass="form-select" />
                         </div>
                     </div>
-                    <p class="busqueda-detalle">Fechas: alta de usuarios, espacios, novedades y encuestas; día reservado en reservas; última actividad en tickets. Al elegir un estado se busca solo en ese tipo.</p>
+                    <p class="busqueda-detalle">Los filtros se pueden combinar. Perfil y rol se aplican a usuarios; operación y entidad afectada, a los registros de actividad. Al elegir un estado se busca solo en ese tipo.</p>
 
                     <div class="busqueda-acciones-avanzadas">
                         <asp:Button ID="btnBuscarAvanzado" runat="server" CssClass="button button-primary" Text="Buscar con filtros" CausesValidation="false" OnClick="btnBuscar_Click" />

@@ -99,10 +99,18 @@
 
         const camposTexto = [
             { param: "ubicacion", id: "filter-location" },
+            { param: "provincia", id: "filter-province" },
+            { param: "ciudad", id: "filter-city" },
+            { param: "zona", id: "filter-zone" },
             { param: "capacidadMin", id: "filter-capacity" },
+            { param: "precioMin", id: "filter-price-min" },
             { param: "precioMax", id: "filter-price" },
             { param: "fecha", id: "filter-availability" },
-            { param: "piso", id: "filter-floor" }
+            { param: "horaDesde", id: "filter-time-from" },
+            { param: "horaHasta", id: "filter-time-to" },
+            { param: "calificacionMin", id: "filter-rating" },
+            { param: "piso", id: "filter-floor" },
+            { param: "caracteristicas", id: "filter-features" }
         ];
 
         camposTexto.forEach(function (campo) {
@@ -145,9 +153,17 @@
         const generalFields = [
             { id: "filter-type", label: "Tipo" },
             { id: "filter-location", label: "Ubicación" },
+            { id: "filter-province", label: "Provincia" },
+            { id: "filter-city", label: "Ciudad" },
+            { id: "filter-zone", label: "Zona" },
             { id: "filter-capacity", label: "Capacidad mínima" },
+            { id: "filter-price-min", label: "Valor mínimo" },
             { id: "filter-price", label: "Valor máximo" },
-            { id: "filter-availability", label: "Disponibilidad" }
+            { id: "filter-availability", label: "Disponibilidad" },
+            { id: "filter-time-from", label: "Desde" },
+            { id: "filter-time-to", label: "Hasta" },
+            { id: "filter-rating", label: "Calificación mínima" },
+            { id: "filter-features", label: "Características" }
         ];
 
         function openPanel(event) {
@@ -299,10 +315,18 @@
 
                     const camposTexto = [
                         { id: "filter-location", param: "ubicacion" },
+                        { id: "filter-province", param: "provincia" },
+                        { id: "filter-city", param: "ciudad" },
+                        { id: "filter-zone", param: "zona" },
                         { id: "filter-capacity", param: "capacidadMin" },
+                        { id: "filter-price-min", param: "precioMin" },
                         { id: "filter-price", param: "precioMax" },
                         { id: "filter-availability", param: "fecha" },
-                        { id: "filter-floor", param: "piso" }
+                        { id: "filter-time-from", param: "horaDesde" },
+                        { id: "filter-time-to", param: "horaHasta" },
+                        { id: "filter-rating", param: "calificacionMin" },
+                        { id: "filter-floor", param: "piso" },
+                        { id: "filter-features", param: "caracteristicas" }
                     ];
 
                     camposTexto.forEach(function (campo) {

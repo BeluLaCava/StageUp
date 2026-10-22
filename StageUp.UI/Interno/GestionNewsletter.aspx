@@ -31,7 +31,7 @@
                     <p>Solo reciben los envíos los suscriptores confirmados. Una persona con cuenta recibe el newsletter solo si se suscribió (desde el formulario o desde Mi perfil).</p>
                 </div>
 
-                <asp:Panel ID="pnlFiltros" runat="server" CssClass="nl-admin-filtros" DefaultButton="btnFiltrar">
+                <asp:Panel ID="pnlFiltros" runat="server" CssClass="nl-admin-filtros" DefaultButton="btnFiltrar" role="search">
                     <div class="form-field">
                         <label for="<%= txtBuscar.ClientID %>">Correo o nombre</label>
                         <asp:TextBox ID="txtBuscar" runat="server" MaxLength="254" />

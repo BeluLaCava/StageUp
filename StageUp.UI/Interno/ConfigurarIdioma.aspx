@@ -40,7 +40,7 @@
             </asp:Panel>
 
             <section class="translation-workspace">
-                <div class="translation-toolbar">
+                <div class="translation-toolbar" role="search">
                     <div class="form-field translation-search-field">
                         <label for="<%= txtBuscar.ClientID %>">Buscar etiqueta</label>
                         <asp:TextBox ID="txtBuscar" runat="server" placeholder="Clave, texto original o traducción..." />

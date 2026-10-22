@@ -2,8 +2,10 @@
 
 <asp:Content ID="ExploreContent" ContentPlaceHolderID="MainContent" runat="server">
     <style type="text/css">
-        .results-sort { display: flex; align-items: center; gap: 0.6rem; font-size: 0.95rem; }
-        .results-sort select { padding: 0.45rem 0.7rem; border-radius: 0.6rem; border: 1px solid var(--color-border, #e2d4cc); background: #fff; }
+        .results-sort { display: inline-flex; align-items: center; gap: 0.55rem; padding: 0.28rem 0.35rem 0.28rem 0.75rem; color: var(--color-text-muted); background: rgba(255, 252, 250, 0.92); border: 1px solid rgba(109, 16, 33, 0.16); border-radius: 999px; box-shadow: 0 0.4rem 1rem rgba(77, 11, 23, 0.04); font-size: 0.82rem; }
+        .results-sort label { margin: 0; font-weight: 750; white-space: nowrap; }
+        .results-sort select { min-width: 9.5rem; padding: 0.48rem 2rem 0.48rem 0.75rem; color: var(--color-primary-dark); background-color: rgba(243, 223, 212, 0.55); border: 0; border-radius: 999px; font: inherit; font-weight: 800; cursor: pointer; outline: none; }
+        .results-sort select:focus-visible { box-shadow: 0 0 0 3px rgba(109, 16, 33, 0.13); }
         .ranking-panel { margin-top: clamp(1.5rem, 3vw, 2.25rem); padding: 1.4rem 1.6rem; background: #fffaf7; border: 1px solid var(--color-border, #e7d5cc); border-radius: 1.1rem; }
         .ranking-panel h2 { margin: 0.2rem 0 0.3rem; color: var(--color-primary, #7a0c20); font-family: var(--font-display, Georgia, serif); font-weight: 500; }
         .ranking-panel p.ranking-criterio { margin: 0 0 1rem; color: #8a6a5e; font-size: 0.9rem; }
@@ -14,6 +16,52 @@
         .ranking-datos { min-width: 0; }
         .ranking-datos strong { display: block; line-height: 1.25; }
         .ranking-datos span { font-size: 0.85rem; color: #8a6a5e; }
+        .explore-page .explore-content { display: flex; flex-direction: column; }
+        .explore-page .filters-toolbar { order: 1; }
+        .explore-page .explore-quick-tools { order: 2; display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 0.7rem; }
+        .explore-page .results-section { order: 3; margin-top: 0.9rem; }
+        .explore-page .service-compare-panel, .explore-page .ranking-panel { flex: 1 1 20rem; min-width: 0; display: block; margin: 0; padding: 0; overflow: hidden; background: rgba(255, 252, 250, 0.9); border: 1px solid rgba(109, 16, 33, 0.14); border-radius: 999px; box-shadow: 0 0.45rem 1.2rem rgba(77, 11, 23, 0.045); transition: border-radius 180ms ease, border-color 180ms ease, box-shadow 180ms ease, flex-basis 180ms ease; }
+        .explore-page .service-compare-panel:has(.explore-tool-disclosure[open]), .explore-page .ranking-panel:has(.explore-tool-disclosure[open]) { flex-basis: 100%; border-radius: 1rem; border-color: rgba(109, 16, 33, 0.24); box-shadow: 0 0.8rem 1.9rem rgba(77, 11, 23, 0.075); }
+        .explore-tool-disclosure > summary { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.75rem; padding: 0.62rem 0.75rem; cursor: pointer; list-style: none; }
+        .explore-tool-disclosure > summary::-webkit-details-marker { display: none; }
+        .explore-tool-summary { display: grid; gap: 0.12rem; min-width: 0; }
+        .explore-tool-summary strong { color: var(--color-primary-dark); font-size: 0.94rem; }
+        .explore-tool-summary small { overflow: hidden; color: var(--color-text-muted); font-size: 0.78rem; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+        .explore-tool-symbol { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; color: #fff; background: linear-gradient(145deg, var(--color-primary), #9f3549); border-radius: 50%; box-shadow: 0 0.4rem 0.9rem rgba(109, 16, 33, 0.18); font-size: 1rem; font-weight: 900; }
+        .explore-tool-symbol-ranking { color: #fff4c8; }
+        .explore-tool-toggle { position: relative; width: 1.85rem; height: 1.85rem; flex: 0 0 auto; background: rgba(243, 223, 212, 0.62); border-radius: 50%; transition: transform 180ms ease; }
+        .explore-tool-toggle::before, .explore-tool-toggle::after { content: ""; position: absolute; top: 50%; left: 50%; width: 0.72rem; height: 2px; background: var(--color-primary); transform: translate(-50%, -50%); }
+        .explore-tool-toggle::after { transform: translate(-50%, -50%) rotate(90deg); transition: opacity 160ms ease; }
+        .explore-tool-disclosure[open] .explore-tool-toggle { transform: rotate(180deg); }
+        .explore-tool-disclosure[open] .explore-tool-toggle::after { opacity: 0; }
+        .explore-tool-body { padding: 0 1rem 1rem; border-top: 1px solid rgba(137, 102, 80, 0.14); animation: explore-tool-in 200ms ease both; }
+        .explore-tool-body .service-compare-actions { justify-content: flex-start; margin-top: 0.9rem; }
+        .explore-tool-body .service-type-options { justify-content: flex-start; }
+        .explore-tool-body .service-compare-status { display: block; margin-top: 0.65rem; }
+        .explore-tool-body .ranking-criterio { margin-top: 0.85rem; }
+        .explore-page .space-card { animation: explore-card-in 360ms ease both; }
+        .explore-page .space-card:nth-child(2) { animation-delay: 50ms; }
+        .explore-page .space-card:nth-child(3) { animation-delay: 100ms; }
+        .explore-page .explore-header { padding-block: clamp(0.58rem, 1.2vw, 0.9rem); }
+        .explore-page .explore-header .explore-page-container { grid-template-columns: minmax(17rem, 24rem) minmax(24rem, 1fr); gap: clamp(1.2rem, 3vw, 2.6rem); }
+        .explore-page .explore-heading h1 { max-width: 24rem; font-size: clamp(1.85rem, 2.6vw, 2.55rem); line-height: 0.98; }
+        .explore-page .explore-heading p { margin-top: 0.35rem; font-size: 0.9rem; }
+        .explore-page .explore-search-stage .marketplace-search { min-height: 4.15rem; }
+        .explore-page .results-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; }
+        @keyframes explore-tool-in { from { opacity: 0; transform: translateY(-0.3rem); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes explore-card-in { from { opacity: 0; transform: translateY(0.5rem); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 62rem) {
+            .explore-page .explore-header .explore-page-container { grid-template-columns: 1fr; gap: 0.65rem; }
+            .explore-page .explore-heading h1 { max-width: 34rem; }
+        }
+        @media (max-width: 45rem) {
+            .explore-tool-body .service-compare-actions { align-items: stretch; flex-direction: column; }
+            .explore-tool-body .service-compare-actions .button { width: 100%; }
+            .explore-page .explore-quick-tools { display: grid; grid-template-columns: 1fr; }
+            .explore-page .results-heading { align-items: stretch; flex-direction: column; }
+            .results-sort { align-self: flex-start; }
+        }
+        @media (prefers-reduced-motion: reduce) { .explore-tool-body, .explore-page .space-card { animation: none; } }
     </style>
     <section class="explore-page" data-results-page>
         <header class="explore-header">
@@ -52,48 +100,61 @@
                 </div>
             </section>
 
+            <div class="explore-quick-tools" aria-label="Herramientas para explorar">
             <asp:Panel ID="pnlComparacionServicios" runat="server" CssClass="service-compare-panel" aria-labelledby="service-compare-title">
-                <div class="service-compare-heading">
-                    <span class="eyebrow">Catálogo de servicios</span>
-                    <h2 id="service-compare-title">Compará servicios</h2>
-                    <p>Seleccioná hasta 3 categorías generales para comparar promedios y rangos del catálogo publicado.</p>
-                </div>
-                <div class="service-compare-actions">
-                    <div class="service-type-options" aria-label="Tipos de servicio disponibles">
-                        <asp:Repeater ID="rptTiposServicio" runat="server">
-                            <ItemTemplate>
-                                <label class="service-type-option">
-                                    <input type="checkbox" data-service-compare-checkbox value='<%#: Container.DataItem %>' />
-                                    <span><%#: Container.DataItem %></span>
-                                </label>
-                            </ItemTemplate>
-                        </asp:Repeater>
+                <details class="explore-tool-disclosure">
+                    <summary>
+                        <span class="explore-tool-symbol" aria-hidden="true">⇄</span>
+                        <span class="explore-tool-summary"><strong id="service-compare-title">Compará servicios</strong><small>Herramienta opcional para contrastar hasta 3 categorías del catálogo.</small></span>
+                        <span class="explore-tool-toggle" aria-hidden="true"></span>
+                    </summary>
+                    <div class="explore-tool-body">
+                        <div class="service-compare-actions">
+                            <div class="service-type-options" aria-label="Tipos de servicio disponibles">
+                                <asp:Repeater ID="rptTiposServicio" runat="server">
+                                    <ItemTemplate>
+                                        <label class="service-type-option">
+                                            <input type="checkbox" data-service-compare-checkbox value='<%#: Container.DataItem %>' />
+                                            <span><%#: Container.DataItem %></span>
+                                        </label>
+                                    </ItemTemplate>
+                                </asp:Repeater>
+                            </div>
+                            <button class="button button-secondary button-small" type="button" data-service-compare-go disabled>Comparar servicios</button>
+                        </div>
+                        <span class="service-compare-status" data-service-compare-status aria-live="polite">Elegí al menos 2 servicios para comparar</span>
                     </div>
-                    <button class="button button-secondary button-small" type="button" data-service-compare-go disabled>Comparar servicios</button>
-                </div>
-                <span class="service-compare-status" data-service-compare-status aria-live="polite">Elegí al menos 2 servicios para comparar</span>
+                </details>
             </asp:Panel>
 
             <asp:Panel ID="pnlRanking" runat="server" CssClass="ranking-panel" Visible="false">
-                <span class="eyebrow">Ranking de la comunidad</span>
-                <h2>Espacios mejor valorados</h2>
-                <p class="ranking-criterio"><asp:Literal ID="litCriterioRanking" runat="server" /></p>
-                <ol class="ranking-lista">
-                    <asp:Repeater ID="rptRanking" runat="server">
-                        <ItemTemplate>
-                            <li class="ranking-item">
-                                <a href='<%# "DetalleEspacio.aspx?id=" + Eval("IdEspacioArtistico") %>'>
-                                    <span class="ranking-posicion"><%# Container.ItemIndex + 1 %></span>
-                                    <span class="ranking-datos">
-                                        <strong><%#: Eval("NombreEspacio") %></strong>
-                                        <span><%#: Eval("TipoEspacio") %> · <%#: ObtenerReputacion((StageUp.BE.Entidades.EspacioArtistico)Container.DataItem) %></span>
-                                    </span>
-                                </a>
-                            </li>
-                        </ItemTemplate>
-                    </asp:Repeater>
-                </ol>
+                <details class="explore-tool-disclosure">
+                    <summary>
+                        <span class="explore-tool-symbol explore-tool-symbol-ranking" aria-hidden="true">★</span>
+                        <span class="explore-tool-summary"><strong>Ranking de la comunidad</strong><small>Consultá los espacios mejor valorados cuando quieras.</small></span>
+                        <span class="explore-tool-toggle" aria-hidden="true"></span>
+                    </summary>
+                    <div class="explore-tool-body">
+                        <p class="ranking-criterio"><asp:Literal ID="litCriterioRanking" runat="server" /></p>
+                        <ol class="ranking-lista">
+                            <asp:Repeater ID="rptRanking" runat="server">
+                                <ItemTemplate>
+                                    <li class="ranking-item">
+                                        <a href='<%# "DetalleEspacio.aspx?id=" + Eval("IdEspacioArtistico") %>'>
+                                            <span class="ranking-posicion"><%# Container.ItemIndex + 1 %></span>
+                                            <span class="ranking-datos">
+                                                <strong><%#: Eval("NombreEspacio") %></strong>
+                                                <span><%#: Eval("TipoEspacio") %> · <%#: ObtenerReputacion((StageUp.BE.Entidades.EspacioArtistico)Container.DataItem) %></span>
+                                            </span>
+                                        </a>
+                                    </li>
+                                </ItemTemplate>
+                            </asp:Repeater>
+                        </ol>
+                    </div>
+                </details>
             </asp:Panel>
+            </div>
 
             <section class="results-section" aria-labelledby="results-title">
                 <div class="results-surface">
@@ -182,15 +243,23 @@
                 <div class="filter-group-heading"><h3 id="general-filters-title">Filtros generales</h3><p>Definí las condiciones básicas de tu búsqueda.</p></div>
                 <div class="filter-form-grid">
                     <div class="form-field"><label for="filter-type">Tipo de espacio</label><select id="filter-type"><option value="">Seleccionar tipo</option><option value="Estudio">Estudio</option><option value="Sala">Sala</option><option value="Teatro">Teatro</option><option value="Salón de danza">Salón de danza</option></select></div>
-                    <div class="form-field"><label for="filter-location">Ubicación</label><input id="filter-location" type="text" placeholder="Ciudad o zona" /></div>
+                    <div class="form-field"><label for="filter-location">Ubicación general</label><input id="filter-location" type="text" placeholder="Ciudad, provincia, zona o dirección" /></div>
+                    <div class="form-field"><label for="filter-province">Provincia</label><input id="filter-province" type="text" placeholder="Ej: Buenos Aires" /></div>
+                    <div class="form-field"><label for="filter-city">Ciudad</label><input id="filter-city" type="text" placeholder="Ej: Vicente López" /></div>
+                    <div class="form-field"><label for="filter-zone">Zona o barrio</label><input id="filter-zone" type="text" placeholder="Ej: Palermo" /></div>
                     <div class="form-field"><label for="filter-capacity">Capacidad mínima</label><input id="filter-capacity" type="number" min="1" placeholder="Cantidad de personas" /></div>
-                    <div class="form-field"><label for="filter-price">Valor máximo de referencia</label><input id="filter-price" type="number" min="0" placeholder="Ingresar valor" /></div>
-                    <div class="form-field form-field-wide"><label for="filter-availability">Disponibilidad</label><input id="filter-availability" type="date" /></div>
+                    <div class="form-field"><label for="filter-price-min">Precio mínimo por hora</label><input id="filter-price-min" type="number" min="0" placeholder="Desde" /></div>
+                    <div class="form-field"><label for="filter-price">Precio máximo por hora</label><input id="filter-price" type="number" min="0" placeholder="Hasta" /></div>
+                    <div class="form-field"><label for="filter-rating">Calificación mínima</label><select id="filter-rating"><option value="">Cualquiera</option><option value="3">3 estrellas o más</option><option value="4">4 estrellas o más</option><option value="4.5">4,5 estrellas o más</option></select></div>
+                    <div class="form-field"><label for="filter-availability">Fecha disponible</label><input id="filter-availability" type="date" /></div>
+                    <div class="form-field"><label for="filter-time-from">Horario desde</label><input id="filter-time-from" type="time" step="1800" /></div>
+                    <div class="form-field"><label for="filter-time-to">Horario hasta</label><input id="filter-time-to" type="time" step="1800" /></div>
                 </div>
             </section>
             <section class="filter-group artistic-filter-group" aria-labelledby="artistic-filters-title">
                 <div class="filter-group-heading"><span class="artistic-filter-badge">Diferencial StageUp</span><h3 id="artistic-filters-title">Características artísticas</h3><p>Combiná simultáneamente las condiciones necesarias para desarrollar tu actividad.</p></div>
                 <div class="form-field"><label for="filter-floor">Tipo de piso</label><input id="filter-floor" type="text" placeholder="Ingresar tipo de piso" data-advanced-select /></div>
+                <div class="form-field"><label for="filter-features">Otras características</label><input id="filter-features" type="text" placeholder="Ej: camarines, accesibilidad, reglas de uso" /></div>
                 <div class="artistic-options">
                     <label class="feature-option"><input type="checkbox" value="Espejos" data-advanced-filter data-equip-code="ESPEJOS" /><span>Espejos</span></label>
                     <label class="feature-option"><input type="checkbox" value="Iluminación" data-advanced-filter data-equip-code="ILUMINACION" /><span>Iluminación</span></label>

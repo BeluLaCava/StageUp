@@ -27,6 +27,7 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Literal litFacturaCliente;
         protected global::System.Web.UI.WebControls.Literal litFacturaConcepto;
         protected global::System.Web.UI.WebControls.Literal litFacturaFormaPago;
+        protected global::System.Web.UI.WebControls.Literal litFacturaOperacion;
         protected global::System.Web.UI.WebControls.Literal litFacturaTotal;
         protected global::System.Web.UI.WebControls.Literal litFacturaLeyenda;
         protected global::System.Web.UI.WebControls.HyperLink lnkVolver;

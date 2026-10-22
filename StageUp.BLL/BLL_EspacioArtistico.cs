@@ -61,14 +61,14 @@ namespace StageUp.BLL
             if (ficha.Moneda != "ARS" && ficha.Moneda != "USD")
                 return ResultadoOperacion.Error("Seleccioná la moneda del precio.");
             if (!string.IsNullOrEmpty(ficha.FotoRuta) &&
-                !Regex.IsMatch(ficha.FotoRuta, @"^~/Content/Uploads/Espacios/[a-f0-9]{32}\.jpg$"))
+                !EsRutaFotoValida(ficha.FotoRuta))
                 return ResultadoOperacion.Error("La ruta de la foto no es válida.");
             if (ficha.Fotos != null)
             {
                 if (ficha.Fotos.Count > MaxFotosPorEspacio)
                     return ResultadoOperacion.Error("Podés cargar hasta " + MaxFotosPorEspacio + " fotos por espacio.");
                 foreach (string foto in ficha.Fotos)
-                    if (string.IsNullOrEmpty(foto) || !Regex.IsMatch(foto, @"^~/Content/Uploads/Espacios/[a-f0-9]{32}\.jpg$"))
+                    if (!EsRutaFotoValida(foto))
                         return ResultadoOperacion.Error("Hay una foto con una ruta no válida.");
             }
             if ((ficha.TipoPiso ?? "").Length > 100 || (ficha.DetalleEquipamiento ?? "").Length > 1000)
@@ -160,6 +160,15 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("Cargá al menos una foto del espacio (JPG o PNG).", "A17");
 
             return ResultadoOperacion.Ok();
+        }
+
+        private static bool EsRutaFotoValida(string ruta)
+        {
+            return !string.IsNullOrEmpty(ruta) &&
+                Regex.IsMatch(
+                    ruta,
+                    @"^~/Content/Uploads/Espacios/[a-z0-9](?:[a-z0-9-]{0,126}[a-z0-9])?\.jpg$",
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         }
 
 
@@ -623,10 +632,25 @@ namespace StageUp.BLL
                 TextoBusqueda = NormalizarTexto(filtro.TextoBusqueda),
                 TipoEspacio = NormalizarTexto(filtro.TipoEspacio),
                 Ubicacion = NormalizarTexto(filtro.Ubicacion),
+                Provincia = NormalizarTexto(filtro.Provincia),
+                Ciudad = NormalizarTexto(filtro.Ciudad),
+                Zona = NormalizarTexto(filtro.Zona),
                 TipoPiso = NormalizarTexto(filtro.TipoPiso),
+                Caracteristicas = NormalizarTexto(filtro.Caracteristicas),
+                PrecioMinimo = filtro.PrecioMinimo.HasValue && filtro.PrecioMinimo.Value >= 0 ? filtro.PrecioMinimo : null,
                 PrecioMaximo = filtro.PrecioMaximo.HasValue && filtro.PrecioMaximo.Value > 0 ? filtro.PrecioMaximo : null,
-                CapacidadMinima = filtro.CapacidadMinima.HasValue && filtro.CapacidadMinima.Value > 0 ? filtro.CapacidadMinima : null
+                CapacidadMinima = filtro.CapacidadMinima.HasValue && filtro.CapacidadMinima.Value > 0 ? filtro.CapacidadMinima : null,
+                CalificacionMinima = filtro.CalificacionMinima.HasValue && filtro.CalificacionMinima.Value >= 0 && filtro.CalificacionMinima.Value <= 5
+                    ? filtro.CalificacionMinima
+                    : null
             };
+
+            if (limpio.PrecioMinimo.HasValue && limpio.PrecioMaximo.HasValue && limpio.PrecioMinimo > limpio.PrecioMaximo)
+            {
+                decimal minimo = limpio.PrecioMinimo.Value;
+                limpio.PrecioMinimo = limpio.PrecioMaximo;
+                limpio.PrecioMaximo = minimo;
+            }
 
             string fecha = NormalizarTexto(filtro.FechaDisponibilidad);
             DateTime valorFecha;

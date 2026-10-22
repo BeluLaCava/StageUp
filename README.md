@@ -142,6 +142,8 @@ Completar en el nuevo archivo únicamente los valores necesarios para el entorno
 - Claves asimétricas RSA.
 - Configuración opcional del asistente externo.
 
+Para activar el segundo nivel de soporte automático, configurar en ese archivo `AsistenteApiHabilitado=true`, `AsistenteApiUrl`, `AsistenteApiClave`, `AsistenteApiModelo` y `AsistenteApiTiempoEsperaMs`. También pueden utilizarse las variables de entorno equivalentes `STAGEUP_ASISTENTE_API_HABILITADO`, `STAGEUP_ASISTENTE_API_URL`, `STAGEUP_ASISTENTE_API_CLAVE`, `STAGEUP_ASISTENTE_API_MODELO` y `STAGEUP_ASISTENTE_API_TIEMPO_MS`. Si el proveedor no está configurado o no responde, la aplicación deriva al helpdesk humano sin exponer la consulta sensible.
+
 `AppSettings.private.config` está excluido por `.gitignore`. No se deben publicar contraseñas, claves privadas ni credenciales reales.
 
 Si la base ya contiene información cifrada, debe utilizarse la misma clave AES con la que se generaron esos datos. Después de modificar la configuración privada hay que detener la aplicación y volver a iniciarla.

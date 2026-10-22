@@ -103,11 +103,16 @@ namespace StageUp.MPP
             return Convert.ToInt32(resultado);
         }
 
-        public bool DarDeBaja(CampaniaComercial oCampania)
+        public bool DarDeBaja(CampaniaComercial oCampania, UsuarioInterno oResponsableBitacora, string descripcionBitacora)
         {
             object resultado = Conexion.Instance.LeerEscalar(
                 "sp_CampaniaComercial_DarDeBaja",
-                new Hashtable { { "@idCampaniaComercial", oCampania.IdCampaniaComercial } });
+                new Hashtable
+                {
+                    { "@idCampaniaComercial", oCampania.IdCampaniaComercial },
+                    { "@idUsuarioInterno", oResponsableBitacora.IdUsuarioInterno },
+                    { "@descripcionBitacora", descripcionBitacora }
+                });
 
             return Convert.ToInt32(resultado) > 0;
         }

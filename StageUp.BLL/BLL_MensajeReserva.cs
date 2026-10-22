@@ -44,8 +44,8 @@ namespace StageUp.BLL
         public static bool AdmiteMensajes(Reserva reserva)
         {
             return reserva != null &&
-                reserva.EstadoReserva != EstadoReserva.Rechazada.ToString() &&
-                reserva.EstadoReserva != EstadoReserva.Cancelada.ToString();
+                (reserva.EstadoReserva == EstadoReserva.Aceptada.ToString() ||
+                 reserva.EstadoReserva == EstadoReserva.Finalizada.ToString());
         }
 
 
@@ -110,8 +110,10 @@ namespace StageUp.BLL
             Reserva reserva = detalle.Valor;
             if (!AdmiteMensajes(reserva))
             {
-                return ResultadoOperacion<int>.Error("La reserva está " + (reserva.EstadoReserva ?? string.Empty).ToLowerInvariant() +
-                    ": la conversación queda como registro, pero ya no se pueden enviar mensajes.");
+                return ResultadoOperacion<int>.Error(reserva.EstadoReserva == EstadoReserva.Pendiente.ToString()
+                    ? "La conversación se habilita cuando el gestor aprueba la reserva."
+                    : "La reserva está " + (reserva.EstadoReserva ?? string.Empty).ToLowerInvariant() +
+                      ": la conversación queda como registro, pero ya no se pueden enviar mensajes.");
             }
 
             try

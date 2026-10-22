@@ -395,9 +395,11 @@ namespace StageUp.UI.Explorar
                 imgGaleriaPrincipal.AlternateText = "Fotografía principal de " + espacio.NombreEspacio;
                 rptGaleriaFotos.DataSource = fotos;
                 rptGaleriaFotos.DataBind();
-                litEtiquetaGaleria.Text = fotos[0].Contains("/Images/Espacios/")
-                    ? "IA · Imagen ilustrativa"
-                    : fotos.Count == 1 ? "Foto del espacio" : fotos.Count + " fotografías";
+                litEtiquetaGaleria.Text = fotos.Count > 1
+                    ? string.Empty
+                    : fotos[0].Contains("/Images/Espacios/")
+                        ? "IA · Imagen ilustrativa"
+                        : "Foto del espacio";
             }
 
             litUbicacionPrincipal.Text = Server.HtmlEncode(ObtenerUbicacion(ficha));
@@ -808,7 +810,10 @@ namespace StageUp.UI.Explorar
         private static bool EsFotoValida(string ruta)
         {
             return !string.IsNullOrEmpty(ruta) &&
-                Regex.IsMatch(ruta, @"^~/Content/Uploads/Espacios/[a-f0-9]{32}\.jpg$");
+                Regex.IsMatch(
+                    ruta,
+                    @"^~/Content/Uploads/Espacios/[a-z0-9](?:[a-z0-9-]{0,126}[a-z0-9])?\.jpg$",
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         }
 
         private void MostrarMensajeReserva(string mensaje, bool esError)

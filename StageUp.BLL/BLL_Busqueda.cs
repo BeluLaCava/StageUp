@@ -28,8 +28,14 @@ namespace StageUp.BLL
         public const int LongitudMinimaTexto = 2;
         public const int LongitudMaximaTexto = 100;
         private const int LongitudMaximaUbicacion = 100;
+        private const int LongitudMaximaFiltro = 150;
 
         public static readonly int[] MaximosPermitidos = { 10, 25, 50, 100 };
+        public static readonly Dictionary<string, string> EquipamientosEspacio = new Dictionary<string, string>
+        {
+            { "ESPEJOS", "Espejos" }, { "SONIDO", "Sonido / acústica" }, { "INSTRUMENTOS", "Instrumentos" },
+            { "EQUIPAMIENTO", "Equipamiento técnico" }, { "ESCENARIO", "Escenario" }, { "ILUMINACION", "Iluminación" }
+        };
 
         public static readonly Dictionary<string, string> Ordenes = new Dictionary<string, string>
         {
@@ -81,7 +87,8 @@ namespace StageUp.BLL
             new TipoBusqueda { Codigo = "Ticket", Etiqueta = "Tickets de soporte", PermisoRequerido = "GESTIONAR_SOPORTE" },
             new TipoBusqueda { Codigo = "Novedad", Etiqueta = "Novedades", PermisoRequerido = "GESTIONAR_NOVEDADES" },
             new TipoBusqueda { Codigo = "FAQ", Etiqueta = "Preguntas frecuentes", PermisoRequerido = "GESTIONAR_FAQ" },
-            new TipoBusqueda { Codigo = "Encuesta", Etiqueta = "Encuestas", PermisoRequerido = "GESTIONAR_ENCUESTAS" }
+            new TipoBusqueda { Codigo = "Encuesta", Etiqueta = "Encuestas", PermisoRequerido = "GESTIONAR_ENCUESTAS" },
+            new TipoBusqueda { Codigo = "RegistroActividad", Etiqueta = "Registros de actividad", PermisoRequerido = "VER_BITACORA" }
         };
 
         private readonly MPP_Busqueda _mpp = new MPP_Busqueda();
@@ -213,10 +220,29 @@ namespace StageUp.BLL
                 FechaDesde = pedido.FechaDesde.HasValue ? pedido.FechaDesde.Value.Date : (DateTime?)null,
                 FechaHasta = pedido.FechaHasta.HasValue ? pedido.FechaHasta.Value.Date : (DateTime?)null,
                 Ubicacion = string.IsNullOrWhiteSpace(pedido.Ubicacion) ? null : pedido.Ubicacion.Trim(),
+                TipoEspacio = TextoFiltro(pedido.TipoEspacio),
+                Provincia = TextoFiltro(pedido.Provincia),
+                Ciudad = TextoFiltro(pedido.Ciudad),
+                Zona = TextoFiltro(pedido.Zona),
+                PrecioMinimo = esInterna ? null : pedido.PrecioMinimo,
                 CapacidadMinima = esInterna ? null : pedido.CapacidadMinima,
                 PrecioMaximo = esInterna ? null : pedido.PrecioMaximo,
+                FechaDisponibilidad = esInterna ? null : pedido.FechaDisponibilidad,
+                MinutoDesde = esInterna ? null : pedido.MinutoDesde,
+                MinutoHasta = esInterna ? null : pedido.MinutoHasta,
+                Equipamiento = esInterna || pedido.Equipamiento == null ? new List<string>() : pedido.Equipamiento.Distinct().ToList(),
+                Caracteristicas = esInterna ? null : TextoFiltro(pedido.Caracteristicas),
+                CalificacionMinima = esInterna ? null : pedido.CalificacionMinima,
                 CategoriaNovedad = string.IsNullOrWhiteSpace(pedido.CategoriaNovedad) ? null : pedido.CategoriaNovedad.Trim(),
                 Estado = esInterna && !string.IsNullOrWhiteSpace(pedido.Estado) ? pedido.Estado.Trim() : null,
+                Perfil = esInterna ? TextoFiltro(pedido.Perfil) : null,
+                Rol = esInterna ? TextoFiltro(pedido.Rol) : null,
+                Responsable = esInterna ? TextoFiltro(pedido.Responsable) : null,
+                Nombre = esInterna ? TextoFiltro(pedido.Nombre) : null,
+                Correo = esInterna ? TextoFiltro(pedido.Correo) : null,
+                Operacion = esInterna ? TextoFiltro(pedido.Operacion) : null,
+                EntidadAfectada = esInterna ? TextoFiltro(pedido.EntidadAfectada) : null,
+                IdRegistro = esInterna && pedido.IdRegistro.HasValue && pedido.IdRegistro.Value > 0 ? pedido.IdRegistro : null,
                 Orden = pedido.Orden != null && Ordenes.ContainsKey(pedido.Orden) ? pedido.Orden : FiltroBusquedaGlobal.OrdenRelevancia,
                 Maximo = MaximosPermitidos.Contains(pedido.Maximo) ? pedido.Maximo : 25
             };
@@ -270,6 +296,42 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("El precio máximo tiene que ser mayor a cero.");
             }
 
+            if (limpio.PrecioMinimo.HasValue && limpio.PrecioMinimo.Value < 0)
+            {
+                return ResultadoOperacion.Error("El precio mínimo no puede ser negativo.");
+            }
+
+            if (limpio.PrecioMinimo.HasValue && limpio.PrecioMaximo.HasValue && limpio.PrecioMinimo.Value > limpio.PrecioMaximo.Value)
+            {
+                return ResultadoOperacion.Error("El precio mínimo no puede ser mayor al precio máximo.");
+            }
+
+            if (limpio.FechaDisponibilidad.HasValue &&
+                ((!limpio.MinutoDesde.HasValue && limpio.MinutoHasta.HasValue) || (limpio.MinutoDesde.HasValue && !limpio.MinutoHasta.HasValue)))
+            {
+                return ResultadoOperacion.Error("Para filtrar por horario, completá la hora desde y la hora hasta.");
+            }
+
+            if ((limpio.MinutoDesde.HasValue || limpio.MinutoHasta.HasValue) && !limpio.FechaDisponibilidad.HasValue)
+            {
+                return ResultadoOperacion.Error("Elegí una fecha para aplicar el horario disponible.");
+            }
+
+            if (limpio.MinutoDesde.HasValue && (limpio.MinutoDesde.Value < 0 || limpio.MinutoHasta.Value > 1440 || limpio.MinutoDesde.Value >= limpio.MinutoHasta.Value))
+            {
+                return ResultadoOperacion.Error("Revisá el horario disponible.");
+            }
+
+            if (limpio.CalificacionMinima.HasValue && (limpio.CalificacionMinima.Value < 0 || limpio.CalificacionMinima.Value > 5))
+            {
+                return ResultadoOperacion.Error("La calificación mínima debe estar entre 0 y 5.");
+            }
+
+            if (limpio.Equipamiento.Any(codigo => !EquipamientosEspacio.ContainsKey(codigo)))
+            {
+                return ResultadoOperacion.Error("Elegí equipamiento válido.");
+            }
+
             if (limpio.CategoriaNovedad != null && !CategoriasNovedad.ContainsKey(limpio.CategoriaNovedad))
             {
                 return ResultadoOperacion.Error("Elegí una categoría de novedad válida.");
@@ -306,10 +368,12 @@ namespace StageUp.BLL
 
 
             List<KeyValuePair<string, List<string>>> especificos = new List<KeyValuePair<string, List<string>>>();
-            if (limpio.CapacidadMinima.HasValue || limpio.PrecioMaximo.HasValue)
+            if (limpio.CapacidadMinima.HasValue || limpio.PrecioMinimo.HasValue || limpio.PrecioMaximo.HasValue ||
+                limpio.TipoEspacio != null || limpio.Provincia != null || limpio.Ciudad != null || limpio.Zona != null ||
+                limpio.FechaDisponibilidad.HasValue || limpio.Equipamiento.Count > 0 || limpio.Caracteristicas != null || limpio.CalificacionMinima.HasValue)
             {
                 especificos.Add(new KeyValuePair<string, List<string>>(
-                    limpio.CapacidadMinima.HasValue && limpio.PrecioMaximo.HasValue ? "la capacidad y el precio" : limpio.CapacidadMinima.HasValue ? "la capacidad" : "el precio",
+                    "los datos específicos del espacio",
                     new List<string> { "Espacio" }));
             }
 
@@ -322,6 +386,21 @@ namespace StageUp.BLL
             if (limpio.CategoriaNovedad != null)
             {
                 especificos.Add(new KeyValuePair<string, List<string>>("la categoría", new List<string> { "Novedad" }));
+            }
+
+            if (limpio.Perfil != null)
+            {
+                especificos.Add(new KeyValuePair<string, List<string>>("el perfil", new List<string> { "UsuarioExterno" }));
+            }
+
+            if (limpio.Rol != null)
+            {
+                especificos.Add(new KeyValuePair<string, List<string>>("el rol", new List<string> { "UsuarioInterno" }));
+            }
+
+            if (limpio.Operacion != null || limpio.EntidadAfectada != null)
+            {
+                especificos.Add(new KeyValuePair<string, List<string>>("la operación o entidad afectada", new List<string> { "RegistroActividad" }));
             }
 
             string aviso = null;
@@ -380,6 +459,17 @@ namespace StageUp.BLL
         private static string EscaparLike(string texto)
         {
             return texto.Replace("[", "[[]").Replace("%", "[%]").Replace("_", "[_]");
+        }
+
+        private static string TextoFiltro(string texto)
+        {
+            if (string.IsNullOrWhiteSpace(texto))
+            {
+                return null;
+            }
+
+            string limpio = texto.Trim();
+            return EscaparLike(limpio.Length > LongitudMaximaFiltro ? limpio.Substring(0, LongitudMaximaFiltro) : limpio);
         }
 
         private static ResultadoOperacion ValidarTexto(string texto, out string textoNormalizado)
@@ -455,6 +545,7 @@ namespace StageUp.BLL
                 case "Novedad": return "~/Interno/GestionNovedades.aspx";
                 case "FAQ": return "~/Interno/GestionFaq.aspx";
                 case "Encuesta": return "~/Interno/GestionEncuestas.aspx";
+                case "RegistroActividad": return "~/Interno/RegistrosActividad.aspx";
                 default: return null;
             }
         }

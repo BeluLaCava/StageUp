@@ -38,7 +38,9 @@ namespace StageUp.UI.Explorar
 
             bool hayFiltrosAplicados = !string.IsNullOrWhiteSpace(textoBusqueda) || !string.IsNullOrWhiteSpace(tipoEspacio) ||
                 !string.IsNullOrWhiteSpace(filtro.Ubicacion) || !string.IsNullOrWhiteSpace(filtro.TipoPiso) ||
-                filtro.PrecioMaximo.HasValue || filtro.CapacidadMinima.HasValue ||
+                !string.IsNullOrWhiteSpace(filtro.Provincia) || !string.IsNullOrWhiteSpace(filtro.Ciudad) ||
+                !string.IsNullOrWhiteSpace(filtro.Zona) || !string.IsNullOrWhiteSpace(filtro.Caracteristicas) ||
+                filtro.PrecioMinimo.HasValue || filtro.PrecioMaximo.HasValue || filtro.CalificacionMinima.HasValue || filtro.CapacidadMinima.HasValue ||
                 !string.IsNullOrWhiteSpace(filtro.FechaDisponibilidad) || (filtro.Equipamiento != null && filtro.Equipamiento.Count > 0);
 
 
@@ -149,14 +151,30 @@ namespace StageUp.UI.Explorar
                 TextoBusqueda = textoBusqueda,
                 TipoEspacio = tipoEspacio,
                 Ubicacion = HttpContext.Current.Request.QueryString["ubicacion"],
+                Provincia = HttpContext.Current.Request.QueryString["provincia"],
+                Ciudad = HttpContext.Current.Request.QueryString["ciudad"],
+                Zona = HttpContext.Current.Request.QueryString["zona"],
                 TipoPiso = HttpContext.Current.Request.QueryString["piso"],
+                Caracteristicas = HttpContext.Current.Request.QueryString["caracteristicas"],
                 FechaDisponibilidad = HttpContext.Current.Request.QueryString["fecha"]
             };
+
+            decimal precioMinimo;
+            if (decimal.TryParse(HttpContext.Current.Request.QueryString["precioMin"], NumberStyles.Number, CultureInfo.InvariantCulture, out precioMinimo))
+            {
+                filtro.PrecioMinimo = precioMinimo;
+            }
 
             decimal precioMaximo;
             if (decimal.TryParse(HttpContext.Current.Request.QueryString["precioMax"], NumberStyles.Number, CultureInfo.InvariantCulture, out precioMaximo))
             {
                 filtro.PrecioMaximo = precioMaximo;
+            }
+
+            decimal calificacionMinima;
+            if (decimal.TryParse(HttpContext.Current.Request.QueryString["calificacionMin"], NumberStyles.Number, CultureInfo.InvariantCulture, out calificacionMinima))
+            {
+                filtro.CalificacionMinima = calificacionMinima;
             }
 
             int capacidadMinima;
@@ -165,6 +183,9 @@ namespace StageUp.UI.Explorar
                 filtro.CapacidadMinima = capacidadMinima;
             }
 
+            filtro.MinutoDesde = LeerMinutos(HttpContext.Current.Request.QueryString["horaDesde"]);
+            filtro.MinutoHasta = LeerMinutos(HttpContext.Current.Request.QueryString["horaHasta"]);
+
             string equipamiento = HttpContext.Current.Request.QueryString["equip"];
             if (!string.IsNullOrWhiteSpace(equipamiento))
             {
@@ -172,6 +193,14 @@ namespace StageUp.UI.Explorar
             }
 
             return filtro;
+        }
+
+        private static int? LeerMinutos(string valor)
+        {
+            TimeSpan hora;
+            return TimeSpan.TryParseExact(valor ?? string.Empty, @"hh\:mm", CultureInfo.InvariantCulture, out hora)
+                ? (int?)hora.TotalMinutes
+                : null;
         }
 
         protected string ObtenerResumen(string descripcion)

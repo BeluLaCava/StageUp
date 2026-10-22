@@ -56,6 +56,30 @@
             border-color: rgba(109, 16, 33, 0.72);
             box-shadow: 0 1.15rem 2.6rem rgba(77, 11, 23, 0.14), 0 0 0 1px rgba(109, 16, 33, 0.34) inset;
         }
+        .billetera-lista > .billetera-tarjeta:nth-child(3n + 1) {
+            background:
+                radial-gradient(circle at 88% 12%, rgba(255, 255, 255, 0.78) 0 8%, transparent 23%),
+                radial-gradient(circle at 12% 92%, rgba(122, 12, 32, 0.14) 0 12%, transparent 30%),
+                linear-gradient(135deg, #fff7f5 0%, #f4dfe2 52%, #e9cbd2 100%);
+        }
+        .billetera-lista > .billetera-tarjeta:nth-child(3n + 2) {
+            background:
+                radial-gradient(circle at 88% 12%, rgba(255, 255, 255, 0.76) 0 8%, transparent 23%),
+                radial-gradient(circle at 12% 92%, rgba(172, 105, 66, 0.14) 0 12%, transparent 30%),
+                linear-gradient(135deg, #fffaf5 0%, #f3e1d5 50%, #e6c3ae 100%);
+            border-color: rgba(137, 102, 80, 0.32);
+        }
+        .billetera-lista > .billetera-tarjeta:nth-child(3n) {
+            background:
+                radial-gradient(circle at 88% 12%, rgba(255, 255, 255, 0.76) 0 8%, transparent 23%),
+                radial-gradient(circle at 12% 92%, rgba(88, 55, 83, 0.13) 0 12%, transparent 30%),
+                linear-gradient(135deg, #fff9fb 0%, #eadde8 50%, #d9c5d6 100%);
+            border-color: rgba(88, 55, 83, 0.3);
+        }
+        .billetera-lista > .billetera-tarjeta:nth-child(3n + 2)::before { background: rgba(172, 105, 66, 0.1); }
+        .billetera-lista > .billetera-tarjeta:nth-child(3n)::before { background: rgba(88, 55, 83, 0.09); }
+        .billetera-lista > .billetera-tarjeta:nth-child(3n + 2)::after { color: rgba(123, 72, 45, 0.22); }
+        .billetera-lista > .billetera-tarjeta:nth-child(3n)::after { color: rgba(88, 55, 83, 0.22); }
         .billetera-tarjeta > * { position: relative; z-index: 1; }
         .billetera-cabecera { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
         .billetera-card-main { display: grid; gap: 0.65rem; min-width: 0; }

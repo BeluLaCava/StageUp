@@ -95,9 +95,15 @@ namespace StageUp.BE.Entidades
         public string TipoEspacio { get; set; }
 
         public string Ubicacion { get; set; }
+        public string Provincia { get; set; }
+        public string Ciudad { get; set; }
+        public string Zona { get; set; }
+        public decimal? PrecioMinimo { get; set; }
         public decimal? PrecioMaximo { get; set; }
         public int? CapacidadMinima { get; set; }
         public string TipoPiso { get; set; }
+        public string Caracteristicas { get; set; }
+        public decimal? CalificacionMinima { get; set; }
 
         public string FechaDisponibilidad { get; set; }
         public int? MinutoDesde { get; set; }

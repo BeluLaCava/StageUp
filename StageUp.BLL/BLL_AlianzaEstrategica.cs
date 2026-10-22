@@ -436,23 +436,22 @@ namespace StageUp.BLL
 
             seguimiento.FechaInteraccion = fecha.Value;
             seguimiento.IdUsuarioInternoRegistro = idUsuarioInterno;
-
-            try
-            {
-                _mpp.RegistrarSeguimiento(seguimiento);
-            }
-            catch (ErrorAccesoDatosException)
-            {
-                return ResultadoOperacion.Error("No fue posible guardar el seguimiento en este momento. Intentá nuevamente.", "A24");
-            }
-
-            BLL_CatalogoComercial.Registrar(idUsuarioInterno, "SEGUIMIENTO", EntidadBitacora, alianza.IdAlianzaEstrategica,
+            string descripcionBitacora = BLL_CatalogoComercial.Recortar(
                 "Seguimiento de la alianza con \"" + alianza.NombreEntidad + "\" (" +
                 _catalogos.Nombre(ItemCatalogoComercial.TipoInteraccion, seguimiento.TipoInteraccion) + " del " +
                 seguimiento.FechaInteraccion.ToString("dd/MM/yyyy") + ")." +
                 (seguimiento.EstadoResultante != null
                     ? " Estado: " + TextoEstado(alianza.EstadoAlianza) + " → " + TextoEstado(seguimiento.EstadoResultante) + "."
                     : string.Empty));
+
+            try
+            {
+                _mpp.RegistrarSeguimiento(seguimiento, descripcionBitacora);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error("No fue posible guardar el seguimiento en este momento. Intentá nuevamente.", "A24");
+            }
 
             return ResultadoOperacion.Ok(seguimiento.EstadoResultante != null
                 ? "El seguimiento fue registrado correctamente y la alianza pasó a \"" + TextoEstado(seguimiento.EstadoResultante) + "\"."
@@ -525,21 +524,22 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("El responsable interno tiene que ser un usuario interno activo.", "A17");
             }
 
+            string periodo = renovacion.FechaFin.HasValue
+                ? renovacion.FechaInicio.ToString("dd/MM/yyyy") + " al " + renovacion.FechaFin.Value.ToString("dd/MM/yyyy")
+                : "desde el " + renovacion.FechaInicio.ToString("dd/MM/yyyy") + ", sin fecha de fin";
+            string operacionBitacora = renovacion.Reactivar ? "ACTIVACION" : "RENOVACION";
+            string descripcionBitacora = BLL_CatalogoComercial.Recortar(
+                (renovacion.Reactivar ? "Reactivación" : "Renovación") + " de la alianza con \"" + alianza.NombreEntidad + "\". Nueva vigencia: " + periodo +
+                " (antes " + TextoVigencia(alianza) + ").");
+
             try
             {
-                _mpp.Renovar(renovacion, new UsuarioInterno { IdUsuarioInterno = idUsuarioInterno });
+                _mpp.Renovar(renovacion, new UsuarioInterno { IdUsuarioInterno = idUsuarioInterno }, operacionBitacora, descripcionBitacora);
             }
             catch (ErrorAccesoDatosException)
             {
                 return ResultadoOperacion.Error("No fue posible guardar la renovación en este momento. Intentá nuevamente.", "A24");
             }
-
-            string periodo = renovacion.FechaFin.HasValue
-                ? renovacion.FechaInicio.ToString("dd/MM/yyyy") + " al " + renovacion.FechaFin.Value.ToString("dd/MM/yyyy")
-                : "desde el " + renovacion.FechaInicio.ToString("dd/MM/yyyy") + ", sin fecha de fin";
-            BLL_CatalogoComercial.Registrar(idUsuarioInterno, renovacion.Reactivar ? "ACTIVACION" : "RENOVACION", EntidadBitacora, alianza.IdAlianzaEstrategica,
-                (renovacion.Reactivar ? "Reactivación" : "Renovación") + " de la alianza con \"" + alianza.NombreEntidad + "\". Nueva vigencia: " + periodo +
-                " (antes " + TextoVigencia(alianza) + ").");
 
             return ResultadoOperacion.Ok(renovacion.Reactivar
                 ? "La alianza fue reactivada con la nueva vigencia (" + periodo + ")."
@@ -591,6 +591,10 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("El motivo no puede superar los 2000 caracteres.");
             }
 
+            string descripcionBitacora = BLL_CatalogoComercial.Recortar(
+                accion + " de la alianza con \"" + alianza.NombreEntidad + "\" (estado anterior " + TextoEstado(alianza.EstadoAlianza) + ")." +
+                (motivo != null ? " Motivo: " + motivo : string.Empty));
+
             try
             {
                 _mpp.Cerrar(alianza, new SeguimientoAlianza
@@ -598,7 +602,7 @@ namespace StageUp.BLL
                     EstadoResultante = estado,
                     Observacion = motivo,
                     IdUsuarioInternoRegistro = idUsuarioInterno
-                });
+                }, operacion, descripcionBitacora);
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -606,10 +610,6 @@ namespace StageUp.BLL
                     ? "El estado actual de la alianza no lo permite."
                     : "No fue posible guardar el cambio en este momento. Intentá nuevamente.", "A24");
             }
-
-            BLL_CatalogoComercial.Registrar(idUsuarioInterno, operacion, EntidadBitacora, alianza.IdAlianzaEstrategica,
-                accion + " de la alianza con \"" + alianza.NombreEntidad + "\" (estado anterior " + TextoEstado(alianza.EstadoAlianza) + ")." +
-                (motivo != null ? " Motivo: " + motivo : string.Empty));
 
             return ResultadoOperacion.Ok(mensajeOk);
         }

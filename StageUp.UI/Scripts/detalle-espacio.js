@@ -29,7 +29,7 @@
             lightboxImage.src = thumbnails[current].getAttribute("data-src");
             lightboxImage.alt = "Fotografía " + (current + 1) + " de " + thumbnails.length + " del espacio";
             if (lightboxCounter) {
-                lightboxCounter.textContent = (current + 1) + " / " + thumbnails.length;
+                lightboxCounter.textContent = (current + 1) + " de " + thumbnails.length;
             }
         }
 
@@ -45,7 +45,7 @@
                 thumbnail.classList.toggle("is-active", active);
                 thumbnail.setAttribute("aria-current", active ? "true" : "false");
             });
-            counter.textContent = (current + 1) + " / " + thumbnails.length;
+            counter.textContent = (current + 1) + " de " + thumbnails.length;
             if (lightboxIsOpen()) {
                 updateLightbox();
             }

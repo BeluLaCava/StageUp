@@ -40,9 +40,21 @@ namespace StageUp.BE.Entidades
 
         public string Ubicacion { get; set; }
 
+        public string TipoEspacio { get; set; }
+        public string Provincia { get; set; }
+        public string Ciudad { get; set; }
+        public string Zona { get; set; }
+        public decimal? PrecioMinimo { get; set; }
+
 
         public int? CapacidadMinima { get; set; }
         public decimal? PrecioMaximo { get; set; }
+        public DateTime? FechaDisponibilidad { get; set; }
+        public int? MinutoDesde { get; set; }
+        public int? MinutoHasta { get; set; }
+        public List<string> Equipamiento { get; set; } = new List<string>();
+        public string Caracteristicas { get; set; }
+        public decimal? CalificacionMinima { get; set; }
 
 
         public string CategoriaNovedad { get; set; }
@@ -50,6 +62,15 @@ namespace StageUp.BE.Entidades
 
 
         public string Estado { get; set; }
+
+        public string Perfil { get; set; }
+        public string Rol { get; set; }
+        public string Responsable { get; set; }
+        public string Nombre { get; set; }
+        public string Correo { get; set; }
+        public string Operacion { get; set; }
+        public string EntidadAfectada { get; set; }
+        public int? IdRegistro { get; set; }
 
         public string Orden { get; set; } = OrdenRelevancia;
 
@@ -61,8 +82,13 @@ namespace StageUp.BE.Entidades
             get
             {
                 return FechaDesde.HasValue || FechaHasta.HasValue || !string.IsNullOrEmpty(Ubicacion) ||
-                    CapacidadMinima.HasValue || PrecioMaximo.HasValue || !string.IsNullOrEmpty(CategoriaNovedad) ||
-                    !string.IsNullOrEmpty(Estado);
+                    !string.IsNullOrEmpty(TipoEspacio) || !string.IsNullOrEmpty(Provincia) || !string.IsNullOrEmpty(Ciudad) ||
+                    !string.IsNullOrEmpty(Zona) || PrecioMinimo.HasValue || CapacidadMinima.HasValue || PrecioMaximo.HasValue ||
+                    FechaDisponibilidad.HasValue || MinutoDesde.HasValue || MinutoHasta.HasValue || (Equipamiento != null && Equipamiento.Count > 0) ||
+                    !string.IsNullOrEmpty(Caracteristicas) || CalificacionMinima.HasValue || !string.IsNullOrEmpty(CategoriaNovedad) ||
+                    !string.IsNullOrEmpty(Estado) || !string.IsNullOrEmpty(Perfil) || !string.IsNullOrEmpty(Rol) ||
+                    !string.IsNullOrEmpty(Responsable) || !string.IsNullOrEmpty(Nombre) || !string.IsNullOrEmpty(Correo) ||
+                    !string.IsNullOrEmpty(Operacion) || !string.IsNullOrEmpty(EntidadAfectada) || IdRegistro.HasValue;
             }
         }
 

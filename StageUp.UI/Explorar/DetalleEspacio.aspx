@@ -65,7 +65,7 @@
                         <button class="space-gallery-expand" type="button" data-gallery-expand><span aria-hidden="true">⛶</span> Ver en grande</button>
                         <span class="space-gallery-label"><asp:Literal ID="litEtiquetaGaleria" runat="server" /></span>
                     </div>
-                    <div class="space-gallery-thumbnails" aria-label="Fotografías del espacio">
+                    <div class="space-gallery-thumbnails" aria-label="Fotografías del espacio" aria-hidden="true" hidden>
                         <asp:Repeater ID="rptGaleriaFotos" runat="server">
                             <ItemTemplate>
                                 <button type="button" class="space-gallery-thumbnail" data-gallery-thumbnail
@@ -356,5 +356,5 @@
 </asp:Content>
 
 <asp:Content ID="SpaceDetailScripts" ContentPlaceHolderID="PageScripts" runat="server">
-    <script src="<%= ResolveUrl("~/Scripts/detalle-espacio.js") %>?v=20261008-2"></script>
+    <script src="<%= ResolveUrl("~/Scripts/detalle-espacio.js") %>?v=20261022-1"></script>
 </asp:Content>

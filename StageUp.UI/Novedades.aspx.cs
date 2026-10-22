@@ -29,9 +29,16 @@ namespace StageUp.UI
             if (publicadas.Count > 0)
             {
                 Novedad destacada = publicadas[0];
-                litFeaturedCategoria.Text = Server.HtmlEncode(ObtenerEtiquetaCategoria(destacada.Categoria));
-                litFeaturedTitulo.Text = Server.HtmlEncode(destacada.Titulo);
-                litFeaturedResumen.Text = Server.HtmlEncode(destacada.Resumen);
+                string categoria = Server.HtmlEncode(ObtenerEtiquetaCategoria(destacada.Categoria));
+                string titulo = Server.HtmlEncode(destacada.Titulo);
+                string resumen = Server.HtmlEncode(destacada.Resumen);
+                litFeaturedCategoria.Text = categoria;
+                litFeaturedCategoriaDialogo.Text = categoria;
+                litFeaturedTitulo.Text = titulo;
+                litFeaturedTituloDialogo.Text = titulo;
+                litFeaturedResumen.Text = resumen;
+                litFeaturedResumenDialogo.Text = resumen;
+                litFeaturedContenido.Text = Server.HtmlEncode(destacada.Contenido);
                 imgFeatured.ImageUrl = ResolverUrlImagen(destacada.UrlImagen);
                 imgFeatured.AlternateText = destacada.Titulo;
                 imgFeatured.Visible = TieneImagen(destacada.UrlImagen);

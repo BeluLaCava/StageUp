@@ -108,6 +108,14 @@ namespace StageUp.UI.Interno
             txtDesde.Text = filtro.FechaDesde.HasValue ? filtro.FechaDesde.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : string.Empty;
             txtHasta.Text = filtro.FechaHasta.HasValue ? filtro.FechaHasta.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : string.Empty;
             txtUbicacion.Text = filtro.Ubicacion;
+            Seleccionar(ddlPerfil, filtro.Perfil);
+            txtRol.Text = filtro.Rol;
+            txtResponsable.Text = filtro.Responsable;
+            txtNombre.Text = filtro.Nombre;
+            txtCorreo.Text = filtro.Correo;
+            txtOperacion.Text = filtro.Operacion;
+            txtEntidad.Text = filtro.EntidadAfectada;
+            txtIdRegistro.Text = filtro.IdRegistro.HasValue ? filtro.IdRegistro.Value.ToString(CultureInfo.InvariantCulture) : string.Empty;
             Seleccionar(ddlEstado, filtro.Estado);
             Seleccionar(ddlCategoria, filtro.CategoriaNovedad);
             Seleccionar(ddlOrden, filtro.Orden);
@@ -123,12 +131,25 @@ namespace StageUp.UI.Interno
                 FechaDesde = LeerFecha(txtDesde.Text),
                 FechaHasta = LeerFecha(txtHasta.Text),
                 Ubicacion = string.IsNullOrWhiteSpace(txtUbicacion.Text) ? null : txtUbicacion.Text.Trim(),
+                Perfil = string.IsNullOrEmpty(ddlPerfil.SelectedValue) ? null : ddlPerfil.SelectedValue,
+                Rol = Texto(txtRol.Text),
+                Responsable = Texto(txtResponsable.Text),
+                Nombre = Texto(txtNombre.Text),
+                Correo = Texto(txtCorreo.Text),
+                Operacion = Texto(txtOperacion.Text),
+                EntidadAfectada = Texto(txtEntidad.Text),
                 Estado = string.IsNullOrEmpty(ddlEstado.SelectedValue) ? null : ddlEstado.SelectedValue,
                 CategoriaNovedad = string.IsNullOrEmpty(ddlCategoria.SelectedValue) ? null : ddlCategoria.SelectedValue,
                 Orden = ddlOrden.SelectedValue
             };
 
             int maximo;
+            int identificador;
+            if (int.TryParse(txtIdRegistro.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out identificador))
+            {
+                filtro.IdRegistro = identificador;
+            }
+
             if (int.TryParse(ddlMaximo.SelectedValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out maximo))
             {
                 filtro.Maximo = maximo;
@@ -191,6 +212,11 @@ namespace StageUp.UI.Interno
             return DateTime.TryParseExact((texto ?? string.Empty).Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out fecha)
                 ? fecha
                 : (DateTime?)null;
+        }
+
+        private static string Texto(string valor)
+        {
+            return string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
         }
 
         private void MostrarMensaje(string mensaje, bool esError)

@@ -73,6 +73,12 @@ namespace StageUp.UI
                 ddlMaximo.Items.Add(new ListItem(maximo.ToString(CultureInfo.InvariantCulture), maximo.ToString(CultureInfo.InvariantCulture)));
             }
             ddlMaximo.SelectedValue = "25";
+
+            cblEquipamiento.Items.Clear();
+            foreach (KeyValuePair<string, string> equipo in BLL_Busqueda.EquipamientosEspacio)
+            {
+                cblEquipamiento.Items.Add(new ListItem(equipo.Value, equipo.Key));
+            }
         }
 
         private void MostrarFiltroEnFormulario(FiltroBusquedaGlobal filtro)
@@ -86,8 +92,19 @@ namespace StageUp.UI
             txtDesde.Text = filtro.FechaDesde.HasValue ? filtro.FechaDesde.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : string.Empty;
             txtHasta.Text = filtro.FechaHasta.HasValue ? filtro.FechaHasta.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : string.Empty;
             txtUbicacion.Text = filtro.Ubicacion;
+            txtTipoEspacio.Text = filtro.TipoEspacio;
+            txtProvincia.Text = filtro.Provincia;
+            txtCiudad.Text = filtro.Ciudad;
+            txtZona.Text = filtro.Zona;
+            txtPrecioMinimo.Text = filtro.PrecioMinimo.HasValue ? filtro.PrecioMinimo.Value.ToString("0.##", CultureInfo.InvariantCulture) : string.Empty;
             txtCapacidad.Text = filtro.CapacidadMinima.HasValue ? filtro.CapacidadMinima.Value.ToString(CultureInfo.InvariantCulture) : string.Empty;
             txtPrecio.Text = filtro.PrecioMaximo.HasValue ? filtro.PrecioMaximo.Value.ToString("0.##", CultureInfo.InvariantCulture) : string.Empty;
+            txtFechaDisponible.Text = filtro.FechaDisponibilidad.HasValue ? filtro.FechaDisponibilidad.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) : string.Empty;
+            txtHoraDesde.Text = Hora(filtro.MinutoDesde);
+            txtHoraHasta.Text = Hora(filtro.MinutoHasta);
+            txtCaracteristicas.Text = filtro.Caracteristicas;
+            Seleccionar(ddlCalificacion, filtro.CalificacionMinima.HasValue ? filtro.CalificacionMinima.Value.ToString("0.##", CultureInfo.InvariantCulture) : null);
+            foreach (ListItem item in cblEquipamiento.Items) item.Selected = filtro.Equipamiento.Contains(item.Value);
             Seleccionar(ddlCategoria, filtro.CategoriaNovedad);
             Seleccionar(ddlOrden, filtro.Orden);
             Seleccionar(ddlMaximo, filtro.Maximo.ToString(CultureInfo.InvariantCulture));
@@ -102,6 +119,15 @@ namespace StageUp.UI
                 FechaDesde = LeerFecha(txtDesde.Text),
                 FechaHasta = LeerFecha(txtHasta.Text),
                 Ubicacion = string.IsNullOrWhiteSpace(txtUbicacion.Text) ? null : txtUbicacion.Text.Trim(),
+                TipoEspacio = Texto(txtTipoEspacio.Text),
+                Provincia = Texto(txtProvincia.Text),
+                Ciudad = Texto(txtCiudad.Text),
+                Zona = Texto(txtZona.Text),
+                FechaDisponibilidad = LeerFecha(txtFechaDisponible.Text),
+                MinutoDesde = LeerMinutos(txtHoraDesde.Text),
+                MinutoHasta = LeerMinutos(txtHoraHasta.Text),
+                Equipamiento = cblEquipamiento.Items.Cast<ListItem>().Where(i => i.Selected).Select(i => i.Value).ToList(),
+                Caracteristicas = Texto(txtCaracteristicas.Text),
                 CategoriaNovedad = string.IsNullOrEmpty(ddlCategoria.SelectedValue) ? null : ddlCategoria.SelectedValue,
                 Orden = ddlOrden.SelectedValue
             };
@@ -113,9 +139,19 @@ namespace StageUp.UI
             }
 
             decimal precio;
+            if (decimal.TryParse((txtPrecioMinimo.Text ?? string.Empty).Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out precio))
+            {
+                filtro.PrecioMinimo = precio;
+            }
+
             if (decimal.TryParse((txtPrecio.Text ?? string.Empty).Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out precio))
             {
                 filtro.PrecioMaximo = precio;
+            }
+
+            if (decimal.TryParse(ddlCalificacion.SelectedValue, NumberStyles.Number, CultureInfo.InvariantCulture, out precio))
+            {
+                filtro.CalificacionMinima = precio;
             }
 
             if (int.TryParse(ddlMaximo.SelectedValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out entero))
@@ -169,6 +205,22 @@ namespace StageUp.UI
             return DateTime.TryParseExact((texto ?? string.Empty).Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out fecha)
                 ? fecha
                 : (DateTime?)null;
+        }
+
+        private static int? LeerMinutos(string texto)
+        {
+            TimeSpan hora;
+            return TimeSpan.TryParseExact(texto ?? string.Empty, @"hh\:mm", CultureInfo.InvariantCulture, out hora) ? (int?)hora.TotalMinutes : null;
+        }
+
+        private static string Hora(int? minutos)
+        {
+            return minutos.HasValue ? TimeSpan.FromMinutes(minutos.Value).ToString(@"hh\:mm", CultureInfo.InvariantCulture) : string.Empty;
+        }
+
+        private static string Texto(string valor)
+        {
+            return string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
         }
 
         private void MostrarMensaje(string mensaje, bool esError)

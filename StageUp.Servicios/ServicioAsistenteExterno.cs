@@ -87,6 +87,9 @@ namespace StageUp.Servicios
             @"\b(contrasenas?|contrasenias?|password|passwd|pass|claves?|pin|token|cvv2?|cvc|codigo de seguridad|codigo de verificacion|codigo verificador)\b" +
             @"(?:" + PalabrasIntermedias + @"\s*(?<conector>\bes\b|\bera\b|\bseria\b|\bsera\b|\bson\b|\bfue\b|:|=)\s*|\s*(?<conector>[:=])\s*|\s+)(?<valor>[^\s,;]+)",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex CodigoRecibido = new Regex(
+            @"\b(?:(?:el\s+)?codigo(?:\s+(?:temporal|provisorio|de\s+acceso|de\s+ingreso|de\s+confirmacion|de\s+autenticacion|de\s+recuperacion|de\s+un\s+solo\s+uso|de\s+uso\s+unico))?(?:\s+que\s+(?:(?:me|nos)\s+)?(?:llego|enviaron|mandaron|dieron|pasaron|recibi|recibimos))?|(?:me|nos)\s+(?:llego|enviaron|mandaron|dieron|pasaron)\s+(?:el\s+)?codigo(?:\s+(?:temporal|de\s+acceso|de\s+ingreso|de\s+confirmacion))?)\s*(?:(?<conector>es|era|fue|seria|sera|:|=)\s*)?(?<valor>[A-Za-z0-9][A-Za-z0-9_-]{3,31})\b",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         private static readonly Regex Token = new Regex(@"\b(?:sk-[A-Za-z0-9_\-]{10,}|[A-Za-z0-9_\-]{24,})\b", RegexOptions.Compiled);
 
 
@@ -234,6 +237,11 @@ namespace StageUp.Servicios
                 }
             }
 
+            if (CodigoRecibido.Matches(normalizado).Cast<Match>().Any(EsCodigoPrivado))
+            {
+                return true;
+            }
+
             foreach (Match posible in Tarjeta.Matches(texto))
             {
                 string digitos = Regex.Replace(posible.Value, @"\D", string.Empty);
@@ -277,6 +285,13 @@ namespace StageUp.Servicios
                 (Regex.IsMatch(valor, @"\d") && Regex.IsMatch(valor, @"[A-Za-z]"));
         }
 
+        private static bool EsCodigoPrivado(Match coincidencia)
+        {
+            string valor = coincidencia.Groups["valor"].Value;
+            return Regex.IsMatch(valor, @"^\d{4,12}$") ||
+                (valor.Length >= 5 && Regex.IsMatch(valor, @"\d") && Regex.IsMatch(valor, @"[A-Za-z]"));
+        }
+
 
 
 
@@ -291,7 +306,10 @@ namespace StageUp.Servicios
             }
 
             StringBuilder resultado = new StringBuilder(texto);
-            List<Match> secretos = Secreto.Matches(normalizado).Cast<Match>().Where(EsSecreto).ToList();
+            List<Match> secretos = Secreto.Matches(normalizado).Cast<Match>().Where(EsSecreto)
+                .Concat(CodigoRecibido.Matches(normalizado).Cast<Match>().Where(EsCodigoPrivado))
+                .OrderBy(m => m.Groups["valor"].Index)
+                .ToList();
             for (int i = secretos.Count - 1; i >= 0; i--)
             {
                 Group valor = secretos[i].Groups["valor"];

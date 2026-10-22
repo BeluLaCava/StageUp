@@ -246,16 +246,55 @@ namespace StageUp.UI
                 litPoliticaAhora.Text = DescribirCancelacionAhora(reserva);
             }
 
-            rptSeguimiento.DataSource = esSolicitante
+            var seguimiento = esSolicitante
                 ? BLL_Reserva.ConstruirSeguimiento(reserva)
                 : BLL_Reserva.ConstruirSeguimientoGestor(reserva);
+            rptSeguimientoResumen.DataSource = seguimiento;
+            rptSeguimientoResumen.DataBind();
+            rptSeguimiento.DataSource = seguimiento;
             rptSeguimiento.DataBind();
 
             ConfigurarAcciones(reserva, esSolicitante, esGestor);
             CargarMensajes(reserva, idUsuario, esSolicitante);
 
-            lnkVolverListado.Text = esSolicitante ? "← Volver a Mis reservas" : "← Volver a Solicitudes recibidas";
+            lnkVolverListado.Text = "Volver";
             lnkVolverListado.NavigateUrl = esSolicitante ? "~/MisReservas.aspx" : "~/SolicitudesRecibidas.aspx";
+        }
+
+        protected string ObtenerIconoSeguimiento(string titulo)
+        {
+            if (string.IsNullOrWhiteSpace(titulo))
+            {
+                return "•";
+            }
+
+            string normalizado = titulo.ToLowerInvariant();
+            if (normalizado.Contains("solicitud"))
+            {
+                return "✉";
+            }
+
+            if (normalizado.Contains("pago"))
+            {
+                return "$";
+            }
+
+            if (normalizado.Contains("día") || normalizado.Contains("reserva finalizada"))
+            {
+                return "◷";
+            }
+
+            if (normalizado.Contains("calificación"))
+            {
+                return "★";
+            }
+
+            if (normalizado.Contains("rechazada") || normalizado.Contains("cancelada") || normalizado.Contains("vencido"))
+            {
+                return "!";
+            }
+
+            return "✓";
         }
 
         private void ConfigurarAcciones(Reserva reserva, bool esSolicitante, bool esGestor)
@@ -266,15 +305,17 @@ namespace StageUp.UI
             bool finalizada = estado == EstadoReserva.Finalizada.ToString();
 
             lnkPagar.Visible = esSolicitante && BLL_Pago.EsperaPago(reserva);
+            lnkPagar.Text = "Pagar";
             lnkPagar.NavigateUrl = "~/Pagar.aspx?reserva=" + reserva.IdReserva.ToString(CultureInfo.InvariantCulture);
 
 
             lnkVerPago.Visible = (esSolicitante || esGestor) &&
                 (reserva.EstadoPago == BLL_Pago.EstadoPagado || reserva.EstadoPago == BLL_Pago.EstadoDevuelto);
+            lnkVerPago.Text = "Ver pago";
             lnkVerPago.NavigateUrl = "~/DetallePago.aspx?reserva=" + reserva.IdReserva.ToString(CultureInfo.InvariantCulture);
 
             btnCancelar.Visible = esSolicitante && (pendiente || aceptada);
-            btnCancelar.Text = pendiente ? "Cancelar solicitud" : "Cancelar reserva";
+            btnCancelar.Text = pendiente ? "Cancelar solicitud" : "Cancelar";
 
             btnAceptar.Visible = esGestor && pendiente;
             btnRechazar.Visible = esGestor && pendiente;
@@ -297,6 +338,7 @@ namespace StageUp.UI
             }
 
             lnkSoporte.Visible = esSolicitante;
+            lnkSoporte.Text = "Soporte";
             lnkSoporte.NavigateUrl = "~/Soporte.aspx?reserva=" + reserva.IdReserva.ToString(CultureInfo.InvariantCulture);
 
             bool hayAcciones = lnkPagar.Visible || lnkVerPago.Visible || btnCancelar.Visible || btnAceptar.Visible || btnRechazar.Visible ||
@@ -341,8 +383,10 @@ namespace StageUp.UI
             bool admite = BLL_MensajeReserva.AdmiteMensajes(reserva);
             pnlEscribirMensaje.Visible = admite;
             pnlMensajesCerrados.Visible = !admite;
-            litMensajesCerrados.Text = "La reserva está " + (reserva.EstadoReserva ?? string.Empty).ToLowerInvariant() +
-                ": la conversación queda como registro, pero ya no se pueden enviar mensajes.";
+            litMensajesCerrados.Text = reserva.EstadoReserva == EstadoReserva.Pendiente.ToString()
+                ? "La conversación privada se habilita cuando el gestor aprueba la reserva."
+                : "La reserva está " + (reserva.EstadoReserva ?? string.Empty).ToLowerInvariant() +
+                  ": la conversación queda como registro, pero ya no se pueden enviar mensajes.";
         }
 
         protected string ClaseMensaje(object dato)

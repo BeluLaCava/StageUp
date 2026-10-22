@@ -28,6 +28,7 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Literal litComentarioSolicitante;
         protected global::System.Web.UI.WebControls.Panel pnlComentarioResolucion;
         protected global::System.Web.UI.WebControls.Literal litComentarioResolucion;
+        protected global::System.Web.UI.WebControls.Repeater rptSeguimientoResumen;
         protected global::System.Web.UI.WebControls.Repeater rptSeguimiento;
         protected global::System.Web.UI.WebControls.Literal litSolicitante;
         protected global::System.Web.UI.WebControls.Label lblCorreoSolicitante;
@@ -42,9 +43,9 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.HyperLink lnkPagar;
 
         protected global::System.Web.UI.WebControls.HyperLink lnkVerPago;
-        protected global::System.Web.UI.WebControls.Button btnCancelar;
-        protected global::System.Web.UI.WebControls.Button btnAceptar;
-        protected global::System.Web.UI.WebControls.Button btnRechazar;
+        protected global::System.Web.UI.WebControls.LinkButton btnCancelar;
+        protected global::System.Web.UI.WebControls.LinkButton btnAceptar;
+        protected global::System.Web.UI.WebControls.LinkButton btnRechazar;
         protected global::System.Web.UI.WebControls.HyperLink lnkCalificar;
         protected global::System.Web.UI.WebControls.HyperLink lnkSoporte;
         protected global::System.Web.UI.WebControls.Panel pnlSinAcciones;

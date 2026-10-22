@@ -196,6 +196,7 @@
                     <span class="admin-card-eyebrow">Pagos</span>
                     <h2>Pagos recibidos y rechazados</h2>
                 </div>
+                <div class="gcc-pagos-filtros" data-admin-filter>
                 <div class="gcc-filtros">
                     <div class="form-field">
                         <label for="<%= txtPagosDesde.ClientID %>">Desde</label>
@@ -216,6 +217,7 @@
                 </div>
                 <div class="form-actions">
                     <asp:Button ID="btnFiltrarPagos" runat="server" CssClass="button button-primary" Text="Filtrar" CausesValidation="false" OnClick="btnFiltrarPagos_Click" />
+                </div>
                 </div>
                 <asp:Panel ID="pnlSinPagos" runat="server" CssClass="admin-empty-hint" Visible="false">No hay pagos en ese período.</asp:Panel>
                 <div class="gcc-tabla-wrap">

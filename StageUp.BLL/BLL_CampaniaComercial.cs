@@ -348,9 +348,12 @@ namespace StageUp.BLL
                     : "La campaña ya estaba dada de baja.");
             }
 
+            string descripcionBitacora = BLL_CatalogoComercial.Recortar(
+                "Baja lógica de la campaña comercial \"" + campania.Nombre + "\" (estado " + TextoEstado(campania) + "). Se conserva para consulta histórica.");
+
             try
             {
-                if (!_mpp.DarDeBaja(campania))
+                if (!_mpp.DarDeBaja(campania, new UsuarioInterno { IdUsuarioInterno = idUsuarioInternoResponsable }, descripcionBitacora))
                 {
                     return ResultadoOperacion.Error("La campaña ya estaba dada de baja.");
                 }
@@ -359,9 +362,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error("No fue posible dar de baja la campaña en este momento. Intentá nuevamente.");
             }
-
-            BLL_CatalogoComercial.Registrar(idUsuarioInternoResponsable, "BAJA", EntidadBitacora, idCampaniaComercial,
-                "Baja lógica de la campaña comercial \"" + campania.Nombre + "\" (estado " + TextoEstado(campania) + "). Se conserva para consulta histórica.");
 
             return ResultadoOperacion.Ok("La campaña fue dada de baja correctamente. Se conserva para consulta histórica y análisis posterior.");
         }

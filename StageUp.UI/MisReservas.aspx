@@ -9,6 +9,15 @@
         .reserva-historial-meta { color: var(--color-text-muted, #6b7280); font-size: 0.88em; margin: 2px 0; }
         .reserva-pago { margin: 6px 0; padding: 8px 12px; border-radius: 10px; font-size: 0.9em; background: #fcf7f3; border-left: 4px solid #896650; }
         .reserva-pago-pendiente { background: #fff4e5; border-left-color: #b45309; color: #78350f; }
+        .reservation-history-summary { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem 1.5rem; align-items: start; }
+        .reservation-history-copy { grid-column: 1 / -1; min-width: 0; }
+        .reservation-history-copy p { max-width: none; }
+        .booking-progress.booking-progress-reservation { width: 100%; max-width: none; margin-inline: auto; }
+        @media (max-width: 56rem) {
+            .reservation-history-summary { grid-template-columns: 1fr; }
+            .reservation-history-summary .space-row-actions,
+            .reservation-history-copy { grid-column: 1; }
+        }
     </style>
     <section class="static-page user-module-page">
         <div class="static-page-header">
@@ -38,22 +47,39 @@
                 <asp:Repeater ID="rptMisReservas" runat="server" OnItemCommand="rptMisReservas_ItemCommand" OnItemDataBound="rptMisReservas_ItemDataBound">
                     <ItemTemplate>
                         <div class="space-row reservation-history-row">
-                            <div class="space-row-info">
-                                <h3><%# Eval("NombreEspacio") %></h3>
-                                <p>Fecha del alquiler: <%# Eval("FechaSolicitada", "{0:dd/MM/yyyy}") %> · Estado: <%# Eval("EstadoReserva") %></p>
-                                <p class="reserva-historial-meta">
-                                    N° <%# Eval("IdReserva") %> · Solicitada el <%# Eval("FechaCreacion", "{0:dd/MM/yyyy HH:mm}") %>
-                                    <%#: string.IsNullOrEmpty(Eval("NombreGestor") as string) ? "" : " · Gestor: " + Eval("NombreGestor") %>
-                                </p>
-                                <p class="space-row-horario">
-                                    <asp:Literal ID="litHorarioImporte" runat="server"
-                                        Visible='<%# ((StageUp.BE.Entidades.Reserva)Container.DataItem).MinutoDesde.HasValue %>' />
-                                </p>
-                                <p class="space-row-descripcion"><%# Eval("ComentarioSolicitante") %></p>
-                                <asp:Literal ID="litComentarioResolucion" runat="server" Visible='<%# !string.IsNullOrEmpty(Eval("ComentarioResolucion") as string) %>' />
-                                <asp:Panel ID="pnlEstadoPago" runat="server" CssClass="reserva-pago" Visible="false">
-                                    <asp:Literal ID="litEstadoPago" runat="server" />
-                                </asp:Panel>
+                            <div class="reservation-history-summary">
+                                <div class="space-row-info">
+                                    <h3><%# Eval("NombreEspacio") %></h3>
+                                    <p>Fecha del alquiler: <%# Eval("FechaSolicitada", "{0:dd/MM/yyyy}") %> · Estado: <%# Eval("EstadoReserva") %></p>
+                                    <p class="reserva-historial-meta">
+                                        N° <%# Eval("IdReserva") %> · Solicitada el <%# Eval("FechaCreacion", "{0:dd/MM/yyyy HH:mm}") %>
+                                        <%#: string.IsNullOrEmpty(Eval("NombreGestor") as string) ? "" : " · Gestor: " + Eval("NombreGestor") %>
+                                    </p>
+                                </div>
+                                <div class="space-row-actions">
+                                    <a class="button button-secondary button-small" href='<%#: "DetalleReserva.aspx?id=" + Eval("IdReserva") %>'>Ver detalle</a>
+                                    <a class="text-link" href='<%#: "DetalleReserva.aspx?id=" + Eval("IdReserva") + "&ver=mensajes" %>'>Mensajes con el gestor<%# EtiquetaMensajesNoLeidos((int)Eval("IdReserva")) %></a>
+                                    <asp:HyperLink ID="lnkPagar" runat="server" CssClass="button button-primary button-small" Text="Pagar reserva" Visible="false" />
+                                    <asp:LinkButton ID="lnkCancelar" runat="server" CssClass="text-link" CausesValidation="false"
+                                        CommandName="Cancelar" CommandArgument='<%# Eval("IdReserva") %>' Text="Cancelar" />
+                                    <asp:LinkButton ID="lnkCalificarEspacio" runat="server" CssClass="button button-primary button-small" CausesValidation="false"
+                                        CommandName="CalificarEspacio" CommandArgument='<%# Eval("IdReserva") %>' Text="Calificar espacio" data-i18n="Calificacion_CalificarEspacio" />
+                                    <asp:Panel ID="pnlCalificacionEspacioRealizada" runat="server" CssClass="review-completed-badge">
+                                        <span aria-hidden="true">✓</span> <span data-i18n="Calificacion_ResenaEnviada">Reseña enviada</span>
+                                    </asp:Panel>
+                                    <a class="text-link" href='<%#: "Soporte.aspx?reserva=" + Eval("IdReserva") %>'>Contactar soporte</a>
+                                </div>
+                                <div class="space-row-info reservation-history-copy">
+                                    <p class="space-row-horario">
+                                        <asp:Literal ID="litHorarioImporte" runat="server"
+                                            Visible='<%# ((StageUp.BE.Entidades.Reserva)Container.DataItem).MinutoDesde.HasValue %>' />
+                                    </p>
+                                    <p class="space-row-descripcion"><%# Eval("ComentarioSolicitante") %></p>
+                                    <asp:Literal ID="litComentarioResolucion" runat="server" Visible='<%# !string.IsNullOrEmpty(Eval("ComentarioResolucion") as string) %>' />
+                                    <asp:Panel ID="pnlEstadoPago" runat="server" CssClass="reserva-pago" Visible="false">
+                                        <asp:Literal ID="litEstadoPago" runat="server" />
+                                    </asp:Panel>
+                                </div>
                             </div>
                             <section class="booking-progress booking-progress-reservation" aria-label="Seguimiento de la reserva">
                                     <ol class="booking-progress-steps">
@@ -86,19 +112,6 @@
                                         </ol>
                                     </details>
                             </section>
-                            <div class="space-row-actions">
-                                <a class="button button-secondary button-small" href='<%#: "DetalleReserva.aspx?id=" + Eval("IdReserva") %>'>Ver detalle</a>
-                                <a class="text-link" href='<%#: "DetalleReserva.aspx?id=" + Eval("IdReserva") + "&ver=mensajes" %>'>Mensajes con el gestor<%# EtiquetaMensajesNoLeidos((int)Eval("IdReserva")) %></a>
-                                <asp:HyperLink ID="lnkPagar" runat="server" CssClass="button button-primary button-small" Text="Pagar reserva" Visible="false" />
-                                <asp:LinkButton ID="lnkCancelar" runat="server" CssClass="text-link" CausesValidation="false"
-                                    CommandName="Cancelar" CommandArgument='<%# Eval("IdReserva") %>' Text="Cancelar" />
-                                <asp:LinkButton ID="lnkCalificarEspacio" runat="server" CssClass="button button-primary button-small" CausesValidation="false"
-                                    CommandName="CalificarEspacio" CommandArgument='<%# Eval("IdReserva") %>' Text="Calificar espacio" data-i18n="Calificacion_CalificarEspacio" />
-                                <asp:Panel ID="pnlCalificacionEspacioRealizada" runat="server" CssClass="review-completed-badge">
-                                    <span aria-hidden="true">✓</span> <span data-i18n="Calificacion_ResenaEnviada">Reseña enviada</span>
-                                </asp:Panel>
-                                <a class="text-link" href='<%#: "Soporte.aspx?reserva=" + Eval("IdReserva") %>'>Contactar soporte</a>
-                            </div>
                         </div>
                     </ItemTemplate>
                 </asp:Repeater>

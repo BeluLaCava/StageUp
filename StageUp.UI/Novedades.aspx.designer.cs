@@ -8,6 +8,10 @@ namespace StageUp.UI
         protected global::System.Web.UI.WebControls.Literal litFeaturedCategoria;
         protected global::System.Web.UI.WebControls.Literal litFeaturedTitulo;
         protected global::System.Web.UI.WebControls.Literal litFeaturedResumen;
+        protected global::System.Web.UI.WebControls.Literal litFeaturedCategoriaDialogo;
+        protected global::System.Web.UI.WebControls.Literal litFeaturedTituloDialogo;
+        protected global::System.Web.UI.WebControls.Literal litFeaturedResumenDialogo;
+        protected global::System.Web.UI.WebControls.Literal litFeaturedContenido;
         protected global::System.Web.UI.WebControls.Panel pnlSinMasNovedades;
         protected global::System.Web.UI.WebControls.Repeater rptNovedades;
     }

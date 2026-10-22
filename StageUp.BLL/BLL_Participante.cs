@@ -8,14 +8,14 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-001-010 Gestionar participantes de actividades internas.
-    //
-    // Directorio de participantes de un gestor (no son usuarios de StageUp),
-    // que después se asocian a sus actividades internas. Validaciones del
-    // documento: campos obligatorios (A3, todos juntos), DNI con formato
-    // válido (A4) y sin repetir entre los participantes activos del gestor
-    // (A5 / A12). También se valida el correo si se carga y se evita repetirlo.
-    // La baja es lógica y conserva las asociaciones anteriores (A14).
+
+
+
+
+
+
+
+
     public class BLL_Participante
     {
         private readonly MPP_Participante _mppParticipante = new MPP_Participante();
@@ -36,9 +36,9 @@ namespace StageUp.BLL
         private static readonly Regex FormatoTelefono =
             new Regex(@"^\+?[0-9][0-9 \-()]{5,28}$", RegexOptions.Compiled);
 
-        // ------------------------------------------------------------------
-        // Alta y modificación (pasos 15 a 19, A11)
-        // ------------------------------------------------------------------
+
+
+
         public ResultadoOperacion<int> Guardar(Participante participante, int idUsuarioGestor)
         {
             return EjecutarProtegido(() =>
@@ -67,14 +67,14 @@ namespace StageUp.BLL
                 Normalizar(participante);
                 participante.IdUsuarioGestor = idUsuarioGestor;
 
-                // A3, A4 / A12.
+
                 ResultadoOperacion validacion = Validar(participante, esNuevo);
                 if (!validacion.Exitoso)
                 {
                     return ResultadoOperacion<int>.Error(validacion.Mensaje, validacion.CodigoAlternativo);
                 }
 
-                // A5 / A12: otro participante activo con el mismo DNI o correo.
+
                 string coincidencia;
                 Participante duplicado = _mppParticipante.BuscarDuplicado(participante, out coincidencia);
                 if (duplicado != null)
@@ -108,8 +108,8 @@ namespace StageUp.BLL
             return participante.IdParticipante;
         }
 
-        // A5 paso 3: participante activo del gestor con ese DNI (para ofrecer
-        // asociarlo a la actividad en lugar de registrarlo de nuevo).
+
+
         public Participante BuscarActivoPorDni(string dni, int idUsuarioGestor)
         {
             try
@@ -131,9 +131,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // A14: baja lógica
-        // ------------------------------------------------------------------
+
+
+
         public ResultadoOperacion DarDeBaja(int idParticipante, int idUsuarioGestor)
         {
             return EjecutarProtegido(() =>
@@ -160,9 +160,9 @@ namespace StageUp.BLL
             });
         }
 
-        // ------------------------------------------------------------------
-        // Consultas
-        // ------------------------------------------------------------------
+
+
+
         public List<Participante> ListarPorUsuarioGestor(int idUsuarioGestor)
         {
             try
@@ -175,7 +175,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Solapa Participantes: filtro de estado y búsqueda (en la consulta).
+
         public List<Participante> Buscar(int idUsuarioGestor, string estado, string texto)
         {
             try
@@ -187,7 +187,7 @@ namespace StageUp.BLL
                     busqueda = busqueda.Substring(0, 100);
                 }
 
-                // Los comodines de LIKE se buscan como texto.
+
                 busqueda = busqueda.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_").Replace("[", "\\[");
                 return _mppParticipante.Buscar(new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor }, filtro,
                     busqueda.Length == 0 ? null : busqueda);
@@ -204,7 +204,7 @@ namespace StageUp.BLL
             return participante != null && participante.Activo ? participante : null;
         }
 
-        // A10: detalle con actividades vigentes e historial.
+
         public Participante ObtenerDetalle(int idParticipante, int idUsuarioGestor)
         {
             try
@@ -224,12 +224,12 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // Validaciones
-        // ------------------------------------------------------------------
 
-        // DNI: se aceptan puntos y espacios al cargarlo; se guarda solo con
-        // los números.
+
+
+
+
+
         public static string NormalizarDni(string dni)
         {
             return Regex.Replace(dni ?? string.Empty, @"[\s\.\-]", string.Empty);
@@ -277,7 +277,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("El nombre y el apellido pueden tener hasta " + LongitudMaximaNombre + " caracteres.", codigoDatos);
             }
 
-            // A4: DNI argentino de 7 u 8 números.
+
             if (!Regex.IsMatch(participante.Dni, @"^[0-9]{7,8}$"))
             {
                 return ResultadoOperacion.Error("El DNI no tiene un formato válido: tiene que tener 7 u 8 números (podés escribirlo con o sin puntos).",

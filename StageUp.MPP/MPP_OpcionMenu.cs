@@ -7,9 +7,9 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // ABMC del menú dinámico (ítem 19, script 45). Mismo patrón que el resto
-    // de los mappers: Conexion.Instance + Hashtable, y todos los métodos
-    // reciben objetos.
+
+
+
     public class MPP_OpcionMenu
     {
         public List<OpcionMenu> Listar()

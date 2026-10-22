@@ -7,14 +7,14 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    // Ítem 12 (actualización periódica del helpdesk): las pantallas de
-    // soporte preguntan cada tanto por la "marca" de lo que están mostrando
-    // y, si cambió, avisan que hay novedades (Scripts/soporte-novedades.js).
-    // Solo lee; no marca nada como leído.
-    //   GET ?vista=usuario-listado
-    //   GET ?vista=usuario-detalle&id=ID
-    //   GET ?vista=interno-listado          (GESTIONAR_SOPORTE)
-    //   GET ?vista=interno-detalle&id=ID    (GESTIONAR_SOPORTE)
+
+
+
+
+
+
+
+
     public class SoporteNovedades : IHttpHandler, IReadOnlySessionState
     {
         public bool IsReusable

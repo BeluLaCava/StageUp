@@ -7,8 +7,8 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    // CU-002-001: detalle del pago aprobado de una reserva y su factura
-    // simulada, para el solicitante que pagó y para el gestor del espacio.
+
+
     public partial class DetallePago : Page
     {
         private readonly BLL_Pago _bllPago = new BLL_Pago();

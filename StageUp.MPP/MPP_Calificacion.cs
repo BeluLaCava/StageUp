@@ -93,8 +93,8 @@ namespace StageUp.MPP
                 "idUsuarioExterno");
         }
 
-        // Ítem 36 (script 51): solo los usuarios pedidos, en vez de calcular la
-        // reputación de todos los usuarios del sistema.
+
+
         public Dictionary<int, ResumenReputacion> ListarResumenesPorUsuarios(IEnumerable<int> idsUsuarios)
         {
             List<int> ids = new List<int>(idsUsuarios);
@@ -110,12 +110,12 @@ namespace StageUp.MPP
                 "idUsuarioExterno");
         }
 
-        // Ítem 36 del checklist de correcciones: reemplaza, para uso de
-        // BLL_Reserva.CompletarReputacionSolicitantes, el patrón anterior de
-        // llamar ListarRecibidasPorUsuario (historial completo) por cada
-        // solicitante distinto y recortarlo a 3 en memoria. Ahora se resuelve
-        // para todos los solicitantes pedidos en una sola consulta, ya
-        // recortada a las 3 calificaciones más recientes por usuario.
+
+
+
+
+
+
         public Dictionary<int, List<Calificacion>> ListarRecibidasTop3PorUsuarios(IEnumerable<int> idsUsuarios)
         {
             List<int> ids = new List<int>(idsUsuarios);

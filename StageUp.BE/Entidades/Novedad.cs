@@ -2,8 +2,8 @@ using System;
 
 namespace StageUp.BE.Entidades
 {
-    // Novedad pública de StageUp. Estado (calculado en vw_Novedad, script 75):
-    // Borrador, Programada, Vigente, Vencida o DadaDeBaja.
+
+
     public class Novedad
     {
         public const string EstadoBorrador = "Borrador";

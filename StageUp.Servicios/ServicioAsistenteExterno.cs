@@ -19,8 +19,8 @@ namespace StageUp.Servicios
         NoConfigurado,
         TiempoAgotado,
         NoDisponible,
-        // La consulta tenía datos privados (contraseña, código de seguridad,
-        // número de tarjeta, clave o token): no se envió al proveedor.
+
+
         Bloqueada
     }
 
@@ -35,24 +35,24 @@ namespace StageUp.Servicios
         }
     }
 
-    // Asistente automático de soporte por API (servicio externo de lenguaje).
-    // Lo usa BLL_AsistenteAyuda solo cuando una consulta escrita no coincide
-    // con el árbol del asistente.
-    //   * API compatible con "chat completions" (OpenAI, Azure OpenAI o un
-    //     servidor local como Ollama o LM Studio).
-    //   * Configuración privada (AppSettings.private.config o variables de
-    //     entorno): AsistenteApiHabilitado, AsistenteApiUrl, AsistenteApiClave,
-    //     AsistenteApiModelo y AsistenteApiTiempoEsperaMs. Nada va en el código.
-    //   * Tiempo de espera corto (por defecto 8 s). Si la API falla o tarda,
-    //     se deja de llamar durante un minuto para no hacer esperar a los
-    //     siguientes usuarios, y el asistente deriva a soporte.
-    //   * Una consulta con datos privados (contraseñas, claves, PIN, código de
-    //     seguridad/CVV, números de tarjeta válidos, tokens o claves de API)
-    //     no se envía: el proveedor nunca la recibe y se ofrece soporte.
-    //     Pedirle al modelo que no repita datos no alcanza, porque ya los
-    //     habría recibido.
-    //   * En el resto se ocultan correos, teléfonos, documentos y CBU antes
-    //     de enviar. Nunca se envían datos de la cuenta del usuario.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public class ServicioAsistenteExterno
     {
         private const int TiempoEsperaPorDefecto = 8000;
@@ -71,12 +71,12 @@ namespace StageUp.Servicios
         private static readonly Regex Telefono = new Regex(@"(\+?\d[\s\-\.\(\)]?){8,}", RegexOptions.Compiled);
         private static readonly Regex Documento = new Regex(@"\b\d{1,2}\.?\d{3}\.?\d{3}\b", RegexOptions.Compiled);
 
-        // Palabra que anuncia un secreto, seguida (o no) de un conector y del
-        // valor: "mi contraseña es ...", "clave: ...", "cvv 123". Entre la
-        // palabra y el conector puede haber palabras que la describen: "mi
-        // contraseña actual es ...", "el código de seguridad de mi tarjeta
-        // es ...", "mi PIN nuevo: ...". Solo palabras de esa lista, para no
-        // tomar como secreto el resto de una frase común.
+
+
+
+
+
+
         private const string PalabrasIntermedias =
             @"(?:\s+(?:actual|actuales|nueva|nuevo|vieja|viejo|anterior|temporal|provisoria|provisorio|definitiva|real|verdadera|" +
             @"de|del|la|el|los|las|mi|mis|tu|tus|su|sus|esta|este|cuenta|tarjeta|tarjetas|banco|bancaria|bancario|home|banking|" +
@@ -89,8 +89,8 @@ namespace StageUp.Servicios
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex Token = new Regex(@"\b(?:sk-[A-Za-z0-9_\-]{10,}|[A-Za-z0-9_\-]{24,})\b", RegexOptions.Compiled);
 
-        // Palabras que pueden seguir a "contraseña" o "clave" en una consulta
-        // común ("olvidé mi contraseña", "la clave no funciona").
+
+
         private static readonly HashSet<string> NoEsValor = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "no", "nueva", "nuevo", "anterior", "actual", "vieja", "incorrecta", "incorrecto", "invalida", "invalido", "correcta", "correcto",
@@ -108,8 +108,8 @@ namespace StageUp.Servicios
             }
         }
 
-        // contexto: contenido público de ayuda de StageUp para orientar la
-        // respuesta (no incluye datos de usuarios).
+
+
         public ResultadoAsistenteExterno Consultar(string consulta, string contexto)
         {
             if (!EstaHabilitado)
@@ -132,7 +132,7 @@ namespace StageUp.Servicios
                 }
             }
 
-            // Con datos privados no se envía nada: el proveedor no los recibe.
+
             if (ContieneDatosPrivados(consulta))
             {
                 return ResultadoAsistenteExterno.Crear(EstadoAsistenteExterno.Bloqueada);
@@ -217,7 +217,7 @@ namespace StageUp.Servicios
             }
         }
 
-        // true si la consulta trae un secreto que no puede salir de StageUp.
+
         public static bool ContieneDatosPrivados(string texto)
         {
             if (string.IsNullOrWhiteSpace(texto))
@@ -254,9 +254,9 @@ namespace StageUp.Servicios
             return false;
         }
 
-        // El valor que sigue a la palabra (contraseña, PIN, CVV...) es un
-        // secreto si viene con conector ("es", ":") o si tiene forma de clave
-        // (números, símbolos, o mayúsculas y minúsculas).
+
+
+
         private static bool EsSecreto(Match coincidencia)
         {
             string valor = coincidencia.Groups["valor"].Value.Trim('.', '"', '\'', '(', ')', '!', '?');
@@ -277,16 +277,16 @@ namespace StageUp.Servicios
                 (Regex.IsMatch(valor, @"\d") && Regex.IsMatch(valor, @"[A-Za-z]"));
         }
 
-        // Reemplaza el valor de cada secreto. La búsqueda se hace sobre el
-        // texto sin tildes (mismo largo que el original), así las posiciones
-        // coinciden y el resto del texto queda igual.
+
+
+
         private static string OcultarSecretos(string texto)
         {
             string normalizado = SinTildes(texto);
             if (normalizado.Length != texto.Length)
             {
-                // Caso raro (caracteres que cambian de largo al normalizar):
-                // se trabaja directamente sobre el texto sin tildes.
+
+
                 texto = normalizado;
             }
 
@@ -333,7 +333,7 @@ namespace StageUp.Servicios
             return resultado.ToString().Normalize(System.Text.NormalizationForm.FormC);
         }
 
-        // Oculta datos personales o de pago que el usuario haya escrito.
+
         public static string OcultarDatosSensibles(string texto)
         {
             if (string.IsNullOrEmpty(texto))
@@ -341,8 +341,8 @@ namespace StageUp.Servicios
                 return string.Empty;
             }
 
-            // Primero los secretos ("mi PIN actual es 4321" -> "mi PIN actual
-            // es [dato oculto]"), con el mismo criterio que ContieneDatosPrivados.
+
+
             string resultado = OcultarSecretos(texto);
             resultado = Token.Replace(resultado, m => EsToken(m.Value) ? "[dato oculto]" : m.Value);
             resultado = Correo.Replace(resultado, "[correo oculto]");
@@ -392,7 +392,7 @@ namespace StageUp.Servicios
             }
         }
 
-        // Para pruebas: vuelve a habilitar las llamadas después de una falla.
+
         public static void ReiniciarPausa()
         {
             lock (Bloqueo)

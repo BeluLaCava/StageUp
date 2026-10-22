@@ -7,12 +7,12 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-004-004 Consultar métricas comerciales y origen de usuarios. Es solo
-    // de consulta: no modifica nada.
-    //   * Indicadores: nuevos usuarios, espacios incorporados, campañas
-    //     activas, contactos convertidos en usuarios y distribución por origen.
-    //   * Filtros: período, campaña, canal de origen y tipo de usuario.
-    //   * Los usuarios sin origen se agrupan en "Origen no informado" (A8).
+
+
+
+
+
+
     public class BLL_MetricasComerciales
     {
         public const string PermisoConsultar = "CONSULTAR_METRICAS_COMERCIALES";
@@ -52,8 +52,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Pasos 13 a 15: usuarios por canal de origen, con el detalle de cada
-        // origen y el porcentaje sobre el total del filtro.
+
+
         public ResultadoOperacion<List<MetricaCanalOrigen>> ListarPorCanal(FiltroMetricasComerciales filtro)
         {
             string error = Normalizar(filtro);
@@ -83,7 +83,7 @@ namespace StageUp.BLL
                     Porcentaje = total == 0 ? 0m : Math.Round(g.Sum(o => o.CantidadUsuarios) * 100m / total, 1),
                     Origenes = g.OrderByDescending(o => o.CantidadUsuarios).ToList()
                 })
-                // El origen no informado va al final, para no confundirlo con un canal.
+
                 .OrderBy(c => c.CanalOrigen == FiltroMetricasComerciales.CanalNoInformado ? 1 : 0)
                 .ThenByDescending(c => c.CantidadUsuarios)
                 .ToList();

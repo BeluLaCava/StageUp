@@ -6,9 +6,9 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // CU-001-008 Gestionar disponibilidad de espacios artísticos (script 56):
-    // alta, modificación y eliminación de una franja manual por vez. Los SP
-    // solo tocan franjas con origen 'Manual' del espacio indicado.
+
+
+
     public class MPP_FranjaEspacio
     {
         public int InsertarManual(int idEspacioArtistico, FranjaEspacio oFranja)
@@ -18,7 +18,7 @@ namespace StageUp.MPP
             return Convert.ToInt32(Conexion.Instance.LeerEscalar("sp_FranjaEspacio_InsertarManual", parametros), CultureInfo.InvariantCulture);
         }
 
-        // Devuelve false si la franja no existe, no es del espacio o no es manual.
+
         public bool ModificarManual(int idEspacioArtistico, FranjaEspacio oFranja)
         {
             Hashtable parametros = CrearParametros(idEspacioArtistico, oFranja);

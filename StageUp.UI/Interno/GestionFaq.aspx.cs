@@ -10,10 +10,10 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // CU-003-004 Gestionar contenido de ayuda (permiso GESTIONAR_FAQ):
-    // listado con filtros (pasos 4 a 6, A2), alta (pasos 7 a 23), detalle
-    // (A4, A9), edición (A5), publicación (A6, A8), desactivación (A7) y
-    // consultas del asistente sin respuesta para crear contenido (A15).
+
+
+
+
     public partial class GestionFaq : Page
     {
         private const string PermisoRequerido = "GESTIONAR_FAQ";
@@ -41,7 +41,7 @@ namespace StageUp.UI.Interno
             }
         }
 
-        // ---- Listado -------------------------------------------------------
+
 
         protected void btnFiltrar_Click(object sender, EventArgs e)
         {
@@ -75,7 +75,7 @@ namespace StageUp.UI.Interno
             return fecha == DateTime.MinValue ? "—" : fecha.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
         }
 
-        // ---- Alta y edición ------------------------------------------------
+
 
         protected void btnAgregar_Click(object sender, EventArgs e)
         {
@@ -99,7 +99,7 @@ namespace StageUp.UI.Interno
         {
             pnlMensaje.Visible = false;
             int id;
-            // A5: cancelar la edición vuelve al detalle sin cambios.
+
             if (int.TryParse(hfIdFaq.Value, out id) && id > 0)
             {
                 MostrarDetalle(id);
@@ -111,7 +111,7 @@ namespace StageUp.UI.Interno
 
         protected void btnGuardar_Click(object sender, EventArgs e)
         {
-            // A6: si queda publicado y antes no lo estaba, se pide confirmación.
+
             string estadoOriginal = Convert.ToString(ViewState["EstadoOriginal"]);
             if (ddlEstado.SelectedValue == BLL_Faq.EstadoActivo && estadoOriginal != BLL_Faq.EstadoActivo)
             {
@@ -131,7 +131,7 @@ namespace StageUp.UI.Interno
             Guardar();
         }
 
-        // Si se cancela, no se guarda nada y se vuelve al formulario con lo escrito.
+
         protected void btnCancelarGuardar_Click(object sender, EventArgs e)
         {
             pnlConfirmarGuardar.Visible = false;
@@ -162,7 +162,7 @@ namespace StageUp.UI.Interno
                 ResultadoOperacion resultado = _bll.Modificar(datos, idResponsable);
                 if (!resultado.Exitoso)
                 {
-                    // A10 a A14: se queda en el formulario con lo escrito.
+
                     MostrarMensaje(resultado.Mensaje, true);
                     return;
                 }
@@ -179,16 +179,16 @@ namespace StageUp.UI.Interno
                     return;
                 }
 
-                // Pasos 22 y 23.
+
                 VolverAlListado();
                 CargarConsultas();
                 MostrarMensaje(resultado.Mensaje, false);
             }
         }
 
-        // ---- Publicar y desactivar ----------------------------------------
 
-        // A6 paso 2: se pide confirmación antes de publicar.
+
+
         protected void btnPublicar_Click(object sender, EventArgs e)
         {
             pnlMensaje.Visible = false;
@@ -204,7 +204,7 @@ namespace StageUp.UI.Interno
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
         }
 
-        // Si se cancela, el contenido mantiene su estado.
+
         protected void btnCancelarPublicar_Click(object sender, EventArgs e)
         {
             MostrarDetalle(IdEnDetalle);
@@ -213,7 +213,7 @@ namespace StageUp.UI.Interno
 
         protected void btnDesactivar_Click(object sender, EventArgs e)
         {
-            // A7 paso 1: confirmación.
+
             pnlMensaje.Visible = false;
             pnlConfirmarPublicar.Visible = false;
             pnlConfirmarDesactivar.Visible = true;
@@ -238,7 +238,7 @@ namespace StageUp.UI.Interno
             VolverAlListado();
         }
 
-        // ---- A15 ------------------------------------------------------------
+
 
         protected void rptConsultas_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
@@ -262,7 +262,7 @@ namespace StageUp.UI.Interno
             }
         }
 
-        // ---- Auxiliares ------------------------------------------------------
+
 
         private void AbrirFormulario(Faq faq, string consultaOrigen)
         {
@@ -274,7 +274,7 @@ namespace StageUp.UI.Interno
                 ddlCategoria.Items.Add(new ListItem(categoria.Nombre, categoria.IdCategoriaAyuda.ToString(CultureInfo.InvariantCulture)));
             }
 
-            // A3: sin categorías solo se puede guardar como borrador.
+
             pnlSinCategorias.Visible = categorias.Count == 0;
             ddlEstado.Items.Clear();
             ddlEstado.Items.Add(new ListItem("Borrador (no se muestra)", BLL_Faq.EstadoBorrador));
@@ -430,7 +430,7 @@ namespace StageUp.UI.Interno
             pnlMensaje.Visible = !string.IsNullOrEmpty(mensaje);
         }
 
-        // Paso 2 y A1.
+
         private bool TieneAcceso()
         {
             if (!GestorDeSesion.EstaAutenticadoComoInterno())

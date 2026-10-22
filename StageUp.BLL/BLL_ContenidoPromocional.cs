@@ -8,14 +8,14 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-004-005 Gestionar contenido promocional.
-    //   * Repositorio interno de piezas (no es un gestor documental): cada una
-    //     lleva un archivo o un enlace (A12, A13, A18).
-    //   * Estados: activo, en revisión, desactualizado y dado de baja (A7).
-    //     La baja es lógica (A8); un contenido dado de baja solo se consulta,
-    //     salvo con el permiso REACTIVAR_REGISTROS_COMERCIALES (A9).
-    //   * Archivos: imágenes, PDF, video MP4 y documentos de Office, hasta
-    //     3 MB; se valida el tipo real por el contenido del archivo.
+
+
+
+
+
+
+
+
     public class BLL_ContenidoPromocional
     {
         public const string PermisoGestionar = "GESTIONAR_CONTENIDO_PROMOCIONAL";
@@ -31,7 +31,7 @@ namespace StageUp.BLL
             { ContenidoPromocional.EstadoDadoDeBaja, "Dado de baja" }
         };
 
-        // Extensión -> tipo MIME (y la firma de bytes que tiene que tener).
+
         private static readonly Dictionary<string, string> TiposPermitidos = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { ".jpg", "image/jpeg" }, { ".jpeg", "image/jpeg" }, { ".png", "image/png" }, { ".gif", "image/gif" },
@@ -74,8 +74,8 @@ namespace StageUp.BLL
                 (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps) && !string.IsNullOrEmpty(uri.Host);
         }
 
-        // A12: el archivo tiene que ser de un tipo permitido (por extensión y
-        // por su contenido real) y no superar el tamaño máximo.
+
+
         public static ResultadoOperacion<ArchivoPromocional> ValidarArchivo(string nombreOriginal, byte[] contenido)
         {
             if (contenido == null || contenido.Length == 0)
@@ -103,9 +103,9 @@ namespace StageUp.BLL
                 return ResultadoOperacion<ArchivoPromocional>.Error("El contenido del archivo no corresponde a su extensión.", "A12");
             }
 
-            // La firma inicial no alcanza: se recorre la estructura completa
-            // (archivos truncados, renombrados o un ZIP que no es el documento
-            // de Office que dice ser).
+
+
+
             if (!ValidadorEstructuraArchivo.EsValido(extension.ToLowerInvariant(), contenido))
             {
                 return ResultadoOperacion<ArchivoPromocional>.Error("El archivo está dañado, incompleto o no es un " +
@@ -195,10 +195,10 @@ namespace StageUp.BLL
             }
         }
 
-        // Pasos 9 a 30 (alta) y A6 (edición), con A11 a A20. Si llega un
-        // archivo nuevo, contenido.RutaArchivo ya apunta al archivo guardado
-        // (la UI lo borra si esto falla). rutaArchivoAnterior: archivo que
-        // quedó sin uso y se puede borrar.
+
+
+
+
         public ResultadoOperacion<int> Guardar(ContenidoPromocional contenido, int idUsuarioInterno, out string rutaArchivoAnterior)
         {
             rutaArchivoAnterior = null;
@@ -212,7 +212,7 @@ namespace StageUp.BLL
             contenido.Descripcion = BLL_CatalogoComercial.LimpiarTextoLargo(contenido.Descripcion);
             contenido.UrlContenido = string.IsNullOrWhiteSpace(contenido.UrlContenido) ? null : contenido.UrlContenido.Trim();
 
-            // Si no hay tipos, canales o estados definidos, no se puede guardar.
+
             if (_catalogos.Listar(ItemCatalogoComercial.TipoContenido).Count == 0 || _catalogos.Listar(ItemCatalogoComercial.CanalUso).Count == 0)
             {
                 return ResultadoOperacion<int>.Error("No hay tipos de contenido o canales de uso definidos, por eso no se puede guardar. Consultalo con un administrador.");
@@ -233,7 +233,7 @@ namespace StageUp.BLL
                 }
             }
 
-            // La ruta solo viaja cuando se subió un archivo nuevo.
+
             if (anterior != null && contenido.TieneArchivo && contenido.RutaArchivo == anterior.RutaArchivo)
             {
                 contenido.RutaArchivo = null;
@@ -244,7 +244,7 @@ namespace StageUp.BLL
 
             bool tendraArchivo = contenido.TieneArchivo || (anterior != null && anterior.TieneArchivo && !contenido.QuitarArchivo);
 
-            // A14.
+
             List<string> faltantes = new List<string>();
             if (contenido.Titulo == null) faltantes.Add("título");
             if (string.IsNullOrEmpty(contenido.TipoContenido)) faltantes.Add("tipo de contenido");
@@ -260,7 +260,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("El título admite hasta 200 caracteres y la descripción hasta 2000.", "A14");
             }
 
-            // A15 y A16.
+
             if (!_catalogos.EsValido(ItemCatalogoComercial.TipoContenido, contenido.TipoContenido))
             {
                 return ResultadoOperacion<int>.Error("Seleccioná el tipo de contenido para clasificar la pieza promocional.", "A15");
@@ -271,13 +271,13 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("Seleccioná el canal previsto de uso para organizar el material.", "A16");
             }
 
-            // A17: en el formulario no se elige "dado de baja" (para eso está la baja).
+
             if (!Estados.ContainsKey(contenido.EstadoContenido) || contenido.EstadoContenido == ContenidoPromocional.EstadoDadoDeBaja)
             {
                 return ResultadoOperacion<int>.Error("Seleccioná un estado válido: activo, en revisión o desactualizado.", "A17");
             }
 
-            // A13 y A18.
+
             if (contenido.UrlContenido != null && !EsUrlValida(contenido.UrlContenido))
             {
                 return ResultadoOperacion<int>.Error("El enlace tiene que ser una dirección web completa (que empiece con http:// o https://).", "A13");
@@ -288,7 +288,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("Adjuntá el archivo o ingresá el enlace de la pieza promocional.", "A18");
             }
 
-            // A19.
+
             string errorVinculo = ValidarVinculo(OpcionVinculoComercial.TipoCampania, contenido.IdCampaniaComercial, anterior == null ? null : anterior.IdCampaniaComercial)
                 ?? ValidarVinculo(OpcionVinculoComercial.TipoAlianza, contenido.IdAlianzaEstrategica, anterior == null ? null : anterior.IdAlianzaEstrategica);
             if (errorVinculo != null)
@@ -329,7 +329,7 @@ namespace StageUp.BLL
                 : "El contenido promocional fue actualizado correctamente.");
         }
 
-        // A7 (cambio de estado), A8 (baja lógica) y reactivación (A9, con permiso).
+
         public ResultadoOperacion CambiarEstado(int idContenido, string estadoNuevo, int idUsuarioInterno, bool puedeReactivar)
         {
             ContenidoPromocional contenido = Obtener(idContenido);

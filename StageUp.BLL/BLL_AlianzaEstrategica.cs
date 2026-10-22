@@ -7,15 +7,15 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-004-003 Gestionar alianzas estratégicas.
-    //   * Alta, consulta y modificación (A6), seguimiento (A7), cambio de
-    //     estado (A8), renovación con historial de vigencias (A9),
-    //     finalización (A10) y baja lógica (A11).
-    //   * Una alianza finalizada o dada de baja solo se consulta (A13); con el
-    //     permiso REACTIVAR_REGISTROS_COMERCIALES se la puede renovar, y así
-    //     vuelve a estar activa.
-    //   * Vínculos con contactos, campañas, contenido promocional y orígenes
-    //     (A14 a A16, A23) y detección de duplicados (A22).
+
+
+
+
+
+
+
+
+
     public class BLL_AlianzaEstrategica
     {
         public const string PermisoGestionar = "GESTIONAR_ALIANZAS_ESTRATEGICAS";
@@ -57,7 +57,7 @@ namespace StageUp.BLL
             return a != null && a.EnGestion;
         }
 
-        // A9: activa, pausada (incluye las vencidas) o, con permiso, una histórica.
+
         public static bool PuedeRenovarse(AlianzaEstrategica a, bool puedeReactivar)
         {
             if (a == null)
@@ -145,9 +145,9 @@ namespace StageUp.BLL
             }
         }
 
-        // Distingue "sin vínculos" (lista vacía) de "no se pudieron consultar"
-        // (error): con una carga incompleta no se puede guardar el formulario,
-        // porque se borrarían las asociaciones existentes.
+
+
+
         public ResultadoOperacion<List<VinculoComercial>> ListarVinculos(int idAlianza)
         {
             try
@@ -187,7 +187,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Usuarios internos activos que pueden ser responsables o asignados.
+
         public List<UsuarioInterno> ListarResponsables()
         {
             return new BLL_UsuarioInterno().Listar()
@@ -196,7 +196,7 @@ namespace StageUp.BLL
                 .ToList();
         }
 
-        // Pasos 9 a 29 (alta) y A6 (edición), con A17 a A24.
+
         public ResultadoOperacion<int> Guardar(AlianzaEstrategica alianza, string fechaInicioTexto, string fechaFinTexto, int idUsuarioInterno)
         {
             if (alianza == null)
@@ -214,7 +214,7 @@ namespace StageUp.BLL
             alianza.Observaciones = BLL_CatalogoComercial.LimpiarTextoLargo(alianza.Observaciones);
             alianza.ObservacionCambioEstado = BLL_CatalogoComercial.LimpiarTextoLargo(alianza.ObservacionCambioEstado);
 
-            // A17.
+
             List<string> faltantes = new List<string>();
             if (alianza.NombreEntidad == null) faltantes.Add("entidad asociada");
             if (string.IsNullOrEmpty(alianza.TipoInstitucion)) faltantes.Add("tipo de institución");
@@ -231,7 +231,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("Para guardar la alianza completá: " + string.Join(", ", faltantes) + ".", "A17");
             }
 
-            // A18.
+
             if (alianza.NombreEntidad.Length < 3 || alianza.NombreEntidad.Length > 200)
             {
                 return ResultadoOperacion<int>.Error("Completá el nombre de la entidad asociada (entre 3 y 200 caracteres).", "A18");
@@ -249,7 +249,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("Seleccioná un tipo de institución válido.", "A17");
             }
 
-            // A19 y A20.
+
             DateTime? inicio, fin;
             if (!BLL_CatalogoComercial.LeerFecha(fechaInicioTexto, out inicio) || !BLL_CatalogoComercial.LeerFecha(fechaFinTexto, out fin))
             {
@@ -264,7 +264,7 @@ namespace StageUp.BLL
             alianza.FechaInicio = inicio.Value;
             alianza.FechaFin = fin;
 
-            // A21.
+
             if (!Estados.ContainsKey(alianza.EstadoAlianza) ||
                 (esAlta && alianza.EstadoAlianza != AlianzaEstrategica.EstadoEnEvaluacion && alianza.EstadoAlianza != AlianzaEstrategica.EstadoActiva &&
                  alianza.EstadoAlianza != AlianzaEstrategica.EstadoPausada))
@@ -288,14 +288,14 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error("La alianza ya no existe.");
                 }
 
-                // A13.
+
                 if (!PuedeEditarse(anterior))
                 {
                     return ResultadoOperacion<int>.Error("Una alianza finalizada o dada de baja solo se puede consultar.", "A13");
                 }
             }
 
-            // A23.
+
             List<VinculoComercial> actuales = new List<VinculoComercial>();
             if (!esAlta)
             {
@@ -314,7 +314,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error(errorVinculos, "A23");
             }
 
-            // A22.
+
             try
             {
                 AlianzaEstrategica duplicada = _mpp.BuscarDuplicado(alianza);
@@ -331,8 +331,8 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("No fue posible guardar la alianza en este momento. Intentá nuevamente.", "A24");
             }
 
-            // La auditoría se arma antes y se registra dentro de la misma
-            // transacción que los datos: no queda un cambio sin su registro.
+
+
             string vinculos = alianza.IdsContactos.Count + " contactos, " + alianza.IdsCampanias.Count + " campañas, " +
                 alianza.IdsContenidos.Count + " contenidos y " + alianza.IdsOrigenes.Count + " orígenes";
             string descripcionBitacora = BLL_CatalogoComercial.Recortar(
@@ -345,7 +345,7 @@ namespace StageUp.BLL
             int id;
             try
             {
-                // Datos, cambio de estado, vínculos y auditoría en una sola transacción.
+
                 id = _mpp.Guardar(alianza, new UsuarioInterno { IdUsuarioInterno = idUsuarioInterno }, descripcionBitacora);
                 alianza.IdAlianzaEstrategica = id;
             }
@@ -365,7 +365,7 @@ namespace StageUp.BLL
                 : "La alianza estratégica fue actualizada correctamente.");
         }
 
-        // A7 (y A8 si se indica el estado resultante).
+
         public ResultadoOperacion RegistrarSeguimiento(SeguimientoAlianza seguimiento, string fechaTexto, int idUsuarioInterno)
         {
             if (seguimiento == null)
@@ -459,7 +459,7 @@ namespace StageUp.BLL
                 : "El seguimiento fue registrado correctamente.");
         }
 
-        // A9 (y reactivación con permiso).
+
         public ResultadoOperacion Renovar(RenovacionAlianza renovacion, string fechaInicioTexto, string fechaFinTexto, int idUsuarioInterno, bool puedeReactivar)
         {
             if (renovacion == null)
@@ -546,7 +546,7 @@ namespace StageUp.BLL
                 : "La alianza fue renovada correctamente (" + periodo + "). La vigencia anterior quedó en el historial.");
         }
 
-        // A10.
+
         public ResultadoOperacion Finalizar(int idAlianza, string motivo, int idUsuarioInterno)
         {
             AlianzaEstrategica alianza = Obtener(idAlianza);
@@ -564,7 +564,7 @@ namespace StageUp.BLL
                 "CIERRE", "Finalización", "La alianza fue finalizada correctamente. Se conserva para consulta, trazabilidad comercial y análisis posterior.");
         }
 
-        // A11.
+
         public ResultadoOperacion DarDeBaja(int idAlianza, string motivo, int idUsuarioInterno)
         {
             AlianzaEstrategica alianza = Obtener(idAlianza);

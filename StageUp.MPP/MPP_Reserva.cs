@@ -81,8 +81,8 @@ namespace StageUp.MPP
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
-        // CU-001-005 A8/A9: reserva con los datos del espacio, del gestor y del
-        // solicitante para la pantalla de detalle.
+
+
         public Reserva ObtenerDetalle(Reserva oReserva)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -106,7 +106,7 @@ namespace StageUp.MPP
             return reserva;
         }
 
-        // CU-001-005 A10/A11: false si la solicitud ya no estaba pendiente.
+
         public bool Rechazar(Reserva oReserva)
         {
             object filas = Conexion.Instance.LeerEscalar(
@@ -136,8 +136,8 @@ namespace StageUp.MPP
                 });
         }
 
-        // Script 49: si la reserva estaba pagada, el SP emite la nota de
-        // crédito (y la de débito por penalidad) en la misma transacción.
+
+
         public ResultadoCancelacionReserva Cancelar(Reserva oReserva)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -163,14 +163,14 @@ namespace StageUp.MPP
             };
         }
 
-        // Cancela las reservas aceptadas cuyo plazo de pago venció y las
-        // devuelve para avisar (script 49).
+
+
         public List<Reserva> VencerPagosPendientes()
         {
             return MapearDesdeTabla(Conexion.Instance.Leer("sp_Reserva_VencerPagosPendientes"));
         }
 
-        // Ítem 36 (script 51): cantidad de solicitudes pendientes del gestor.
+
         public int ContarPendientesPorGestor(UsuarioExterno oUsuarioGestor)
         {
             object resultado = Conexion.Instance.LeerEscalar(
@@ -184,10 +184,10 @@ namespace StageUp.MPP
             Conexion.Instance.Guardar("sp_Reserva_FinalizarVencidas");
         }
 
-        // Reservas Pendientes o Aceptadas, desde hoy en adelante, para un
-        // espacio puntual. Usado por BLL_Actividad para validar que el
-        // horario de una actividad (al crearla, modificarla o darla de baja)
-        // no coincida con una reserva ya existente sobre ese espacio.
+
+
+
+
         public List<Reserva> ListarActivasPorEspacio(EspacioArtistico espacio)
         {
             return MapearDesdeTabla(Conexion.Instance.Leer(
@@ -195,9 +195,9 @@ namespace StageUp.MPP
                 new Hashtable { { "@idEspacioArtistico", espacio.IdEspacioArtistico } }));
         }
 
-        // Reservas Aceptadas cuyo horario empieza dentro de las próximas 24hs
-        // y todavía no tienen el recordatorio generado. Usado por
-        // BLL_Reserva.GenerarRecordatorios24hsSiCorresponde.
+
+
+
         public List<Reserva> ListarPendientesDeRecordatorio()
         {
             return MapearDesdeTabla(Conexion.Instance.Leer("sp_Reserva_ListarPendientesDeRecordatorio"));
@@ -210,8 +210,8 @@ namespace StageUp.MPP
                 new Hashtable { { "@idReserva", reserva.IdReserva } });
         }
 
-        // Reservas finalizadas a las que todavía no se les mandó el mail de
-        // "¿cómo te fue?" (script 42).
+
+
         public List<Reserva> ListarFinalizadasSinAviso()
         {
             return MapearDesdeTabla(Conexion.Instance.Leer("sp_Reserva_ListarFinalizadasSinAviso"));
@@ -224,12 +224,12 @@ namespace StageUp.MPP
                 new Hashtable { { "@idReserva", reserva.IdReserva } });
         }
 
-        // Ítem 36 del checklist de correcciones: reemplaza, para uso de
-        // BLL_Reserva.CompletarReputacionSolicitantes, el patrón anterior de
-        // llamar ListarPorSolicitante (historial completo) por cada
-        // solicitante distinto y contar en memoria las reservas Aceptadas/
-        // Finalizadas. Ahora se resuelve para todos los solicitantes pedidos
-        // en una sola consulta agrupada.
+
+
+
+
+
+
         public Dictionary<int, int> ContarAceptadasPorSolicitantes(IEnumerable<int> idsUsuarios)
         {
             List<int> ids = new List<int>(idsUsuarios);

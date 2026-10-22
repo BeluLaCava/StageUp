@@ -8,7 +8,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // CU-004-001 Campañas comerciales (script 80).
+
     public class MPP_CampaniaComercial
     {
         public List<CampaniaComercial> Listar(FiltroCampaniaComercial oFiltro)
@@ -76,7 +76,7 @@ namespace StageUp.MPP
             return lista;
         }
 
-        // descripcionBitacora: la auditoría se registra en la misma transacción.
+
         public int Guardar(CampaniaComercial oCampania, UsuarioInterno oResponsableBitacora = null, string descripcionBitacora = null)
         {
             object resultado = Conexion.Instance.LeerEscalar(

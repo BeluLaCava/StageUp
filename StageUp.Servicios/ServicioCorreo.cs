@@ -16,9 +16,9 @@ namespace StageUp.Servicios
         private const string LogoContentId = "stageup-logo";
         private const string NewsletterImageContentId = "stageup-newsletter-image";
 
-        // CU-002-004 A7: configuración de los correos administrativos (pagos,
-        // vencimientos y comprobantes). La completa la BLL con los parámetros
-        // administrativos antes de enviar; si es null se envía como siempre.
+
+
+
         public ConfiguracionCorreoAdministrativo Administrativo { get; set; }
 
         public bool EnviarCodigoActivacion(string destinatario, string nombreDestinatario, string codigo)
@@ -93,7 +93,7 @@ namespace StageUp.Servicios
             return Enviar(destinatario, "Tu contraseña de StageUp fue actualizada", cuerpo);
         }
 
-        // CU-001-003 A8 (pasos 9 y 10): aviso de baja lógica de la cuenta.
+
         public bool EnviarConfirmacionBajaCuenta(string destinatario, string nombreDestinatario)
         {
             string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
@@ -112,9 +112,9 @@ namespace StageUp.Servicios
             return Enviar(destinatario, "Tu cuenta de StageUp fue dada de baja", cuerpo);
         }
 
-        // urlPreferencias: página del suscriptor (elegir categorías o darse de
-        // baja con su token). Va en el pie del correo y en el encabezado
-        // List-Unsubscribe.
+
+
+
         public bool EnviarNewsletter(
             string destinatario,
             string nombreDestinatario,
@@ -155,7 +155,7 @@ namespace StageUp.Servicios
             return Enviar(destinatario, titulo + " | StageUp", cuerpo, usarImagenEmbebida ? rutaImagenNewsletter : null, null, urlBaja);
         }
 
-        // Doble confirmación de la suscripción al newsletter.
+
         public bool EnviarConfirmacionNewsletter(string destinatario, string nombreDestinatario, string urlConfirmar, int horasValidez)
         {
             string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
@@ -176,8 +176,8 @@ namespace StageUp.Servicios
             return Enviar(destinatario, "Confirmá tu suscripción a las novedades de StageUp", cuerpo);
         }
 
-        // Mi perfil: vincular a la cuenta una suscripción que se hizo sin
-        // iniciar sesión. Solo el dueño del correo puede confirmar el vínculo.
+
+
         public bool EnviarVinculoNewsletter(string destinatario, string nombreDestinatario, string urlVincular, int horasValidez)
         {
             string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
@@ -198,9 +198,9 @@ namespace StageUp.Servicios
             return Enviar(destinatario, "Vinculá tu suscripción al newsletter con tu cuenta de StageUp", cuerpo);
         }
 
-        // Alguien pidió suscribir un correo que ya está suscripto: se le avisa
-        // al dueño del correo (no se muestra en la página, para no revelar
-        // qué correos están suscriptos).
+
+
+
         public bool EnviarAvisoYaSuscriptoNewsletter(string destinatario, string nombreDestinatario, string urlPreferencias)
         {
             string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
@@ -239,12 +239,12 @@ namespace StageUp.Servicios
             return Enviar(destinatario, "Respuesta de soporte StageUp: " + asuntoTicket, cuerpo);
         }
 
-        // ------------------------------------------------------------------
-        // Reservas (ítems 5A y 7 de la segunda entrega): todos los avisos de
-        // una reserva por mail, con la misma plantilla StageUp que el resto
-        // de los correos. Los datos de la reserva (espacio, fecha, horario,
-        // importe) se muestran en un bloque de detalle común.
-        // ------------------------------------------------------------------
+
+
+
+
+
+
         public bool EnviarSolicitudReservaEnviada(string destinatario, string nombreDestinatario, Reserva reserva)
         {
             return EnviarAvisoReserva(destinatario, nombreDestinatario, reserva,
@@ -379,10 +379,10 @@ namespace StageUp.Servicios
                 "Contanos cómo te fue en " + reserva.NombreEspacio);
         }
 
-        // ------------------------------------------------------------------
-        // Pagos, notas de crédito/débito y cuenta corriente (ítems 5B, 5C,
-        // 5D y 6B de la segunda entrega).
-        // ------------------------------------------------------------------
+
+
+
+
         public bool EnviarPagoAprobado(string destinatario, string nombreDestinatario, Reserva reserva, Pago pago)
         {
             if (string.IsNullOrWhiteSpace(destinatario) || reserva == null || pago == null || !AdministrativosActivos())
@@ -719,8 +719,8 @@ namespace StageUp.Servicios
             return html;
         }
 
-        // Bloque "clave: valor" (por ejemplo, los datos de una reserva), con la
-        // misma paleta que el bloque de código de verificación.
+
+
         private static string ConstruirDetalles(List<KeyValuePair<string, string>> detalles)
         {
             if (detalles == null || detalles.Count == 0)
@@ -942,7 +942,7 @@ namespace StageUp.Servicios
         }
     }
 
-    // CU-002-004: parámetros de los correos administrativos.
+
     public class ConfiguracionCorreoAdministrativo
     {
         public bool Activos { get; set; }

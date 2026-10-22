@@ -9,18 +9,18 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // Mensajería privada por reserva: un canal entre el solicitante y el
-    // gestor del espacio de cada reserva.
-    //   * Solo esos dos usuarios ven y escriben mensajes (se valida acá y
-    //     otra vez en los SP).
-    //   * Cada mensaje tiene emisor, texto, fecha y hora, y leído/no leído;
-    //     se marca leído cuando el otro participante abre la conversación.
-    //   * Cada mensaje nuevo genera una notificación para el otro
-    //     participante.
-    //   * Con la reserva rechazada o cancelada la conversación queda como
-    //     registro, pero ya no se pueden enviar mensajes.
-    //   * Es independiente de las preguntas públicas de los espacios, de las
-    //     solicitudes de soporte, del asistente y de las calificaciones.
+
+
+
+
+
+
+
+
+
+
+
+
     public class BLL_MensajeReserva
     {
         public const int LongitudMaxima = 1000;
@@ -40,7 +40,7 @@ namespace StageUp.BLL
                 (reserva.IdUsuarioExternoSolicitante == idUsuarioExterno || reserva.IdUsuarioGestor == idUsuarioExterno);
         }
 
-        // Con la reserva rechazada o cancelada ya no se pueden enviar mensajes.
+
         public static bool AdmiteMensajes(Reserva reserva)
         {
             return reserva != null &&
@@ -48,8 +48,8 @@ namespace StageUp.BLL
                 reserva.EstadoReserva != EstadoReserva.Cancelada.ToString();
         }
 
-        // Conversación de una reserva que el usuario ya puede ver (la página
-        // la obtiene con BLL_Reserva.ObtenerDetalle, que valida el acceso).
+
+
         public ResultadoOperacion<List<MensajeReserva>> Listar(Reserva reserva, int idUsuarioExterno)
         {
             if (!EsParticipante(reserva, idUsuarioExterno))
@@ -68,8 +68,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Marca como leídos solo los mensajes indicados (los que se le
-        // mostraron al usuario), y solo si los recibió él en esa reserva.
+
+
         public int MarcarLeidos(Reserva reserva, int idUsuarioExterno, IEnumerable<int> idsMostrados)
         {
             List<int> ids = idsMostrados == null ? new List<int>() : idsMostrados.Where(id => id > 0).Distinct().ToList();
@@ -116,7 +116,7 @@ namespace StageUp.BLL
 
             try
             {
-                // Evita el mismo mensaje dos veces seguidas (doble clic o reenvío).
+
                 UsuarioExterno usuario = new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno };
                 MensajeReserva ultimo = _mpp.ListarPorReserva(reserva, usuario).LastOrDefault();
                 if (ultimo != null && ultimo.IdUsuarioExternoEmisor == idUsuarioExterno && ultimo.Texto == mensaje &&
@@ -136,7 +136,7 @@ namespace StageUp.BLL
                 int idDestinatario = esSolicitante ? reserva.IdUsuarioGestor : reserva.IdUsuarioExternoSolicitante;
                 string emisor = esSolicitante ? reserva.NombreSolicitante : reserva.NombreGestor;
 
-                // No se guarda el texto en la bitácora: es una conversación privada.
+
                 Bitacora(idUsuarioExterno, idMensaje,
                     "Mensaje privado en la reserva N° " + idReserva + " (" + (esSolicitante ? "del solicitante al gestor" : "del gestor al solicitante") + ").");
 
@@ -163,8 +163,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Mensajes sin leer del usuario por reserva (vacío si falla la base:
-        // los contadores no deben romper la página).
+
+
         public List<MensajesNoLeidosReserva> NoLeidos(int idUsuarioExterno)
         {
             try
@@ -196,7 +196,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Respeta los saltos de línea; recorta espacios y líneas vacías de más.
+
         private static string Limpiar(string texto)
         {
             if (string.IsNullOrWhiteSpace(texto))

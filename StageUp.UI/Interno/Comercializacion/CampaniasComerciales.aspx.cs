@@ -9,14 +9,14 @@ using StageUp.BLL;
 
 namespace StageUp.UI.Interno.Comercializacion
 {
-    // CU-004-001 Gestionar campañas comerciales, más los orígenes de usuario.
-    //   CampaniasComerciales.aspx?[filtros]           -> listado (pasos 2 a 7, A2 a A4)
-    //   CampaniasComerciales.aspx?ver={id}            -> detalle (A5, A7, A8, A9)
-    //   CampaniasComerciales.aspx?nuevo=1             -> alta (pasos 8 a 26)
-    //   CampaniasComerciales.aspx?editar={id}         -> edición (A6)
-    //   CampaniasComerciales.aspx?vista=origenes[&origen={id|nuevo}] -> orígenes de usuario
-    // Los filtros viajan en la query string: vista, estado, canal, publico,
-    // desde, hasta, q.
+
+
+
+
+
+
+
+
     public partial class CampaniasComerciales : PaginaComercial
     {
         private const string Pagina = "CampaniasComerciales.aspx";
@@ -78,9 +78,9 @@ namespace StageUp.UI.Interno.Comercializacion
             }
         }
 
-        // ------------------------------------------------------------------
-        // Listado (pasos 3 a 7, A2 a A4)
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarListado()
         {
@@ -119,7 +119,7 @@ namespace StageUp.UI.Interno.Comercializacion
             litActivas.Text = resumen.Valor.Activas.ToString(CultureInfo.InvariantCulture);
             litBajas.Text = resumen.Valor.Bajas.ToString(CultureInfo.InvariantCulture);
 
-            // A2: no hay ninguna campaña.
+
             if (resumen.Valor.Total == 0)
             {
                 litEnCurso.Text = "0";
@@ -145,7 +145,7 @@ namespace StageUp.UI.Interno.Comercializacion
                 return;
             }
 
-            // A4: hay campañas, pero ninguna cumple los filtros.
+
             pnlSinResultados.Visible = resultado.Valor.Count == 0;
             rptCampanias.Visible = resultado.Valor.Count > 0;
             litCantidad.Text = resultado.Valor.Count == 0
@@ -177,9 +177,9 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(ArmarUrl(Pagina, partes), null);
         }
 
-        // ------------------------------------------------------------------
-        // Detalle (A5, A7, A8, A9)
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarDetalle(int idCampania)
         {
@@ -205,7 +205,7 @@ namespace StageUp.UI.Interno.Comercializacion
             litResponsable.Text = TextoOGuion(campania.NombreResponsable);
             litFechas.Text = campania.FechaAlta.ToString("dd/MM/yyyy") + " / " + campania.FechaUltimaModificacion.ToString("dd/MM/yyyy HH:mm");
 
-            // A8 y A9.
+
             if (!campania.Activa)
             {
                 pnlAvisoEstado.Visible = true;
@@ -258,9 +258,9 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(Pagina + "?ver=" + id, resultado.Mensaje, !resultado.Exitoso);
         }
 
-        // ------------------------------------------------------------------
-        // Formulario (pasos 8 a 26 y A6)
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarFormulario(int? idCampania)
         {
@@ -294,8 +294,8 @@ namespace StageUp.UI.Interno.Comercializacion
             txtFin.Text = FechaParaCampo(campania.FechaFin);
             lnkCancelar.NavigateUrl = Pagina + "?ver=" + campania.IdCampaniaComercial;
 
-            // Si no se pudieron consultar los vínculos, el formulario quedaría
-            // sin ellos y al guardar se borrarían: no se permite guardar.
+
+
             ResultadoOperacion<List<VinculoComercial>> cargaVinculos = _bll.ListarVinculos(campania.IdCampaniaComercial);
             if (!cargaVinculos.Exitoso)
             {
@@ -349,7 +349,7 @@ namespace StageUp.UI.Interno.Comercializacion
             vacio.Visible = lista.Items.Count == 0;
         }
 
-        // Los vínculos de la edición no se pudieron cargar (ver CargarFormulario).
+
         private bool VinculosNoCargados
         {
             get { return ViewState["VinculosNoCargados"] as bool? ?? false; }
@@ -387,20 +387,20 @@ namespace StageUp.UI.Interno.Comercializacion
             ResultadoOperacion<int> resultado = _bll.Guardar(campania, txtInicio.Text, txtFin.Text, IdUsuarioInterno);
             if (!resultado.Exitoso)
             {
-                // A10 a A17: se queda en el formulario con lo cargado.
+
                 pnlFormulario.Visible = true;
                 MostrarMensaje(pnlMensaje, litMensaje, resultado.Mensaje, true);
                 return;
             }
 
-            // Pasos 25 y 26 (alta) o A6 pasos 8 y 9 (edición).
+
             Redirigir(idEditar.HasValue ? Pagina + "?ver=" + resultado.Valor : Pagina, resultado.Mensaje,
                 resultado.CodigoAlternativo != null);
         }
 
-        // ------------------------------------------------------------------
-        // Orígenes de usuario
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarOrigenes()
         {
@@ -501,9 +501,9 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(Pagina + "?vista=origenes", resultado.Mensaje);
         }
 
-        // ------------------------------------------------------------------
-        // Textos para el listado y el detalle
-        // ------------------------------------------------------------------
+
+
+
 
         protected string TextoPublico(object dato)
         {

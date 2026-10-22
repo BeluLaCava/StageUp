@@ -10,12 +10,12 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Interno.Comercializacion
 {
-    // CU-004-005 Gestionar contenido promocional.
-    //   ContenidoPromocional.aspx?[filtros]     -> listado (pasos 2 a 8, A2 a A4)
-    //   ContenidoPromocional.aspx?ver={id}      -> detalle con cambio de estado y baja (A5, A7 a A10)
-    //   ContenidoPromocional.aspx?nuevo=1       -> alta (pasos 9 a 30, A11 a A20)
-    //   ContenidoPromocional.aspx?editar={id}   -> edición (A6)
-    // Filtros en la query string: vista, estado, tipo, canal, campania, q.
+
+
+
+
+
+
     public partial class ContenidoPromocionalPagina : PaginaComercial
     {
         private const string Pagina = "ContenidoPromocional.aspx";
@@ -47,9 +47,9 @@ namespace StageUp.UI.Interno.Comercializacion
             else CargarListado();
         }
 
-        // ------------------------------------------------------------------
-        // Listado
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarListado()
         {
@@ -94,7 +94,7 @@ namespace StageUp.UI.Interno.Comercializacion
             litDesactualizados.Text = resumen.Valor.Desactualizados.ToString(CultureInfo.InvariantCulture);
             litBajas.Text = resumen.Valor.Bajas.ToString(CultureInfo.InvariantCulture);
 
-            // A2.
+
             if (resumen.Valor.Total == 0)
             {
                 pnlSinContenidos.Visible = true;
@@ -111,7 +111,7 @@ namespace StageUp.UI.Interno.Comercializacion
                 return;
             }
 
-            // A4.
+
             pnlSinResultados.Visible = resultado.Valor.Count == 0;
             rptContenidos.Visible = resultado.Valor.Count > 0;
             litCantidad.Text = resultado.Valor.Count == 0
@@ -142,9 +142,9 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(ArmarUrl(Pagina, partes), null);
         }
 
-        // ------------------------------------------------------------------
-        // Detalle (A5, A7 a A10)
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarDetalle(int id)
         {
@@ -192,7 +192,7 @@ namespace StageUp.UI.Interno.Comercializacion
                 lnkEnlace.NavigateUrl = BLL_ContenidoPromocional.EsUrlValida(c.UrlContenido) ? c.UrlContenido : null;
             }
 
-            // A9 y A10.
+
             if (c.EstadoContenido == ContenidoPromocional.EstadoDadoDeBaja)
             {
                 pnlAviso.Visible = true;
@@ -211,8 +211,8 @@ namespace StageUp.UI.Interno.Comercializacion
                 litAviso.Text = "Este contenido está en revisión: todavía no se considera vigente para uso comercial.";
             }
 
-            // A7: estados disponibles (la baja tiene su botón). Un contenido
-            // dado de baja solo se reactiva con permiso.
+
+
             bool dadoDeBaja = !c.Activo;
             pnlCambioEstado.Visible = !dadoDeBaja || PuedeReactivar;
             litEtiquetaEstado.Text = dadoDeBaja ? "Reactivar como" : "Cambiar estado";
@@ -255,9 +255,9 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(Pagina + "?ver=" + id.Value, resultado.Mensaje, !resultado.Exitoso);
         }
 
-        // ------------------------------------------------------------------
-        // Formulario
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarFormulario(int? id)
         {
@@ -346,7 +346,7 @@ namespace StageUp.UI.Interno.Comercializacion
                 QuitarArchivo = idEditar.HasValue && pnlArchivoActual.Visible && chkQuitarArchivo.Checked
             };
 
-            // A12: archivo nuevo (se valida el tipo real antes de guardarlo).
+
             string archivoGuardado = null;
             if (fuArchivo.HasFile)
             {
@@ -403,9 +403,9 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(idEditar.HasValue ? Pagina + "?ver=" + resultado.Valor : Pagina, resultado.Mensaje);
         }
 
-        // ------------------------------------------------------------------
-        // Auxiliares
-        // ------------------------------------------------------------------
+
+
+
 
         private static void MostrarVinculo(HyperLink enlace, Literal vacio, int? id, string nombre, string url, string permiso)
         {

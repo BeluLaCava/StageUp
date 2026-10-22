@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Ítems 9 y 10: versiones del par de claves RSA (script 66).
+
     public class MPP_ClaveCifrado
     {
         public ClaveCifrado ObtenerActiva()
@@ -39,8 +39,8 @@ namespace StageUp.MPP
             return lista;
         }
 
-        // Devuelve el resultado (OK | YA_EXISTE_ACTIVA), y la versión creada (o
-        // la activa que ya existía) y la anterior que quedó retirada.
+
+
         public string Registrar(ClaveCifrado oClave, bool soloSiNoHayActiva, out int idClaveCifrado, out int? idClaveAnterior, out int version)
         {
             DataTable tabla = Conexion.Instance.Leer(

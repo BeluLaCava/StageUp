@@ -13,13 +13,13 @@
                 <asp:Literal ID="litMensaje" runat="server" Mode="Encode" />
             </asp:Panel>
 
-            <%-- Ítem 12: aviso de novedades cuando hay una respuesta sin guardar. --%>
+
             <div class="ticket-novedades-aviso" data-soporte-aviso hidden>
                 <span>Hay novedades en las solicitudes de soporte.</span>
                 <button type="button" class="button button-secondary button-small" data-soporte-recargar>Actualizar</button>
             </div>
 
-            <%-- CU-003-003 pasos 3 a 8, A2, A3 y A4. --%>
+
             <asp:Panel ID="pnlListado" runat="server" Visible="false">
                 <div class="soporte-resumen" aria-label="Resumen de solicitudes de soporte">
                     <a href="GestionSoporte.aspx"><span>Total</span><strong><asp:Literal ID="litTotal" runat="server" /></strong></a>
@@ -77,12 +77,12 @@
                         </div>
                     </asp:Panel>
 
-                    <%-- A2: no hay ninguna solicitud registrada. --%>
+
                     <asp:Panel ID="pnlSinSolicitudes" runat="server" Visible="false" CssClass="empty-state compact-empty-state">
                         <h3>No hay solicitudes de soporte disponibles para gestionar</h3>
                         <p>Las solicitudes aparecen acá cuando un usuario las registra desde Soporte, el centro de ayuda, el asistente o una reserva.</p>
                     </asp:Panel>
-                    <%-- A4: hay solicitudes, pero ninguna cumple con los filtros. --%>
+
                     <asp:Panel ID="pnlSinResultados" runat="server" Visible="false" CssClass="empty-state compact-empty-state">
                         <h3>No se encontraron solicitudes para los criterios seleccionados</h3>
                         <p>Modificá los filtros o limpialos para volver al listado general.</p>
@@ -123,7 +123,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- CU-003-003 pasos 9 a 26, A5 a A12. --%>
+
             <asp:Panel ID="pnlDetalle" runat="server" Visible="false">
                 <div class="auth-card helpdesk-card helpdesk-detail-card">
                     <div class="auth-card-header helpdesk-detail-header">
@@ -138,7 +138,7 @@
                         <asp:Literal ID="litNovedades" runat="server" Mode="Encode" />
                     </asp:Panel>
 
-                    <%-- A10 / A11: aviso según el estado. --%>
+
                     <asp:Panel ID="pnlEstadoAviso" runat="server" Visible="false" CssClass="ticket-estado-aviso">
                         <asp:Literal ID="litEstadoAviso" runat="server" Mode="Encode" />
                     </asp:Panel>
@@ -218,7 +218,7 @@
                         </asp:Repeater>
                     </div>
 
-                    <%-- Ítem 12: asignación. --%>
+
                     <asp:Panel ID="pnlAsignacion" runat="server" CssClass="soporte-gestion-bloque">
                         <h3 class="ticket-seccion-titulo">Responsable</h3>
                         <div class="soporte-gestion-fila">
@@ -228,7 +228,7 @@
                         </div>
                     </asp:Panel>
 
-                    <%-- Pasos 12 a 17, A6 y A7. --%>
+
                     <asp:Panel ID="pnlResponder" runat="server" CssClass="helpdesk-reply soporte-gestion-bloque" DefaultButton="btnGuardarRespuesta">
                         <h3 class="ticket-seccion-titulo">Registrar respuesta</h3>
                         <div class="form-field">
@@ -243,7 +243,7 @@
                         </div>
                     </asp:Panel>
 
-                    <%-- Pasos 18 a 23, A8 y A9. --%>
+
                     <asp:Panel ID="pnlCambiarEstado" runat="server" CssClass="soporte-gestion-bloque">
                         <h3 class="ticket-seccion-titulo">Cambiar estado</h3>
                         <p class="ticket-lista-item-meta"><asp:Literal ID="litTransiciones" runat="server" Mode="Encode" /></p>
@@ -254,12 +254,12 @@
                         </div>
                     </asp:Panel>
 
-                    <%-- A10: cerrada, solo consulta salvo permiso de reapertura. --%>
+
                     <asp:Panel ID="pnlReabrir" runat="server" CssClass="soporte-gestion-bloque" Visible="false">
                         <asp:Button ID="btnReabrir" runat="server" CssClass="button button-secondary" Text="Reabrir solicitud" CausesValidation="false" OnClick="btnReabrir_Click" />
                     </asp:Panel>
 
-                    <%-- A8 paso 4 y A11 paso 4: confirmación del cambio de estado. --%>
+
                     <asp:Panel ID="pnlConfirmar" runat="server" CssClass="soporte-confirmar" Visible="false" role="alertdialog">
                         <p><asp:Literal ID="litConfirmar" runat="server" Mode="Encode" /></p>
                         <div class="soporte-gestion-fila">

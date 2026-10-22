@@ -10,7 +10,7 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // CU-002-002 A5 a A9: pantalla "Transacciones económicas".
+
     public partial class TransaccionesEconomicas : Page
     {
         private const string PermisoRequerido = "CONSULTAR_TRANSACCIONES";
@@ -25,7 +25,7 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-            // A5 paso 2 y A6.
+
             if (!GestorDeSesion.TienePermisoInterno(PermisoRequerido))
             {
                 Response.Redirect("~/Interno/PanelAdministrador.aspx?acceso=denegado");
@@ -66,7 +66,7 @@ namespace StageUp.UI.Interno
             ResultadoOperacion<TransaccionEconomica> resultado = _bll.ObtenerDetalle(id);
             if (!resultado.Exitoso)
             {
-                // A9: se vuelve al listado con el aviso.
+
                 MostrarMensaje(resultado.Mensaje, true);
                 CargarTransacciones();
                 return;

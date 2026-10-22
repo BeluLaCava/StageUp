@@ -7,21 +7,21 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // Backup y restore de la base (ítem 17 de la segunda entrega). Solo lo
-    // usa Interno/BackupRestore.aspx (permiso GESTIONAR_BACKUP).
-    //
-    // Protecciones contra pisar datos por accidente al restaurar:
-    //   1. Hay que escribir la palabra de confirmación (RESTAURAR).
-    //   2. Solo se puede elegir un backup del historial de esta base (el SP
-    //      además rechaza cualquier archivo que SQL Server no tenga
-    //      registrado como backup de ella y lo verifica antes de restaurar).
-    //   3. Antes de restaurar se genera automáticamente un backup del estado
-    //      actual; si ese backup falla, no se restaura nada.
-    //   4. Todo queda en la bitácora. El registro de la restauración se
-    //      escribe DESPUÉS de restaurar, así queda en la base restaurada (lo
-    //      anterior queda en el backup de seguridad).
-    //   5. Las sesiones abiertas no se cortan todas: cada una se vuelve a
-    //      validar contra la base restaurada (BLL_SesionBaseDatos).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public class BLL_Backup
     {
         public const string PalabraConfirmacion = "RESTAURAR";
@@ -118,8 +118,8 @@ namespace StageUp.BLL
                     (seguridad != null ? seguridad.NombreArchivo : "un backup de seguridad") + ". " + ex.Message);
             }
 
-            // Las sesiones abiertas se vuelven a validar contra la base
-            // restaurada (BLL_SesionBaseDatos).
+
+
             BLL_SesionBaseDatos.RegistrarRestauracion();
 
             try
@@ -131,8 +131,8 @@ namespace StageUp.BLL
             }
             catch (Exception)
             {
-                // El usuario interno puede no existir en un backup viejo; la
-                // restauración igual se hizo.
+
+
             }
 
             return ResultadoOperacion.Ok(

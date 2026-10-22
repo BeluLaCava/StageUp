@@ -41,7 +41,7 @@ namespace StageUp.UI.Explorar
             EspacioArtistico espacio = _bllEspacio.ObtenerDetallePublicado(idEspacioArtistico);
             if (espacio == null && GestorDeSesion.EstaAutenticado())
             {
-                // CU-001-007 A8: el gestor puede ver su espacio sin publicar.
+
                 espacio = _bllEspacio.ObtenerDetalleParaGestor(idEspacioArtistico, GestorDeSesion.ObtenerIdUsuarioActual().Value);
             }
 
@@ -65,9 +65,9 @@ namespace StageUp.UI.Explorar
             CargarPreguntas();
         }
 
-        // ------------------------------------------------------------------
-        // Ítem 1: preguntas y respuestas públicas sobre el espacio.
-        // ------------------------------------------------------------------
+
+
+
         private int IdGestorEspacio
         {
             get { return ViewState["IdGestorEspacio"] as int? ?? 0; }
@@ -92,7 +92,7 @@ namespace StageUp.UI.Explorar
             set { ViewState["PreguntaDestacada"] = value; }
         }
 
-        // Pregunta a la que el gestor le está escribiendo el motivo para ocultarla.
+
         protected int PreguntaOcultando
         {
             get { return ViewState["PreguntaOcultando"] as int? ?? 0; }
@@ -212,7 +212,7 @@ namespace StageUp.UI.Explorar
                 pnlMensajePreguntas.Visible = false;
             }
 
-            // Si falla una respuesta, se conserva lo escrito.
+
             string textoEscrito = e.CommandName == "Responder" && resultado != null && !resultado.Exitoso
                 ? ((System.Web.UI.WebControls.TextBox)e.Item.FindControl("txtRespuesta")).Text
                 : null;
@@ -237,9 +237,9 @@ namespace StageUp.UI.Explorar
             pnlMensajePreguntas.Visible = !string.IsNullOrEmpty(mensaje);
         }
 
-        // ------------------------------------------------------------------
-        // CU-001-007 A8 a A11: acciones del gestor sobre su espacio.
-        // ------------------------------------------------------------------
+
+
+
         private void ConfigurarGestion(EspacioArtistico espacio)
         {
             bool esPropio = GestorDeSesion.EstaAutenticado() &&
@@ -255,9 +255,9 @@ namespace StageUp.UI.Explorar
                 ? "Se muestra en el catálogo y recibe solicitudes de reserva."
                 : "No se muestra en el catálogo mientras no lo publiques.";
             lnkEditarGestion.NavigateUrl = "~/MisEspacios.aspx?editar=" + espacio.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture);
-            // CU-001-008 paso 7.
+
             lnkDisponibilidadGestion.NavigateUrl = "~/DisponibilidadEspacio.aspx?id=" + espacio.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture);
-            // CU-001-009 paso 7.
+
             lnkActividadesGestion.NavigateUrl = "~/MisActividades.aspx?espacio=" + espacio.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture);
             lnkPublicarGestion.Visible = !espacio.Publicado;
             lnkPausarGestion.Visible = espacio.Publicado;
@@ -273,14 +273,14 @@ namespace StageUp.UI.Explorar
             EjecutarAccionGestion(id => _bllEspacio.Pausar(id, GestorDeSesion.ObtenerIdUsuarioActual().Value));
         }
 
-        // A10 paso 2: confirmación que avisa que se conserva el historial.
+
         protected void lnkBajaGestion_Click(object sender, EventArgs e)
         {
             pnlConfirmarBaja.Visible = true;
             pnlMensajeGestion.Visible = false;
         }
 
-        // A11: cancelar la baja deja todo como estaba.
+
         protected void lnkCancelarBaja_Click(object sender, EventArgs e)
         {
             pnlConfirmarBaja.Visible = false;
@@ -302,7 +302,7 @@ namespace StageUp.UI.Explorar
                 return;
             }
 
-            // A10 pasos 7 y 8.
+
             Response.Redirect("~/MisEspacios.aspx?baja=1", false);
             Context.ApplicationInstance.CompleteRequest();
         }
@@ -574,8 +574,8 @@ namespace StageUp.UI.Explorar
             pnlPlanificadorDisponible.Visible = puedePlanificar;
             pnlPlanificadorNoDisponible.Visible = !puedePlanificar;
             litPrecioReserva.Text = ficha.PrecioHora.HasValue ? FormatearPrecio(ficha) : "Valor a consultar";
-            // Solo lo que necesita el planificador: el motivo de un bloqueo y
-            // el nombre de una actividad son datos internos del gestor.
+
+
             hdnDisponibilidadDetalle.Value = new JavaScriptSerializer().Serialize(
                 disponibilidad.Where(f => f != null).Select(f => new
                 {
@@ -603,16 +603,16 @@ namespace StageUp.UI.Explorar
             pnlReservarFormulario.Visible = idUsuarioActual.HasValue && !esPropio && puedePlanificar;
         }
 
-        // Ítems 24/25 del checklist de correcciones: el planificador solo
-        // mostraba la disponibilidad publicada por el gestor, sin descontar
-        // las reservas ya Pendientes o Aceptadas para este espacio. El
-        // chequeo que evita guardar una reserva solapada
-        // (BLL_Reserva.ExisteSolapamiento, disparado al confirmar) ya
-        // existía, pero el calendario visual podía mostrar como libre un
-        // horario que al confirmar iba a ser rechazado. Acá se arma una
-        // proyección mínima (fecha + horario, sin datos del solicitante)
-        // para que el planificador la descuente al calcular los horarios de
-        // inicio disponibles.
+
+
+
+
+
+
+
+
+
+
         private List<object> ObtenerHorariosOcupados(int idEspacioArtistico)
         {
             List<object> ocupados = new List<object>();

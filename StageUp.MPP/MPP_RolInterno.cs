@@ -56,7 +56,7 @@ namespace StageUp.MPP
             return lista;
         }
 
-        // CU-001-012 A11 paso 4: listado con área, estado y cantidades.
+
         public List<RolInterno> ListarResumen(string estado)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -73,7 +73,7 @@ namespace StageUp.MPP
             return lista;
         }
 
-        // A14: otro rol activo con el mismo nombre.
+
         public bool ExisteNombreActivo(RolInterno oRolInterno)
         {
             object resultado = Conexion.Instance.LeerEscalar(
@@ -86,8 +86,8 @@ namespace StageUp.MPP
             return resultado != null && resultado != DBNull.Value && Convert.ToInt32(resultado) > 0;
         }
 
-        // A11 pasos 11 y 12 / A12 pasos 8 y 9: rol y permisos en una sola
-        // transacción. Devuelve el id del rol (nuevo o modificado).
+
+
         public int GuardarConPermisos(RolInterno oRolInterno, IEnumerable<int> idsComponentes)
         {
             object resultado = Conexion.Instance.LeerEscalar(

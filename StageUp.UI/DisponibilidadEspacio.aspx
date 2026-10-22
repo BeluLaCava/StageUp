@@ -94,7 +94,7 @@
                 <asp:Literal ID="litMensaje" runat="server" Mode="Encode" />
             </asp:Panel>
 
-            <%-- A1: el gestor no tiene espacios registrados. --%>
+
             <asp:Panel ID="pnlSinEspacios" runat="server" Visible="false" CssClass="auth-card">
                 <h2>Todavía no tenés espacios</h2>
                 <p>Para configurar disponibilidad primero tenés que registrar un espacio.</p>
@@ -123,7 +123,7 @@
                     <asp:Button ID="btnBloquear" runat="server" CssClass="button button-secondary" Text="Bloquear horario" CausesValidation="false" OnClick="btnBloquear_Click" />
                 </div>
 
-                <%-- Pasos 10 a 13 y A6: agregar o editar disponibilidad. --%>
+
                 <asp:Panel ID="pnlFormulario" runat="server" Visible="false" CssClass="auth-card da-panel" DefaultButton="btnGuardarDisponibilidad">
                     <h2><asp:Literal ID="litTituloFormulario" runat="server" Text="Agregar disponibilidad" /></h2>
                     <asp:RadioButtonList ID="rblModo" runat="server" RepeatLayout="Flow" RepeatDirection="Horizontal" CssClass="da-modo"
@@ -164,7 +164,7 @@
                     </div>
                 </asp:Panel>
 
-                <%-- A8: bloqueo manual de horario. --%>
+
                 <asp:Panel ID="pnlBloqueo" runat="server" Visible="false" CssClass="auth-card da-panel" DefaultButton="btnGuardarBloqueo">
                     <h2>Bloquear horario</h2>
                     <p class="da-ayuda">El horario bloqueado no se va a poder elegir para nuevas reservas.</p>
@@ -205,7 +205,7 @@
                     </div>
                 </asp:Panel>
 
-                <%-- A6 / A10 pasos 1 y 2: detalle de la disponibilidad elegida. --%>
+
                 <asp:Panel ID="pnlDetalle" runat="server" Visible="false" CssClass="auth-card da-panel da-detalle">
                     <h2>Disponibilidad seleccionada</h2>
                     <p><strong><asp:Literal ID="litDetalleCuando" runat="server" Mode="Encode" /></strong></p>
@@ -220,7 +220,7 @@
                         <asp:Button ID="btnEliminarFranja" runat="server" CssClass="button button-secondary" Text="Eliminar disponibilidad" CausesValidation="false" OnClick="btnEliminarFranja_Click" />
                         <asp:LinkButton ID="lnkCerrarDetalle" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCerrarDetalle_Click">Cerrar</asp:LinkButton>
                     </div>
-                    <%-- A10 pasos 4 y 5. --%>
+
                     <asp:Panel ID="pnlConfirmarEliminar" runat="server" Visible="false" CssClass="da-confirmacion" role="alertdialog">
                         <p><strong>¿Eliminar esta disponibilidad?</strong> Ese horario deja de estar disponible para nuevas solicitudes de reserva.</p>
                         <asp:Button ID="btnConfirmarEliminar" runat="server" CssClass="button button-danger" Text="Sí, eliminar" CausesValidation="false" OnClick="btnConfirmarEliminar_Click" />
@@ -228,7 +228,7 @@
                     </asp:Panel>
                 </asp:Panel>
 
-                <%-- Paso 9: calendario de disponibilidad. --%>
+
                 <div class="auth-card da-panel">
                     <div class="da-semana">
                         <strong><asp:Literal ID="litRangoSemana" runat="server" Mode="Encode" /></strong>

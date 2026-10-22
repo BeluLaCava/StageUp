@@ -10,16 +10,16 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno.Comercializacion
 {
-    // CU-004-003 Gestionar alianzas estratégicas.
-    //   AlianzasEstrategicas.aspx?[filtros]         -> listado (pasos 2 a 8, A2 a A4)
-    //   AlianzasEstrategicas.aspx?ver={id}          -> detalle (A5, A12, A13)
-    //   AlianzasEstrategicas.aspx?nuevo=1           -> alta (pasos 9 a 30)
-    //   AlianzasEstrategicas.aspx?editar={id}       -> edición (A6, A8, A14 a A16)
-    //   AlianzasEstrategicas.aspx?seguimiento={id}  -> seguimiento (A7, A8)
-    //   AlianzasEstrategicas.aspx?renovar={id}      -> renovación o reactivación (A9)
-    //   AlianzasEstrategicas.aspx?finalizar={id}    -> finalización (A10)
-    //   AlianzasEstrategicas.aspx?baja={id}         -> baja lógica (A11)
-    // Filtros en la query string: vista, estado, tipo, resp, desde, hasta, q.
+
+
+
+
+
+
+
+
+
+
     public partial class AlianzasEstrategicas : PaginaComercial
     {
         private const string Pagina = "AlianzasEstrategicas.aspx";
@@ -66,9 +66,9 @@ namespace StageUp.UI.Interno.Comercializacion
             return alianza;
         }
 
-        // ------------------------------------------------------------------
-        // Listado
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarListado()
         {
@@ -88,7 +88,7 @@ namespace StageUp.UI.Interno.Comercializacion
                 Texto = LeerTexto("q")
             };
 
-            // Si se filtra por un estado histórico, se muestran también las históricas.
+
             if (filtro.Estado == AlianzaEstrategica.EstadoFinalizada || filtro.Estado == AlianzaEstrategica.EstadoDadaDeBaja)
             {
                 filtro.Vista = FiltroAlianzaEstrategica.VistaTodas;
@@ -116,7 +116,7 @@ namespace StageUp.UI.Interno.Comercializacion
             litVencidas.Text = resumen.Valor.Vencidas.ToString(CultureInfo.InvariantCulture);
             litHistoricas.Text = resumen.Valor.Historicas.ToString(CultureInfo.InvariantCulture);
 
-            // A2.
+
             if (resumen.Valor.Total == 0)
             {
                 pnlSinAlianzas.Visible = true;
@@ -133,7 +133,7 @@ namespace StageUp.UI.Interno.Comercializacion
                 return;
             }
 
-            // A4.
+
             pnlSinResultados.Visible = resultado.Valor.Count == 0;
             rptAlianzas.Visible = resultado.Valor.Count > 0;
             litCantidad.Text = resultado.Valor.Count == 0
@@ -165,9 +165,9 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(ArmarUrl(Pagina, partes), null);
         }
 
-        // ------------------------------------------------------------------
-        // Detalle (A5, A12, A13)
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarDetalle(int id)
         {
@@ -195,7 +195,7 @@ namespace StageUp.UI.Interno.Comercializacion
             litAlta.Text = a.FechaAlta.ToString("dd/MM/yyyy HH:mm");
             litActualizacion.Text = a.FechaUltimaModificacion.ToString("dd/MM/yyyy HH:mm");
 
-            // A12 y A13.
+
             if (!a.EnGestion)
             {
                 pnlAviso.Visible = true;
@@ -245,9 +245,9 @@ namespace StageUp.UI.Interno.Comercializacion
             lnkBaja.NavigateUrl = Pagina + "?baja=" + id;
         }
 
-        // ------------------------------------------------------------------
-        // Formulario
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarFormulario(int? id)
         {
@@ -273,7 +273,7 @@ namespace StageUp.UI.Interno.Comercializacion
             ddlEstado.Items.Clear();
             foreach (KeyValuePair<string, string> estado in BLL_AlianzaEstrategica.Estados)
             {
-                // En el alta no se ofrecen los estados de cierre; en la edición sí (A8).
+
                 if (a != null || (estado.Key != AlianzaEstrategica.EstadoFinalizada && estado.Key != AlianzaEstrategica.EstadoDadaDeBaja))
                 {
                     ddlEstado.Items.Add(new ListItem(estado.Value, estado.Key));
@@ -315,8 +315,8 @@ namespace StageUp.UI.Interno.Comercializacion
             txtObservaciones.Text = a.Observaciones;
             lnkCancelar.NavigateUrl = Pagina + "?ver=" + a.IdAlianzaEstrategica;
 
-            // Si no se pudieron consultar los vínculos, el formulario quedaría
-            // sin ellos y al guardar se borrarían: no se permite guardar.
+
+
             ResultadoOperacion<List<VinculoComercial>> cargaVinculos = _bll.ListarVinculos(a.IdAlianzaEstrategica);
             if (!cargaVinculos.Exitoso)
             {
@@ -333,7 +333,7 @@ namespace StageUp.UI.Interno.Comercializacion
             MarcarVinculos(cblOrigenes, vinculos, OpcionVinculoComercial.TipoOrigen);
         }
 
-        // Los vínculos de la edición no se pudieron cargar (ver CargarFormulario).
+
         private bool VinculosNoCargados
         {
             get { return ViewState["VinculosNoCargados"] as bool? ?? false; }
@@ -393,9 +393,9 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(idEditar.HasValue ? Pagina + "?ver=" + resultado.Valor : Pagina, resultado.Mensaje);
         }
 
-        // ------------------------------------------------------------------
-        // Seguimiento (A7, A8)
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarSeguimiento(int id)
         {
@@ -456,9 +456,9 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(Pagina + "?ver=" + id.Value, resultado.Mensaje);
         }
 
-        // ------------------------------------------------------------------
-        // Renovación (A9)
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarRenovacion(int id)
         {
@@ -483,7 +483,7 @@ namespace StageUp.UI.Interno.Comercializacion
             litVigenciaActual.Text = "Vigencia actual: " + BLL_AlianzaEstrategica.TextoVigencia(a) + ". La vigencia anterior queda guardada en el historial." +
                 (a.EnGestion ? string.Empty : " Al guardar, la alianza vuelve a estar activa.");
 
-            // Por defecto, el nuevo período empieza al día siguiente del fin anterior (o hoy).
+
             DateTime inicio = a.FechaFin.HasValue && a.FechaFin.Value.Date >= DateTime.Today ? a.FechaFin.Value.AddDays(1) : DateTime.Today;
             txtRenovInicio.Text = FechaParaCampo(a.EnGestion && !a.Vencida ? a.FechaInicio : inicio);
             txtRenovAlcance.Text = a.Alcance;
@@ -525,9 +525,9 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(Pagina + "?ver=" + id.Value, resultado.Mensaje);
         }
 
-        // ------------------------------------------------------------------
-        // Finalización (A10) y baja lógica (A11)
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarCierre(int id, bool esBaja)
         {
@@ -582,9 +582,9 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(Pagina + "?ver=" + id.Value, resultado.Mensaje, !resultado.Exitoso);
         }
 
-        // ------------------------------------------------------------------
-        // Auxiliares
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarResponsables(DropDownList lista, string textoVacio, int? seleccionado)
         {

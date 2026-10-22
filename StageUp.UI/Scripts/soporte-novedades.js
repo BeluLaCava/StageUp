@@ -1,7 +1,7 @@
-// Ítem 12: actualización periódica de las pantallas de soporte. Cada
-// tantos segundos pregunta a SoporteNovedades.ashx si cambió lo que se está
-// viendo. Si cambió y no hay nada escrito sin enviar, recarga la página;
-// si hay un borrador, solo muestra el aviso para no perderlo.
+
+
+
+
 (function () {
     "use strict";
 
@@ -52,7 +52,7 @@
                 }
             })
             .catch(function () {
-                // Sin conexión: se vuelve a intentar en el próximo ciclo.
+
             });
     }
 

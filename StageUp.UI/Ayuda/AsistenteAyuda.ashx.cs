@@ -9,11 +9,11 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Ayuda
 {
-    // CU-003-001 A4 a A7: el asistente guiado del centro de ayuda le pide
-    // los pasos a este handler (JSON). Solo lee contenido activo y registra
-    // las consultas escritas; no modifica información operativa.
-    //   GET  ?accion=nodo[&codigo=CODIGO]   (sin código: el inicio)
-    //   POST accion=consultar&texto=...
+
+
+
+
+
     public class AsistenteAyuda : IHttpHandler, IReadOnlySessionState
     {
         public bool IsReusable
@@ -97,7 +97,7 @@ namespace StageUp.UI.Ayuda
             };
         }
 
-        // Solo páginas internas de StageUp ("~/Pagina.aspx").
+
         private static string UrlInterna(AccionNodoAsistente accion)
         {
             if (accion.TipoAccion != AccionNodoAsistente.TipoEnlace || string.IsNullOrEmpty(accion.Destino))

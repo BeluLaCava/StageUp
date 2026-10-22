@@ -6,14 +6,7 @@ using System.Text;
 
 namespace StageUp.Seguridad
 {
-    /// <summary>
-    /// Encripta y desencripta datos sensibles (por ejemplo, el teléfono del usuario)
-    /// usando AES-256 en modo CBC. La clave se toma primero de la variable de entorno
-    /// STAGEUP_CLAVE_ENCRIPTACION y, si no está definida, del AppSetting
-    /// "ClaveEncriptacionSimetrica" (que debe vivir únicamente en AppSettings.private.config,
-    /// nunca en el Web.config versionado).
-    /// </summary>
-    public static class EncriptadorSimetrico
+         public static class EncriptadorSimetrico
     {
         private static byte[] ObtenerClave()
         {
@@ -49,12 +42,7 @@ namespace StageUp.Seguridad
             return clave;
         }
 
-        /// <summary>
-        /// Encripta un texto plano. Devuelve null si la entrada es null.
-        /// El resultado incluye el IV (los primeros 16 bytes) seguido del texto cifrado,
-        /// todo codificado en Base64 para poder guardarlo en una columna NVARCHAR.
-        /// </summary>
-        public static string Encriptar(string textoPlano)
+                 public static string Encriptar(string textoPlano)
         {
             if (textoPlano == null)
             {
@@ -81,12 +69,7 @@ namespace StageUp.Seguridad
             }
         }
 
-        /// <summary>
-        /// Desencripta un texto generado por Encriptar. Devuelve null si la entrada es null.
-        /// Tira FormatException o CryptographicException si el valor no es un texto cifrado válido
-        /// (por ejemplo, si viene un valor viejo en texto plano cargado antes de esta funcionalidad).
-        /// </summary>
-        public static string Desencriptar(string textoCifrado)
+                 public static string Desencriptar(string textoCifrado)
         {
             if (textoCifrado == null)
             {
@@ -119,13 +102,7 @@ namespace StageUp.Seguridad
             }
         }
 
-        /// <summary>
-        /// Huella HMAC-SHA256 (hexadecimal) de un texto, calculada con una clave
-        /// derivada de la clave simétrica. Sirve para comparar datos sensibles
-        /// (por ejemplo, detectar una tarjeta repetida) sin guardarlos en claro
-        /// y sin poder revertir la huella.
-        /// </summary>
-        public static string CalcularHuella(string texto, string proposito)
+                 public static string CalcularHuella(string texto, string proposito)
         {
             byte[] claveDerivada;
             using (HMACSHA256 derivador = new HMACSHA256(ObtenerClave()))
@@ -140,12 +117,7 @@ namespace StageUp.Seguridad
             }
         }
 
-        /// <summary>
-        /// Igual que Desencriptar, pero si el valor guardado no es un texto cifrado válido
-        /// (por ejemplo, datos cargados antes de habilitar la encriptación), devuelve el valor
-        /// original tal cual en vez de tirar una excepción. Pensado para usarse al leer de la base.
-        /// </summary>
-        public static string DesencriptarOMantener(string valor)
+                 public static string DesencriptarOMantener(string valor)
         {
             if (string.IsNullOrEmpty(valor))
             {

@@ -9,7 +9,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Parámetros administrativos de la plataforma (scripts 49, 53 y 65).
+
     public class MPP_ParametroPlataforma
     {
         public List<ParametroPlataforma> Listar()
@@ -31,8 +31,8 @@ namespace StageUp.MPP
             return parametros;
         }
 
-        // Guarda los cambios juntos (una transacción). Devuelve los cambios
-        // registrados; null si algún parámetro no existe en la base.
+
+
         public List<CambioParametroPlataforma> GuardarCambios(IDictionary<string, string> valores, DateTime? fechaVigencia, int idUsuarioInterno)
         {
             StringBuilder cambios = new StringBuilder("<c>");
@@ -79,8 +79,8 @@ namespace StageUp.MPP
             return cambios;
         }
 
-        // Valores que regían en una fecha (para mostrar comprobantes viejos con
-        // los datos de su momento).
+
+
         public Dictionary<string, string> ObtenerValoresAl(DateTime fecha)
         {
             DataTable tabla = Conexion.Instance.Leer(

@@ -4,10 +4,10 @@ using System.Web;
 
 namespace StageUp.UI.Infraestructura
 {
-    // CU-004-004: código del origen de un enlace de difusión
-    // (cualquier página con ?origen=codigo). Se guarda en una cookie por 30
-    // días para que, si la persona se registra después, la cuenta quede
-    // asociada a ese origen.
+
+
+
+
     public static class OrigenDeDifusion
     {
         private const string NombreCookie = "StageUp_Origen";
@@ -32,7 +32,7 @@ namespace StageUp.UI.Infraestructura
             contexto.Response.Cookies.Set(cookie);
         }
 
-        // El código de la URL actual o, si no hay, el guardado.
+
         public static string Leer(HttpContext contexto)
         {
             string codigo = Normalizar(contexto.Request.QueryString["origen"]);

@@ -164,8 +164,8 @@
     </section>
 
     <script type="text/javascript">
-        // Ordenamiento del catálogo (ítem 8): se agrega/quita "orden" de la
-        // URL y se recarga, conservando los filtros que ya estén aplicados.
+
+
         function stageUpCambiarOrden(valor) {
             const params = new URLSearchParams(window.location.search);
             if (valor) { params.set("orden", valor); } else { params.delete("orden"); }

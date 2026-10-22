@@ -7,27 +7,27 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // Sesiones abiertas después de restaurar un backup (script 79).
-    //
-    // Al restaurar, la base vuelve al estado del backup, pero las sesiones
-    // abiertas (en memoria del servidor web) siguen con los datos de antes:
-    // una cuenta creada después del backup ya no existe, una dada de baja
-    // puede volver a estar activa, los permisos pueden ser otros, y un id
-    // que ya no existe se le puede asignar a la próxima cuenta que se cree.
-    //
-    //   * La marca de la base combina el id de la última restauración que
-    //     registra SQL Server (msdb, así se detecta también una restauración
-    //     hecha desde SSMS) con las restauraciones hechas desde esta ejecución
-    //     de la aplicación. Se consulta como mucho cada 10 segundos.
-    //   * Cada sesión guarda la marca con la que se validó. Si cambió, la
-    //     cuenta se vuelve a leer de la base: la sesión sigue abierta solo si
-    //     la cuenta existe, tiene la misma fecha de alta (si no, el id es de
-    //     otra cuenta) y está activa. Si no, se cierra y queda en la bitácora.
-    //   * "No hubo restauración" no es lo mismo que "no se pudo comprobar":
-    //     si la última consulta de la marca falló (o todavía no hay una), la
-    //     marca no es confiable y la sesión no puede darse por válida solo por
-    //     tenerla. En ese caso la cuenta se vuelve a leer en cada pedido, y si
-    //     tampoco se puede leer, la sesión queda suspendida.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public class BLL_SesionBaseDatos
     {
         private const int SegundosEntreConsultas = 10;
@@ -43,16 +43,16 @@ namespace StageUp.BLL
         private readonly MPP_UsuarioExterno _mppUsuarioExterno = new MPP_UsuarioExterno();
         private readonly BLL_UsuarioInterno _bllUsuarioInterno = new BLL_UsuarioInterno();
 
-        // Null mientras no se sepa (la primera consulta todavía no terminó).
+
         public string ObtenerMarcaActual()
         {
             bool confiable;
             return ObtenerMarcaActual(out confiable);
         }
 
-        // confiable: la última consulta de restauraciones respondió. Si es
-        // false, la marca puede estar desactualizada (una restauración hecha
-        // desde SSMS no se vería) y no alcanza para dar la sesión por válida.
+
+
+
         public string ObtenerMarcaActual(out bool confiable)
         {
             bool consultar;
@@ -62,8 +62,8 @@ namespace StageUp.BLL
                 consultar = _ultimaConsultaUtc > ahora || (ahora - _ultimaConsultaUtc).TotalSeconds >= SegundosEntreConsultas;
                 if (consultar)
                 {
-                    // Se marca antes de consultar: mientras tanto, los demás
-                    // pedidos usan la última marca conocida.
+
+
                     _ultimaConsultaUtc = ahora;
                 }
             }
@@ -77,11 +77,11 @@ namespace StageUp.BLL
                 }
                 catch (Exception)
                 {
-                    // Sin permiso para leer msdb, servidor sin responder o
-                    // configuración incompleta: se mantiene la última marca
-                    // conocida. Las restauraciones hechas desde el panel se
-                    // siguen detectando igual. Esto corre en cada pedido, por
-                    // eso ningún error de acá debe cortar la página.
+
+
+
+
+
                     marca = null;
                 }
 
@@ -106,8 +106,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Lo llama BLL_Backup después de restaurar desde el panel: cambia la
-        // marca enseguida, sin esperar la próxima consulta.
+
+
         internal static void RegistrarRestauracion()
         {
             lock (Bloqueo)
@@ -146,8 +146,8 @@ namespace StageUp.BLL
         {
             try
             {
-                // Devuelve null si no existe o no está activa, y los permisos
-                // del rol según la base restaurada.
+
+
                 usuario = _bllUsuarioInterno.ObtenerParaSesion(idUsuarioInterno, out codigosPermisos);
             }
             catch (ErrorAccesoDatosException)
@@ -172,7 +172,7 @@ namespace StageUp.BLL
         {
             try
             {
-                // Sin responsable: la cuenta puede no existir en la base actual.
+
                 new BLL_Bitacora().Registrar(null, "CIERRE", tipoEntidad, idCuenta,
                     "Se cerró la sesión abierta de la cuenta " + idCuenta +
                     " porque cambió la base de datos (restauración de un backup) y la cuenta no está, no está activa o el id es de otra cuenta.",
@@ -180,7 +180,7 @@ namespace StageUp.BLL
             }
             catch (Exception)
             {
-                // La bitácora no debe impedir el cierre de la sesión.
+
             }
         }
     }

@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Catálogos de la gestión comercial y opciones para vincular (script 80).
+
     public class MPP_CatalogoComercial
     {
         public List<ItemCatalogoComercial> Listar()

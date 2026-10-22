@@ -5,25 +5,17 @@ using System.Text;
 
 namespace StageUp.Seguridad
 {
-    /// <summary>
-    /// Cifrado híbrido: genera una clave AES efímera (nueva en cada llamada,
-    /// nunca se reutiliza ni se guarda), cifra el texto con esa clave, y
-    /// envuelve la clave AES con EncriptadorAsimetrico (RSA). Es el mismo
-    /// esquema que usan TLS o PGP para poder cifrar datos de cualquier
-    /// tamaño con un par de claves asimétricas, que por su naturaleza solo
-    /// pueden cifrar bloques muy chicos.
-    /// </summary>
-    public static class EncriptadorHibrido
+         public static class EncriptadorHibrido
     {
-        // Con las claves de AppSettings (exportaciones generadas antes del
-        // script 66).
+
+
         public static void Encriptar(
             string textoPlano, out string ivBase64, out string claveCifradaBase64, out string datosCifradosBase64)
         {
             Encriptar(textoPlano, null, out ivBase64, out claveCifradaBase64, out datosCifradosBase64);
         }
 
-        // Ítem 9: con la clave pública indicada (versión activa de ClaveCifrado).
+
         public static void Encriptar(
             string textoPlano, string clavePublicaBase64, out string ivBase64, out string claveCifradaBase64, out string datosCifradosBase64)
         {
@@ -85,9 +77,9 @@ namespace StageUp.Seguridad
             }
         }
 
-        // Ítem 10 (rotación): vuelve a envolver la clave AES de un dato con
-        // la nueva clave pública, sin tocar los datos cifrados. La clave AES
-        // solo existe en memoria durante la llamada.
+
+
+
         public static string ReenvolverClave(string claveCifradaBase64, string clavePrivadaAnteriorBase64, string clavePublicaNuevaBase64)
         {
             byte[] claveAes = EncriptadorAsimetrico.Desencriptar(Convert.FromBase64String(claveCifradaBase64), clavePrivadaAnteriorBase64);

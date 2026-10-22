@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-    // CU-003-004: contenido de ayuda (pregunta frecuente) con categoría,
-    // estado (Borrador, Activo, Inactivo) y uso en el asistente (CU-003-001).
+
+
     public class Faq
     {
         public int IdFaq { get; set; }
@@ -17,8 +17,8 @@ namespace StageUp.BE.Entidades
         public string NombreCategoria { get; set; }
         public int OrdenCategoria { get; set; }
         public bool CategoriaActiva { get; set; }
-        // CU-003-001: pregunta básica que se muestra en el centro de ayuda
-        // (la lista pública es breve; lo específico lo resuelve el asistente).
+
+
         public bool EsBasica { get; set; }
         public string PalabrasClave { get; set; }
         public DateTime FechaAlta { get; set; }
@@ -44,9 +44,9 @@ namespace StageUp.BE.Entidades
         public int CantidadBasicas { get; set; }
     }
 
-    // CU-003-001 A4 a A6 (corrección de María): paso del asistente guiado.
-    // Tipo "Pregunta": el asistente pregunta y las opciones son sus nodos
-    // hijos. Tipo "Respuesta": el asistente responde y ofrece acciones.
+
+
+
     public class NodoAsistente
     {
         public const string TipoPregunta = "Pregunta";
@@ -61,10 +61,10 @@ namespace StageUp.BE.Entidades
         public string PalabrasClave { get; set; }
         public int Orden { get; set; }
 
-        // Estilo chat (script 72): descripción corta debajo de la opción en
-        // el menú, ícono de la opción (clave fija que el asistente traduce a
-        // un emoji) y texto del botón que abre el menú de opciones de este
-        // paso (por ejemplo "Menú principal" u "Opciones de reservas").
+
+
+
+
         public string DescripcionOpcion { get; set; }
         public string Icono { get; set; }
         public string TextoBotonLista { get; set; }
@@ -72,8 +72,8 @@ namespace StageUp.BE.Entidades
         public List<NodoAsistente> Opciones { get; set; } = new List<NodoAsistente>();
         public List<AccionNodoAsistente> Acciones { get; set; } = new List<AccionNodoAsistente>();
 
-        // Recorrido desde el inicio (por ejemplo "Reservas > Quiero cancelar
-        // una reserva"), para precargar el motivo de la solicitud de soporte.
+
+
         public string Recorrido { get; set; }
 
         public bool EsRespuesta
@@ -82,9 +82,9 @@ namespace StageUp.BE.Entidades
         }
     }
 
-    // Acción que ofrece una respuesta del asistente: "Enlace" (destino =
-    // página ~/...), "Nodo" (destino = código de otro paso) o "Soporte"
-    // (registrar una solicitud de soporte, CU-003-002).
+
+
+
     public class AccionNodoAsistente
     {
         public const string TipoEnlace = "Enlace";
@@ -99,27 +99,27 @@ namespace StageUp.BE.Entidades
         public int Orden { get; set; }
     }
 
-    // CU-003-001 A4 y A5: resultado de una consulta escrita, buscada solo en
-    // los pasos del asistente (no usa las preguntas frecuentes).
+
+
     public class RespuestaAsistente
     {
         public bool Reconocida { get; set; }
         public NodoAsistente Nodo { get; set; }
         public List<NodoAsistente> Sugerencias { get; set; } = new List<NodoAsistente>();
 
-        // Respuesta del asistente automático por API (solo si no hubo
-        // coincidencia propia). AsistenteAutomaticoNoDisponible: la API
-        // estaba configurada pero falló o tardó; se deriva a soporte.
+
+
+
         public string RespuestaAutomatica { get; set; }
         public bool AsistenteAutomaticoNoDisponible { get; set; }
 
-        // La consulta traía datos privados (contraseña, código de seguridad,
-        // tarjeta, clave o token): no se envió al asistente automático ni se
-        // guardó su texto.
+
+
+
         public bool ConDatosPrivados { get; set; }
     }
 
-    // CU-003-004 A15: consulta del asistente sin respuesta, agrupada.
+
     public class ConsultaAsistenteSinRespuesta
     {
         public string Texto { get; set; }

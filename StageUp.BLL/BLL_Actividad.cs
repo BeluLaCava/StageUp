@@ -9,22 +9,22 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-001-009 Gestionar actividades internas del espacio.
-    //
-    // Actividades internas de un espacio (clases, talleres, ensayos). Cargar
-    // una actividad bloquea automáticamente la disponibilidad del espacio
-    // para reservas externas en los horarios que le correspondan.
-    //
-    // El bloqueo se materializa como filas en FranjaEspacio con
-    // origen='Actividad', separadas de las franjas manuales del gestor. Cada
-    // vez que se guarda o se da de baja una actividad se borran y se vuelven
-    // a generar SUS PROPIAS franjas (se identifican por idActividad), así que
-    // nunca quedan duplicadas ni se tocan las de otra actividad.
-    //
-    // Validaciones del documento: campos obligatorios (A2, se informan todos
-    // juntos), horario (A3), cupo (A4), superposición con reservas aceptadas,
-    // solicitudes pendientes u otras actividades del mismo espacio (A5/A8) y
-    // baja con operaciones asociadas (A10).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public class BLL_Actividad
     {
         private readonly MPP_Actividad _mppActividad = new MPP_Actividad();
@@ -42,24 +42,24 @@ namespace StageUp.BLL
         public const int LongitudMaximaNombre = 200;
         public const int CupoMaximoPermitido = 10000;
 
-        // Horizonte hacia adelante para materializar fechas concretas de la
-        // recurrencia "Mensual" (no representable como día de semana fijo en
-        // FranjaEspacio). Se recalcula en cada guardado de la actividad.
+
+
+
         private const int HorizonteMesesRecurrenciaMensual = 12;
 
         private static readonly string[] OrdinalesSemana = { string.Empty, "primer", "segundo", "tercer", "cuarto", "último" };
 
-        // ------------------------------------------------------------------
-        // Alta y modificación (pasos 10 a 18, A7)
-        // ------------------------------------------------------------------
+
+
+
 
         public ResultadoOperacion<int> Guardar(Actividad actividad, int idUsuarioGestor)
         {
             return Guardar(actividad, idUsuarioGestor, null);
         }
 
-        // idsParticipantes: participantes que tienen que quedar asociados
-        // (null = no se cambian los participantes).
+
+
         public ResultadoOperacion<int> Guardar(Actividad actividad, int idUsuarioGestor, List<int> idsParticipantes)
         {
             return EjecutarProtegido(() =>
@@ -88,14 +88,14 @@ namespace StageUp.BLL
 
                 Normalizar(actividad);
 
-                // A2, A3 y A4.
+
                 ResultadoOperacion validacion = Validar(actividad, idUsuarioGestor);
                 if (!validacion.Exitoso)
                 {
                     return ResultadoOperacion<int>.Error(validacion.Mensaje, validacion.CodigoAlternativo);
                 }
 
-                // Participantes: tienen que ser del gestor y entrar en el cupo.
+
                 List<Participante> actuales = esNueva
                     ? new List<Participante>()
                     : _mppActividad.ListarParticipantesDeActividad(actividad);
@@ -123,7 +123,7 @@ namespace StageUp.BLL
                         cantidadParticipantes + "). Aumentá el cupo o quitá participantes.", "A4");
                 }
 
-                // A5: otras actividades internas del mismo espacio.
+
                 Actividad superpuesta = BuscarActividadSuperpuesta(actividad);
                 if (superpuesta != null)
                 {
@@ -133,7 +133,7 @@ namespace StageUp.BLL
                         FormatearHorario(superpuesta.MinutoDesde, superpuesta.MinutoHasta) + "). Cambiá el día, el horario o la duración.", "A5");
                 }
 
-                // A5 (alta) y A8 (modificación): reservas aceptadas y solicitudes pendientes.
+
                 Reserva reserva = BuscarReservaEnConflicto(actividad);
                 if (reserva != null)
                 {
@@ -161,8 +161,8 @@ namespace StageUp.BLL
                     }
                 }
 
-                // Pasos 15 y 16 / A7 paso 7: se borran los bloqueos anteriores
-                // de esta actividad y se generan los nuevos.
+
+
                 RegenerarFranjasBloqueadas(actividad);
 
                 _bitacora.Registrar(
@@ -207,9 +207,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // A9 / A10: baja lógica
-        // ------------------------------------------------------------------
+
+
+
         public ResultadoOperacion DarDeBaja(int idActividad, int idUsuarioGestor)
         {
             return EjecutarProtegido(() =>
@@ -226,9 +226,9 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("La actividad ya estaba dada de baja.");
                 }
 
-                // A10. En la práctica no debería encontrar conflictos (mientras
-                // la actividad está activa su horario está bloqueado), pero
-                // cubre reservas que ya existían antes de cargarla.
+
+
+
                 Reserva reserva = BuscarReservaEnConflicto(actividad);
                 if (reserva != null)
                 {
@@ -249,16 +249,16 @@ namespace StageUp.BLL
             });
         }
 
-        // ------------------------------------------------------------------
-        // Consultas
-        // ------------------------------------------------------------------
+
+
+
 
         public List<Actividad> ListarPorUsuarioGestor(int idUsuarioGestor)
         {
             return Listar(idUsuarioGestor, FiltroActivas, null);
         }
 
-        // Paso 9: listado con filtro de estado y de espacio.
+
         public List<Actividad> Listar(int idUsuarioGestor, string estado, int? idEspacioArtistico)
         {
             try
@@ -278,7 +278,7 @@ namespace StageUp.BLL
             return ObtenerDetalle(idActividad, idUsuarioGestor);
         }
 
-        // A6: detalle con participantes (también de actividades dadas de baja).
+
         public Actividad ObtenerDetalle(int idActividad, int idUsuarioGestor)
         {
             try
@@ -314,7 +314,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("La actividad está dada de baja: no se le pueden asociar participantes.");
                 }
 
-                // CU-001-010 A7 paso 4: participante del gestor y activo.
+
                 Participante participante = _mppParticipante.ObtenerPorId(new Participante { IdParticipante = idParticipante });
                 if (participante == null || participante.IdUsuarioGestor != idUsuarioGestor)
                 {
@@ -326,7 +326,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("El participante está dado de baja: no se puede asociar a actividades.");
                 }
 
-                // A8: ya forma parte de la actividad.
+
                 List<Participante> participantesActuales = _mppActividad.ListarParticipantesDeActividad(actividad);
                 if (participantesActuales.Exists(p => p.IdParticipante == idParticipante))
                 {
@@ -334,7 +334,7 @@ namespace StageUp.BLL
                         participante.NombreCompleto + " ya forma parte de la actividad \"" + actividad.Nombre + "\".", "A8");
                 }
 
-                // A6 / A9: cupo máximo.
+
                 if (participantesActuales.Count >= actividad.CupoMaximo)
                 {
                     return ResultadoOperacion.Error(
@@ -374,8 +374,8 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error(participante.NombreCompleto + " no forma parte de la actividad \"" + actividad.Nombre + "\".");
                 }
 
-                // CU-001-010 A13: la asociación queda como historial (no se
-                // borra) y el participante sigue registrado.
+
+
                 _mppActividad.DesasociarParticipante(actividad, participante);
 
                 _bitacora.Registrar(
@@ -387,9 +387,9 @@ namespace StageUp.BLL
             });
         }
 
-        // ------------------------------------------------------------------
-        // Textos (listado, detalle y bitácora)
-        // ------------------------------------------------------------------
+
+
+
 
         public static string DescribirProgramacion(Actividad actividad)
         {
@@ -445,7 +445,7 @@ namespace StageUp.BLL
             return horas + (horas == 1 ? " hora" : " horas") + (resto > 0 ? " " + resto + " min" : string.Empty);
         }
 
-        // Próximas fechas en que la actividad ocupa el espacio.
+
         public static List<DateTime> ProximasFechas(Actividad actividad, int cantidad)
         {
             return GenerarFranjas(actividad, DateTime.Now.Date)
@@ -456,9 +456,9 @@ namespace StageUp.BLL
                 .ToList();
         }
 
-        // ------------------------------------------------------------------
-        // Validaciones
-        // ------------------------------------------------------------------
+
+
+
 
         private static void Normalizar(Actividad actividad)
         {
@@ -483,7 +483,7 @@ namespace StageUp.BLL
             }
         }
 
-        // A2 (todos los faltantes juntos), A3 y A4.
+
         private ResultadoOperacion Validar(Actividad actividad, int idUsuarioGestor)
         {
             List<string> faltantes = new List<string>();
@@ -542,7 +542,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("El nombre de la actividad no puede superar los " + LongitudMaximaNombre + " caracteres.", "A2");
             }
 
-            // A3.
+
             if (actividad.MinutoHasta > 1440 || actividad.MinutoDesde >= 1440)
             {
                 return ResultadoOperacion.Error("El horario no es válido: tiene que estar dentro del mismo día.", "A3");
@@ -578,7 +578,7 @@ namespace StageUp.BLL
                 }
             }
 
-            // A4.
+
             if (actividad.CupoMaximo < 1 || actividad.CupoMaximo > CupoMaximoPermitido)
             {
                 return ResultadoOperacion.Error("El cupo máximo tiene que ser un número entero entre 1 y " + CupoMaximoPermitido + ".", "A4");
@@ -590,7 +590,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("Los participantes estimados tienen que ser un número entero entre 0 y " + CupoMaximoPermitido + ".", "A4");
             }
 
-            // Reglas: el espacio tiene que ser del gestor y estar activo.
+
             EspacioArtistico espacio = _mppEspacio.ObtenerPorId(
                 new EspacioArtistico { IdEspacioArtistico = actividad.IdEspacioArtistico });
             if (espacio == null || espacio.IdUsuarioGestor != idUsuarioGestor)
@@ -631,8 +631,8 @@ namespace StageUp.BLL
             return espacio != null && espacio.IdUsuarioGestor == idUsuarioGestor;
         }
 
-        // A5: otra actividad activa del mismo espacio que ocupe el espacio
-        // algún mismo día en un horario que se superpone.
+
+
         private Actividad BuscarActividadSuperpuesta(Actividad actividad)
         {
             DateTime hoy = DateTime.Now.Date;
@@ -656,10 +656,10 @@ namespace StageUp.BLL
             return null;
         }
 
-        // ---- Validación contra reservas existentes ----
 
-        // A5, A8 y A10: reserva aceptada o solicitud pendiente (de hoy en
-        // adelante) que cae en alguno de los días y horarios de la actividad.
+
+
+
         private Reserva BuscarReservaEnConflicto(Actividad actividad)
         {
             List<Reserva> reservasActivas = _mppReserva.ListarActivasPorEspacio(
@@ -687,11 +687,11 @@ namespace StageUp.BLL
                 " de " + FormatearHorario(reserva.MinutoDesde ?? 0, reserva.MinutoHasta ?? 0);
         }
 
-        // ---- Franjas bloqueadas de la actividad ----
 
-        // Llamado desde BLL_EspacioArtistico después de guardar la ficha:
-        // vuelve a generar las franjas de todas las actividades activas del
-        // espacio (sin duplicar: cada actividad borra primero las suyas).
+
+
+
+
         public void RegenerarFranjasBloqueadasDelEspacio(int idEspacioArtistico)
         {
             List<Actividad> actividadesActivas = _mppActividad.ListarPorEspacio(
@@ -711,8 +711,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Franjas que ocupa la actividad: una por día de la semana (semanal),
-        // una por fecha (mensual, en el horizonte) o la fecha única.
+
+
         internal static List<FranjaEspacio> GenerarFranjas(Actividad actividad, DateTime desde)
         {
             List<FranjaEspacio> franjas = new List<FranjaEspacio>();
@@ -796,12 +796,12 @@ namespace StageUp.BLL
             return string.Join(", ", partes.Take(partes.Count - 1)) + " y " + partes[partes.Count - 1];
         }
 
-        // Calcula, para los próximos "horizonteMeses" meses a partir de
-        // "desde", la fecha concreta del "semanaDelMes"-ésimo
-        // "diaSemanaMensual" de cada mes (1..4 = primera..cuarta semana,
-        // 5 = última), descartando las que ya pasaron. diaSemanaMensual usa
-        // la misma convención que FranjaEspacio.DiaSemana (1 = lunes ... 7 =
-        // domingo).
+
+
+
+
+
+
         internal static List<DateTime> CalcularFechasMensuales(
             int semanaDelMes, int diaSemanaMensual, DateTime desde, int horizonteMeses)
         {

@@ -10,13 +10,13 @@ using StageUp.Seguridad;
 
 namespace StageUp.BLL
 {
-    // Ítem 8: billetera de tarjetas del usuario (MiBilletera.aspx y Pagar).
-    //
-    // Se guarda alias, marca, últimos 4 dígitos y vencimiento para mostrar.
-    // Número y titular se cifran con el esquema híbrido del ítem 9 (AES-256
-    // con una clave nueva por tarjeta, envuelta con la clave pública RSA
-    // activa). El código de seguridad nunca se guarda: se pide en cada pago.
-    // La tarjeta repetida se detecta con una huella HMAC del número.
+
+
+
+
+
+
+
     public class BLL_Billetera
     {
         public const int MaximoTarjetas = 5;
@@ -117,7 +117,7 @@ namespace StageUp.BLL
                     "Guardó en su billetera la tarjeta " + tarjeta.Marca + " terminada en " + tarjeta.UltimosDigitos +
                     " (alias \"" + aliasFinal + "\"" + (quedoPreferida ? ", preferida" : string.Empty) + "), cifrada con la clave versión " + clave.Version + ".");
 
-                // No se devuelven los datos cifrados.
+
                 tarjeta.Iv = null;
                 tarjeta.ClaveCifrada = null;
                 tarjeta.DatosCifrados = null;
@@ -206,8 +206,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Para pagar: descifra número y titular solo en memoria y les suma el
-        // código de seguridad que acaba de escribir el usuario.
+
+
         public ResultadoOperacion<DatosTarjeta> ObtenerDatosParaPagar(int idUsuarioExterno, int idTarjetaGuardada, string codigoSeguridad)
         {
             TarjetaGuardada tarjeta;
@@ -269,7 +269,7 @@ namespace StageUp.BLL
             }
             catch (ErrorAccesoDatosException)
             {
-                // Es solo informativo.
+
             }
         }
 

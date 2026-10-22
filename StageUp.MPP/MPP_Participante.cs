@@ -74,8 +74,8 @@ namespace StageUp.MPP
             return participantes;
         }
 
-        // CU-001-010 (script 58): listado con filtro de estado y búsqueda.
-        // estado: "Activos", "Inactivos" o "Todos".
+
+
         public List<Participante> Buscar(UsuarioExterno usuarioGestor, string estado, string texto)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -96,8 +96,8 @@ namespace StageUp.MPP
             return participantes;
         }
 
-        // Otro participante activo del gestor con el mismo DNI o correo.
-        // coincidencia: "Dni" o "Correo".
+
+
         public Participante BuscarDuplicado(Participante participante, out string coincidencia)
         {
             DataTable tabla = Conexion.Instance.Leer(

@@ -2,8 +2,8 @@ using System;
 
 namespace StageUp.BE.Entidades
 {
-    // Mensaje privado entre el solicitante y el gestor de una reserva.
-    // Ver Database/73_MensajesReserva.sql.
+
+
     public class MensajeReserva
     {
         public int IdMensajeReserva { get; set; }
@@ -14,7 +14,7 @@ namespace StageUp.BE.Entidades
         public string Texto { get; set; }
         public DateTime FechaEnvio { get; set; }
 
-        // Cuándo lo leyó el otro participante (null = todavía no lo leyó).
+
         public DateTime? FechaLectura { get; set; }
 
         public bool Leido
@@ -28,7 +28,7 @@ namespace StageUp.BE.Entidades
         }
     }
 
-    // Mensajes sin leer de un usuario en una reserva, según su papel en ella.
+
     public class MensajesNoLeidosReserva
     {
         public const string RolSolicitante = "Solicitante";

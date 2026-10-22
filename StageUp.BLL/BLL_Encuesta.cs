@@ -11,9 +11,9 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-    // Encuestas dinámicas con fecha de vencimiento y gráfico de resultados
-    // al instante. Mismo patrón que BLL_Faq.cs (EjecutarProtegido +
-    // ResultadoOperacion).
+
+
+
     public class BLL_Encuesta
     {
         private const int LongitudMaximaTitulo = 200;
@@ -29,14 +29,14 @@ namespace StageUp.BLL
 
         private const string TipoEntidadBitacora = "Encuesta";
 
-        // Ítem 3: se responde una vez por navegador (con cualquier cuenta o sin
-        // sesión), así que hace falta la cookie de StageUp también con sesión.
+
+
         public const string MensajeSinCookie =
             "No pudimos comprobar este navegador: para responder encuestas tu navegador tiene que aceptar cookies de StageUp. Habilitalas y volvé a intentarlo.";
 
-        // ------------------------------------------------------------------
-        // Administración
-        // ------------------------------------------------------------------
+
+
+
         public List<Encuesta> Listar()
         {
             try
@@ -329,9 +329,9 @@ namespace StageUp.BLL
             });
         }
 
-        // Eliminación controlada: solo para encuestas que siguen en Borrador
-        // (nunca se publicaron, así que no tienen respuestas). Una encuesta
-        // publicada no se borra: se cierra, para conservar sus resultados.
+
+
+
         public ResultadoOperacion EliminarBorrador(int idEncuesta, int idUsuarioInternoResponsable)
         {
             return EjecutarProtegido(() =>
@@ -372,13 +372,13 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // Usuario externo o visitante sin sesión
-        // ------------------------------------------------------------------
-        // Un visitante sin sesión solo ve y responde encuestas para "Todos".
-        // Para no responder dos veces, el navegador guarda una cookie con un
-        // identificador aleatorio (lo genera GenerarIdentificadorNavegador);
-        // a la base llega solo su hash SHA-256.
+
+
+
+
+
+
+
         public const string PublicoTodos = "Todos";
         private static readonly Regex FormatoIdentificadorNavegador = new Regex("^[A-Za-z0-9_-]{43}$", RegexOptions.Compiled);
         private readonly ServicioRecaptcha _servicioRecaptcha = new ServicioRecaptcha();
@@ -409,8 +409,8 @@ namespace StageUp.BLL
             return new Encuestado { IdentificadorAnonimo = HashIdentificador(identificadorNavegador) };
         }
 
-        // null si el valor de la cookie no tiene el formato esperado (cookie
-        // vieja o alterada): se trata como un navegador sin cookie.
+
+
         private static string HashIdentificador(string identificadorNavegador)
         {
             if (string.IsNullOrEmpty(identificadorNavegador) || !FormatoIdentificadorNavegador.IsMatch(identificadorNavegador))
@@ -470,13 +470,13 @@ namespace StageUp.BLL
             });
         }
 
-        // Sin sesión se pide además el CAPTCHA (respuestaCaptcha), para que
-        // no se puedan cargar respuestas en forma automática.
+
+
         public ResultadoOperacion RegistrarRespuesta(
             int idEncuesta, Encuestado encuestado, Dictionary<int, int> respuestasPorPregunta, string respuestaCaptcha)
         {
-            // Una respuesta por navegador, con o sin sesión: sin la cookie del
-            // navegador no se puede aplicar la regla, así que no se acepta.
+
+
             if (string.IsNullOrEmpty(encuestado.IdentificadorAnonimo))
             {
                 return ResultadoOperacion.Error(MensajeSinCookie);
@@ -520,9 +520,9 @@ namespace StageUp.BLL
                     }
                 }
 
-                // Cabecera, respuestas y auditoría en una sola transacción:
-                // queda todo o nada, así un fallo no deja una respuesta
-                // incompleta ni una respuesta sin su registro en la bitácora.
+
+
+
                 string descripcionBitacora = encuestado.EsAnonimo
                     ? "Un visitante sin sesión respondió la encuesta \"" + encuesta.Titulo + "\"."
                     : "El usuario respondió la encuesta \"" + encuesta.Titulo + "\".";
@@ -544,8 +544,8 @@ namespace StageUp.BLL
                 }
                 catch (ErrorAccesoDatosException ex)
                 {
-                    // 51062 / 2601 / 2627: ya había una respuesta de la cuenta o
-                    // del navegador (por ejemplo, un doble envío simultáneo).
+
+
                     switch (ex.NumeroErrorSql)
                     {
                         case 51062:
@@ -577,9 +577,9 @@ namespace StageUp.BLL
                     return ResultadoOperacion<List<ResultadoPreguntaEncuesta>>.Error("No se encontró la encuesta seleccionada.");
                 }
 
-                // Una encuesta en Borrador nunca se publicó: no tiene
-                // resultados para mostrar, aunque su fecha de vencimiento ya
-                // haya pasado (antes "vencida" alcanzaba para dejar verla).
+
+
+
                 if (encuesta.Estado != "Activa" && encuesta.Estado != "Cerrada")
                 {
                     return ResultadoOperacion<List<ResultadoPreguntaEncuesta>>.Error("Esta encuesta no está disponible.");
@@ -606,9 +606,9 @@ namespace StageUp.BLL
             });
         }
 
-        // ------------------------------------------------------------------
-        // Privados
-        // ------------------------------------------------------------------
+
+
+
         private static bool EstaDirigidaA(Encuesta encuesta, Encuestado encuestado)
         {
             return encuesta.PublicoObjetivo == PublicoTodos ||

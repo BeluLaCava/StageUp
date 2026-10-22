@@ -7,22 +7,22 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // Búsqueda de toda la plataforma (ítems 4 y 13 de la segunda entrega).
-    //
-    // Pública (Buscar.aspx): espacios, novedades y preguntas frecuentes. La
-    // búsqueda simple busca en todo; la avanzada deja elegir los tipos.
-    //
-    // Interna (Interno/BusquedaInterna.aspx): cada tipo de contenido exige un
-    // permiso, y solo se buscan los tipos que el rol del usuario tiene. Un
-    // usuario sin GESTIONAR_SOPORTE, por ejemplo, nunca ve tickets ni
-    // reservas en los resultados, aunque los pida.
-    //
-    // Búsqueda avanzada (script 76): además del texto y los tipos, un
-    // FiltroBusquedaGlobal con rango de fechas, ubicación, capacidad y precio
-    // (espacios), categoría (novedades), estado (interna, un tipo por vez),
-    // orden y cantidad de resultados. Se valida todo acá y la MPP lo pasa
-    // como parámetros al SP (sin SQL dinámico). Con algún criterio avanzado
-    // el texto es opcional.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public class BLL_Busqueda
     {
         public const int LongitudMinimaTexto = 2;
@@ -39,13 +39,13 @@ namespace StageUp.BLL
             { FiltroBusquedaGlobal.OrdenAlfabetico, "Alfabético" }
         };
 
-        // Categorías de novedades (tabla CategoriaNovedad, script 85): código -> nombre.
+
         public static Dictionary<string, string> CategoriasNovedad
         {
             get { return BLL_CategoriaNovedad.ObtenerEtiquetas(); }
         }
 
-        // Estados que se pueden filtrar en la búsqueda interna, por tipo.
+
         private static readonly Dictionary<string, Dictionary<string, string>> EstadosPorTipo = new Dictionary<string, Dictionary<string, string>>
         {
             { "UsuarioExterno", new Dictionary<string, string> { { "PendienteActivacion", "Pendiente de activación" }, { "Activa", "Activa" }, { "Inactiva", "Inactiva" } } },
@@ -87,7 +87,7 @@ namespace StageUp.BLL
         private readonly MPP_Busqueda _mpp = new MPP_Busqueda();
         private readonly BLL_PermisoInterno _bllPermiso = new BLL_PermisoInterno();
 
-        // Tipos disponibles (código, etiqueta), para armar los filtros.
+
         public static Dictionary<string, string> ObtenerTiposPublicos()
         {
             return TiposPublicos.ToDictionary(t => t.Codigo, t => t.Etiqueta);
@@ -101,8 +101,8 @@ namespace StageUp.BLL
                 .ToDictionary(t => t.Codigo, t => t.Etiqueta);
         }
 
-        // Estados de la búsqueda interna para los tipos que el rol puede ver.
-        // Valor "Tipo|Estado", etiqueta "Reservas · Pendiente".
+
+
         public Dictionary<string, string> ObtenerEstadosInternosPermitidos(int idRolInterno)
         {
             Dictionary<string, string> tipos = ObtenerTiposInternosPermitidos(idRolInterno);
@@ -140,7 +140,7 @@ namespace StageUp.BLL
 
             try
             {
-                // El mensaje (si lo hay) avisa a qué tipos se limitó la búsqueda.
+
                 return ResultadoOperacion<List<GrupoResultadosBusqueda>>.Ok(
                     Agrupar(_mpp.BuscarPublico(filtro), TiposPublicos, false), validacion.Mensaje);
             }
@@ -182,8 +182,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Si no se eligió ningún tipo (búsqueda simple), se busca en todos los
-        // permitidos. Si se eligieron, solo los que además estén permitidos.
+
+
         private static List<string> FiltrarTipos(IEnumerable<string> pedidos, List<string> permitidos)
         {
             List<string> listaPedida = pedidos == null ? new List<string>() : pedidos.Distinct().ToList();
@@ -192,13 +192,13 @@ namespace StageUp.BLL
                 return new List<string>(permitidos);
             }
 
-            // Un tipo pedido que no está permitido simplemente no se busca.
+
             return listaPedida.Where(permitidos.Contains).ToList();
         }
 
-        // Valida y normaliza el filtro pedido. Devuelve una copia limpia: los
-        // tipos quedan reducidos a los permitidos y los textos, escapados
-        // para LIKE.
+
+
+
         private static ResultadoOperacion ValidarFiltro(FiltroBusquedaGlobal pedido, List<string> permitidos, bool esInterna,
             List<TipoBusqueda> catalogoTipos, out FiltroBusquedaGlobal filtro)
         {
@@ -277,7 +277,7 @@ namespace StageUp.BLL
 
             limpio.Tipos = FiltrarTipos(pedido.Tipos, permitidos);
 
-            // El estado es de un tipo puntual: se busca solo en ese tipo.
+
             if (limpio.Estado != null)
             {
                 string[] partes = limpio.Estado.Split('|');
@@ -297,14 +297,14 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("Elegí al menos un tipo de contenido que puedas buscar.");
             }
 
-            // Filtros de un tipo de contenido puntual (ítem 6): cada uno se
-            // aplica solo a los tipos que tienen ese dato, igual en la búsqueda
-            // pública y en la interna. Nunca se ignora uno en silencio:
-            //   * si hay filtros de tipos distintos (por ejemplo, ubicación de
-            //     espacios y categoría de novedades), no hay contenido al que
-            //     se apliquen los dos y se avisa;
-            //   * si no, la búsqueda se limita a los tipos donde se aplican y
-            //     el resultado lo dice.
+
+
+
+
+
+
+
+
             List<KeyValuePair<string, List<string>>> especificos = new List<KeyValuePair<string, List<string>>>();
             if (limpio.CapacidadMinima.HasValue || limpio.PrecioMaximo.HasValue)
             {
@@ -395,7 +395,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("La búsqueda no puede superar los " + LongitudMaximaTexto + " caracteres.");
             }
 
-            // Los comodines de LIKE se buscan como texto literal.
+
             textoNormalizado = EscaparLike(textoNormalizado);
             return ResultadoOperacion.Ok();
         }
@@ -434,7 +434,7 @@ namespace StageUp.BLL
             {
                 case "Espacio": return "~/Explorar/DetalleEspacio.aspx?id=" + resultado.IdReferencia;
                 case "Novedad": return "~/Novedades.aspx";
-                // Abre esa pregunta con su respuesta, aunque no sea de las básicas.
+
                 case "FAQ": return "~/Ayuda/CentroAyuda.aspx?faq=" + resultado.IdReferencia + "#faq-title";
                 default: return null;
             }
@@ -448,14 +448,14 @@ namespace StageUp.BLL
             {
                 case "UsuarioExterno": return "~/Interno/AprobacionGestores.aspx";
                 case "UsuarioInterno": return "~/Interno/GestionUsuariosInternos.aspx";
-                // Consulta interna de solo lectura: sirve también para espacios
-                // sin publicar o dados de baja, sin exponerlos en la ficha pública.
+
+
                 case "Espacio": return UrlDetalleEspacioInterno + resultado.IdReferencia;
                 case "Ticket": return "~/Interno/GestionSoporte.aspx?ver=" + resultado.IdReferencia;
                 case "Novedad": return "~/Interno/GestionNovedades.aspx";
                 case "FAQ": return "~/Interno/GestionFaq.aspx";
                 case "Encuesta": return "~/Interno/GestionEncuestas.aspx";
-                default: return null; // Reservas: no hay pantalla interna de detalle; el resultado ya muestra los datos.
+                default: return null;
             }
         }
     }

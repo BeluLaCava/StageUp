@@ -30,7 +30,7 @@
         .rep-total { color: var(--color-text-muted, #765f55); font-size: 0.9em; }
         .rep-total strong { color: var(--color-text, #3e2925); }
 
-        /* Columnas (serie temporal): una sola serie, un solo color. */
+
         .rep-columnas { position: relative; display: flex; align-items: stretch; gap: 2px; height: 220px; padding-top: 18px; border-bottom: 1px solid var(--color-brown-soft, #b99d88); }
         .rep-columnas-max { position: absolute; top: 0; left: 0; font-size: 0.75em; color: var(--color-text-muted, #765f55); }
         .rep-columnas::before { content: ""; position: absolute; top: 18px; left: 0; right: 0; border-top: 1px dashed var(--color-border, #e2e2e2); }
@@ -40,7 +40,7 @@
         .rep-ejes { display: flex; gap: 2px; margin-top: 4px; }
         .rep-eje { flex: 1 1 0; min-width: 0; text-align: center; font-size: 0.72em; color: var(--color-text-muted, #765f55); white-space: nowrap; overflow: hidden; }
 
-        /* Barras horizontales (categorías). */
+
         .rep-barras { display: flex; flex-direction: column; gap: 10px; }
         .rep-barra-fila { position: relative; display: grid; grid-template-columns: minmax(0, 38%) minmax(0, 1fr) minmax(8.5em, auto); align-items: center; gap: 10px; }
         .rep-barra-etiqueta { font-size: 0.9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -55,7 +55,7 @@
         .rep-barra-fila:hover .rep-barra-fill { background: var(--color-primary-dark, #4d0b17); }
         .rep-barra-valor { text-align: right; font-size: 0.85em; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--color-text, #3e2925); }
 
-        /* Tooltip propio (también funciona con teclado: las barras tienen tabindex). */
+
         [data-tooltip]:hover::after, [data-tooltip]:focus::after {
             content: attr(data-tooltip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
             background: var(--color-text, #3e2925); color: #fff; padding: 6px 10px; border-radius: 8px; font-size: 0.78rem;
@@ -79,7 +79,7 @@
             .rep-barra-track { grid-column: 1 / -1; grid-row: 2; }
         }
         @media (max-width: 600px) {
-            /* En pantallas angostas, una etiqueta del eje cada dos (el valor de cada barra sigue en el tooltip y en la tabla). */
+
             .rep-eje { overflow: visible; }
             .rep-eje:nth-child(even) { visibility: hidden; }
         }
@@ -146,7 +146,7 @@
                     <asp:Literal ID="litAviso" runat="server" />
                 </asp:Panel>
 
-                <!-- Tablero -->
+
                 <div class="auth-card admin-list-card rep-dashboard-card">
                     <div class="auth-card-header">
                         <span class="admin-card-eyebrow">Tablero</span>
@@ -192,7 +192,7 @@
                     </div>
                 </div>
 
-                <!-- Ingresos por período -->
+
                 <div class="auth-card admin-list-card">
                     <div class="auth-card-header">
                         <span class="admin-card-eyebrow">Ganancias</span>
@@ -266,7 +266,7 @@
                 </div>
 
                 <div class="rep-grid">
-                    <!-- Por zona -->
+
                     <div class="auth-card admin-list-card">
                         <div class="auth-card-header">
                             <span class="admin-card-eyebrow">Zonas</span>
@@ -318,7 +318,7 @@
                         </details>
                     </div>
 
-                    <!-- Por estado -->
+
                     <div class="auth-card admin-list-card">
                         <div class="auth-card-header">
                             <span class="admin-card-eyebrow">Reservas</span>
@@ -367,7 +367,7 @@
                     </div>
                 </div>
 
-                <!-- Encuestas -->
+
                 <div class="auth-card admin-list-card">
                     <div class="auth-card-header">
                         <span class="admin-card-eyebrow">Encuestas</span>

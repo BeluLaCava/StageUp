@@ -9,12 +9,12 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-001-011 Consultar notificaciones y acceder a elementos relacionados.
-    //
-    // Notificaciones de usuarios externos, generadas por eventos reales del
-    // sistema (reservas, pagos, soporte, habilitación como gestor). Cada una
-    // tiene título, descripción, fecha, estado de lectura, tipo y la página
-    // del elemento relacionado. Solo las ve el usuario al que pertenecen.
+
+
+
+
+
+
     public class BLL_Notificacion
     {
         private readonly MPP_Notificacion _mppNotificacion = new MPP_Notificacion();
@@ -50,7 +50,7 @@ namespace StageUp.BLL
             { TipoNotificacion.MensajeReserva.ToString(), "Nuevo mensaje sobre una reserva" }
         };
 
-        // Categoría que se muestra junto a cada notificación.
+
         private static readonly Dictionary<string, string> CategoriasPorTipo = new Dictionary<string, string>
         {
             { TipoNotificacion.SolicitudReserva.ToString(), "Reservas" },
@@ -75,8 +75,8 @@ namespace StageUp.BLL
             { TipoNotificacion.MensajeReserva.ToString(), "Mensajes" }
         };
 
-        // Página interna: "~/Pagina.aspx" o "~/Carpeta/Pagina.aspx", con
-        // parámetros opcionales. Nada de esquemas, "//", ".." ni "\".
+
+
         private static readonly Regex FormatoUrlInterna = new Regex(
             @"^~/([A-Za-z0-9_\-]+/)*[A-Za-z0-9_\-]+\.aspx(\?[A-Za-z0-9_\-=&%\.]*)?$", RegexOptions.Compiled);
 
@@ -92,10 +92,10 @@ namespace StageUp.BLL
             return tipo != null && CategoriasPorTipo.TryGetValue(tipo, out categoria) ? categoria : "General";
         }
 
-        // Pensado para llamarse desde otras BLL (ej. BLL_Reserva) justo
-        // después de que la operación principal ya se realizó con éxito. Una
-        // notificación que falla no debe hacer fallar la operación que la
-        // originó, por eso no propaga la excepción.
+
+
+
+
         public void Notificar(int idUsuarioExterno, TipoNotificacion tipo, string mensaje, string urlDestino)
         {
             try
@@ -111,8 +111,8 @@ namespace StageUp.BLL
             }
             catch (ErrorAccesoDatosException)
             {
-                // No se propaga: la operación que originó la notificación ya
-                // se completó correctamente, no tiene que fallar por esto.
+
+
             }
         }
 
@@ -121,7 +121,7 @@ namespace StageUp.BLL
             return Listar(idUsuarioExterno, FiltroTodas, cantidad);
         }
 
-        // Centro de notificaciones (pasos 2 a 4, A1 a A3).
+
         public List<Notificacion> Listar(int idUsuarioExterno, string estado, int cantidad)
         {
             try
@@ -159,8 +159,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Ítem 36: la pertenencia se valida en el WHERE del UPDATE: si la
-        // notificación no es del usuario no se actualiza nada.
+
+
         public void MarcarLeida(int idNotificacion, int idUsuarioExterno)
         {
             try
@@ -176,7 +176,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Solo las del usuario actual.
+
         public void MarcarTodasLeidas(int idUsuarioExterno)
         {
             try
@@ -188,10 +188,10 @@ namespace StageUp.BLL
             }
         }
 
-        // Pasos 7 a 9 y A4 a A9: identifica el elemento de la notificación,
-        // la marca como leída (aunque el elemento ya no esté disponible) y
-        // devuelve la página a la que hay que ir. Si el elemento ya no se
-        // puede consultar, devuelve el motivo y no la página.
+
+
+
+
         public ResultadoOperacion<string> ResolverDestino(int idNotificacion, int idUsuarioExterno)
         {
             Notificacion notificacion;
@@ -242,7 +242,7 @@ namespace StageUp.BLL
             return !string.IsNullOrEmpty(url) && url.Length <= 300 && FormatoUrlInterna.IsMatch(url) && url.IndexOf("..", StringComparison.Ordinal) < 0;
         }
 
-        // A4 a A7: el elemento sigue existiendo y el usuario lo puede ver.
+
         private static ResultadoOperacion VerificarElemento(string url, int idUsuarioExterno)
         {
             string pagina = url;

@@ -4,18 +4,7 @@ using System.Security.Cryptography;
 
 namespace StageUp.Seguridad
 {
-    /// <summary>
-    /// Encripta y desencripta bloques cortos de datos (por ejemplo, una clave
-    /// simétrica efímera, ver EncriptadorHibrido) usando RSA de 2048 bits con
-    /// relleno OAEP. El par de claves se genera una única vez con
-    /// GenerarParDeClaves y se guarda en AppSettings.private.config (nunca en
-    /// el Web.config versionado), igual que ClaveEncriptacionSimetrica.
-    /// RSA solo puede cifrar bloques pequeños (unos 200 bytes con esta
-    /// configuración) — no está pensado para cifrar directamente archivos
-    /// completos, sino para envolver una clave simétrica que sí cifra el
-    /// contenido real.
-    /// </summary>
-    public static class EncriptadorAsimetrico
+         public static class EncriptadorAsimetrico
     {
         private const int TamanioClaveBits = 2048;
 
@@ -34,8 +23,8 @@ namespace StageUp.Seguridad
                 && !string.IsNullOrEmpty(ConfigurationManager.AppSettings["ClaveAsimetricaPrivada"]);
         }
 
-        // Ítems 9 y 10: cifrado con un par de claves guardado por StageUp
-        // (tabla ClaveCifrado), en vez del configurado en AppSettings.
+
+
         public static byte[] Encriptar(byte[] datos, string clavePublicaBase64)
         {
             using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
@@ -54,8 +43,8 @@ namespace StageUp.Seguridad
             }
         }
 
-        // Huella SHA-256 de la clave pública, para identificar una versión sin
-        // mostrar la clave (por ejemplo "3F2A 91C4 ... 7B10").
+
+
         public static string CalcularHuella(string clavePublicaBase64)
         {
             using (SHA256 sha = SHA256.Create())

@@ -17,7 +17,7 @@
                 <asp:HyperLink ID="lnkDuplicada" runat="server" Visible="false" CssClass="text-link" Text="Ver la alianza existente" />
             </asp:Panel>
 
-            <%-- CU-004-003 pasos 2 a 8, A2, A3 y A4 --%>
+
             <asp:Panel ID="pnlListado" runat="server" Visible="false">
                 <div class="comercial-resumen" aria-label="Resumen de alianzas">
                     <a href="AlianzasEstrategicas.aspx"><span>En gestión</span><strong><asp:Literal ID="litEnGestion" runat="server" /></strong></a>
@@ -112,7 +112,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- A5, A12, A13 --%>
+
             <asp:Panel ID="pnlDetalle" runat="server" Visible="false">
                 <div class="auth-card admin-editor-card">
                     <div class="auth-card-header comercial-detalle-cabecera">
@@ -219,7 +219,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- Pasos 9 a 30 (alta) y A6 (edición), con A17 a A24 --%>
+
             <asp:Panel ID="pnlFormulario" runat="server" Visible="false" DefaultButton="btnGuardar">
                 <div class="auth-card admin-editor-card">
                     <div class="auth-card-header">
@@ -321,7 +321,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- A7 y A8 --%>
+
             <asp:Panel ID="pnlSeguimiento" runat="server" Visible="false" DefaultButton="btnGuardarSeguimiento">
                 <div class="auth-card admin-editor-card">
                     <div class="auth-card-header">
@@ -366,7 +366,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- A9 (y reactivación con permiso) --%>
+
             <asp:Panel ID="pnlRenovacion" runat="server" Visible="false" DefaultButton="btnGuardarRenovacion">
                 <div class="auth-card admin-editor-card">
                     <div class="auth-card-header">
@@ -407,7 +407,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- A10 y A11 --%>
+
             <asp:Panel ID="pnlCierre" runat="server" Visible="false">
                 <div class="auth-card admin-editor-card">
                     <div class="auth-card-header">

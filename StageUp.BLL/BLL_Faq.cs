@@ -10,11 +10,11 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-003-004 Gestionar contenido de ayuda (Interno/GestionFaq.aspx,
-    // permiso GESTIONAR_FAQ). Cada contenido tiene categoría temática,
-    // estado (Borrador, Activo, Inactivo) y si se usa como respuesta del
-    // asistente (CU-003-001). El activo se ve en el centro de ayuda; el
-    // borrador y el inactivo no, pero se conservan.
+
+
+
+
+
     public class BLL_Faq
     {
         public const string EstadoBorrador = "Borrador";
@@ -35,7 +35,7 @@ namespace StageUp.BLL
         private readonly MPP_Faq _mpp = new MPP_Faq();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
-        // ---- Consulta ------------------------------------------------------
+
 
         public List<Faq> ListarActivas()
         {
@@ -49,7 +49,7 @@ namespace StageUp.BLL
             }
         }
 
-        // CU-003-001 A1: si la base no responde, el centro de ayuda lo avisa.
+
         public ResultadoOperacion<List<Faq>> ObtenerContenidoPublico()
         {
             try
@@ -136,8 +136,8 @@ namespace StageUp.BLL
             }
         }
 
-        // La lista pública de preguntas básicas conviene breve: no hay un
-        // límite rígido, pero se avisa cuando crece.
+
+
         public const int SugerenciaMaximaBasicas = 12;
 
         private string AvisoListaBasica(Faq faq)
@@ -163,9 +163,9 @@ namespace StageUp.BLL
                 : string.Empty;
         }
 
-        // CU-003-001: una pregunta publicada (de una categoría activa),
-        // básica o no. La usa el centro de ayuda cuando se llega desde un
-        // resultado de la búsqueda. null si no existe o no está publicada.
+
+
+
         public ResultadoOperacion<Faq> ObtenerPublicada(int idFaq)
         {
             ResultadoOperacion<List<Faq>> contenido = ObtenerContenidoPublico();
@@ -177,7 +177,7 @@ namespace StageUp.BLL
             return ResultadoOperacion<Faq>.Ok(contenido.Valor.FirstOrDefault(f => f.IdFaq == idFaq));
         }
 
-        // CU-003-001: preguntas básicas publicadas, para el centro de ayuda.
+
         public ResultadoOperacion<List<Faq>> ObtenerPreguntasBasicas()
         {
             ResultadoOperacion<List<Faq>> contenido = ObtenerContenidoPublico();
@@ -199,10 +199,10 @@ namespace StageUp.BLL
             return estado == EstadoActivo ? "Publicado" : estado == EstadoInactivo ? "Desactivado" : "Borrador";
         }
 
-        // ---- Alta, modificación, publicación y desactivación -------------
 
-        // Pasos 8 a 22 (y A3, A10 a A14, A15). textoConsultaOrigen: si viene
-        // de una consulta del asistente sin respuesta, se marca como atendida.
+
+
+
         public ResultadoOperacion<int> Registrar(Faq datos, int idUsuarioInternoResponsable, string textoConsultaOrigen = null)
         {
             Faq normalizado;
@@ -245,7 +245,7 @@ namespace StageUp.BLL
                 : "El contenido de ayuda se guardó como borrador. Todavía no lo ven los usuarios.") + AvisoListaBasica(normalizado));
         }
 
-        // A5.
+
         public ResultadoOperacion Modificar(Faq datos, int idUsuarioInternoResponsable)
         {
             Faq actual = ObtenerPorId(datos == null ? 0 : datos.IdFaq);
@@ -292,7 +292,7 @@ namespace StageUp.BLL
                 : "El contenido de ayuda se actualizó correctamente.") + AvisoListaBasica(normalizado));
         }
 
-        // A6 (y A8 si ya estaba publicado, A9 para republicar uno inactivo).
+
         public ResultadoOperacion Publicar(int idFaq, int idUsuarioInternoResponsable)
         {
             Faq faq = ObtenerPorId(idFaq);
@@ -321,7 +321,7 @@ namespace StageUp.BLL
                     : "El contenido se publicó (se encuentra con la búsqueda; no está en la lista de preguntas básicas).");
         }
 
-        // A7.
+
         public ResultadoOperacion Desactivar(int idFaq, int idUsuarioInternoResponsable)
         {
             Faq faq = ObtenerPorId(idFaq);
@@ -358,8 +358,8 @@ namespace StageUp.BLL
             return ResultadoOperacion.Ok(mensaje);
         }
 
-        // Paso 16 / A5 paso 4: A10 obligatorios, A11 categoría, A12 duplicado,
-        // A13 contenido insuficiente o inconsistente, A3 sin categorías.
+
+
         private ResultadoOperacion Validar(Faq datos, int? idExcluir, out Faq normalizado)
         {
             try
@@ -403,7 +403,7 @@ namespace StageUp.BLL
             CategoriaAyuda categoria = datos.IdCategoriaAyuda.HasValue ? categorias.FirstOrDefault(c => c.IdCategoriaAyuda == datos.IdCategoriaAyuda.Value) : null;
             if (categorias.Count == 0)
             {
-                // A3: sin categorías solo se puede guardar como borrador.
+
                 if (estado == EstadoActivo)
                 {
                     return ResultadoOperacion.Error("No hay categorías temáticas disponibles: el contenido no puede publicarse. Guardalo como borrador.", "A3");
@@ -468,8 +468,8 @@ namespace StageUp.BLL
             return categoria == null ? "sin categoría" : categoria.Nombre;
         }
 
-        // Minúsculas, sin tildes ni signos y con un solo espacio: para
-        // comparar títulos (A12) y reconocer consultas del asistente.
+
+
         public static string Normalizar(string texto)
         {
             if (string.IsNullOrWhiteSpace(texto))

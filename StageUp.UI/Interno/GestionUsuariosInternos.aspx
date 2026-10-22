@@ -13,7 +13,7 @@
                 <asp:Literal ID="litMensaje" runat="server" Mode="Encode" />
             </asp:Panel>
 
-            <%-- Pasos 3 a 6 del escenario principal: listado, búsqueda y opciones. --%>
+
             <div class="auth-card admin-list-card internal-users-list-card">
                 <div class="auth-card-header internal-users-list-heading">
                     <div>
@@ -50,7 +50,7 @@
                     </div>
                 </asp:Panel>
 
-                <%-- A2: no hay usuarios internos registrados. --%>
+
                 <asp:Panel ID="pnlSinUsuarios" runat="server" CssClass="empty-state compact-empty-state" Visible="false">
                     <h3 data-i18n="AdminUsuarios_SinUsuarios">Todavía no hay usuarios internos para mostrar</h3>
                     <p>No existen usuarios internos disponibles. Usá “Agregar usuario interno” para crear la primera cuenta del equipo.</p>
@@ -95,7 +95,7 @@
         </div>
     </section>
 
-    <%-- Pasos 7 a 12 (alta) y A8 (edición). --%>
+
     <asp:Panel ID="pnlFormularioUsuario" runat="server" Visible="false" CssClass="review-dialog-layer">
         <dialog class="review-dialog internal-dialog internal-user-editor" open aria-labelledby="internal-user-form-title">
             <asp:LinkButton ID="lnkCerrarFormulario" runat="server" CssClass="review-dialog-close" CausesValidation="false" OnClick="lnkCancelarEdicion_Click" aria-label="Cerrar">×</asp:LinkButton>
@@ -158,7 +158,7 @@
                 <span class="field-help" data-i18n="AdminUsuarios_AyudaRol">El usuario heredará todos los permisos configurados para este rol.</span>
             </div>
 
-            <%-- Paso 15: permisos que va a tener según el rol elegido. --%>
+
             <div class="internal-role-permissions">
                 <strong>Permisos que le da este rol</strong>
                 <div id="internal-role-preview" class="internal-permission-tags" aria-live="polite"></div>
@@ -196,7 +196,7 @@
         </dialog>
     </asp:Panel>
 
-    <%-- A7: detalle del usuario interno (A8 editar y A10 baja). --%>
+
     <asp:Panel ID="pnlDetalleUsuario" runat="server" Visible="false" CssClass="review-dialog-layer">
         <dialog class="review-dialog internal-dialog" open aria-labelledby="internal-user-detail-title">
             <asp:LinkButton ID="lnkCerrarDetalle" runat="server" CssClass="review-dialog-close" CausesValidation="false" OnClick="lnkCerrarDetalle_Click" aria-label="Cerrar">×</asp:LinkButton>
@@ -237,7 +237,7 @@
                 <asp:Button ID="btnEditarDesdeDetalle" runat="server" CssClass="button button-primary" Text="Editar usuario" CausesValidation="false" OnClick="btnEditarDesdeDetalle_Click" />
             </div>
 
-            <%-- A10 paso 2. --%>
+
             <asp:Panel ID="pnlConfirmarBaja" runat="server" Visible="false" CssClass="internal-confirm" role="alertdialog">
                 <p><strong>¿Dar de baja a <asp:Literal ID="litConfirmarBajaNombre" runat="server" Mode="Encode" />?</strong>
                     Va a dejar de tener acceso al entorno administrativo, pero se conserva la información histórica asociada a sus intervenciones dentro del sistema.</p>

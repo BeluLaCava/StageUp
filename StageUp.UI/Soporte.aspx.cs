@@ -10,14 +10,14 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    // CU-003-002 Registrar y realizar seguimiento de solicitudes de soporte
-    // (ítem 12: conversación, leído / no leído y actualización periódica).
-    // Tres pantallas en una página, según la query string:
-    //   Soporte.aspx                    -> "Mis solicitudes de soporte" (A5, A6)
-    //   Soporte.aspx?nueva=1[&origen=CentroAyuda|Asistente][&consulta=...]
-    //   Soporte.aspx?reserva={id}       -> "Nueva solicitud de soporte" (pasos 2 a 16,
-    //                                      A1 a A4), con la reserva ya elegida
-    //   Soporte.aspx?ver={id}           -> "Detalle de solicitud de soporte" (A5 a A9)
+
+
+
+
+
+
+
+
     public partial class Soporte : Page
     {
         private readonly BLL_Ticket _bll = new BLL_Ticket();
@@ -59,9 +59,9 @@ namespace StageUp.UI
             }
         }
 
-        // ------------------------------------------------------------------
-        // Nueva solicitud
-        // ------------------------------------------------------------------
+
+
+
 
         protected void btnEnviar_Click(object sender, EventArgs e)
         {
@@ -79,14 +79,14 @@ namespace StageUp.UI
 
             if (!resultado.Exitoso)
             {
-                // A2, A3 y A4: el formulario conserva lo cargado.
+
                 MostrarMensaje(resultado.Mensaje, true);
                 MostrarSolo(pnlNueva);
                 AjustarTitulo("Nueva solicitud de soporte", "Completá los datos para que el equipo pueda analizar el caso.");
                 return;
             }
 
-            // Paso 16: mensaje de éxito en el detalle de la solicitud creada.
+
             Session["SoporteRegistroExitoso"] = resultado.Mensaje;
             Response.Redirect("~/Soporte.aspx?ver=" + resultado.Valor.ToString(CultureInfo.InvariantCulture), false);
             Context.ApplicationInstance.CompleteRequest();
@@ -113,8 +113,8 @@ namespace StageUp.UI
                     reserva.IdReserva.ToString(CultureInfo.InvariantCulture)));
             }
 
-            // A1 y accesos desde una reserva: origen, datos precargados y a
-            // dónde vuelve "Cancelar".
+
+
             string origen = Request.QueryString["origen"];
             string idReservaTexto = Request.QueryString["reserva"];
             string volver = "~/Soporte.aspx";
@@ -144,7 +144,7 @@ namespace StageUp.UI
                 pnlOrigenAsistente.Visible = true;
             }
 
-            // A9: casos que siguen en curso.
+
             ResultadoOperacion<List<Ticket>> propias = _bll.ListarDelUsuario(IdUsuario);
             List<Ticket> enCurso = propias.Exitoso
                 ? propias.Valor.Where(t => t.Estado == BLL_Ticket.EstadoPendiente || t.Estado == BLL_Ticket.EstadoEnProceso).Take(3).ToList()
@@ -154,9 +154,9 @@ namespace StageUp.UI
             rptEnCurso.DataBind();
         }
 
-        // ------------------------------------------------------------------
-        // Mis solicitudes (A5 y A6)
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarListado()
         {
@@ -177,9 +177,9 @@ namespace StageUp.UI
             ActivarNovedadesPeriodicas("usuario-listado", null, _bll.ObtenerMarcaListado(IdUsuario));
         }
 
-        // ------------------------------------------------------------------
-        // Detalle (A5 pasos 8 a 10, A7, A8 y A9)
-        // ------------------------------------------------------------------
+
+
+
 
         protected void btnEnviarMensaje_Click(object sender, EventArgs e)
         {
@@ -269,9 +269,9 @@ namespace StageUp.UI
             }
         }
 
-        // ------------------------------------------------------------------
-        // Auxiliares
-        // ------------------------------------------------------------------
+
+
+
 
         private void ActivarNovedadesPeriodicas(string vista, int? idTicket, string marca)
         {
@@ -313,8 +313,8 @@ namespace StageUp.UI
             return n == 1 ? "1 novedad" : n + " novedades";
         }
 
-        // Texto de cada entrada del historial, visto por el usuario (no se
-        // muestran los nombres del equipo interno).
+
+
         protected static string DescribirActualizacion(TicketActualizacion actualizacion)
         {
             switch (actualizacion.TipoActualizacion)

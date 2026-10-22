@@ -416,8 +416,8 @@
     border-color: #d7c8bf;
 }
 
-/* CU-003-002 / CU-003-003 e ítem 12: estados nuevos de las solicitudes de
-   soporte, marcas de leído / no leído, historial y aviso de novedades. */
+
+
 .ticket-badge-pendiente {
     color: #825100;
     background: #fff2cf;
@@ -625,7 +625,7 @@
     text-align: center;
 }
 
-/* Ítem 1: preguntas y respuestas públicas sobre los espacios. */
+
 .space-questions-intro {
     margin: 0 0 0.9rem;
     color: var(--color-text-muted);
@@ -2290,8 +2290,8 @@ a.text-link:focus-visible {
         linear-gradient(135deg, var(--color-nude-light), var(--color-nude));
 }
 
-/* Explorar espacios: encabezado más bajo para que el buscador y el catálogo
-   queden visibles apenas se entra a la pantalla, sin tener que hacer scroll. */
+
+
 .explore-header {
     padding-block: clamp(1.6rem, 3.2vw, 2.6rem);
 }
@@ -4707,7 +4707,7 @@ body.overlay-open {
     border: 1px solid #E7B8B8;
 }
 
-/* Aviso de la sesión que siguió abierta después de restaurar la base. */
+
 .aviso-restauracion-base {
     margin: 1rem clamp(1rem, 2.2vw, 1.75rem) 0;
 }
@@ -5366,9 +5366,9 @@ body.overlay-open {
     }
 }
 
-/* =====================================================================
-   Mis espacios (ABMC de EspacioArtistico).
-   ===================================================================== */
+
+
+
 
 
 
@@ -8695,8 +8695,8 @@ body.internal-body {
     gap: 1.5rem;
 }
 
-/* El menú administrativo pasó de una barra horizontal en el header a un menú
-   lateral vertical: .internal-shell ubica el nav al costado del contenido. */
+
+
 .internal-shell {
     display: flex;
     flex: 1;
@@ -9821,7 +9821,7 @@ body.internal-body {
     gap: 1.3rem;
 }
 
-/* Newsletter: invitación a suscribirse en la página de novedades. */
+
 .public-news-newsletter {
     grid-column: 1 / -1;
     order: 10;
@@ -11575,9 +11575,9 @@ table tbody tr:hover {
     }
 }
 
-/* ==========================================================================
-   Comercialización (CU-004): solapas, listados, detalle y formularios.
-   ========================================================================== */
+
+
+
 .comercial-tabs {
     display: flex;
     flex-wrap: wrap;

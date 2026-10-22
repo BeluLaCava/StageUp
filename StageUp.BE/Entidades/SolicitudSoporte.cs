@@ -2,7 +2,7 @@ using System;
 
 namespace StageUp.BE.Entidades
 {
-    // CU-003-002 pasos 3 a 8: datos del formulario "Nueva solicitud de soporte".
+
     public class SolicitudSoporteNueva
     {
         public int IdUsuarioExterno { get; set; }
@@ -14,14 +14,14 @@ namespace StageUp.BE.Entidades
         public string Origen { get; set; }
     }
 
-    // Historial del caso: alta, cambios de estado (con estado anterior,
-    // estado nuevo, responsable, fecha y hora) y asignaciones.
+
+
     public class TicketActualizacion
     {
         public int IdTicketActualizacion { get; set; }
         public int IdTicket { get; set; }
 
-        // Alta, CambioEstado o Asignacion.
+
         public string TipoActualizacion { get; set; }
         public string EstadoAnterior { get; set; }
         public string EstadoNuevo { get; set; }
@@ -34,7 +34,7 @@ namespace StageUp.BE.Entidades
         public bool EsNuevo { get; set; }
     }
 
-    // CU-003-003 paso 6 y A3: filtros del listado interno. Null = sin filtrar.
+
     public class FiltroTicket
     {
         public const string AsignacionSinAsignar = "SinAsignar";
@@ -62,7 +62,7 @@ namespace StageUp.BE.Entidades
         }
     }
 
-    // Resumen del panel interno de solicitudes de soporte.
+
     public class ResumenSoporte
     {
         public int Total { get; set; }
@@ -74,7 +74,7 @@ namespace StageUp.BE.Entidades
         public int SinAsignar { get; set; }
     }
 
-    // Página del listado interno.
+
     public class PaginaTickets
     {
         public System.Collections.Generic.List<Ticket> Tickets { get; set; } = new System.Collections.Generic.List<Ticket>();

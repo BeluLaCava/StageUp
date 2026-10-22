@@ -175,9 +175,9 @@ namespace StageUp.UI.Infraestructura
             return separador > 0 ? codigoIdioma.Substring(0, separador) : codigoIdioma;
         }
 
-        // Reemplaza al tipo anónimo que se usaba antes: los nombres de propiedad quedan
-        // en minúscula a propósito porque JavaScriptSerializer los serializa tal cual están
-        // declarados, y multidioma.js los lee como "codigoIdioma"/"porClave"/"porTexto".
+
+
+
         private sealed class ConfiguracionDiccionarioIdioma
         {
             public string codigoIdioma { get; set; }

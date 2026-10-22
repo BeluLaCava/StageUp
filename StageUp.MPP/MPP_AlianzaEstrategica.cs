@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // CU-004-003 Alianzas estratégicas (script 81).
+
     public class MPP_AlianzaEstrategica
     {
         public List<AlianzaEstrategica> Listar(FiltroAlianzaEstrategica oFiltro)
@@ -103,7 +103,7 @@ namespace StageUp.MPP
             };
         }
 
-        // descripcionBitacora: la auditoría se registra en la misma transacción.
+
         public int Guardar(AlianzaEstrategica oAlianza, UsuarioInterno oUsuario, string descripcionBitacora = null)
         {
             object resultado = Conexion.Instance.LeerEscalar(
@@ -226,7 +226,7 @@ namespace StageUp.MPP
             return lista;
         }
 
-        // A10 (Finalizada) y A11 (DadaDeBaja).
+
         public void Cerrar(AlianzaEstrategica oAlianza, SeguimientoAlianza oCierre)
         {
             Conexion.Instance.Guardar(

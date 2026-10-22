@@ -9,9 +9,9 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // Catálogos de Comercialización (script 80) y utilidades comunes de los
-    // CU-004. Los catálogos se leen de la base y se guardan 5 minutos en
-    // memoria (no tienen pantalla de edición).
+
+
+
     public class BLL_CatalogoComercial
     {
         private const int MinutosCache = 5;
@@ -31,7 +31,7 @@ namespace StageUp.BLL
             return !string.IsNullOrWhiteSpace(codigo) && Listar(tipoCatalogo).Any(i => i.Codigo == codigo);
         }
 
-        // Texto para mostrar (el código si ya no está en el catálogo).
+
         public string Nombre(string tipoCatalogo, string codigo)
         {
             if (string.IsNullOrEmpty(codigo))
@@ -77,8 +77,8 @@ namespace StageUp.BLL
             }
             catch (ErrorAccesoDatosException)
             {
-                // Sin catálogos no se puede guardar nada (los valores no se
-                // pueden validar): las pantallas lo informan.
+
+
                 return new List<ItemCatalogoComercial>();
             }
 
@@ -90,9 +90,9 @@ namespace StageUp.BLL
             return items;
         }
 
-        // ------------------------------------------------------------------
-        // Utilidades comunes de los formularios comerciales
-        // ------------------------------------------------------------------
+
+
+
 
         internal static string Limpiar(string valor)
         {
@@ -109,7 +109,7 @@ namespace StageUp.BLL
             return string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
         }
 
-        // Fecha en formato aaaa-mm-dd (la que mandan los campos de fecha).
+
         internal static bool LeerFecha(string texto, out DateTime? fecha)
         {
             fecha = null;
@@ -129,7 +129,7 @@ namespace StageUp.BLL
             return false;
         }
 
-        // Descripción de la bitácora con el largo máximo que se guarda.
+
         internal static string Recortar(string descripcion)
         {
             return descripcion != null && descripcion.Length > 1900 ? descripcion.Substring(0, 1900) : descripcion;
@@ -148,11 +148,11 @@ namespace StageUp.BLL
             }
             catch (Exception)
             {
-                // La bitácora no debe impedir la operación ya guardada.
+
             }
         }
 
-        // Código para enlaces: minúsculas, sin tildes, palabras separadas por guiones.
+
         public static string GenerarCodigo(string texto)
         {
             if (string.IsNullOrWhiteSpace(texto))

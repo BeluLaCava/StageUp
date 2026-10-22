@@ -21,18 +21,18 @@ namespace StageUp.Seguridad
         private const string ClaveIdRolInterno = "StageUp.Sesion.IdRolInterno";
         private const string ClavePermisosInterno = "StageUp.Sesion.PermisosInterno";
 
-        // Control de la sesión después de restaurar un backup (script 79):
-        // fecha de alta de cada cuenta (un id que se vuelve a usar es otra
-        // cuenta), marca de la base con la que se validó la sesión y aviso
-        // pendiente de mostrar.
+
+
+
+
         private const string ClaveAltaCuenta = "StageUp.Sesion.FechaAltaCuenta";
         private const string ClaveAltaCuentaInterna = "StageUp.Sesion.FechaAltaCuentaInterna";
         private const string ClaveMarcaBaseDatos = "StageUp.Sesion.MarcaBaseDatos";
         private const string ClaveAvisoRestauracion = "StageUp.Sesion.AvisoRestauracion";
 
-        // Marca de este pedido (no de la sesión): la base se restauró y no se
-        // pudo comprobar la cuenta contra la base restaurada. Mientras dure,
-        // la sesión se trata como si no hubiera usuario ni permisos.
+
+
+
         private const string ClaveSesionSuspendida = "StageUp.Pedido.SesionSuspendida";
 
         public static void SuspenderSesionEnEstePedido()
@@ -62,10 +62,10 @@ namespace StageUp.Seguridad
             GuardarFechaAlta(ClaveAltaCuenta, usuario.FechaAlta);
         }
 
-        // CU-001-003: una cuenta dada de baja no puede seguir usando una sesión
-        // abierta en otro navegador. Site.Master vuelve a mirar el estado de la
-        // cuenta cada pocos minutos (no en cada página, para no sumar una
-        // consulta por request).
+
+
+
+
         public static bool CorrespondeVerificarCuenta()
         {
             object valor = HttpContext.Current.Session[ClaveUltimaVerificacionCuenta];
@@ -156,11 +156,11 @@ namespace StageUp.Seguridad
             GuardarFechaAlta(ClaveAltaCuentaInterna, usuario.FechaAlta);
         }
 
-        // Actualiza nombre, rol y permisos de la sesión interna abierta sin
-        // cambiar su identidad (id y fecha de alta, que solo se fijan al
-        // iniciar sesión). Devuelve false si el usuario leído no es la misma
-        // cuenta: otro id, o el mismo id con otra fecha de alta (por ejemplo,
-        // otra cuenta en una base restaurada).
+
+
+
+
+
         public static bool ActualizarSesionInterna(UsuarioInterno usuario, List<string> codigosPermisos)
         {
             if (usuario == null || !EsLaMismaCuentaInterna(usuario.IdUsuarioInterno, usuario.FechaAlta))
@@ -268,7 +268,7 @@ namespace StageUp.Seguridad
             HttpContext.Current.Session[ClaveAvisoRestauracion] = true;
         }
 
-        // Devuelve si hay que mostrar el aviso y lo borra (se muestra una vez).
+
         public static bool TomarAvisoRestauracion()
         {
             bool hayAviso = HttpContext.Current.Session[ClaveAvisoRestauracion] is bool;

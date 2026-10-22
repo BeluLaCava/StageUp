@@ -21,12 +21,12 @@ namespace StageUp.UI.Interno
             InicializarMultidioma(ddlIdioma, hdnDiccionarioIdioma, HtmlRoot, LanguageSelector);
         }
 
-        // CU-001-012 A10 paso 4 y A16: antes de que cada página del panel
-        // valide sus permisos, se vuelve a leer la cuenta interna. Si la
-        // dieron de baja (o la desactivaron) mientras tenía la sesión abierta,
-        // se cierra la sesión; si le cambiaron el rol o los permisos del rol,
-        // la sesión toma los nuevos en ese mismo momento. La identidad de la
-        // sesión (id y fecha de alta) solo se fija al iniciar sesión.
+
+
+
+
+
+
         private void ActualizarSesionInterna()
         {
             int? idUsuarioInterno = GestorDeSesion.ObtenerIdUsuarioInternoActual();
@@ -43,9 +43,9 @@ namespace StageUp.UI.Interno
             }
             catch (Exception)
             {
-                // No se pudo comprobar la cuenta: no se sigue con los permisos
-                // anteriores. La sesión queda suspendida en este pedido y se
-                // muestra el aviso (en el próximo pedido se vuelve a intentar).
+
+
+
                 GestorDeSesion.SuspenderSesionEnEstePedido();
                 string volver = Request.HttpMethod == "GET" ? Request.RawUrl : string.Empty;
                 Response.Redirect(ControlSesionBaseDatos.PaginaVerificacion +
@@ -60,9 +60,9 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-            // Solo actualiza nombre, rol y permisos. Si el id ya es de otra
-            // cuenta (otra fecha de alta, por ejemplo en una base restaurada),
-            // no adopta esa identidad: cierra la sesión.
+
+
+
             if (!GestorDeSesion.ActualizarSesionInterna(usuario, permisos))
             {
                 GestorDeSesion.CerrarSesionInterna();
@@ -111,9 +111,9 @@ namespace StageUp.UI.Interno
             GrupoMenu raiz = _bllPermiso.ConstruirMenuParaRol(idRolInterno);
             List<ItemMenu> items = raiz.ObtenerItems();
 
-            // Aviso al equipo interno de soporte (ítem 12): al lado de
-            // "Solicitudes de soporte", cuántas están pendientes o tienen
-            // mensajes del usuario sin leer. Solo para quien tiene el permiso.
+
+
+
             _ticketsAbiertos = GestorDeSesion.TienePermisoInterno(BLL_Ticket.PermisoGestionar)
                 ? new BLL_Ticket().ContarTicketsAbiertos()
                 : 0;

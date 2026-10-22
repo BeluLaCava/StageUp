@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // CU-004-002 Contactos comerciales y su seguimiento (script 80).
+
     public class MPP_ContactoComercial
     {
         public List<ContactoComercial> Listar(FiltroContactoComercial oFiltro)
@@ -111,7 +111,7 @@ namespace StageUp.MPP
             return Convert.ToInt32(resultado);
         }
 
-        // Devuelve el estado que quedó en el contacto.
+
         public string RegistrarSeguimiento(SeguimientoContacto oSeguimiento)
         {
             DataTable tabla = Conexion.Instance.Leer(

@@ -7,8 +7,8 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Reportes con gráficos (ítem 15, script 48). Todos los métodos reciben
-    // el FiltroReporte, no parámetros sueltos.
+
+
     public class MPP_Reporte
     {
         public IndicadoresTablero ObtenerIndicadores(FiltroReporte oFiltro)
@@ -143,7 +143,7 @@ namespace StageUp.MPP
             return lista;
         }
 
-        // Valores posibles de cada filtro: clave "Provincia" o "TipoEspacio".
+
         public Dictionary<string, List<string>> ListarValoresFiltros()
         {
             DataTable tabla = Conexion.Instance.Leer("sp_Reporte_ListarFiltros");

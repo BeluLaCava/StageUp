@@ -13,8 +13,8 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // CU-001-012 A11 a A15: pantalla "Roles y permisos". El rol se carga y se
-    // edita junto con sus permisos, en el mismo formulario.
+
+
     public partial class GestionRoles : Page
     {
         private const string PermisoRequerido = "GESTIONAR_ROLES";
@@ -91,9 +91,9 @@ namespace StageUp.UI.Interno
             }
         }
 
-        // ------------------------------------------------------------------
-        // A11 (alta) y A12 (modificación)
-        // ------------------------------------------------------------------
+
+
+
         protected void btnAgregarRol_Click(object sender, EventArgs e)
         {
             pnlMensaje.Visible = false;
@@ -149,14 +149,14 @@ namespace StageUp.UI.Interno
 
             if (!resultado.Exitoso)
             {
-                // A13, A14 y A15: el formulario queda abierto para corregir.
+
                 litMensajeFormulario.Text = resultado.Mensaje;
                 pnlMensajeFormulario.Visible = true;
                 return;
             }
 
-            // A12 paso 9: si el rol es el del usuario en sesión, sus
-            // permisos se actualizan ya mismo (el resto, en su próxima página).
+
+
             if (GestorDeSesion.ObtenerIdRolInternoActual() == resultado.Valor)
             {
                 Response.Redirect(Request.Path + "?ver=" + resultado.Valor + "&guardado=1", false);
@@ -170,12 +170,12 @@ namespace StageUp.UI.Interno
 
             if (esAlta)
             {
-                // A11 paso 13.
+
                 MostrarMensaje(resultado.Mensaje, false);
             }
             else
             {
-                // A12 paso 10.
+
                 MostrarDetalle(resultado.Valor, resultado.Mensaje, false);
             }
         }
@@ -191,9 +191,9 @@ namespace StageUp.UI.Interno
             }
         }
 
-        // ------------------------------------------------------------------
-        // Detalle y baja
-        // ------------------------------------------------------------------
+
+
+
         protected void lnkCerrarDetalle_Click(object sender, EventArgs e)
         {
             IdRolEnDetalle = null;
@@ -238,9 +238,9 @@ namespace StageUp.UI.Interno
             MostrarDetalle(IdRolEnDetalle.Value, resultado.Mensaje, true);
         }
 
-        // ------------------------------------------------------------------
-        // Carga de datos
-        // ------------------------------------------------------------------
+
+
+
         private void CargarAreas()
         {
             ddlAreaRol.DataSource = _bllArea.ListarActivas();
@@ -397,7 +397,7 @@ namespace StageUp.UI.Interno
         {
             base.OnPreRender(e);
 
-            // Vuelta después de guardar el rol propio (ver btnGuardarRol_Click).
+
             if (!IsPostBack && Request.QueryString["guardado"] == "1" && IdRolEnDetalle.HasValue)
             {
                 pnlDetalleMensaje.CssClass = "form-message form-message-success";

@@ -54,7 +54,7 @@
                     CausesValidation="false" OnClick="btnMarcarTodas_Click" />
             </div>
 
-            <%-- A1: sin notificaciones. --%>
+
             <asp:Panel ID="pnlVacio" runat="server" Visible="false" CssClass="nc-vacio">
                 <asp:Literal ID="litVacio" runat="server" Mode="Encode" />
             </asp:Panel>

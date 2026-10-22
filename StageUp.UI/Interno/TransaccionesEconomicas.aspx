@@ -21,7 +21,7 @@
                     </div>
                 </div>
 
-                <%-- A5 paso 6: filtros por tipo de operación y estado de pago. --%>
+
                 <asp:Panel ID="pnlFiltros" runat="server" CssClass="internal-filter-row" DefaultButton="btnFiltrar" role="search">
                     <div class="form-field">
                         <label for="<%= ddlTipo.ClientID %>">Tipo de operación</label>
@@ -59,7 +59,7 @@
                     </div>
                 </asp:Panel>
 
-                <%-- A7 y A8. --%>
+
                 <asp:Panel ID="pnlSinTransacciones" runat="server" Visible="false" CssClass="empty-state compact-empty-state">
                     <h3>No hay transacciones económicas registradas</h3>
                     <p>Se generan cuando se confirma el pago de una reserva o cuando se cobra un cargo por cancelación.</p>
@@ -100,7 +100,7 @@
         </div>
     </section>
 
-    <%-- A5 pasos 9 y 10 (A9 si no está disponible). --%>
+
     <asp:Panel ID="pnlDetalle" runat="server" Visible="false" CssClass="review-dialog-layer">
         <dialog class="review-dialog internal-dialog" open aria-labelledby="tx-detalle-titulo">
             <asp:LinkButton ID="lnkCerrarDetalle" runat="server" CssClass="review-dialog-close" CausesValidation="false" OnClick="lnkCerrarDetalle_Click" aria-label="Cerrar">×</asp:LinkButton>

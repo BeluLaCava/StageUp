@@ -15,8 +15,8 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // CU-001-012 Gestionar usuarios internos y permisos: pantalla "Usuarios
-    // internos y permisos" (escenario principal, A2 a A10).
+
+
     public partial class GestionUsuariosInternos : Page
     {
         private const string PermisoRequerido = "GESTIONAR_USUARIOS_INTERNOS";
@@ -46,7 +46,7 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-            // Paso 2 y A1.
+
             if (!GestorDeSesion.TienePermisoInterno(PermisoRequerido))
             {
                 Response.Redirect("~/Interno/PanelAdministrador.aspx?acceso=denegado");
@@ -71,9 +71,9 @@ namespace StageUp.UI.Interno
             }
         }
 
-        // ------------------------------------------------------------------
-        // Listado y búsqueda (pasos 4 a 6, A2)
-        // ------------------------------------------------------------------
+
+
+
         protected void btnBuscar_Click(object sender, EventArgs e)
         {
             CargarUsuarios();
@@ -105,9 +105,9 @@ namespace StageUp.UI.Interno
             }
         }
 
-        // ------------------------------------------------------------------
-        // Alta y edición (pasos 7 a 17, A3 a A6, A8 y A9)
-        // ------------------------------------------------------------------
+
+
+
         protected void btnAgregarUsuario_Click(object sender, EventArgs e)
         {
             pnlMensaje.Visible = false;
@@ -156,7 +156,7 @@ namespace StageUp.UI.Interno
 
             if (!resultado.Exitoso)
             {
-                // A3 a A6 / A9: el formulario queda abierto con los datos para corregir.
+
                 litMensajeFormulario.Text = resultado.Mensaje;
                 pnlMensajeFormulario.Visible = true;
                 return;
@@ -173,20 +173,20 @@ namespace StageUp.UI.Interno
 
             if (esAlta)
             {
-                // Pasos 16 y 17.
+
                 MostrarMensaje(resultado.Mensaje, false);
             }
             else
             {
-                // A8 pasos 8 y 9.
+
                 MostrarDetalle(idEditado.Value, resultado.Mensaje, false);
             }
         }
 
         protected void lnkCancelarEdicion_Click(object sender, EventArgs e)
         {
-            // A8: al cancelar la edición se descarta lo no guardado y se vuelve
-            // al detalle con la información registrada.
+
+
             int? idEditado = IdUsuarioEnEdicion;
             CerrarFormulario();
             if (idEditado.HasValue)
@@ -195,9 +195,9 @@ namespace StageUp.UI.Interno
             }
         }
 
-        // ------------------------------------------------------------------
-        // Detalle y baja (A7 y A10)
-        // ------------------------------------------------------------------
+
+
+
         protected void lnkCerrarDetalle_Click(object sender, EventArgs e)
         {
             IdUsuarioEnDetalle = null;
@@ -242,9 +242,9 @@ namespace StageUp.UI.Interno
             MostrarDetalle(IdUsuarioEnDetalle.Value, resultado.Mensaje, true);
         }
 
-        // ------------------------------------------------------------------
-        // Ayudas para la grilla
-        // ------------------------------------------------------------------
+
+
+
         protected string ObtenerClaseEstado(object activo)
         {
             return Convert.ToBoolean(activo) ? string.Empty : "internal-user-row-inactive";
@@ -255,9 +255,9 @@ namespace StageUp.UI.Interno
             return Convert.ToBoolean(activo) ? "admin-status-badge-active" : "admin-status-badge-inactive";
         }
 
-        // ------------------------------------------------------------------
-        // Carga de datos
-        // ------------------------------------------------------------------
+
+
+
         private void CargarCatalogos()
         {
             ddlAreaInterna.DataSource = _bllArea.ListarActivas();
@@ -280,7 +280,7 @@ namespace StageUp.UI.Interno
             ddlEstadoCuenta.Items.Add(new ListItem("Activa", EstadoCuentaInterno.Activa.ToString()));
             ddlEstadoCuenta.Items.Add(new ListItem("Inactiva", EstadoCuentaInterno.Inactiva.ToString()));
 
-            // Paso 15: permisos de cada rol, para mostrarlos al elegirlo.
+
             Dictionary<string, List<string>> permisosPorRol = new Dictionary<string, List<string>>();
             foreach (RolInterno rol in roles)
             {
@@ -367,7 +367,7 @@ namespace StageUp.UI.Interno
             pnlFormularioUsuario.Visible = false;
         }
 
-        // A7: detalle con los permisos vinculados por el rol.
+
         private void MostrarDetalle(int idUsuarioInterno, string mensaje, bool mensajeEsError, bool confirmarBaja = false)
         {
             UsuarioInterno usuario = _bllUsuario.ObtenerPorId(idUsuarioInterno);

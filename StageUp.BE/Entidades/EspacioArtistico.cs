@@ -26,8 +26,8 @@ namespace StageUp.BE.Entidades
         public decimal PromedioCalificacion { get; set; }
         public int CantidadCalificaciones { get; set; }
 
-        // Puntaje para ordenar por "mejor valorados" (ítem 8): promedio
-        // ponderado por cantidad de reseñas, ver BLL_Calificacion.
+
+
         public decimal PuntajeRanking { get; set; }
 
         public string NombreCompletoGestor
@@ -53,7 +53,7 @@ namespace StageUp.BE.Entidades
         public string TipoPiso { get; set; }
         public string DetalleEquipamiento { get; set; }
 
-        // CU-001-007 (script 55): medidas y condiciones del espacio.
+
         public decimal? SuperficieM2 { get; set; }
         public decimal? AlturaM { get; set; }
         public string CondicionesUso { get; set; }
@@ -66,9 +66,9 @@ namespace StageUp.BE.Entidades
 
     public class FranjaEspacio
     {
-        // CU-001-008 (script 56): identificación de la franja para editarla o
-        // eliminarla de a una desde "Disponibilidad del espacio". Null en las
-        // franjas que todavía no se guardaron.
+
+
+
         public int? IdFranjaEspacio { get; set; }
 
         public int? DiaSemana { get; set; }
@@ -77,14 +77,14 @@ namespace StageUp.BE.Entidades
         public int MinutoHasta { get; set; }
         public bool Bloqueado { get; set; }
 
-        // "Manual" (cargada desde la ficha en Mis espacios) o "Actividad"
-        // (bloqueo generado desde Mis actividades). Null se trata como Manual.
+
+
         public string Origen { get; set; }
 
-        // CU-001-008 A8: motivo del bloqueo manual (solo lo ve el gestor).
+
         public string MotivoBloqueo { get; set; }
 
-        // Bloqueos generados por una actividad interna (origen "Actividad").
+
         public int? IdActividad { get; set; }
         public string NombreActividad { get; set; }
     }
@@ -106,8 +106,8 @@ namespace StageUp.BE.Entidades
         public List<string> Equipamiento { get; set; } = new List<string>();
     }
 
-    // CU-001-007 A13: rango orientativo de precio por hora calculado con
-    // espacios publicados parecidos.
+
+
     public class SugerenciaPrecio
     {
         public string Moneda { get; set; }

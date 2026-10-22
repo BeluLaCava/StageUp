@@ -104,8 +104,8 @@ namespace StageUp.BLL
                     FechaAceptacionTerminos = DateTime.Now
                 };
 
-                // La contraseña pasa por Seguridad como objeto completo: BLL no vuelve
-                // a tocar el algoritmo de cifrado, solo pide que se proteja.
+
+
                 ProtectorDeCredenciales.ProtegerPassword(nuevoUsuario, password);
 
                 int idUsuarioExterno = _mppUsuario.Insertar(nuevoUsuario);
@@ -212,11 +212,11 @@ namespace StageUp.BLL
             });
         }
 
-        // Ítems 28/29 del checklist de correcciones (login unificado): variante
-        // sin validación de CAPTCHA, usada por BLL_Autenticacion para poder
-        // probar el login como usuario externo y, si no corresponde, como
-        // usuario interno, validando el token de reCAPTCHA una sola vez (es de
-        // un solo uso) desde un único lugar.
+
+
+
+
+
         internal ResultadoOperacion<UsuarioExterno> IniciarSesionSinCaptcha(
             string correoElectronico, string password)
         {
@@ -290,8 +290,8 @@ namespace StageUp.BLL
 
                 if (usuario == null || usuario.EstadoCuenta == EstadoCuentaExterno.Inactiva.ToString())
                 {
-                    // Misma respuesta que para un correo inexistente: no se revela
-                    // si la cuenta existe o fue dada de baja (CU-001-003).
+
+
                     return ResultadoOperacion.Ok(
                         "Si el correo ingresado corresponde a una cuenta registrada, vas a recibir un código de recuperación.");
                 }
@@ -425,8 +425,8 @@ namespace StageUp.BLL
             });
         }
 
-        // CU-001-003 A8 (pasos 2 y 6): condiciones que impiden la baja lógica y
-        // avisos de lo que va a pasar, para mostrarlos antes de confirmar.
+
+
         public ResultadoOperacion<EvaluacionBajaCuenta> EvaluarBajaCuenta(int idUsuarioExterno)
         {
             return EjecutarProtegido(() =>
@@ -449,10 +449,10 @@ namespace StageUp.BLL
             });
         }
 
-        // CU-001-003 A8 (pasos 6 a 10) y A9: vuelve a validar las condiciones
-        // dentro de la misma transacción que aplica la baja, así una reserva o
-        // un pago que entren entre la confirmación y la baja también la frenan.
-        // Cerrar la sesión y redirigir (pasos 12 y 13) lo hace la pantalla.
+
+
+
+
         public ResultadoOperacion<EvaluacionBajaCuenta> DarDeBajaCuenta(int idUsuarioExterno)
         {
             return EjecutarProtegido(() =>
@@ -473,8 +473,8 @@ namespace StageUp.BLL
 
                 if (evaluacion.Resultado != "OK")
                 {
-                    // A9: la cuenta sigue activa. El detalle de lo que hay que
-                    // resolver lo da EvaluarBajaCuenta.
+
+
                     return ResultadoOperacion<EvaluacionBajaCuenta>.Error(
                         "No es posible dar de baja tu cuenta hasta resolver las condiciones pendientes. Tu cuenta sigue activa.");
                 }
@@ -600,8 +600,8 @@ namespace StageUp.BLL
             }
         }
 
-        // La solicitud de habilitación como gestor y su revisión están en
-        // BLL_SolicitudHabilitacionGestor (CU-001-007, script 54).
+
+
 
         public int? ObtenerIdPorCorreo(string correoElectronico)
         {
@@ -624,26 +624,26 @@ namespace StageUp.BLL
             }
         }
 
-        // CU-001-003: false si la cuenta ya no está activa (o no existe). Si la
-        // base no responde se devuelve true para no cortar la sesión por un
-        // problema momentáneo.
+
+
+
         public bool CuentaSigueActiva(int idUsuarioExterno)
         {
             string perfil;
             return CuentaSigueActiva(idUsuarioExterno, out perfil);
         }
 
-        // CU-001-007: además devuelve el perfil actual, para que la sesión se
-        // entere si un administrador aprobó o rechazó la habilitación como
-        // gestor (null si no se pudo leer).
+
+
+
         public bool CuentaSigueActiva(int idUsuarioExterno, out string perfilActual)
         {
             return CuentaSigueActiva(idUsuarioExterno, null, out perfilActual);
         }
 
-        // Con la fecha de alta guardada en la sesión, además comprueba que el
-        // id siga siendo la misma cuenta (después de restaurar un backup, el
-        // id puede ser de otra persona).
+
+
+
         public bool CuentaSigueActiva(int idUsuarioExterno, DateTime? fechaAltaEnSesion, out string perfilActual)
         {
             perfilActual = null;
@@ -690,10 +690,10 @@ namespace StageUp.BLL
             }
         }
 
-        // Usada por BLL_Novedad al enviar el newsletter (ítem 38 del
-        // checklist de correcciones): lista los usuarios externos activos
-        // que corresponden a la categoría de destinatarios elegida en el
-        // panel ("Activos", "Gestores", "Solicitantes" o "Todos").
+
+
+
+
         public List<UsuarioExterno> ListarParaNewsletter(string criterio)
         {
             try

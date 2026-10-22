@@ -12,7 +12,7 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Interno
 {
-    // Backup y restore de la base (ítem 17 de la segunda entrega).
+
     public partial class BackupRestore : Page
     {
         private readonly BLL_Backup _bllBackup = new BLL_Backup();
@@ -94,17 +94,17 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-            // La base cambió por completo: la sesión se vuelve a validar
-            // contra la base restaurada (script 79). Sigue abierta si el
-            // usuario existe, es el mismo y está activo en el backup, con los
-            // permisos que tiene ahí.
+
+
+
+
             IdBackupARestaurar = null;
             txtConfirmacion.Text = string.Empty;
             ResultadoRevalidacionSesion sesion = ControlSesionBaseDatos.VerificarSinExcepciones();
             GestorDeSesion.TomarAvisoRestauracion();
 
-            // No se pudo comprobar la cuenta contra la base restaurada: la
-            // sesión queda suspendida y no se usan los permisos anteriores.
+
+
             if (sesion == ResultadoRevalidacionSesion.NoVerificada)
             {
                 MostrarRestaurado(resultado.Mensaje,

@@ -140,8 +140,8 @@ namespace StageUp.UI
             MostrarMensaje(resultado.Mensaje, false);
         }
 
-        // CU-001-003 A8: "Dar de baja cuenta" muestra lo que implica la baja y
-        // las condiciones pendientes (A9) antes de pedir la confirmación.
+
+
         protected void lnkDarDeBaja_Click(object sender, EventArgs e)
         {
             OcultarMensaje();
@@ -162,7 +162,7 @@ namespace StageUp.UI
 
         protected void btnConfirmarBaja_Click(object sender, EventArgs e)
         {
-            // Paso 4: confirmación final para evitar bajas accidentales.
+
             pnlBajaAcciones.Visible = false;
             pnlBajaConfirmacionFinal.Visible = true;
             OcultarMensaje();
@@ -181,8 +181,8 @@ namespace StageUp.UI
 
             if (!resultado.Exitoso)
             {
-                // A9: la cuenta sigue activa; se vuelve a "Mi perfil" con el
-                // detalle de lo que hay que resolver.
+
+
                 MostrarMensaje(resultado.Mensaje, true);
                 ResultadoOperacion<EvaluacionBajaCuenta> evaluacion = _bllUsuario.EvaluarBajaCuenta(idUsuario);
                 if (evaluacion.Exitoso)
@@ -198,8 +198,8 @@ namespace StageUp.UI
                 return;
             }
 
-            // Pasos 11 a 13: se informa la baja, se cierra la sesión y se vuelve
-            // a la pantalla inicial pública.
+
+
             GestorDeSesion.CerrarSesion();
             Response.Redirect("~/Default.aspx?cuenta=baja", false);
             Context.ApplicationInstance.CompleteRequest();
@@ -239,8 +239,8 @@ namespace StageUp.UI
                 : "Falta integrar los procedimientos de perfil en la base de datos";
         }
 
-        // CU-001-007: desde el perfil se pide la habilitación como gestor o se
-        // consulta su estado (la solicitud se completa en "Ofrecer espacio").
+
+
         private void CargarEstadoGestor(UsuarioExterno usuario)
         {
             if (string.Equals(usuario.PerfilUsuario, "GestorEspacios", StringComparison.OrdinalIgnoreCase))
@@ -332,9 +332,9 @@ namespace StageUp.UI
             CargarNewsletter();
         }
 
-        // ------------------------------------------------------------------
-        // Newsletter (script 85): suscripción del correo de la cuenta.
-        // ------------------------------------------------------------------
+
+
+
         protected void btnNewsletterSuscribir_Click(object sender, EventArgs e)
         {
             ResultadoOperacion resultado = _bllNewsletter.SuscribirDesdeCuenta(
@@ -365,7 +365,7 @@ namespace StageUp.UI
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
         }
 
-        // elegidas: para conservar lo tildado cuando la operación falla.
+
         private void CargarNewsletter(List<string> elegidas = null)
         {
             btnNewsletterSuscribir.Visible = false;

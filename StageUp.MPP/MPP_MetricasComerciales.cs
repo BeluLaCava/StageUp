@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // CU-004-004 Métricas comerciales y origen de usuarios (script 81).
+
     public class MPP_MetricasComerciales
     {
         public ResumenMetricasComerciales ObtenerResumen(FiltroMetricasComerciales oFiltro)

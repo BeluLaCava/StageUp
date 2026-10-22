@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Envíos del newsletter y estado por destinatario (script 85).
+
     public class MPP_EnvioNewsletter
     {
         public int Iniciar(Novedad oNovedad, string criterio, int idUsuarioInterno)
@@ -22,7 +22,7 @@ namespace StageUp.MPP
                 }));
         }
 
-        // null si no hay nada para reintentar (o ya se está reintentando).
+
         public int? TomarParaReintento(Novedad oNovedad)
         {
             object valor = Conexion.Instance.LeerEscalar(
@@ -51,7 +51,7 @@ namespace StageUp.MPP
             return lista;
         }
 
-        // Antes de mandar el correo. false si el destinatario ya no estaba pendiente.
+
         public bool MarcarEnviando(int idEnvioNewsletter, DestinatarioNewsletter oDestinatario)
         {
             object filas = Conexion.Instance.LeerEscalar(
@@ -64,8 +64,8 @@ namespace StageUp.MPP
             return filas != null && filas != DBNull.Value && Convert.ToInt32(filas) > 0;
         }
 
-        // Los de resultado incierto vuelven a quedar como fallidos. Devuelve
-        // cuántos se reabrieron (0 si el envío está en curso).
+
+
         public int ReabrirInciertos(int idEnvioNewsletter)
         {
             object filas = Conexion.Instance.LeerEscalar(

@@ -9,11 +9,11 @@ using StageUp.BLL;
 
 namespace StageUp.UI.Infraestructura
 {
-    // La búsqueda (simple o avanzada) viaja en la URL para poder compartirla
-    // o volver atrás con el navegador. Esta clase pasa el filtro a la URL y
-    // de la URL al filtro (Buscar.aspx e Interno/BusquedaInterna.aspx).
-    //   q, tipos (separados por coma), desde, hasta (aaaa-mm-dd), ubicacion,
-    //   capacidad, precio, categoria, estado (Tipo|Estado), orden, max.
+
+
+
+
+
     public static class ConsultaBusqueda
     {
         private const string FormatoFecha = "yyyy-MM-dd";
@@ -82,7 +82,7 @@ namespace StageUp.UI.Infraestructura
             return partes.Count == 0 ? pagina : pagina + "?" + string.Join("&", partes);
         }
 
-        // Texto con los filtros aplicados, para mostrar arriba de los resultados.
+
         public static string Describir(FiltroBusquedaGlobal filtro, IDictionary<string, string> etiquetasTipos, IDictionary<string, string> etiquetasEstados)
         {
             List<string> partes = new List<string>();

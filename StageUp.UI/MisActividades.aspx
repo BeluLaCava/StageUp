@@ -347,7 +347,7 @@
                 </dialog>
             </asp:Panel>
 
-            <%-- CU-001-009 A6: detalle de la actividad interna, con editar y baja (A9 a A11). --%>
+
             <asp:Panel ID="pnlDetalleActividad" runat="server" Visible="false" CssClass="activity-dialog-layer">
                 <dialog class="activity-editor activity-detail" open aria-labelledby="activity-detail-title">
                     <asp:LinkButton ID="lnkCerrarDetalle" runat="server" CssClass="activity-editor-close" CausesValidation="false" OnClick="lnkCerrarDetalle_Click" aria-label="Cerrar">×</asp:LinkButton>
@@ -390,14 +390,14 @@
                         </asp:Repeater>
                     </ul>
 
-                    <%-- CU-001-010 A13 desde el detalle de la actividad. --%>
+
                     <asp:Panel ID="pnlConfirmarDesvincularActividad" runat="server" Visible="false" CssClass="activity-confirm" role="alertdialog">
                         <p><asp:Literal ID="litConfirmarDesvincularActividad" runat="server" Mode="Encode" /></p>
                         <asp:Button ID="btnConfirmarDesvincularActividad" runat="server" CssClass="button button-primary" Text="Sí, desvincular" CausesValidation="false" OnClick="btnConfirmarDesvincular_Click" />
                         <asp:LinkButton ID="lnkCancelarDesvincularActividad" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCancelarDesvincular_Click">Cancelar</asp:LinkButton>
                     </asp:Panel>
 
-                    <%-- CU-001-010 pasos 13 y 14 y A7: agregar o asociar participantes. --%>
+
                     <asp:Panel ID="pnlParticipantesActividad" runat="server" CssClass="activity-detail-add">
                         <asp:Button ID="btnAgregarParticipanteActividad" runat="server" CssClass="button button-secondary button-small" Text="＋ Agregar participante" CausesValidation="false" OnClick="btnAgregarParticipanteActividad_Click" />
                         <div class="activity-detail-associate">
@@ -413,7 +413,7 @@
                         <asp:LinkButton ID="lnkVolverListado" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCerrarDetalle_Click">Volver al listado</asp:LinkButton>
                     </div>
 
-                    <%-- A9 paso 2 y A11. --%>
+
                     <asp:Panel ID="pnlConfirmarBajaActividad" runat="server" Visible="false" CssClass="activity-confirm" role="alertdialog">
                         <p><strong>¿Dar de baja esta actividad?</strong> Va a dejar de considerarse dentro de la programación activa del espacio y en el cálculo de disponibilidad, pero se conserva su información histórica.</p>
                         <asp:Button ID="btnConfirmarBajaActividad" runat="server" CssClass="button button-primary" Text="Sí, dar de baja" CausesValidation="false" OnClick="btnConfirmarBajaActividad_Click" />
@@ -422,7 +422,7 @@
                 </dialog>
             </asp:Panel>
 
-            <%-- CU-001-010 A10: detalle del participante (A11, A13 y A14). --%>
+
             <asp:Panel ID="pnlDetalleParticipante" runat="server" Visible="false" CssClass="activity-dialog-layer">
                 <dialog class="activity-editor activity-detail" open aria-labelledby="participant-detail-title">
                     <asp:LinkButton ID="lnkCerrarDetalleParticipante" runat="server" CssClass="activity-editor-close" CausesValidation="false" OnClick="lnkCerrarDetalleParticipante_Click" aria-label="Cerrar">×</asp:LinkButton>
@@ -474,7 +474,7 @@
                         </ul>
                     </asp:PlaceHolder>
 
-                    <%-- A13 desde el detalle del participante. --%>
+
                     <asp:Panel ID="pnlConfirmarDesvincularParticipante" runat="server" Visible="false" CssClass="activity-confirm" role="alertdialog">
                         <p><asp:Literal ID="litConfirmarDesvincularParticipante" runat="server" Mode="Encode" /></p>
                         <asp:Button ID="btnConfirmarDesvincularParticipante" runat="server" CssClass="button button-primary" Text="Sí, desvincular" CausesValidation="false" OnClick="btnConfirmarDesvincular_Click" />
@@ -487,7 +487,7 @@
                         <asp:LinkButton ID="lnkVolverParticipantes" runat="server" CssClass="text-link" CausesValidation="false" OnClick="lnkCerrarDetalleParticipante_Click">Volver</asp:LinkButton>
                     </div>
 
-                    <%-- A14 pasos 2 y 3. --%>
+
                     <asp:Panel ID="pnlConfirmarBajaParticipante" runat="server" Visible="false" CssClass="activity-confirm" role="alertdialog">
                         <p><strong>¿Dar de baja este participante?</strong> Va a dejar de figurar como activo y no se va a poder asociar a nuevas actividades, pero conserva su información histórica y sus asociaciones anteriores.</p>
                         <asp:Button ID="btnConfirmarBajaParticipante" runat="server" CssClass="button button-primary" Text="Sí, dar de baja" CausesValidation="false" OnClick="btnConfirmarBajaParticipante_Click" />
@@ -508,7 +508,7 @@
                         <asp:Literal ID="litFormularioParticipanteMensaje" runat="server" Mode="Encode" />
                     </asp:Panel>
 
-                    <%-- A5: el DNI ya pertenece a un participante activo. --%>
+
                     <asp:Panel ID="pnlParticipanteExistente" runat="server" Visible="false" CssClass="activity-confirm">
                         <p><asp:Literal ID="litParticipanteExistente" runat="server" Mode="Encode" /></p>
                         <asp:Button ID="btnAsociarExistenteFormulario" runat="server" CssClass="button button-primary button-small" Text="Asociar el participante existente" CausesValidation="false" OnClick="btnAsociarExistenteFormulario_Click" />
@@ -706,8 +706,8 @@
             const tabPanels = document.querySelectorAll('[data-activities-tab-panel]');
             const tabHidden = document.getElementById('hdnTabActividades');
 
-            // La solapa elegida se conserva entre postbacks (búsqueda,
-            // detalle de participante, etc.).
+
+
             function activateTab(target) {
                 for (let b = 0; b < tabButtons.length; b++) {
                     const isActiveButton = tabButtons[b].getAttribute('data-activities-tab-trigger') === target;
@@ -808,8 +808,8 @@
                 }
             }
 
-            // CU-001-009 A7: al editar (o al volver de un error) la programación
-            // guardada llega en el campo oculto y se vuelve a mostrar.
+
+
             function restoreActivitySchedule() {
                 if (!repeatMode || !scheduleHidden || !scheduleHidden.value) {
                     return;
@@ -918,7 +918,7 @@
                 }
             });
 
-            // Participantes ya asociados (edición o vuelta de un error).
+
             if (hidden && hidden.value) {
                 const initialIds = hidden.value.split(',');
                 for (let n = 0; n < initialIds.length; n++) {

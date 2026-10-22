@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Backup y restore (ítem 17, script 46).
+
     public class MPP_Backup
     {
         public BackupBaseDatos Generar(BackupBaseDatos oBackup)
@@ -49,8 +49,8 @@ namespace StageUp.MPP
             return lista;
         }
 
-        // Se ejecuta conectado a master (una base no se puede restaurar a sí
-        // misma). Después se descartan las conexiones del pool.
+
+
         public void Restaurar(BackupBaseDatos oBackup)
         {
             Conexion.Instance.EjecutarEnMaster(
@@ -64,7 +64,7 @@ namespace StageUp.MPP
             Conexion.Instance.LimpiarConexionesAbiertas();
         }
 
-        // Marca de la última restauración de la base (script 79, en master).
+
         public string ObtenerMarcaUltimaRestauracion()
         {
             object valor = Conexion.Instance.LeerEscalarEnMaster(

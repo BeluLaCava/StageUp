@@ -10,9 +10,9 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // Newsletter (script 85): administración de suscriptores, de las
-    // categorías de novedades y consulta de los envíos con el estado de cada
-    // destinatario. Mismo permiso que Novedades y newsletter.
+
+
+
     public partial class GestionNewsletter : Page
     {
         private const string PermisoRequerido = "GESTIONAR_NOVEDADES";
@@ -48,9 +48,9 @@ namespace StageUp.UI.Interno
             }
         }
 
-        // ------------------------------------------------------------------
-        // Suscriptores
-        // ------------------------------------------------------------------
+
+
+
         protected void btnFiltrar_Click(object sender, EventArgs e)
         {
             if (TieneAcceso())
@@ -96,9 +96,9 @@ namespace StageUp.UI.Interno
             CargarSuscriptores();
         }
 
-        // ------------------------------------------------------------------
-        // Categorías
-        // ------------------------------------------------------------------
+
+
+
         protected void rptCategorias_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
             if (!TieneAcceso())
@@ -173,9 +173,9 @@ namespace StageUp.UI.Interno
             LimpiarFormularioCategoria();
         }
 
-        // ------------------------------------------------------------------
-        // Envíos
-        // ------------------------------------------------------------------
+
+
+
         protected void rptEnvios_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
             if (!TieneAcceso() || e.CommandName != "Ver")
@@ -237,9 +237,9 @@ namespace StageUp.UI.Interno
             CargarEnvios();
         }
 
-        // ------------------------------------------------------------------
-        // Carga
-        // ------------------------------------------------------------------
+
+
+
         private void CargarTodo()
         {
             CargarResumen();
@@ -331,9 +331,9 @@ namespace StageUp.UI.Interno
             return categorias.Count == 0 ? 10 : Math.Min(9999, categorias.Max(c => c.Orden) + 10);
         }
 
-        // ------------------------------------------------------------------
-        // Formato
-        // ------------------------------------------------------------------
+
+
+
         protected static string EtiquetaEstadoSuscriptor(object estado)
         {
             switch (Convert.ToString(estado))

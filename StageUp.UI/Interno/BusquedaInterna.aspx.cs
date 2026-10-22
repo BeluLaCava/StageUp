@@ -12,11 +12,11 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Interno
 {
-    // Búsqueda interna de la plataforma, simple y avanzada. Qué tipos de
-    // información se pueden buscar (y qué estados se pueden filtrar) depende
-    // de los permisos del rol: lo resuelve BLL_Busqueda. Los filtros viajan
-    // en la URL (Infraestructura/ConsultaBusqueda) y los aplica el SP
-    // sp_Busqueda_Interna (script 76).
+
+
+
+
+
     public partial class BusquedaInterna : Page
     {
         private readonly BLL_Busqueda _bllBusqueda = new BLL_Busqueda();
@@ -146,7 +146,7 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-            // Aviso cuando un filtro obligó a buscar solo en algunos tipos de contenido.
+
             if (!string.IsNullOrWhiteSpace(resultado.Mensaje))
             {
                 MostrarMensaje(resultado.Mensaje, false);
@@ -162,8 +162,8 @@ namespace StageUp.UI.Interno
                     : total + (total == 1 ? " resultado " : " resultados ") + queBusco + ".")
                 + (filtros.Length == 0 ? string.Empty : " Filtros: " + Server.HtmlEncode(filtros) + ".");
 
-            // Los espacios abren la consulta interna; se le pasa la búsqueda
-            // actual para que "Volver" regrese a los mismos resultados.
+
+
             string volver = HttpUtility.UrlEncode(ConsultaBusqueda.Armar(string.Empty, filtro).TrimStart('?'));
             foreach (ResultadoBusqueda item in resultado.Valor.SelectMany(g => g.Resultados))
             {

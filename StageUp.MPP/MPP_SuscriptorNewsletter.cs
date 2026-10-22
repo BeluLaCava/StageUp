@@ -8,7 +8,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Suscriptores del newsletter (script 78).
+
     public class MPP_SuscriptorNewsletter
     {
         public SuscriptorNewsletter ObtenerPorCorreo(SuscriptorNewsletter oSuscriptor)
@@ -26,8 +26,8 @@ namespace StageUp.MPP
             return Obtener(new Hashtable { { "@hashTokenVinculo", hashTokenVinculo } });
         }
 
-        // Mi perfil: la cuenta pide vincular la suscripción (queda pendiente
-        // hasta que el dueño del correo confirme con el enlace).
+
+
         public bool SolicitarVinculo(SuscriptorNewsletter oSuscriptor, UsuarioExterno oCuenta, string hashTokenVinculo, DateTime vencimiento)
         {
             return Filas(Conexion.Instance.LeerEscalar(
@@ -94,8 +94,8 @@ namespace StageUp.MPP
                 new Hashtable { { "@idSuscriptorNewsletter", oSuscriptor.IdSuscriptorNewsletter } });
         }
 
-        // El correo de confirmación o el aviso no salió: no cuenta para la
-        // espera entre envíos.
+
+
         public void AnularEnvioConfirmacion(SuscriptorNewsletter oSuscriptor)
         {
             Conexion.Instance.Guardar(
@@ -188,7 +188,7 @@ namespace StageUp.MPP
             return tabla.Rows.Count == 0 ? null : Mapear(tabla.Rows[0]);
         }
 
-        // Administración: suscriptores filtrados (los más recientes primero).
+
         public List<SuscriptorNewsletter> Listar(FiltroSuscriptoresNewsletter oFiltro, out int totalFiltrado)
         {
             DataTable tabla = Conexion.Instance.Leer(

@@ -41,9 +41,9 @@ namespace StageUp.UI.Explorar
                 filtro.PrecioMaximo.HasValue || filtro.CapacidadMinima.HasValue ||
                 !string.IsNullOrWhiteSpace(filtro.FechaDisponibilidad) || (filtro.Equipamiento != null && filtro.Equipamiento.Count > 0);
 
-            // Ítem 36: sin filtros, el catálogo completo ya es la lista que se
-            // acaba de cargar (con su reputación). Solo con filtros hace falta
-            // una segunda consulta para las categorías disponibles.
+
+
+
             List<EspacioArtistico> espaciosPublicados = hayFiltrosAplicados
                 ? _bllEspacio.Buscar(new FiltroBusquedaEspacios())
                 : espacios;
@@ -79,8 +79,8 @@ namespace StageUp.UI.Explorar
             }
         }
 
-        // Ítem 8: opciones de orden del catálogo. Devuelve el criterio elegido
-        // (validado contra la lista, cualquier otro valor cae en relevancia).
+
+
         private string CargarOpcionesOrden()
         {
             ddlOrden.Items.Clear();
@@ -101,8 +101,8 @@ namespace StageUp.UI.Explorar
             return orden;
         }
 
-        // Ítem 8: ranking público de espacios mejor valorados. Se muestra
-        // cuando el usuario está mirando el catálogo completo (sin filtros).
+
+
         private void CargarRanking(List<EspacioArtistico> espaciosPublicados, bool hayFiltrosAplicados)
         {
             if (hayFiltrosAplicados)
@@ -111,7 +111,7 @@ namespace StageUp.UI.Explorar
                 return;
             }
 
-            // (Sin filtros, espaciosPublicados ya tiene la reputación cargada.)
+
             List<EspacioArtistico> ranking = BLL_Calificacion.ObtenerRankingMejorValorados(espaciosPublicados, CantidadRanking);
 
             pnlRanking.Visible = ranking.Count > 0;

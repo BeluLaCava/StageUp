@@ -11,9 +11,9 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    // Cuenta corriente del usuario (ítem 6B de la segunda entrega): como
-    // cliente (pagos, notas de crédito y débito, saldo a favor) y, si es
-    // gestor de espacios, como gestor (ingresos, comisiones y liquidaciones).
+
+
+
     public partial class MiCuentaCorriente : Page
     {
         private readonly BLL_CuentaCorriente _bllCuenta = new BLL_CuentaCorriente();
@@ -176,7 +176,7 @@ namespace StageUp.UI
             }
         }
 
-        // Ítem 8: tarjetas vigentes de la billetera, con la preferida elegida.
+
         private void CargarBilletera()
         {
             string seleccionada = ddlTarjetaGuardada.Items.Count > 0 ? ddlTarjetaGuardada.SelectedValue : null;

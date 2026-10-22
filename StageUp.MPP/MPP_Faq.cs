@@ -7,10 +7,10 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // CU-003-004 Gestionar contenido de ayuda y CU-003-001 (script 67).
+
     public class MPP_Faq
     {
-        // Centro de ayuda público y asistente: solo contenido activo.
+
         public List<Faq> ListarActivas()
         {
             return Mapear(Conexion.Instance.Leer("sp_Faq_ListarActivas"));
@@ -99,8 +99,8 @@ namespace StageUp.MPP
             return lista;
         }
 
-        // CU-003-001 A4/A5: consulta escrita en el asistente, con el paso del
-        // asistente o la pregunta frecuente que la respondió (o ninguno).
+
+
         public void RegistrarConsultaAsistente(string texto, string textoNormalizado, int? idNodoAsistente, int? idFaqRespuesta, int? idUsuarioExterno, string resultadoApi = null)
         {
             Conexion.Instance.LeerEscalar(

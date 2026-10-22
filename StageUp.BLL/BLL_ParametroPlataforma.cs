@@ -11,27 +11,27 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-    // CU-002-004 Configurar parámetros administrativos de la plataforma
-    // (scripts 49, 53 y 65), editables desde Interno/ParametrosPlataforma.aspx
-    // (permiso CONFIGURAR_PARAMETROS).
-    //
-    // Los parámetros se agrupan en: comisión y pagos, política de
-    // cancelación, estados administrativos, datos de facturación de Artera y
-    // correos administrativos. Cada cambio queda en el historial (valor
-    // anterior, valor nuevo, responsable, fecha y vigencia) y en la bitácora.
-    // Un cambio con vigencia futura queda programado y empieza a regir solo.
-    // Si la base no responde se usan los valores por defecto, para que una
-    // reserva nunca falle por no poder leer un parámetro.
+
+
+
+
+
+
+
+
+
+
+
     public class BLL_ParametroPlataforma
     {
         public const string ComisionPlataformaPorcentaje = "ComisionPlataformaPorcentaje";
         public const string HorasLimitePago = "HorasLimitePago";
-        // Política de cancelación del CU-001-005 (A14 a A16), script 53.
+
         public const string DiasCancelacionSinCargo = "DiasCancelacionSinCargo";
         public const string DiasCancelacionCargoParcial = "DiasCancelacionCargoParcial";
         public const string PorcentajeCargoParcial = "PorcentajeCargoParcial";
         public const string PorcentajeCargoTotal = "PorcentajeCargoTotal";
-        // Estados administrativos (texto con el que se muestra cada estado).
+
         public const string EstadoPagoAprobado = "EstadoPagoAprobado";
         public const string EstadoPagoPendiente = "EstadoPagoPendiente";
         public const string EstadoPagoEsperando = "EstadoPagoEsperando";
@@ -47,20 +47,20 @@ namespace StageUp.BLL
         public const string EstadoOperacionCobrado = "EstadoOperacionCobrado";
         public const string EstadoOperacionDevuelto = "EstadoOperacionDevuelto";
         public const string EstadoOperacionPendiente = "EstadoOperacionPendiente";
-        // Datos generales de facturación de Artera.
+
         public const string FacturacionRazonSocial = "FacturacionRazonSocial";
         public const string FacturacionCuit = "FacturacionCuit";
         public const string FacturacionCondicionIva = "FacturacionCondicionIva";
         public const string FacturacionDomicilio = "FacturacionDomicilio";
         public const string FacturacionPuntoVenta = "FacturacionPuntoVenta";
         public const string FacturacionLeyenda = "FacturacionLeyenda";
-        // Correos administrativos.
+
         public const string CorreosAdministrativosActivos = "CorreosAdministrativosActivos";
         public const string CorreosAdministrativosRemitente = "CorreosAdministrativosRemitente";
         public const string CorreosAdministrativosResponderA = "CorreosAdministrativosResponderA";
         public const string CorreosAdministrativosCopia = "CorreosAdministrativosCopia";
 
-        // Grupos del paso 4.
+
         public const string GrupoComision = "Comision";
         public const string GrupoCancelacion = "Cancelacion";
         public const string GrupoEstados = "Estados";
@@ -157,10 +157,10 @@ namespace StageUp.BLL
         private readonly MPP_ParametroPlataforma _mpp = new MPP_ParametroPlataforma();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
-        // Ítem 36: los parámetros se leen en cada reserva, cancelación y pago
-        // (y en Mis reservas, una vez por fila). Se guardan en memoria unos
-        // minutos (o hasta que empiece a regir un cambio programado) y se
-        // descartan cuando el administrador los modifica.
+
+
+
+
         private const int MinutosCache = 5;
         private static readonly object _lockCache = new object();
         private static List<ParametroPlataforma> _cache;
@@ -214,7 +214,7 @@ namespace StageUp.BLL
             }
         }
 
-        // ---- Definiciones ---------------------------------------------------
+
 
         public static List<GrupoParametros> ObtenerGrupos()
         {
@@ -264,7 +264,7 @@ namespace StageUp.BLL
             return Definiciones.TryGetValue(clave ?? string.Empty, out definicion) && definicion.Obligatorio;
         }
 
-        // Valor como se muestra en la consulta (A2).
+
         public static string FormatearValor(string clave, string valor)
         {
             DefinicionParametro definicion;
@@ -293,9 +293,9 @@ namespace StageUp.BLL
             return definicion.Unidad.Length == 0 ? valor : valor + " " + definicion.Unidad;
         }
 
-        // ---- Consulta -------------------------------------------------------
 
-        // Pasos 3 a 5: parámetros vigentes en el orden de los grupos.
+
+
         public List<ParametroPlataforma> Listar()
         {
             try
@@ -374,14 +374,14 @@ namespace StageUp.BLL
             return definicion.PorDefectoTexto ?? string.Empty;
         }
 
-        // Paso 14: texto configurado para un estado administrativo.
+
         public static string TextoEstado(string clave)
         {
             return new BLL_ParametroPlataforma().ObtenerTexto(clave);
         }
 
-        // A6 paso 5: datos de facturación vigentes (o los que regían en la
-        // fecha de una factura ya emitida).
+
+
         public DatosFacturacion ObtenerDatosFacturacion(DateTime? fechaFactura)
         {
             Dictionary<string, string> valores = null;
@@ -425,7 +425,7 @@ namespace StageUp.BLL
             return datos;
         }
 
-        // A7 paso 5: configuración para los próximos correos administrativos.
+
         public ConfiguracionCorreoAdministrativo ObtenerConfiguracionCorreoAdministrativo()
         {
             return new ConfiguracionCorreoAdministrativo
@@ -437,18 +437,18 @@ namespace StageUp.BLL
             };
         }
 
-        // ---- Edición --------------------------------------------------------
+
 
         public ResultadoOperacion Actualizar(string clave, string valorIngresado, int idUsuarioInternoResponsable)
         {
             return GuardarCambios(new Dictionary<string, string> { { clave ?? string.Empty, valorIngresado } }, null, idUsuarioInternoResponsable);
         }
 
-        // Pasos 10 a 15. Primero valida cada valor (A9 a A14) y la coherencia
-        // de la política de cancelación con los valores nuevos; solo si todo
-        // está bien guarda los cambios juntos (A15 si falla). Sin vigencia (o
-        // con la fecha de hoy) rigen en el momento; con una fecha futura
-        // quedan programados desde las 00:00 de ese día.
+
+
+
+
+
         public ResultadoOperacion GuardarCambios(IDictionary<string, string> valoresIngresados, DateTime? vigenciaDesde, int idUsuarioInternoResponsable)
         {
             if (valoresIngresados == null || valoresIngresados.Count == 0)
@@ -534,7 +534,7 @@ namespace StageUp.BLL
 
             InvalidarCache();
 
-            // Paso 13: bitácora (CU-001-013) además del historial de cambios.
+
             foreach (CambioParametroPlataforma cambio in registrados)
             {
                 _bitacora.RegistrarInterno(
@@ -586,7 +586,7 @@ namespace StageUp.BLL
                 return definicion.Nombre + ": tiene caracteres no permitidos.";
             }
 
-            // A9: obligatorios.
+
             if (texto.Length == 0 && definicion.Obligatorio && definicion.Tipo != TipoParametro.SiNo)
             {
                 codigo = "A9";
@@ -667,8 +667,8 @@ namespace StageUp.BLL
             }
         }
 
-        // A11: el plazo del cargo parcial tiene que ser menor que el plazo sin
-        // cargo, y el cargo parcial no puede superar al total.
+
+
         private static string ValidarConsistenciaCancelacion(Func<string, decimal> valor)
         {
             decimal diasSinCargo = valor(DiasCancelacionSinCargo);
@@ -692,8 +692,8 @@ namespace StageUp.BLL
             return null;
         }
 
-        // A12: dentro de pagos, facturas u operaciones no puede haber dos
-        // estados que se muestren igual.
+
+
         private static IEnumerable<string> ValidarEstadosDuplicados(Func<string, string> valor)
         {
             foreach (IGrouping<string, KeyValuePair<string, DefinicionParametro>> subgrupo in

@@ -11,10 +11,10 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // CU-002-004 Configurar parámetros administrativos de la plataforma
-    // (permiso CONFIGURAR_PARAMETROS). Primero se consultan (A2); "Editar
-    // parámetros" habilita la edición, "Guardar cambios" valida y guarda con
-    // la vigencia elegida y "Cancelar" descarta lo no guardado (A8).
+
+
+
+
     public partial class ParametrosPlataforma : Page
     {
         private const string PermisoRequerido = "CONFIGURAR_PARAMETROS";
@@ -62,7 +62,7 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-            // A8: se descarta lo no guardado y sigue la configuración vigente.
+
             Editando = false;
             CargarParametros();
             MostrarMensaje("Se descartaron los cambios sin guardar. Sigue vigente la configuración anterior.", false);
@@ -105,12 +105,12 @@ namespace StageUp.UI.Interno
             ResultadoOperacion resultado = _bllParametros.GuardarCambios(valores, vigencia, idResponsable);
             if (!resultado.Exitoso)
             {
-                // A9 a A15: se queda en edición con lo que escribió el usuario.
+
                 MostrarMensaje(resultado.Mensaje, true);
                 return;
             }
 
-            // Pasos 15 y 16.
+
             Editando = false;
             rblVigencia.SelectedValue = "Ahora";
             txtVigencia.Text = string.Empty;
@@ -249,7 +249,7 @@ namespace StageUp.UI.Interno
             pnlMensaje.Visible = !string.IsNullOrEmpty(mensaje);
         }
 
-        // Paso 2 y A1.
+
         private bool TieneAcceso()
         {
             if (!GestorDeSesion.EstaAutenticadoComoInterno())

@@ -20,7 +20,7 @@
                 <div><span>Básicas publicadas</span><strong><asp:Literal ID="litCantidadBasicas" runat="server" /></strong></div>
             </div>
 
-            <%-- Alta y edición (pasos 8 a 15, A5, A15). --%>
+
             <asp:Panel ID="pnlFormulario" runat="server" Visible="false" CssClass="auth-card" DefaultButton="btnGuardar">
                 <span class="admin-card-eyebrow">Contenido</span>
                 <h2><asp:Literal ID="litTituloFormulario" runat="server" Mode="Encode" /></h2>
@@ -59,7 +59,7 @@
                     <asp:CheckBox ID="chkBasica" runat="server" />
                     <label for="<%= chkBasica.ClientID %>">Mostrarla entre las preguntas básicas del centro de ayuda (conviene que sea una lista breve; lo específico lo resuelve el asistente)</label>
                 </div>
-                <%-- A6: guardar como publicado también pide confirmación. --%>
+
                 <asp:Panel ID="pnlConfirmarGuardar" runat="server" Visible="false" CssClass="ayuda-confirmar">
                     <p><strong>¿Guardar y publicar este contenido?</strong> Va a quedar visible en el centro de ayuda para todos los usuarios.</p>
                     <asp:Button ID="btnConfirmarGuardar" runat="server" CssClass="button button-primary button-small" Text="Sí, guardar y publicar" CausesValidation="false" OnClick="btnConfirmarGuardar_Click" />
@@ -71,7 +71,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- A4, A6, A7, A9: detalle. --%>
+
             <asp:Panel ID="pnlDetalle" runat="server" Visible="false" CssClass="auth-card">
                 <div class="ayuda-detalle-cabecera">
                     <div>
@@ -92,7 +92,7 @@
                     <div><dt>Alta</dt><dd><asp:Literal ID="litDetalleAlta" runat="server" Mode="Encode" /></dd></div>
                     <div><dt>Última actualización</dt><dd><asp:Literal ID="litDetalleActualizacion" runat="server" Mode="Encode" /></dd></div>
                 </dl>
-                <%-- A6: confirmación antes de publicar. --%>
+
                 <asp:Panel ID="pnlConfirmarPublicar" runat="server" Visible="false" CssClass="ayuda-confirmar">
                     <p><strong>¿Publicar este contenido?</strong> Va a quedar visible en el centro de ayuda para todos los usuarios.</p>
                     <asp:Button ID="btnConfirmarPublicar" runat="server" CssClass="button button-primary button-small" Text="Sí, publicar" CausesValidation="false" OnClick="btnConfirmarPublicar_Click" />
@@ -138,7 +138,7 @@
                     </div>
                 </asp:Panel>
 
-                <%-- A2. --%>
+
                 <asp:Panel ID="pnlSinContenido" runat="server" Visible="false" CssClass="empty-state compact-empty-state">
                     <h3><asp:Literal ID="litSinContenido" runat="server" Mode="Encode" /></h3>
                     <p>Usá "Agregar contenido" para cargar una pregunta frecuente.</p>
@@ -166,7 +166,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- A15: consultas recurrentes del asistente que no tuvieron respuesta. --%>
+
             <asp:Panel ID="pnlConsultas" runat="server" CssClass="auth-card">
                 <span class="admin-card-eyebrow">Consultas recurrentes</span>
                 <h2>Consultas del asistente sin respuesta</h2>

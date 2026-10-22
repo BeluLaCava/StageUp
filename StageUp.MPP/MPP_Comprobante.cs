@@ -6,7 +6,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Notas de crédito y débito (ítem 5C, script 49).
+
     public class MPP_Comprobante
     {
         public ResultadoMovimientoDinero EmitirManual(Comprobante oComprobante)

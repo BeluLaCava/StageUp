@@ -9,24 +9,24 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-    // CU-003-001 A4 a A7: asistente guiado del centro de ayuda (sin IA).
-    //
-    // Corrección de María: el asistente es el segundo nivel de ayuda y no
-    // repite las preguntas frecuentes. Funciona como un árbol de decisión con
-    // contenido propio (tablas NodoAsistente y AccionNodoAsistente, script
-    // 70): el usuario elige un tema, después un subtema, responde preguntas
-    // simples y llega a una respuesta con acciones (ir a la pantalla que
-    // corresponde, ver otra respuesta o registrar una solicitud de soporte).
-    //
-    // También se puede escribir la consulta (A4 paso 4): se compara solo con
-    // las opciones y palabras clave del árbol; el asistente no busca en las
-    // preguntas frecuentes (son contenido aparte, del centro de ayuda). Si
-    // no hay coincidencia y está configurado el asistente automático por API
-    // (ServicioAsistenteExterno), se le consulta con las respuestas del árbol
-    // como referencia y sin datos personales; si responde, se muestra como
-    // respuesta automática. Si no hay respuesta, o la API falla o tarda, se
-    // ofrece registrar una solicitud de soporte (A5). La consulta queda
-    // guardada para que el equipo cree contenido.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public class BLL_AsistenteAyuda
     {
         public const string MensajeNoDisponible = "El asistente no está disponible en este momento. Podés consultar las preguntas básicas del centro de ayuda o registrar una solicitud de soporte.";
@@ -36,7 +36,7 @@ namespace StageUp.BLL
         private const double PuntajeMinimo = 3;
         private const double PuntajeSugerencia = 2;
 
-        // Palabras que no aportan para reconocer la consulta.
+
         private static readonly HashSet<string> PalabrasVacias = new HashSet<string>
         {
             "a", "al", "algo", "como", "con", "cual", "cuales", "cuando", "de", "del", "donde", "el", "en", "es", "esta", "este",
@@ -50,7 +50,7 @@ namespace StageUp.BLL
         private readonly ServicioAsistenteExterno _asistenteExterno = new ServicioAsistenteExterno();
         private const int LongitudMaximaContexto = 6000;
 
-        // Paso del asistente con sus opciones y acciones. Sin código, el inicio.
+
         public ResultadoOperacion<NodoAsistente> ObtenerNodo(string codigo)
         {
             Dictionary<string, NodoAsistente> arbol;
@@ -80,7 +80,7 @@ namespace StageUp.BLL
                 : ResultadoOperacion<NodoAsistente>.Error("Esa opción ya no está disponible. Volvé al inicio para elegir otra.");
         }
 
-        // A4 pasos 4 a 8 y A5: consulta escrita.
+
         public ResultadoOperacion<RespuestaAsistente> Consultar(string texto, int? idUsuarioExterno)
         {
             string limpio = (texto ?? string.Empty).Trim();
@@ -134,9 +134,9 @@ namespace StageUp.BLL
                 respuesta.Sugerencias = puntajes.Take(3).Select(p => p.Key).ToList();
             }
 
-            // Sin coincidencia en el árbol: asistente automático por API, si está
-            // configurado. Su respuesta no cuenta como "reconocida" para
-            // la lista de consultas sin respuesta (CU-003-004 A15).
+
+
+
             string resultadoApi = null;
             if (!respuesta.Reconocida && !datosPrivados && _asistenteExterno.EstaHabilitado)
             {
@@ -152,9 +152,9 @@ namespace StageUp.BLL
                 }
             }
 
-            // Lo que se guarda para el equipo nunca lleva datos privados: con
-            // un secreto no se guarda el texto; si no, se ocultan correos,
-            // teléfonos, documentos y números.
+
+
+
             string textoGuardado = datosPrivados
                 ? "[Consulta con datos privados: el texto no se guardó]"
                 : ServicioAsistenteExterno.OcultarDatosSensibles(limpio);
@@ -174,14 +174,14 @@ namespace StageUp.BLL
             }
             catch (ErrorAccesoDatosException)
             {
-                // Registrar la consulta es secundario.
+
             }
 
             return ResultadoOperacion<RespuestaAsistente>.Ok(respuesta);
         }
 
-        // Contenido público de ayuda (respuestas del árbol) que se le pasa al
-        // asistente automático como referencia. No incluye datos de usuarios.
+
+
         private static string ArmarContexto(Dictionary<string, NodoAsistente> arbol)
         {
             StringBuilder texto = new StringBuilder();
@@ -199,8 +199,8 @@ namespace StageUp.BLL
             return texto.ToString();
         }
 
-        // Árbol activo indexado por código. Solo quedan los pasos alcanzables
-        // desde el inicio (un paso cuyo padre está inactivo no se muestra).
+
+
         private Dictionary<string, NodoAsistente> CargarArbol()
         {
             List<NodoAsistente> nodos = _mppNodos.ListarActivos();
@@ -225,7 +225,7 @@ namespace StageUp.BLL
                 }
             }
 
-            // Recorrido en anchura desde el inicio.
+
             inicio.Recorrido = string.Empty;
             Queue<NodoAsistente> pendientes = new Queue<NodoAsistente>();
             pendientes.Enqueue(inicio);
@@ -254,7 +254,7 @@ namespace StageUp.BLL
                     continue;
                 }
 
-                // Una acción que lleva a un paso inactivo no se ofrece.
+
                 if (accion.TipoAccion == AccionNodoAsistente.TipoNodo && (accion.Destino == null || !arbol.ContainsKey(accion.Destino)))
                 {
                     continue;
@@ -266,7 +266,7 @@ namespace StageUp.BLL
             return arbol;
         }
 
-        // Datos que dependen de parámetros vigentes (CU-002-004).
+
         private static Dictionary<string, string> ValoresVariables()
         {
             Dictionary<string, string> valores = new Dictionary<string, string>();
@@ -314,17 +314,17 @@ namespace StageUp.BLL
                 .ToList();
         }
 
-        // Una respuesta pesa un poco más que una pregunta intermedia, para
-        // llevar al usuario lo más cerca posible de la solución.
+
+
         private static double PuntuarNodo(NodoAsistente nodo, List<string> palabras)
         {
             double puntaje = Puntuar(palabras, nodo.PalabrasClave, nodo.TextoOpcion, nodo.Mensaje);
             return puntaje > 0 && nodo.EsRespuesta ? puntaje + 0.25 : puntaje;
         }
 
-        // Palabras clave pesan 3, el título (opción o pregunta) 2 y el texto
-        // 0,5. Las palabras largas se comparan por la raíz (las primeras 5
-        // letras), así "cancelo", "cancelar" y "cancelacion" coinciden.
+
+
+
         private static double Puntuar(List<string> palabras, string clave, string titulo, string cuerpo)
         {
             if (palabras.Count == 0)

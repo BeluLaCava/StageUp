@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-    // CU-004-001 Campaña comercial.
+
     public class CampaniaComercial
     {
         public const string EstadoPlanificada = "Planificada";
@@ -31,7 +31,7 @@ namespace StageUp.BE.Entidades
         public int CantidadContenidos { get; set; }
         public int CantidadOrigenes { get; set; }
 
-        // Vínculos elegidos en el formulario (para guardar).
+
         public List<int> IdsContactos { get; set; } = new List<int>();
         public List<int> IdsAlianzas { get; set; } = new List<int>();
         public List<int> IdsContenidos { get; set; } = new List<int>();

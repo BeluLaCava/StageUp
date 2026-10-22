@@ -10,14 +10,14 @@ using StageUp.Seguridad;
 
 namespace StageUp.BLL
 {
-    // Ítems 9 y 10: pares de claves RSA de StageUp (script 66).
-    //
-    // La versión Activa cifra lo nuevo (tarjetas de la billetera y
-    // exportaciones de la bitácora); las Retiradas se conservan para leer lo
-    // viejo. La clave privada vive en la base cifrada con la clave simétrica
-    // de la configuración privada y nunca se muestra. La rotación genera una
-    // versión nueva, vuelve a proteger las tarjetas con ella y queda en la
-    // bitácora con el responsable y el motivo.
+
+
+
+
+
+
+
+
     public class BLL_ClaveCifrado
     {
         public const int LongitudMinimaMotivo = 10;
@@ -27,8 +27,8 @@ namespace StageUp.BLL
         private readonly MPP_TarjetaGuardada _mppTarjeta = new MPP_TarjetaGuardada();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
-        // La clave simétrica (AES-256) de la configuración privada es la que
-        // protege las claves privadas: sin ella no se puede cifrar nada.
+
+
         public static bool HayClaveMaestra()
         {
             try
@@ -54,9 +54,9 @@ namespace StageUp.BLL
             }
         }
 
-        // Versión activa. Si todavía no hay ninguna, crea la primera (queda en
-        // la bitácora). Tira InvalidOperationException si falta la clave
-        // maestra en la configuración privada.
+
+
+
         public ClaveCifrado ObtenerActiva(string motivoSiSeCrea)
         {
             ClaveCifrado activa = _mpp.ObtenerActiva();
@@ -92,7 +92,7 @@ namespace StageUp.BLL
             return _mpp.ObtenerPorId(new ClaveCifrado { Version = version });
         }
 
-        // Clave privada en claro, solo en memoria, para descifrar.
+
         public string ObtenerClavePrivada(int idClaveCifrado)
         {
             ClaveCifrado clave = _mpp.ObtenerPorId(new ClaveCifrado { IdClaveCifrado = idClaveCifrado });
@@ -117,8 +117,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Ítem 10: rotación auditada. Genera la versión nueva (la anterior
-        // queda Retirada) y vuelve a proteger las tarjetas guardadas.
+
+
         public ResultadoOperacion<string> Rotar(int idUsuarioInterno, string motivo, bool confirmado)
         {
             string motivoLimpio = (motivo ?? string.Empty).Trim();
@@ -181,7 +181,7 @@ namespace StageUp.BLL
                 : ResultadoOperacion<string>.Ok(mensaje, mensaje);
         }
 
-        // Reintenta las tarjetas que quedaron con una versión anterior.
+
         public ResultadoOperacion<string> ReintentarPendientes(int idUsuarioInterno)
         {
             int reenvueltas;

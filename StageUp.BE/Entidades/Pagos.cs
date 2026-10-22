@@ -3,14 +3,14 @@ using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-    // Entidades del módulo de pagos, notas de crédito/débito y cuenta
-    // corriente (ítems 5B, 5C, 5D y 6B de la segunda entrega, script 49).
 
-    // Datos de la tarjeta tal como los carga el usuario. Solo viven en memoria
-    // durante el pago (validación y autorización): nunca se guardan ni se
-    // registran en la bitácora. De la tarjeta se persisten solo la marca, los
-    // últimos 4 dígitos y el código de autorización (en Pago). El titular
-    // tampoco se guarda.
+
+
+
+
+
+
+
     public class DatosTarjeta
     {
         public string Numero { get; set; }
@@ -20,9 +20,9 @@ namespace StageUp.BE.Entidades
         public string CodigoSeguridad { get; set; }
     }
 
-    // Ítem 8: tarjeta guardada en la billetera del usuario. Para mostrar
-    // solo viajan alias, marca, últimos 4 y vencimiento; número y titular
-    // quedan cifrados (ítem 9) y el código de seguridad nunca se guarda.
+
+
+
     public class TarjetaGuardada
     {
         public int IdTarjetaGuardada { get; set; }
@@ -36,7 +36,7 @@ namespace StageUp.BE.Entidades
         public DateTime FechaAlta { get; set; }
         public DateTime? FechaUltimoUso { get; set; }
 
-        // Datos protegidos (solo para guardar, pagar o rotar claves).
+
         public string Huella { get; set; }
         public string Iv { get; set; }
         public string ClaveCifrada { get; set; }
@@ -49,9 +49,9 @@ namespace StageUp.BE.Entidades
         }
     }
 
-    // Ítem 8: con qué tarjeta se paga. O una nueva (Nueva, con la opción de
-    // guardarla) o una de la billetera (IdTarjetaGuardada + código de
-    // seguridad, que se pide en cada pago).
+
+
+
     public class TarjetaParaPagar
     {
         public DatosTarjeta Nueva { get; set; }
@@ -61,7 +61,7 @@ namespace StageUp.BE.Entidades
         public string CodigoSeguridad { get; set; }
     }
 
-    // Ítems 9 y 10: versión del par de claves RSA de StageUp.
+
     public class ClaveCifrado
     {
         public int IdClaveCifrado { get; set; }
@@ -69,7 +69,7 @@ namespace StageUp.BE.Entidades
         public string ClavePublica { get; set; }
         public string ClavePrivadaProtegida { get; set; }
         public string Huella { get; set; }
-        public string Estado { get; set; }                // Activa | Retirada
+        public string Estado { get; set; }
         public string Motivo { get; set; }
         public int? IdUsuarioInternoAlta { get; set; }
         public string NombreUsuarioAlta { get; set; }
@@ -85,12 +85,12 @@ namespace StageUp.BE.Entidades
         public int IdPago { get; set; }
         public int IdUsuarioExterno { get; set; }
         public int? IdReserva { get; set; }
-        public string Concepto { get; set; }          // Reserva | Deuda
+        public string Concepto { get; set; }
         public string Moneda { get; set; }
         public decimal ImporteTotal { get; set; }
         public decimal ImporteTarjeta { get; set; }
         public decimal ImporteSaldo { get; set; }
-        public string Estado { get; set; }            // Aprobado | Rechazado
+        public string Estado { get; set; }
         public string MarcaTarjeta { get; set; }
         public string UltimosDigitos { get; set; }
         public string CodigoAutorizacion { get; set; }
@@ -103,8 +103,8 @@ namespace StageUp.BE.Entidades
         public string CorreoUsuario { get; set; }
         public string NombreEspacio { get; set; }
 
-        // CU-002-001: lo que informa el medio de pago.
-        public string Origen { get; set; }                // StageUp | MedioExterno
+
+        public string Origen { get; set; }
         public string IdentificadorExterno { get; set; }
         public string MedioInformado { get; set; }
         public string EstadoInformado { get; set; }
@@ -113,8 +113,8 @@ namespace StageUp.BE.Entidades
         public int? IdUsuarioInternoRegistro { get; set; }
     }
 
-    // CU-002-001 A6 paso 10: detalle completo de un pago (o de la reserva que
-    // espera el pago, si todavía no hay un pago registrado).
+
+
     public class DetallePagoReserva : Pago
     {
         public int? IdUsuarioGestor { get; set; }
@@ -133,7 +133,7 @@ namespace StageUp.BE.Entidades
         public string NombreInternoRegistro { get; set; }
     }
 
-    // CU-002-001 A6: fila del listado "Pagos de reservas".
+
     public class ItemPagoReserva
     {
         public int? IdPago { get; set; }
@@ -141,7 +141,7 @@ namespace StageUp.BE.Entidades
         public string Concepto { get; set; }
         public string Origen { get; set; }
         public string Estado { get; set; }
-        public string Grupo { get; set; }                 // Pendiente | Confirmado | Fallido | Cancelado | EnRevision
+        public string Grupo { get; set; }
         public string Moneda { get; set; }
         public decimal ImporteTotal { get; set; }
         public string Medio { get; set; }
@@ -161,8 +161,8 @@ namespace StageUp.BE.Entidades
         public string Texto { get; set; }
     }
 
-    // CU-002-001 pasos 1 y 2: resultado de una operación que informa el medio
-    // de pago externo (en StageUp se carga desde la simulación del panel).
+
+
     public class AvisoMedioPago
     {
         public int? IdReserva { get; set; }
@@ -171,11 +171,11 @@ namespace StageUp.BE.Entidades
         public string Moneda { get; set; }
         public DateTime? FechaOperacion { get; set; }
         public string Medio { get; set; }
-        public string EstadoInformado { get; set; }       // Aprobado | Pendiente | Rechazado | Cancelado
+        public string EstadoInformado { get; set; }
         public string Motivo { get; set; }
     }
 
-    // Ítem 7 (lista del profesor): cómo quiere pagar el cliente.
+
     public enum ModoPago
     {
         Tarjeta,
@@ -186,10 +186,10 @@ namespace StageUp.BE.Entidades
     public class EleccionPago
     {
         public ModoPago Modo { get; set; }
-        public decimal ImporteSaldo { get; set; }         // solo para Combinado
+        public decimal ImporteSaldo { get; set; }
     }
 
-    // Lo que se muestra antes de confirmar el pago.
+
     public class ResumenPago
     {
         public string Moneda { get; set; }
@@ -201,27 +201,27 @@ namespace StageUp.BE.Entidades
         public string MedioDescripcion { get; set; }
     }
 
-    // Datos del emisor que se muestran en la factura simulada.
+
     public class DatosFacturacion
     {
         public string RazonSocial { get; set; }
         public string DatosFiscales { get; set; }
         public string Leyenda { get; set; }
 
-        // CU-002-004 A6: datos generales de facturación de Artera.
+
         public string Cuit { get; set; }
         public string CondicionIva { get; set; }
         public string Domicilio { get; set; }
         public int PuntoVenta { get; set; }
     }
 
-    // CU-002-002: transacción económica generada por una reserva abonada o
-    // por el cargo de cancelación de una reserva aceptada.
+
+
     public class TransaccionEconomica
     {
         public int IdTransaccion { get; set; }
         public string Codigo { get; set; }
-        public string TipoOperacion { get; set; }         // ReservaAbonada | CargoCancelacion
+        public string TipoOperacion { get; set; }
         public int? IdReserva { get; set; }
         public int? IdPago { get; set; }
         public int? IdComprobante { get; set; }
@@ -231,9 +231,9 @@ namespace StageUp.BE.Entidades
         public decimal? ImporteComision { get; set; }
         public decimal? ImporteGestor { get; set; }
         public decimal? PorcentajeCargo { get; set; }
-        public string EstadoPago { get; set; }            // Pagado | Cobrado | Devuelto | Pendiente
+        public string EstadoPago { get; set; }
         public string ReferenciaPago { get; set; }
-        public string EstadoRegistro { get; set; }        // Registrada | PendienteControl
+        public string EstadoRegistro { get; set; }
         public string Observacion { get; set; }
         public DateTime FechaGeneracion { get; set; }
 
@@ -245,7 +245,7 @@ namespace StageUp.BE.Entidades
         public string NumeroFactura { get; set; }
         public string NumeroComprobante { get; set; }
 
-        // Solo en el detalle.
+
         public DateTime? FechaSolicitada { get; set; }
         public int? MinutoDesde { get; set; }
         public int? MinutoHasta { get; set; }
@@ -264,9 +264,9 @@ namespace StageUp.BE.Entidades
         public string Texto { get; set; }
     }
 
-    // CU-002-003: una operación del historial financiero. Origen indica de
-    // dónde sale: TX transacción económica, PG pago, RS reserva aceptada sin
-    // pagar, LQ liquidación a un gestor, CP nota manual.
+
+
+
     public class OperacionFinanciera
     {
         public string Origen { get; set; }
@@ -298,7 +298,7 @@ namespace StageUp.BE.Entidades
         public string NumeroComprobante { get; set; }
         public string TipoComprobante { get; set; }
 
-        // Solo en el detalle.
+
         public string CorreoSolicitante { get; set; }
         public string CorreoGestor { get; set; }
         public DateTime? FechaSolicitada { get; set; }
@@ -329,7 +329,7 @@ namespace StageUp.BE.Entidades
         public string Texto { get; set; }
     }
 
-    // Totales del listado del historial en una moneda.
+
     public class ResumenHistorialFinanciero
     {
         public string Moneda { get; set; }
@@ -341,26 +341,26 @@ namespace StageUp.BE.Entidades
         public decimal TotalLiquidado { get; set; }
     }
 
-    // Nota de crédito (NC) o de débito (ND).
+
     public class Comprobante
     {
         public int IdComprobante { get; set; }
-        public string Tipo { get; set; }              // NC | ND | FC (factura simulada del pago)
+        public string Tipo { get; set; }
         public string Numero { get; set; }
         public int IdUsuarioExterno { get; set; }
-        public string RolCuenta { get; set; }         // Cliente | Gestor
+        public string RolCuenta { get; set; }
         public int? IdReserva { get; set; }
         public decimal Importe { get; set; }
         public string Moneda { get; set; }
-        public string Origen { get; set; }            // Cancelacion | PenalidadCancelacion | AjusteManual
+        public string Origen { get; set; }
         public string Motivo { get; set; }
-        public string Estado { get; set; }            // Emitido | Anulado
+        public string Estado { get; set; }
         public int? IdUsuarioInternoEmisor { get; set; }
         public DateTime FechaEmision { get; set; }
         public DateTime? FechaAnulacion { get; set; }
         public string MotivoAnulacion { get; set; }
 
-        // Solo para anular: quién lo anula (queda en el movimiento inverso).
+
         public int? IdUsuarioInternoAnulacion { get; set; }
 
         public string NombreUsuario { get; set; }
@@ -373,7 +373,7 @@ namespace StageUp.BE.Entidades
         public int IdUsuarioExterno { get; set; }
         public string RolCuenta { get; set; }
         public string TipoMovimiento { get; set; }
-        public decimal Importe { get; set; }          // + a favor del usuario, - en contra
+        public decimal Importe { get; set; }
         public string Moneda { get; set; }
         public string Descripcion { get; set; }
         public int? IdReserva { get; set; }
@@ -386,11 +386,11 @@ namespace StageUp.BE.Entidades
         public string NumeroComprobante { get; set; }
         public string EstadoComprobante { get; set; }
         public string OrigenComprobante { get; set; }
-        // Historial financiero: dueño de la cuenta.
+
         public string NombreUsuario { get; set; }
     }
 
-    // Saldo de una cuenta en una moneda.
+
     public class SaldoCuentaCorriente
     {
         public int IdUsuarioExterno { get; set; }
@@ -427,8 +427,8 @@ namespace StageUp.BE.Entidades
         public string Texto { get; set; }
     }
 
-    // Lo que devuelven los SP de pago/liquidación/comprobantes: un código de
-    // resultado (OK, SALDO_INSUFICIENTE, ...) y el id generado.
+
+
     public class ResultadoMovimientoDinero
     {
         public string Resultado { get; set; }
@@ -440,7 +440,7 @@ namespace StageUp.BE.Entidades
         }
     }
 
-    // Resultado de cancelar una reserva (con los comprobantes que se emitieron).
+
     public class ResultadoCancelacionReserva
     {
         public bool SeCancelo { get; set; }
@@ -448,14 +448,14 @@ namespace StageUp.BE.Entidades
         public int? IdNotaDebito { get; set; }
     }
 
-    // Lo que necesita la pantalla de pago de una reserva.
+
     public class ContextoPagoReserva
     {
         public Reserva Reserva { get; set; }
         public decimal Total { get; set; }
-        public decimal SaldoDisponible { get; set; }   // saldo a favor en la moneda de la reserva
+        public decimal SaldoDisponible { get; set; }
 
-        // Cuánto se cubre con saldo si el cliente elige usarlo.
+
         public decimal ImporteConSaldo
         {
             get { return Math.Min(Math.Max(SaldoDisponible, 0m), Total); }
@@ -469,12 +469,12 @@ namespace StageUp.BE.Entidades
         public string Descripcion { get; set; }
         public DateTime FechaUltimaModificacion { get; set; }
 
-        // CU-002-004: cambio programado que todavía no rige (si lo hay).
+
         public string ValorProgramado { get; set; }
         public DateTime? FechaVigenciaProgramada { get; set; }
     }
 
-    // CU-002-004 paso 13: cambio registrado de un parámetro administrativo.
+
     public class CambioParametroPlataforma
     {
         public int IdCambio { get; set; }
@@ -482,7 +482,7 @@ namespace StageUp.BE.Entidades
         public string ValorAnterior { get; set; }
         public string ValorNuevo { get; set; }
         public DateTime FechaVigencia { get; set; }
-        public string Estado { get; set; }                // Aplicado | Programado | Reemplazado
+        public string Estado { get; set; }
         public int? IdUsuarioInterno { get; set; }
         public string NombreResponsable { get; set; }
         public DateTime FechaRegistro { get; set; }

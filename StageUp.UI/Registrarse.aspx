@@ -53,7 +53,7 @@
                         ValidationExpression="^[0-9+()\-\s]{6,30}$" ValidationGroup="Registro" />
                 </div>
 
-                <%-- CU-004-004: origen de incorporación. No se muestra si la persona llegó por un enlace de difusión. --%>
+
                 <asp:Panel ID="pnlOrigen" runat="server" CssClass="form-field">
                     <label for="<%= ddlOrigen.ClientID %>">¿Cómo conociste StageUp? <span class="field-help">(opcional)</span></label>
                     <asp:DropDownList ID="ddlOrigen" runat="server" />

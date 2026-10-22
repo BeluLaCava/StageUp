@@ -58,7 +58,7 @@
                         CausesValidation="false" OnClick="btnReintentar_Click" />
                 </asp:Panel>
 
-                <%-- Ítem 10: rotación auditada (responsable, motivo y fecha en la bitácora y en el historial). --%>
+
                 <asp:Panel ID="pnlRotar" runat="server" CssClass="seg-rotar" DefaultButton="btnRotar">
                     <h3>Rotar el par de claves</h3>
                     <p class="seg-nota">Genera una versión nueva, que pasa a cifrar todo lo nuevo, y retira la actual. Las tarjetas guardadas se vuelven a proteger con la clave nueva sin descifrar sus datos; las exportaciones viejas se siguen pudiendo descifrar con su versión.</p>

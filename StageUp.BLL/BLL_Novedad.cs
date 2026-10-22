@@ -11,17 +11,17 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-    // ABM real de las novedades públicas y su envío por newsletter (ítem 38
-    // del checklist de correcciones). Antes de esta clase, GestionNovedades
-    // solo mostraba un formulario con datos de ejemplo fijos, sin persistir
-    // nada, y StageUp.Servicios.ServicioCorreo.EnviarNewsletter no tenía
-    // ningún llamador en todo el proyecto.
-    // Vigencia (script 75): cada novedad tiene fecha de publicación y,
-    // opcionalmente, de vencimiento. Se muestra en la página pública solo
-    // mientras está Vigente; antes de su fecha queda Programada y después,
-    // Vencida. La baja es lógica (DadaDeBaja) y se puede restaurar como
-    // borrador. La imagen se sube como archivo: solo se aceptan rutas de
-    // Content/Uploads/Novedades generadas por el sistema.
+
+
+
+
+
+
+
+
+
+
+
     public class BLL_Novedad
     {
         private const int LongitudMaximaTitulo = 180;
@@ -48,13 +48,13 @@ namespace StageUp.BLL
             return !string.IsNullOrEmpty(urlImagen) && FormatoImagenSubida.IsMatch(urlImagen);
         }
 
-        // Las categorías están en la tabla CategoriaNovedad (script 85, ver
-        // BLL_CategoriaNovedad).
 
-        // Mismos valores que ofrece el desplegable "Destinatarios" en
-        // Interno/GestionNovedades.aspx. Siempre son suscriptores confirmados
-        // (script 85): Activos (todos; "Todos" es sinónimo), Gestores y
-        // Solicitantes (con cuenta de ese perfil) o Suscriptores (sin cuenta).
+
+
+
+
+
+
         public static readonly string[] DestinatariosNewsletter =
         {
             "Activos", "Gestores", "Solicitantes", "Suscriptores", "Todos"
@@ -182,8 +182,8 @@ namespace StageUp.BLL
                     return validacion;
                 }
 
-                // Se acepta la imagen que ya tenía (aunque sea de antes de la
-                // carga por archivo) o una nueva subida desde el formulario.
+
+
                 if (urlImagenNormalizada != null && urlImagenNormalizada != actual.UrlImagen && !EsImagenSubida(urlImagenNormalizada))
                 {
                     return ResultadoOperacion.Error("La imagen no es válida. Subila de nuevo desde el formulario.");
@@ -192,8 +192,8 @@ namespace StageUp.BLL
                 DateTime? fechaPublicacionFinal = publicado
                     ? (fechaPublicacion ?? actual.FechaPublicacion ?? DateTime.Now)
                     : fechaPublicacion;
-                // Una novedad vencida se puede corregir sin cambiarle la fecha
-                // de vencimiento (sigue vencida).
+
+
                 ResultadoOperacion vigencia = ValidarVigencia(fechaPublicacionFinal, fechaVencimiento,
                     publicado && fechaVencimiento != actual.FechaVencimiento);
                 if (!vigencia.Exitoso)
@@ -294,7 +294,7 @@ namespace StageUp.BLL
             });
         }
 
-        // Baja lógica: deja de mostrarse y queda en el historial.
+
         public ResultadoOperacion DarDeBaja(int idNovedad, int idUsuarioInternoResponsable)
         {
             return EjecutarProtegido(() =>
@@ -341,12 +341,12 @@ namespace StageUp.BLL
             });
         }
 
-        // Envía el newsletter de una novedad vigente a los suscriptores
-        // confirmados del criterio elegido (script 85). Cada envío guarda el
-        // estado de cada destinatario: Completo, Parcial (algunos fallaron),
-        // Fallido (no llegó a nadie) o SinDestinatarios. Una novedad tiene un
-        // único envío; si quedaron fallidos se reintentan solo esos con
-        // ReintentarNewsletter.
+
+
+
+
+
+
         public ResultadoOperacion<int> EnviarNewsletter(
             int idNovedad, string destinatarioCodigo, string urlNovedades, int idUsuarioInternoResponsable,
             string urlBaseAplicacion = null, string rutaBaseAplicacion = null)
@@ -389,9 +389,9 @@ namespace StageUp.BLL
             return Enviar(idEnvio, novedad, criterio, urlNovedades, idUsuarioInternoResponsable, urlBaseAplicacion, rutaBaseAplicacion, false);
         }
 
-        // Vuelve a enviar solo a los destinatarios que fallaron (o que
-        // quedaron pendientes si el envío se cortó). Los que se dieron de
-        // baja mientras tanto se omiten.
+
+
+
         public ResultadoOperacion<int> ReintentarNewsletter(
             int idNovedad, string urlNovedades, int idUsuarioInternoResponsable,
             string urlBaseAplicacion = null, string rutaBaseAplicacion = null)
@@ -432,9 +432,9 @@ namespace StageUp.BLL
             return Enviar(idEnvio.Value, novedad, envio.Criterio, urlNovedades, idUsuarioInternoResponsable, urlBaseAplicacion, rutaBaseAplicacion, true);
         }
 
-        // La administración decide reenviar a los destinatarios con resultado
-        // incierto (puede que alguno ya lo haya recibido): vuelven a quedar
-        // como fallidos y se reintenta solo a los que no lo recibieron.
+
+
+
         public ResultadoOperacion<int> ReenviarInciertos(
             int idEnvioNewsletter, string urlNovedades, int idUsuarioInternoResponsable,
             string urlBaseAplicacion = null, string rutaBaseAplicacion = null)
@@ -536,9 +536,9 @@ namespace StageUp.BLL
             {
                 foreach (DestinatarioNewsletter destinatario in _mppEnvio.ListarPorEnviar(idEnvio))
                 {
-                    // Primero se marca "Enviando": si después de mandar el
-                    // correo no se puede registrar el resultado, queda como
-                    // incierto en lugar de volver a mandarse solo.
+
+
+
                     if (!_mppEnvio.MarcarEnviando(idEnvio, destinatario))
                     {
                         continue;
@@ -569,10 +569,10 @@ namespace StageUp.BLL
             }
             catch (ErrorAccesoDatosException)
             {
-                // El envío queda EnCurso: a los 15 minutos se puede retomar con
-                // "Reintentar fallidos". No se repite a quien ya lo recibió, y
-                // el destinatario cuyo resultado no se pudo registrar queda como
-                // incierto (no se reenvía solo).
+
+
+
+
                 return ResultadoOperacion<int>.Error(
                     "El envío se interrumpió por un error de la base de datos después de " + enviadosAhora + " correo(s)." +
                     (quedoIncierto ? " El último correo quedó con resultado incierto: no se va a reenviar solo." : string.Empty) +
@@ -656,9 +656,9 @@ namespace StageUp.BLL
             return "Activos";
         }
 
-        // Envío de prueba: manda el contenido tal como está cargado en el
-        // formulario (sin necesidad de haberlo guardado antes) únicamente al
-        // correo del usuario interno que está probando la pantalla.
+
+
+
         public ResultadoOperacion EnviarPrueba(
             string correoDestino, string nombreDestino, string titulo, string resumen, string urlNovedades,
             string urlImagen = null, string urlBaseAplicacion = null, string rutaBaseAplicacion = null)
@@ -685,7 +685,7 @@ namespace StageUp.BLL
                 : ResultadoOperacion.Error("No se pudo enviar el correo de prueba. Revisá la configuración de correo saliente.");
         }
 
-        // exigirFuturo: al publicar, la fecha de vencimiento no puede haber pasado.
+
         private static ResultadoOperacion ValidarVigencia(DateTime? fechaPublicacion, DateTime? fechaVencimiento, bool exigirFuturo)
         {
             if (!fechaVencimiento.HasValue)
@@ -841,8 +841,8 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("Ingresá el contenido de la novedad.");
             }
 
-            // Nuevas novedades: solo categorías activas. Al editar se acepta
-            // además la que ya tenía (aunque se haya desactivado).
+
+
             string codigo = BLL_CategoriaNovedad.NormalizarCodigo(categoriaNormalizada);
             bool esLaActual = codigo != null && string.Equals(codigo, categoriaActual, StringComparison.OrdinalIgnoreCase);
             if (codigo == null || (!BLL_CategoriaNovedad.EsActiva(codigo) && !esLaActual))

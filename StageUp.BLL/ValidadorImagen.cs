@@ -6,18 +6,18 @@ using StageUp.BE.Entidades;
 
 namespace StageUp.BLL
 {
-    // Reglas para las imágenes que se suben desde los formularios (novedades).
-    //   * JPG, PNG o WebP de hasta 3 MB y hasta 20 megapíxeles.
-    //   * El formato se detecta por el contenido real del archivo, y tienen
-    //     que coincidir con él tanto la extensión como el tipo (MIME) que
-    //     informa el navegador: un PNG renombrado a .jpg, o un archivo que se
-    //     declara image/png pero es otra cosa, se rechaza.
-    //   * WebP: .NET Framework no puede decodificarlo ni volver a generarlo,
-    //     así que se recorre su estructura (RIFF, bloques completos, flujo
-    //     VP8 o VP8L con dimensiones coherentes) y se guarda rearmado solo con
-    //     los bloques de imagen, sin metadatos. Las WebP animadas no se
-    //     admiten.
-    //   * JPG y PNG los vuelve a dibujar la UI (Infraestructura/ImagenSubida).
+
+
+
+
+
+
+
+
+
+
+
+
     public static class ValidadorImagen
     {
         public const int MaximoBytes = 3 * 1024 * 1024;
@@ -104,7 +104,7 @@ namespace StageUp.BLL
             return ResultadoOperacion<ImagenValidada>.Ok(imagen);
         }
 
-        // Formato por la firma del contenido; null si no es ninguno de los admitidos.
+
         public static string DetectarFormato(byte[] b)
         {
             if (b == null)
@@ -143,10 +143,10 @@ namespace StageUp.BLL
             return formato == ImagenValidada.FormatoJpeg ? "JPG" : formato == ImagenValidada.FormatoPng ? "PNG" : "WebP";
         }
 
-        // ------------------------------------------------------------------
-        // WebP (contenedor RIFF). Devuelve null si es válida y completa en
-        // imagen.Ancho/Alto/ContenidoLimpio; si no, el motivo.
-        // ------------------------------------------------------------------
+
+
+
+
         private static string AnalizarWebP(byte[] b, ImagenValidada imagen)
         {
             const string invalida = "El archivo no es una imagen WebP válida (está incompleto o dañado).";
@@ -273,8 +273,8 @@ namespace StageUp.BLL
 
             if (flujo.Tipo == "VP8 ")
             {
-                // Cabecera de cuadro clave: 3 bytes de etiqueta (bit 0 = 0),
-                // código de inicio 9D 01 2A y dimensiones de 14 bits.
+
+
                 if (flujo.Tamanio < 10 || (b[i] & 0x01) != 0 || b[i + 3] != 0x9D || b[i + 4] != 0x01 || b[i + 5] != 0x2A)
                 {
                     return false;
@@ -285,7 +285,7 @@ namespace StageUp.BLL
                 return true;
             }
 
-            // VP8L: firma 0x2F, ancho-1 y alto-1 en 14 bits, versión 0.
+
             if (flujo.Tamanio < 5 || b[i] != 0x2F)
             {
                 return false;
@@ -302,8 +302,8 @@ namespace StageUp.BLL
             return true;
         }
 
-        // Archivo nuevo con VP8X (solo la bandera de transparencia), ALPH y
-        // el flujo de imagen; se descartan EXIF, XMP, ICC y bloques extra.
+
+
         private static byte[] Rearmar(byte[] b, Bloque vp8x, Bloque alfa, Bloque flujo)
         {
             using (MemoryStream salida = new MemoryStream())

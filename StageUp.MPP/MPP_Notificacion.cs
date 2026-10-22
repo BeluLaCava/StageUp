@@ -28,7 +28,7 @@ namespace StageUp.MPP
             return ListarPorUsuario(usuarioExterno, cantidad, "Todas");
         }
 
-        // estado: "Todas", "NoLeidas" o "Leidas" (script 59).
+
         public List<Notificacion> ListarPorUsuario(UsuarioExterno usuarioExterno, int cantidad, string estado)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -77,13 +77,13 @@ namespace StageUp.MPP
             };
         }
 
-        // Ítem 36 del checklist de correcciones: antes, validar que la
-        // notificación fuera del usuario se hacía en la BLL trayendo TODAS
-        // sus notificaciones a memoria. Ahora la validación de pertenencia
-        // va en el propio WHERE del UPDATE (ver sp_Notificacion_MarcarLeida
-        // en Database/34_OptimizarReputacionYNotificaciones.sql): si la
-        // notificación no es del usuario, el UPDATE simplemente no afecta
-        // filas, igual que antes cuando la validación en memoria fallaba.
+
+
+
+
+
+
+
         public void MarcarLeida(Notificacion notificacion)
         {
             Conexion.Instance.Guardar(

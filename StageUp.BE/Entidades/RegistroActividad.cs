@@ -16,7 +16,7 @@ namespace StageUp.BE.Entidades
         public string NombreResponsable { get; set; }
         public string CorreoResponsable { get; set; }
 
-        // "Externo", "Interno" o "Sistema" (sin responsable).
+
         public string TipoResponsable
         {
             get

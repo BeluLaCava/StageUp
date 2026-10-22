@@ -7,15 +7,15 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-002-002 Gestionar transacciones económicas y comisiones.
-    //
-    // Cada hecho de negocio con dinero genera una transacción: el pago
-    // confirmado de una reserva aceptada (ReservaAbonada) y el cargo por
-    // cancelar una reserva aceptada y abonada (CargoCancelacion, 50 % o
-    // 100 % según la política). La comisión de StageUp sale del parámetro
-    // vigente y se aplica sobre el importe efectivamente cobrado; el resto es
-    // del gestor. Una cancelación sin cargo no genera transacción con importe:
-    // solo actualiza la de la reserva abonada (A2).
+
+
+
+
+
+
+
+
+
     public class BLL_TransaccionEconomica
     {
         public const string TipoReservaAbonada = "ReservaAbonada";
@@ -56,9 +56,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // Escenario principal (pasos 1 a 21): pago confirmado de una reserva.
-        // ------------------------------------------------------------------
+
+
+
         public ResultadoOperacion<int> RegistrarPorPagoAprobado(int idPago)
         {
             try
@@ -69,7 +69,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error("No hay un pago confirmado para registrar la transacción.");
                 }
 
-                // Paso 3 / A3: información de la operación.
+
                 List<string> faltantes = new List<string>();
                 if (!pago.IdReserva.HasValue) faltantes.Add("la reserva");
                 if (pago.IdUsuarioExterno <= 0) faltantes.Add("el usuario solicitante");
@@ -77,7 +77,7 @@ namespace StageUp.BLL
                 if (string.IsNullOrEmpty(pago.NombreEspacio)) faltantes.Add("el espacio reservado");
                 if (pago.ImporteTotal <= 0) faltantes.Add("el valor de la reserva");
 
-                // Pasos 15 a 18: comisión vigente sobre lo efectivamente cobrado.
+
                 decimal porcentaje = pago.PorcentajeComisionPlataforma ??
                     _bllParametros.ObtenerDecimal(BLL_ParametroPlataforma.ComisionPlataformaPorcentaje);
                 decimal comision = decimal.Round(pago.ImporteTotal * porcentaje / 100m, 2);
@@ -88,7 +88,7 @@ namespace StageUp.BLL
                     observaciones.Add("Información incompleta (falta " + UnirLista(faltantes) + "): pendiente de control administrativo.");
                 }
 
-                // A4: referencia al medio de pago.
+
                 if (string.IsNullOrWhiteSpace(pago.IdentificadorExterno))
                 {
                     observaciones.Add("Referencia al medio de pago no informada.");
@@ -132,9 +132,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // A1 (cancelación con cargo) y A2 (sin cargo).
-        // ------------------------------------------------------------------
+
+
+
         public ResultadoOperacion<int> RegistrarPorCancelacion(int idReserva, int? idNotaDebito)
         {
             try
@@ -145,8 +145,8 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error("No se encontró la reserva cancelada.");
                 }
 
-                // A2: solicitud pendiente o reserva aceptada sin pagar: no hubo
-                // importe cobrado, no se genera transacción.
+
+
                 if (reserva.EstadoPago != BLL_Pago.EstadoDevuelto)
                 {
                     return ResultadoOperacion<int>.Ok(0, "La cancelación no genera una transacción económica con importe.");
@@ -229,9 +229,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // A5 a A9: consulta administrativa.
-        // ------------------------------------------------------------------
+
+
+
         public ResultadoOperacion<List<TransaccionEconomica>> Listar(FiltroTransacciones filtro)
         {
             filtro = filtro ?? new FiltroTransacciones();
@@ -266,7 +266,7 @@ namespace StageUp.BLL
             }
         }
 
-        // A7: true si todavía no hay ninguna transacción.
+
         public bool NoHayTransacciones()
         {
             try

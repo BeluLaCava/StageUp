@@ -39,8 +39,8 @@ namespace StageUp.UI
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            // CU-001-012 A10: la cuenta interna se dio de baja (o se
-            // desactivó) mientras tenía la sesión abierta.
+
+
             if (!IsPostBack && Request.QueryString["motivo"] == "cuenta_interna_inactiva")
             {
                 MostrarMensaje(pnlMensajeLogin, litMensajeLogin,
@@ -48,8 +48,8 @@ namespace StageUp.UI
                     esError: true);
             }
 
-            // Script 79: se restauró la base desde un backup y la cuenta de
-            // la sesión no está (o no está activa) en esa copia.
+
+
             if (!IsPostBack && Request.QueryString["motivo"] == ControlSesionBaseDatos.MotivoCierre)
             {
                 MostrarMensaje(pnlMensajeLogin, litMensajeLogin,
@@ -65,13 +65,13 @@ namespace StageUp.UI
                 return;
             }
 
-            // Ítems 28/29 del checklist de correcciones: esta es ahora la
-            // única pantalla de login de todo el sitio. BLL_Autenticacion
-            // valida el CAPTCHA una sola vez y prueba primero el login como
-            // usuario externo y, si no corresponde, como usuario interno
-            // (los modelos de datos y los permisos de cada uno siguen
-            // siendo completamente independientes, esto solo unifica la
-            // pantalla de ingreso).
+
+
+
+
+
+
+
             ResultadoInicioSesion resultado = _bllAutenticacion.IniciarSesion(
                 txtLoginEmail.Text,
                 txtLoginPassword.Text,

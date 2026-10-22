@@ -11,14 +11,14 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // CU-003-003 Gestionar solicitudes de soporte internamente, más el ítem
-    // 12 (conversación, leído / no leído, actualización periódica y
-    // asignación de responsables).
-    //   GestionSoporte.aspx?[filtros]  -> "Solicitudes de soporte" (pasos 3 a 8, A2 a A4)
-    //   GestionSoporte.aspx?ver={id}   -> "Detalle de solicitud de soporte" (pasos 9 a 26, A5 a A12)
-    // Los filtros viajan en la query string (estado, func, resp, desde, hasta,
-    // usuario, caso, noLeidas, pag) para que la actualización periódica y el
-    // "Volver al listado" los conserven.
+
+
+
+
+
+
+
+
     public partial class GestionSoporte : Page
     {
         private const string ClaveFiltros = "GestionSoporte.Filtros";
@@ -48,7 +48,7 @@ namespace StageUp.UI.Interno
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Paso 2 y A1.
+
             if (!TieneAcceso() || IsPostBack)
             {
                 return;
@@ -64,9 +64,9 @@ namespace StageUp.UI.Interno
             }
         }
 
-        // ------------------------------------------------------------------
-        // Listado (pasos 4 a 8, A2, A3 y A4)
-        // ------------------------------------------------------------------
+
+
+
 
         protected void btnAplicarFiltros_Click(object sender, EventArgs e)
         {
@@ -115,7 +115,7 @@ namespace StageUp.UI.Interno
             ActivarNovedadesPeriodicas("interno-listado", null, _bll.ObtenerMarcaListado(null));
             Session[ClaveFiltros] = Request.Url.Query;
 
-            // A2: no hay ninguna solicitud.
+
             if (resumen.Valor.Total == 0)
             {
                 pnlSinSolicitudes.Visible = true;
@@ -132,7 +132,7 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-            // A4: hay solicitudes pero ninguna cumple los filtros.
+
             pnlSinResultados.Visible = pagina.Valor.Total == 0;
             rptSolicitudes.Visible = pagina.Valor.Total > 0;
             rptSolicitudes.DataSource = pagina.Valor.Tickets;
@@ -199,7 +199,7 @@ namespace StageUp.UI.Interno
                 SoloNoLeidas = Request.QueryString["noLeidas"] == "1"
             };
 
-            // N.º de caso: "SOP-000123", "123" o "#123".
+
             string caso = Vacio(Request.QueryString["caso"]);
             if (caso != null)
             {
@@ -237,9 +237,9 @@ namespace StageUp.UI.Interno
             return "~/Interno/GestionSoporte.aspx?" + consulta;
         }
 
-        // ------------------------------------------------------------------
-        // Detalle y gestión (pasos 9 a 26, A5 a A12)
-        // ------------------------------------------------------------------
+
+
+
 
         protected void btnTomar_Click(object sender, EventArgs e)
         {
@@ -259,25 +259,25 @@ namespace StageUp.UI.Interno
             Ejecutar(id => _bll.RegistrarRespuesta(id, IdUsuarioInterno, txtRespuesta.Text, chkMarcarResuelta.Checked, estadoVisto), true);
         }
 
-        // A8 pasos 1 a 4: se elige el estado y se pide confirmación.
+
         protected void btnCambiarEstado_Click(object sender, EventArgs e)
         {
             PedirConfirmacion(ddlNuevoEstado.SelectedValue);
         }
 
-        // A11 paso 4.
+
         protected void btnCerrar_Click(object sender, EventArgs e)
         {
             PedirConfirmacion(BLL_Ticket.EstadoCerrada);
         }
 
-        // A10 (con permiso de reapertura).
+
         protected void btnReabrir_Click(object sender, EventArgs e)
         {
             PedirConfirmacion(BLL_Ticket.EstadoEnProceso);
         }
 
-        // A8 paso 5 / A11 paso 5.
+
         protected void btnConfirmarEstado_Click(object sender, EventArgs e)
         {
             string estadoNuevo = Convert.ToString(ViewState["EstadoAConfirmar"]);
@@ -286,7 +286,7 @@ namespace StageUp.UI.Interno
             Ejecutar(id => _bll.CambiarEstado(id, estadoNuevo, IdUsuarioInterno, PuedeReabrir, estadoVisto));
         }
 
-        // A8: si se cancela, no se modifica nada y se vuelve al detalle.
+
         protected void btnCancelarEstado_Click(object sender, EventArgs e)
         {
             if (!TieneAcceso() || !IdTicketActual.HasValue)
@@ -407,7 +407,7 @@ namespace StageUp.UI.Interno
             bool cerrada = ticket.Estado == BLL_Ticket.EstadoCerrada;
             bool resuelta = ticket.Estado == BLL_Ticket.EstadoResuelta;
 
-            // A10 y A11.
+
             pnlEstadoAviso.Visible = cerrada || resuelta;
             litEstadoAviso.Text = cerrada
                 ? "Solicitud cerrada: se muestra la información histórica del caso. No admite respuestas ni cambios de estado" +
@@ -434,7 +434,7 @@ namespace StageUp.UI.Interno
                 Seleccionar(ddlAsignarA, ticket.IdUsuarioInternoAsignado.HasValue ? ticket.IdUsuarioInternoAsignado.Value.ToString(CultureInfo.InvariantCulture) : string.Empty);
                 btnTomar.Visible = ticket.IdUsuarioInternoAsignado != IdUsuarioInterno;
 
-                // Paso 19: los cuatro estados; la validación (A9) se hace al confirmar.
+
                 ddlNuevoEstado.Items.Clear();
                 foreach (string estado in BLL_Ticket.Estados.Where(e => e != ticket.Estado))
                 {
@@ -455,9 +455,9 @@ namespace StageUp.UI.Interno
             ActivarNovedadesPeriodicas("interno-detalle", ticket.IdTicket, _bll.ObtenerMarcaSolicitud(ticket.IdTicket, null));
         }
 
-        // ------------------------------------------------------------------
-        // Auxiliares
-        // ------------------------------------------------------------------
+
+
+
 
         private void ActivarNovedadesPeriodicas(string vista, int? idTicket, string marca)
         {
@@ -573,7 +573,7 @@ namespace StageUp.UI.Interno
                 : (DateTime?)null;
         }
 
-        // Copia editable de la query string, para armar los enlaces del paginado.
+
         private sealed class NameValueCollectionCopia
         {
             private readonly List<KeyValuePair<string, string>> _pares = new List<KeyValuePair<string, string>>();
@@ -606,7 +606,7 @@ namespace StageUp.UI.Interno
                 return false;
             }
 
-            // A1: sin permiso no se muestra el listado.
+
             if (!GestorDeSesion.TienePermisoInterno(BLL_Ticket.PermisoGestionar))
             {
                 Response.Redirect("~/Interno/PanelAdministrador.aspx?acceso=denegado");

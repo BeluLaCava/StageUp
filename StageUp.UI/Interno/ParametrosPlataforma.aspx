@@ -51,7 +51,7 @@
                 <asp:Button ID="btnEditar" runat="server" CssClass="button button-primary" Text="Editar parámetros" CausesValidation="false" OnClick="btnEditar_Click" />
             </div>
 
-            <%-- Paso 4: grupos de parámetros configurables. --%>
+
             <asp:Repeater ID="rptGrupos" runat="server" OnItemDataBound="rptGrupos_ItemDataBound">
                 <ItemTemplate>
                     <div class="auth-card param-grupo">
@@ -83,7 +83,7 @@
                 </ItemTemplate>
             </asp:Repeater>
 
-            <%-- Pasos 9 y 10, A8. --%>
+
             <asp:Panel ID="pnlGuardar" runat="server" Visible="false" CssClass="auth-card param-vigencia" DefaultButton="btnGuardar">
                 <h2>Vigencia de los cambios</h2>
                 <asp:RadioButtonList ID="rblVigencia" runat="server" RepeatLayout="UnorderedList">
@@ -100,7 +100,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- Paso 13: historial de cambios. --%>
+
             <div class="auth-card">
                 <span class="admin-card-eyebrow">Trazabilidad</span>
                 <h2>Historial de cambios</h2>

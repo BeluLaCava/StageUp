@@ -53,8 +53,8 @@ namespace StageUp.MPP
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
-        // CU-001-003 A8/A9: con confirmar = false solo evalúa las condiciones;
-        // con true, si no hay ninguna pendiente, pasa la cuenta a Inactiva.
+
+
         public EvaluacionBajaCuenta BajaLogica(UsuarioExterno oUsuarioExterno, bool confirmar)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -153,11 +153,11 @@ namespace StageUp.MPP
                 });
         }
 
-        // Ítem 36 del checklist de correcciones: versión "por lista de ids"
-        // de ObtenerPorId, pensada para que BLL_Reserva.CompletarReputacionSolicitantes
-        // pueda traer los datos de todos los solicitantes distintos de una
-        // tanda de solicitudes en una sola consulta, en vez de una consulta
-        // por solicitante (patrón N+1).
+
+
+
+
+
         public List<UsuarioExterno> ListarPorIds(IEnumerable<int> idsUsuarios)
         {
             List<int> ids = new List<int>(idsUsuarios);
@@ -192,10 +192,10 @@ namespace StageUp.MPP
             return lista;
         }
 
-        // Usuarios externos activos para el envío de newsletter (ítem 38 del
-        // checklist de correcciones), filtrados según la categoría elegida
-        // en Interno/GestionNovedades.aspx ("Activos", "Gestores",
-        // "Solicitantes" o "Todos").
+
+
+
+
         public List<UsuarioExterno> ListarParaNewsletter(string criterio)
         {
             DataTable tabla = Conexion.Instance.Leer(

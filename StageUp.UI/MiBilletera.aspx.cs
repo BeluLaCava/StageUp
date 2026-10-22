@@ -10,13 +10,13 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    // Ítem 8: billetera de tarjetas del usuario (alias, preferida, alta y
-    // baja). El código de seguridad nunca se pide acá.
+
+
     public partial class MiBilletera : Page
     {
         private readonly BLL_Billetera _bll = new BLL_Billetera();
 
-        // Tarjeta con el alias en edición o con la baja por confirmar.
+
         private int IdEnEdicion
         {
             get { return ViewState["IdEnEdicion"] as int? ?? 0; }
@@ -58,7 +58,7 @@ namespace StageUp.UI
                 AnioVencimiento = anio
             }, txtAliasNueva.Text, chkPreferida.Checked);
 
-            // El número no se vuelve a mostrar en la página.
+
             txtNumero.Text = string.Empty;
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
             if (resultado.Exitoso)
@@ -95,7 +95,7 @@ namespace StageUp.UI
                     resultado = _bll.CambiarAlias(IdUsuario(), id, txtAlias.Text);
                     if (!resultado.Exitoso)
                     {
-                        // Se queda en edición para corregirlo.
+
                         MostrarMensaje(resultado.Mensaje, true);
                         return;
                     }

@@ -11,17 +11,17 @@ namespace StageUp.Servicios
         public string MotivoRechazo { get; set; }
     }
 
-    // Pasarela de pago SIMULADA (ítem 5B de la segunda entrega). Ocupa el
-    // lugar que tendría un procesador real (Mercado Pago, Payway, etc.): la
-    // BLL valida la tarjeta y le pide la autorización a este servicio.
-    //
-    // Tarjetas de prueba (cualquier vencimiento futuro y cualquier código):
-    //   * terminada en 0002 -> rechazada por el banco emisor
-    //   * terminada en 9995 -> fondos insuficientes
-    //   * terminada en 0119 -> error de comunicación con el procesador
-    //   * cualquier otra tarjeta válida -> aprobada
-    // Ejemplos aprobados: Visa 4111 1111 1111 1111, Mastercard 5555 5555 5555 4444,
-    // American Express 3782 822463 10005.
+
+
+
+
+
+
+
+
+
+
+
     public class ServicioPasarelaPago
     {
         public ResultadoAutorizacionPago Autorizar(DatosTarjeta tarjeta, decimal importe, string moneda)

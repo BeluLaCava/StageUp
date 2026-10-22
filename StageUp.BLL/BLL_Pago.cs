@@ -9,13 +9,13 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-    // Pago de reservas (ítems 5B y 5D de la segunda entrega, script 49).
-    //
-    // El cliente paga cuando el gestor acepta la reserva, antes de
-    // FechaLimitePago. Puede pagar con tarjeta, con su saldo a favor (notas
-    // de crédito) o combinando los dos. La tarjeta se valida acá
-    // (ValidadorTarjeta) y la autoriza la pasarela simulada; recién después se
-    // registra todo en una sola transacción (sp_Pago_RegistrarReserva).
+
+
+
+
+
+
+
     public class BLL_Pago
     {
         public const string EstadoNoRequerido = "NoRequerido";
@@ -42,8 +42,8 @@ namespace StageUp.BLL
                 && reserva.EstadoPago == EstadoPendiente;
         }
 
-        // Texto corto del estado del pago, para Mis reservas y Solicitudes
-        // recibidas. Null si no hay nada que mostrar.
+
+
         public static string DescribirEstadoPago(Reserva reserva, bool paraGestor)
         {
             if (reserva == null)
@@ -104,9 +104,9 @@ namespace StageUp.BLL
             }
         }
 
-        // Ítem 7: el cliente elige cómo pagar (todo con tarjeta, todo con
-        // saldo a favor o una parte con saldo y el resto con tarjeta). Aunque
-        // el saldo alcance, puede pagar todo con tarjeta.
+
+
+
         public ResultadoOperacion<ResumenPago> CalcularResumen(ContextoPagoReserva contexto, EleccionPago eleccion)
         {
             if (contexto == null || contexto.Reserva == null)
@@ -173,10 +173,10 @@ namespace StageUp.BLL
             });
         }
 
-        // Ítem 8: pago con una tarjeta de la billetera (pidiendo el código de
-        // seguridad) o con una nueva que, si el usuario quiere, se guarda
-        // después de un pago aprobado. medio puede ser null si se paga todo
-        // con saldo a favor.
+
+
+
+
         public ResultadoOperacion<Pago> PagarReserva(int idReserva, int idUsuarioExterno, TarjetaParaPagar medio, EleccionPago eleccion)
         {
             DatosTarjeta tarjeta;
@@ -243,7 +243,7 @@ namespace StageUp.BLL
                 (guardada.Exitoso ? guardada.Mensaje : "El pago se hizo, pero no pudimos guardar la tarjeta: " + guardada.Mensaje));
         }
 
-        // tarjeta puede ser null solo si se paga todo con saldo a favor.
+
         public ResultadoOperacion<Pago> PagarReserva(int idReserva, int idUsuarioExterno, DatosTarjeta tarjeta, EleccionPago eleccion)
         {
             try
@@ -283,8 +283,8 @@ namespace StageUp.BLL
                     }
                 }
 
-                // Saldo, tarjeta, movimientos y factura se registran en una sola
-                // transacción: si algo falla no se descuenta el saldo.
+
+
                 ResultadoMovimientoDinero resultado = _mpp.RegistrarPagoReserva(pago);
                 if (!resultado.EsOk || !resultado.IdGenerado.HasValue)
                 {
@@ -316,8 +316,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Pago con tarjeta de todo el saldo deudor de la cuenta de cliente en
-        // una moneda (por ejemplo, después de una nota de débito).
+
+
         public ResultadoOperacion<Pago> PagarDeuda(int idUsuarioExterno, string moneda, DatosTarjeta tarjeta)
         {
             try
@@ -395,9 +395,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // CU-002-001 A6 a A10: "Pagos de reservas" (consulta y control)
-        // ------------------------------------------------------------------
+
+
+
         public const string GrupoTodos = "Todos";
         public const string GrupoPendiente = "Pendiente";
         public const string GrupoConfirmado = "Confirmado";
@@ -407,8 +407,8 @@ namespace StageUp.BLL
 
         private static readonly string[] Grupos = { GrupoTodos, GrupoPendiente, GrupoConfirmado, GrupoFallido, GrupoCancelado, GrupoEnRevision };
 
-        // Nombre de cada estado como lo describe el documento.
-        // Texto de cada estado según los parámetros administrativos (CU-002-004 A5).
+
+
         public static string DescribirEstado(string estado)
         {
             switch (estado)
@@ -458,7 +458,7 @@ namespace StageUp.BLL
             }
         }
 
-        // A8: true si no hay ningún pago (ni reservas esperando el pago).
+
         public bool NoHayPagos()
         {
             try
@@ -471,7 +471,7 @@ namespace StageUp.BLL
             }
         }
 
-        // A6 pasos 9 y 10 (y A10 si no está disponible).
+
         public ResultadoOperacion<DetallePagoReserva> ObtenerDetalleAdministracion(int? idPago, int? idReserva)
         {
             try
@@ -487,8 +487,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Detalle del pago y su factura para el solicitante o el gestor de la
-        // reserva (DetallePago.aspx).
+
+
         public ResultadoOperacion<DetallePagoReserva> ObtenerDetalleParaUsuario(int? idPago, int? idReserva, int idUsuarioExterno)
         {
             try
@@ -514,11 +514,11 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // CU-002-001 pasos 1 a 9 y A1 a A5: aviso del medio de pago externo.
-        // En StageUp el medio externo está simulado: el aviso se carga desde
-        // "Pagos de reservas" (usuario interno autorizado).
-        // ------------------------------------------------------------------
+
+
+
+
+
         public static readonly string[] EstadosInformables = { "Aprobado", "Pendiente", "Rechazado", "Cancelado" };
 
         public ResultadoOperacion<int> RegistrarAvisoMedioExterno(AvisoMedioPago aviso, int idUsuarioInternoResponsable)
@@ -557,7 +557,7 @@ namespace StageUp.BLL
                     MotivoRechazo = motivo
                 };
 
-                // Paso 3 / A1: datos necesarios para identificar la operación.
+
                 List<string> faltantes = new List<string>();
                 if (!aviso.IdReserva.HasValue) faltantes.Add("la reserva asociada");
                 if (identificador == null) faltantes.Add("el identificador del pago");
@@ -590,8 +590,8 @@ namespace StageUp.BLL
                     }
                 }
 
-                // Paso 4 / A2: la transacción económica (reserva aceptada que
-                // espera el pago) tiene que existir.
+
+
                 Reserva reserva = _mppReserva.ObtenerPorId(new Reserva { IdReserva = aviso.IdReserva.Value });
                 if (reserva == null || !EsperaPago(reserva) || !reserva.ImporteEstimado.HasValue)
                 {
@@ -637,7 +637,7 @@ namespace StageUp.BLL
                             "Se registró el pago como cancelado. La reserva N° " + reserva.IdReserva + " no se modificó.", "A5");
                 }
 
-                // Pasos 5 a 9: pago confirmado.
+
                 if (registro.ImporteTotal != reserva.ImporteEstimado.Value || registro.Moneda != moneda)
                 {
                     registro.Estado = "Observado";
@@ -721,7 +721,7 @@ namespace StageUp.BLL
             return texto.Length <= maximo ? texto : texto.Substring(0, maximo - 3) + "...";
         }
 
-        // Medio utilizado, como se muestra en el detalle y en la factura.
+
         public static string DescribirMedioPago(Pago pago)
         {
             if (pago == null)
@@ -775,10 +775,10 @@ namespace StageUp.BLL
                 : (minutos / 60).ToString("00", CultureInfo.InvariantCulture) + ":" + (minutos % 60).ToString("00", CultureInfo.InvariantCulture);
         }
 
-        // Emisor de la factura simulada. Los datos se toman de los
-        // parámetros de facturación (CU-002-004) cuando estén configurados.
-        // Datos del emisor (CU-002-004 A6). Una factura ya emitida se muestra
-        // con los datos que regían en su fecha.
+
+
+
+
         public static DatosFacturacion ObtenerDatosFacturacion(DateTime? fechaFactura = null)
         {
             return new BLL_ParametroPlataforma().ObtenerDatosFacturacion(fechaFactura);
@@ -800,11 +800,11 @@ namespace StageUp.BLL
             return medios.Count == 0 ? string.Empty : " con " + string.Join(" y ", medios);
         }
 
-        // Valida la tarjeta y pide la autorización a la pasarela. Si la
-        // pasarela la rechaza, el intento queda registrado (sin movimientos).
-        // Completa en el pago la marca, los últimos 4 dígitos y el código de
-        // autorización: nunca el número completo, el código de seguridad ni
-        // el titular.
+
+
+
+
+
         private ResultadoOperacion AutorizarTarjeta(DatosTarjeta tarjeta, Pago pago)
         {
             ResultadoOperacion<string> validacion = ValidadorTarjeta.Validar(tarjeta);
@@ -813,9 +813,9 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error(validacion.Mensaje);
             }
 
-            // El titular (igual que el número completo y el código de
-            // seguridad) solo se usa en memoria para validar y autorizar: no se
-            // guarda. Del medio de pago se persisten la marca y los últimos 4.
+
+
+
             pago.MarcaTarjeta = validacion.Valor;
             pago.UltimosDigitos = ValidadorTarjeta.ObtenerUltimosDigitos(tarjeta.Numero);
 
@@ -858,9 +858,9 @@ namespace StageUp.BLL
             }
         }
 
-        // CU-002-002: el pago confirmado genera la transacción económica con
-        // la comisión de StageUp y el importe del gestor. Si falla, el pago ya
-        // quedó registrado y la transacción se puede revisar después.
+
+
+
         private static void RegistrarTransaccionEconomica(int idPago)
         {
             try
@@ -891,7 +891,7 @@ namespace StageUp.BLL
 
             try
             {
-                // CU-002-004 A7: configuración vigente de los correos administrativos.
+
                 _servicioCorreo.Administrativo = _bllParametros.ObtenerConfiguracionCorreoAdministrativo();
                 UsuarioExterno cliente = _mppUsuario.ObtenerPorId(new UsuarioExterno { IdUsuarioExterno = reserva.IdUsuarioExternoSolicitante });
                 if (cliente != null && !string.IsNullOrWhiteSpace(cliente.CorreoElectronico))
@@ -907,7 +907,7 @@ namespace StageUp.BLL
             }
             catch (Exception)
             {
-                // El pago ya quedó registrado: un mail que no sale no lo deshace.
+
             }
         }
 

@@ -10,12 +10,12 @@ namespace StageUp.BE.Entidades
         public string TipoOperacion { get; set; }
         public string TipoEntidadAfectada { get; set; }
 
-        // CU-001-013: búsqueda por responsable (nombre o correo, usuario
-        // externo o interno) y tope de filas (ítem 36: la bitácora no se
-        // carga entera).
+
+
+
         public int? IdUsuarioInternoResponsable { get; set; }
         public string TextoResponsable { get; set; }
-        public string TipoResponsable { get; set; }   // Externo | Interno | null = ambos
+        public string TipoResponsable { get; set; }
         public int Maximo { get; set; } = 500;
     }
 }

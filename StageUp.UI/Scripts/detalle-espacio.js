@@ -192,10 +192,10 @@
         rows = [];
     }
 
-    // Ítems 24/25: reservas ya Pendientes o Aceptadas para este espacio,
-    // para descontarlas de la disponibilidad publicada y que el
-    // planificador no ofrezca como libre un horario que al confirmar la
-    // solicitud va a ser rechazado por BLL_Reserva.ExisteSolapamiento.
+
+
+
+
     let occupiedRows = [];
     const occupiedField = document.getElementById("hdnReservasOcupadasDetalle");
     if (occupiedField) {
@@ -243,16 +243,16 @@
         return libres;
     }
 
-    // Resuelve, para una fecha puntual, qué franjas de un conjunto aplican:
-    // si hay alguna con fecha exacta igual a dateValue, esas mandan (es la
-    // semántica de "excepción puntual" que ya usaba la disponibilidad
-    // publicada); si no, se usan las recurrentes por día de la semana. Se
-    // usa tanto para la disponibilidad publicada como, por separado, para
-    // las franjas bloqueadas por actividad (ítem 27): antes se resolvían
-    // las dos cosas juntas en una sola partición "exact", lo que hacía que
-    // un bloqueo de actividad con fecha puntual tapara por completo la
-    // disponibilidad recurrente de ese día en vez de solo descontar su
-    // propio horario.
+
+
+
+
+
+
+
+
+
+
     function franjasParaFecha(candidatas, dateValue, weekday) {
         const exactas = candidatas.filter(function (row) {
             return row.Fecha === dateValue;
@@ -289,11 +289,11 @@
         const date = new Date(dateValue + "T12:00:00");
         const weekday = date.getDay() === 0 ? 7 : date.getDay();
 
-        // Ítem 27: la disponibilidad publicada (Bloqueado = 0) y los
-        // bloqueos por actividad (Bloqueado = 1) se resuelven cada uno por
-        // su lado (cada uno puede tener su propia excepción de fecha
-        // puntual o su propio patrón recurrente) y recién después se
-        // descuentan los bloqueos de la disponibilidad.
+
+
+
+
+
         const disponibilidadRows = rows.filter(function (row) {
             return !row.Bloqueado;
         });
@@ -302,9 +302,9 @@
         });
 
         const disponibles = franjasParaFecha(disponibilidadRows, dateValue, weekday);
-        // CU-001-008: los bloqueos (manuales o de actividades) rigen siempre
-        // en su fecha y también los semanales de ese día; un bloqueo de una
-        // fecha no reemplaza a los semanales.
+
+
+
         const bloqueadosDelDia = bloqueadoRows.filter(function (row) {
             return row.Fecha === dateValue || (!row.Fecha && row.DiaSemana === weekday);
         });

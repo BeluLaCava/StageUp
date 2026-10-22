@@ -9,14 +9,14 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // Categorías de novedades y del newsletter, administrables (script 85).
-    //   * El código se genera a partir del nombre y no cambia: lo guardan las
-    //     novedades y las preferencias de los suscriptores.
-    //   * Una categoría desactivada deja de ofrecerse para nuevas novedades y
-    //     en las preferencias; las novedades que ya la tienen la conservan.
-    //   * Tiene que quedar al menos una categoría activa.
-    //   * La lista se guarda en memoria un minuto (se usa en varias páginas
-    //     públicas) y se vuelve a leer después de cada cambio.
+
+
+
+
+
+
+
+
     public class BLL_CategoriaNovedad
     {
         public const int LongitudMaximaNombre = 60;
@@ -31,7 +31,7 @@ namespace StageUp.BLL
         private readonly MPP_CategoriaNovedad _mpp = new MPP_CategoriaNovedad();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
-        // Todas (activas e inactivas), en el orden configurado.
+
         public static List<CategoriaNovedad> ListarTodas()
         {
             lock (Bloqueo)
@@ -45,7 +45,7 @@ namespace StageUp.BLL
                     }
                     catch (ErrorAccesoDatosException)
                     {
-                        // Sin base: se sigue con lo último leído (o nada).
+
                         return _cache == null ? new List<CategoriaNovedad>() : new List<CategoriaNovedad>(_cache);
                     }
                 }
@@ -59,7 +59,7 @@ namespace StageUp.BLL
             return ListarTodas().Where(c => c.Activa).ToList();
         }
 
-        // Código -> nombre de todas las categorías (para mostrar y filtrar).
+
         public static Dictionary<string, string> ObtenerEtiquetas()
         {
             Dictionary<string, string> etiquetas = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -93,7 +93,7 @@ namespace StageUp.BLL
                 ListarTodas().Any(c => string.Equals(c.Codigo, codigo, StringComparison.OrdinalIgnoreCase));
         }
 
-        // Código guardado (con las mayúsculas de la tabla) o null.
+
         public static string NormalizarCodigo(string codigo)
         {
             if (string.IsNullOrWhiteSpace(codigo))
@@ -105,7 +105,7 @@ namespace StageUp.BLL
             return categoria == null ? null : categoria.Codigo;
         }
 
-        // Listado de administración (sin caché: trae las cantidades al día).
+
         public List<CategoriaNovedad> ListarParaAdministrar()
         {
             try
@@ -212,8 +212,8 @@ namespace StageUp.BLL
             }
         }
 
-        // "Guías y consejos" -> "GuiasYConsejos" (sin tildes, máximo 30
-        // caracteres; si ya existe se le agrega un número).
+
+
         public static string GenerarCodigo(string nombre, IEnumerable<string> existentes)
         {
             string sinTildes = new string((nombre ?? string.Empty).Normalize(NormalizationForm.FormD)

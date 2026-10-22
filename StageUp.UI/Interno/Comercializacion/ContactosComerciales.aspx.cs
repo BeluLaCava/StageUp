@@ -9,13 +9,13 @@ using StageUp.BLL;
 
 namespace StageUp.UI.Interno.Comercializacion
 {
-    // CU-004-002 Gestionar contactos comerciales.
-    //   ContactosComerciales.aspx?[filtros]        -> listado (pasos 2 a 8, A2 a A4)
-    //   ContactosComerciales.aspx?ver={id}         -> detalle con el seguimiento (A5, A9)
-    //   ContactosComerciales.aspx?nuevo=1          -> alta (pasos 9 a 30)
-    //   ContactosComerciales.aspx?editar={id}      -> edición (A6, A8 a A12)
-    //   ContactosComerciales.aspx?seguimiento={id} -> nueva observación de seguimiento (A7, A8)
-    // Filtros en la query string: estado, tipo, origen, campania, q.
+
+
+
+
+
+
+
     public partial class ContactosComerciales : PaginaComercial
     {
         private const string Pagina = "ContactosComerciales.aspx";
@@ -28,7 +28,7 @@ namespace StageUp.UI.Interno.Comercializacion
             get { return BLL_ContactoComercial.PermisoGestionar; }
         }
 
-        // A9: cuenta elegida en el formulario.
+
         private int? IdCuentaElegida
         {
             get { return ViewState["IdCuentaElegida"] as int?; }
@@ -66,9 +66,9 @@ namespace StageUp.UI.Interno.Comercializacion
             }
         }
 
-        // ------------------------------------------------------------------
-        // Listado
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarListado()
         {
@@ -108,7 +108,7 @@ namespace StageUp.UI.Interno.Comercializacion
             litRechazados.Text = resumen.Valor.Rechazados.ToString(CultureInfo.InvariantCulture);
             litIncorporados.Text = resumen.Valor.Incorporados.ToString(CultureInfo.InvariantCulture);
 
-            // A2.
+
             if (resumen.Valor.Total == 0)
             {
                 pnlSinContactos.Visible = true;
@@ -125,7 +125,7 @@ namespace StageUp.UI.Interno.Comercializacion
                 return;
             }
 
-            // A4.
+
             pnlSinResultados.Visible = resultado.Valor.Count == 0;
             rptContactos.Visible = resultado.Valor.Count > 0;
             litCantidad.Text = resultado.Valor.Count == 0
@@ -151,9 +151,9 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(ArmarUrl(Pagina, partes), null);
         }
 
-        // ------------------------------------------------------------------
-        // Detalle (A5, A9)
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarDetalle(int idContacto)
         {
@@ -202,7 +202,7 @@ namespace StageUp.UI.Interno.Comercializacion
                 ? contacto.NombreUsuarioExterno + " (" + contacto.CorreoUsuarioExterno + ")"
                 : (contacto.EstadoContacto == ContactoComercial.EstadoIncorporado ? "Sin asociar todavía" : "—");
 
-            // A9.
+
             if (contacto.EstadoContacto == ContactoComercial.EstadoIncorporado)
             {
                 pnlAvisoIncorporado.Visible = true;
@@ -221,9 +221,9 @@ namespace StageUp.UI.Interno.Comercializacion
             lnkSeguimiento.NavigateUrl = Pagina + "?seguimiento=" + idContacto;
         }
 
-        // ------------------------------------------------------------------
-        // Formulario de contacto
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarFormulario(int? idContacto)
         {
@@ -351,7 +351,7 @@ namespace StageUp.UI.Interno.Comercializacion
             ResultadoOperacion<int> resultado = _bll.Guardar(contacto, IdUsuarioInterno);
             if (!resultado.Exitoso)
             {
-                // A13 a A19: se queda en el formulario.
+
                 MostrarMensaje(pnlMensaje, litMensaje, resultado.Mensaje, true);
                 int? idDuplicado = BLL_ContactoComercial.IdDuplicado(resultado);
                 lnkDuplicado.Visible = idDuplicado.HasValue;
@@ -364,13 +364,13 @@ namespace StageUp.UI.Interno.Comercializacion
                 return;
             }
 
-            // Paso 29 (alta: listado actualizado) o A6 paso 9 (edición: detalle).
+
             Redirigir(idEditar.HasValue ? Pagina + "?ver=" + resultado.Valor : Pagina, resultado.Mensaje);
         }
 
-        // ------------------------------------------------------------------
-        // Seguimiento (A7, A8)
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarFormularioSeguimiento(int idContacto)
         {
@@ -426,9 +426,9 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(Pagina + "?ver=" + idContacto.Value, resultado.Mensaje);
         }
 
-        // ------------------------------------------------------------------
-        // Auxiliares
-        // ------------------------------------------------------------------
+
+
+
 
         private void CargarOrigenes(DropDownList lista, string textoVacio, ContactoComercial contacto)
         {

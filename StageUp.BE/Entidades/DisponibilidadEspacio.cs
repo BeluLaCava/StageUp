@@ -3,17 +3,17 @@ using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-    // CU-001-008 Gestionar disponibilidad de espacios artísticos: lo que se
-    // muestra en la pantalla "Disponibilidad del espacio".
 
-    // Un día del calendario con todo lo que pasa en el espacio ese día.
+
+
+
     public class DiaCalendarioDisponibilidad
     {
         public DateTime Fecha { get; set; }
         public bool EsHoy { get; set; }
 
-        // true cuando ese día rige una franja de fecha concreta (excepción)
-        // en lugar del horario semanal habitual.
+
+
         public bool TieneExcepcion { get; set; }
 
         public List<ItemCalendarioDisponibilidad> Items { get; set; } = new List<ItemCalendarioDisponibilidad>();
@@ -34,9 +34,9 @@ namespace StageUp.BE.Entidades
         public int? IdReserva { get; set; }
     }
 
-    // Operaciones (reservas aceptadas, solicitudes pendientes y actividades
-    // internas) asociadas a una franja: se muestran en su detalle (A6/A10)
-    // y deciden si se puede modificar o eliminar (A7/A11).
+
+
+
     public class OperacionesAsociadasFranja
     {
         public int ReservasAceptadas { get; set; }

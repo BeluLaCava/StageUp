@@ -33,7 +33,7 @@
         </asp:Panel>
 
         <div class="static-page-body internal-admin-stack gcc-stack">
-            <!-- Búsqueda de cuentas -->
+
             <asp:Panel ID="pnlBusqueda" runat="server" CssClass="auth-card admin-list-card" DefaultButton="btnBuscar">
                 <div class="auth-card-header">
                     <span class="admin-card-eyebrow">Cuentas</span>
@@ -76,7 +76,7 @@
                 </div>
             </asp:Panel>
 
-            <!-- Cuenta elegida -->
+
             <asp:Panel ID="pnlCuenta" runat="server" CssClass="auth-card admin-list-card" Visible="false">
                 <div class="auth-card-header">
                     <span class="admin-card-eyebrow"><asp:Literal ID="litRolCuenta" runat="server" /></span>
@@ -190,7 +190,7 @@
                 </div>
             </asp:Panel>
 
-            <!-- Pagos -->
+
             <asp:Panel ID="pnlPagos" runat="server" CssClass="auth-card admin-list-card" DefaultButton="btnFiltrarPagos">
                 <div class="auth-card-header">
                     <span class="admin-card-eyebrow">Pagos</span>

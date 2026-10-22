@@ -17,6 +17,7 @@ x64/
 x86/
 
 # Visual Studio temporary files and caches
+.dotnet-home/
 *.tmp
 *.tmp_proj
 *.log

@@ -90,10 +90,10 @@ namespace StageUp.MPP
             return ListarPorUsuarioGestor(usuarioGestor, "Activas", null);
         }
 
-        // CU-001-009 / ítem 36 (script 57): actividades del gestor con sus días
-        // y participantes en tres consultas en total, sin importar cuántas
-        // actividades haya (antes eran dos consultas extra por actividad).
-        // estado: "Activas", "Inactivas" o "Todas".
+
+
+
+
         public List<Actividad> ListarPorUsuarioGestor(UsuarioExterno usuarioGestor, string estado, int? idEspacioArtistico)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -190,7 +190,7 @@ namespace StageUp.MPP
                 : DateTime.ParseExact(fecha, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
         }
 
-        // ---- Días de semana (recurrencia "Semanal") ----
+
 
         public void InsertarDiaSemana(Actividad actividad, int diaSemana)
         {
@@ -221,7 +221,7 @@ namespace StageUp.MPP
             return dias;
         }
 
-        // ---- Franjas bloqueadas generadas por la actividad ----
+
 
         public void InsertarFranjaDesdeActividad(Actividad actividad, FranjaEspacio franja)
         {
@@ -245,7 +245,7 @@ namespace StageUp.MPP
                 new Hashtable { { "@idActividad", actividad.IdActividad } });
         }
 
-        // ---- Participantes asociados a la actividad ----
+
 
         public void AsociarParticipante(Actividad actividad, Participante participante)
         {

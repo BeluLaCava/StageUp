@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // CU-002-003 Consultar historial financiero (script 64). Solo lectura.
+
     public class MPP_HistorialFinanciero
     {
         public List<OperacionFinanciera> Listar(FiltroHistorialFinanciero oFiltro)
@@ -135,7 +135,7 @@ namespace StageUp.MPP
             return lista;
         }
 
-        // Movimientos de cuenta corriente de la operación (impacto en saldo).
+
         public List<MovimientoCuentaCorriente> ListarMovimientos(OperacionFinanciera oOperacion)
         {
             DataTable tabla = Conexion.Instance.Leer(

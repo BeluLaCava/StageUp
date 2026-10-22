@@ -25,9 +25,9 @@ namespace StageUp.BE.Entidades
         public bool Activo { get; set; }
     }
 
-    // CU-001-003 (A8/A9): resultado de evaluar o aplicar la baja lógica de
-    // una cuenta externa (sp_UsuarioExterno_BajaLogica). Condiciones y Avisos
-    // los arma la BLL con textos para mostrar al usuario.
+
+
+
     public class EvaluacionBajaCuenta
     {
         public string Resultado { get; set; }

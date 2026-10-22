@@ -321,7 +321,7 @@
                         nextParams.set("equip", codigosEquipamiento.join(","));
                     }
 
-                    // Ítem 8: conservar el orden elegido al aplicar filtros.
+
                     if (currentParams.get("orden")) {
                         nextParams.set("orden", currentParams.get("orden"));
                     }

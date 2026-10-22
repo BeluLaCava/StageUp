@@ -33,7 +33,7 @@
                     <p>Las preguntas más comunes sobre StageUp. Para una consulta más específica, usá el asistente.</p>
                 </div>
 
-                <%-- Pregunta abierta desde un resultado de la búsqueda (puede no ser básica). --%>
+
                 <asp:Panel ID="pnlFaqBuscada" runat="server" Visible="false" CssClass="faq-buscada">
                     <span class="eyebrow">Resultado de tu búsqueda</span>
                     <h3><asp:Literal ID="litFaqBuscadaPregunta" runat="server" Mode="Encode" /></h3>
@@ -43,7 +43,7 @@
                     <p><strong>La pregunta que buscaste ya no está disponible.</strong> Revisá las preguntas frecuentes de abajo o consultá al asistente.</p>
                 </asp:Panel>
 
-                <%-- CU-003-001: selección breve de preguntas básicas, sin filtros. --%>
+
                 <asp:Panel ID="pnlSinBasicas" runat="server" Visible="false" CssClass="ayuda-vacia">
                     <p><strong>Por ahora no hay preguntas frecuentes publicadas.</strong></p>
                     <p>Consultá al asistente: te guía paso a paso según lo que necesites.</p>

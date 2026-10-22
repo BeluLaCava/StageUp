@@ -11,15 +11,15 @@ using StageUp.BLL;
 
 namespace StageUp.UI
 {
-    // Newsletter (script 78), sin necesidad de cuenta:
-    //   Newsletter.aspx                     -> formulario de suscripción
-    //   Newsletter.aspx?confirmar={token}   -> doble confirmación
-    //   Newsletter.aspx?vincular={token}    -> vincula la suscripción con la
-    //       cuenta que lo pidió desde Mi perfil
-    //   Newsletter.aspx?token={token}       -> preferencias (categorías, baja)
-    //   Newsletter.aspx?token={token}&baja=1 -> preferencias con la baja a
-    //       la vista (enlace "Darme de baja" de cada correo). La baja nunca
-    //       se hace solo por abrir el enlace: hay que confirmarla.
+
+
+
+
+
+
+
+
+
     public partial class Newsletter : Page
     {
         private readonly BLL_Newsletter _bllNewsletter = new BLL_Newsletter();
@@ -49,7 +49,7 @@ namespace StageUp.UI
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Los enlaces llevan un token: que no viaje como referencia a otros sitios.
+
             Response.AppendHeader("Referrer-Policy", "no-referrer");
 
             if (IsPostBack)
@@ -69,7 +69,7 @@ namespace StageUp.UI
             string vincular = Request.QueryString["vincular"];
             if (!string.IsNullOrEmpty(vincular))
             {
-                // Vínculo con la cuenta pedido desde Mi perfil.
+
                 ResultadoOperacion resultado = _bllNewsletter.ConfirmarVinculo(vincular);
                 MostrarSolo(null);
                 MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
@@ -168,7 +168,7 @@ namespace StageUp.UI
 
         private static void CargarCategorias(CheckBoxList lista)
         {
-            // Categorías activas (administrables, script 85).
+
             lista.Items.Clear();
             foreach (CategoriaNovedad categoria in BLL_CategoriaNovedad.ListarActivas())
             {
@@ -186,7 +186,7 @@ namespace StageUp.UI
             return new Uri(Request.Url, ResolveUrl("~/")).ToString();
         }
 
-        // Solo se muestra uno de los paneles (o ninguno, tras suscribirse).
+
         private void MostrarSolo(Panel visible)
         {
             pnlSuscribir.Visible = ReferenceEquals(visible, pnlSuscribir);

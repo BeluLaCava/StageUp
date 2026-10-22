@@ -18,14 +18,14 @@
                     <asp:Label ID="lblEstado" runat="server" />
                 </div>
 
-                <%-- Paso 13: estados o datos particulares de la operación. --%>
+
                 <asp:Repeater ID="rptAvisos" runat="server">
                     <HeaderTemplate><ul class="detalle-op-avisos"></HeaderTemplate>
                     <ItemTemplate><li><%# Server.HtmlEncode(Convert.ToString(Container.DataItem)) %></li></ItemTemplate>
                     <FooterTemplate></ul></FooterTemplate>
                 </asp:Repeater>
 
-                <%-- Paso 12. --%>
+
                 <h3 class="detalle-op-subtitulo">Importes</h3>
                 <dl class="internal-detail-grid">
                     <div><dt>Monto total</dt><dd><asp:Literal ID="litMonto" runat="server" Mode="Encode" /></dd></div>

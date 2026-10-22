@@ -12,30 +12,30 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-    // Newsletter: suscripción sin cuenta, categorías, doble confirmación y
-    // baja por token (script 78).
-    //   * Suscribirse: correo, nombre opcional, categorías y aceptación; con
-    //     CAPTCHA. Queda Pendiente y se envía un enlace de confirmación que
-    //     vence a las 48 horas (del token se guarda solo el hash).
-    //   * La respuesta en pantalla es siempre la misma, exista o no el
-    //     correo, para no revelar quién está suscripto. Si ya estaba activo,
-    //     al dueño del correo le llega un aviso con su enlace de preferencias.
-    //   * No se reenvía un correo al mismo suscriptor más de una vez cada
-    //     5 minutos.
-    //   * Preferencias: con el token de cada newsletter se eligen categorías,
-    //     se da de baja o se vuelve a suscribir, sin iniciar sesión.
-    // Script 85:
-    //   * Una sola suscripción por correo, la misma desde el formulario, el
-    //     enlace de preferencias y Mi perfil. Desde el perfil también hay
-    //     doble confirmación (el correo de la cuenta se puede cambiar sin
-    //     verificarlo); confirmada así, queda vinculada a la cuenta y se
-    //     administra desde ahí.
-    //   * Si el correo de confirmación (o el aviso) no sale, se informa un
-    //     error igual para todos los casos (no revela si el correo ya estaba
-    //     suscripto) y el envío no cuenta para la espera de 5 minutos.
-    //   * Las categorías válidas son las activas de CategoriaNovedad.
-    //   * Administración: listado de suscriptores, baja y reenvío de la
-    //     confirmación.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public class BLL_Newsletter
     {
         public const int HorasValidezConfirmacion = 48;
@@ -58,7 +58,7 @@ namespace StageUp.BLL
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly MPP_UsuarioExterno _mppUsuario = new MPP_UsuarioExterno();
 
-        // urlBase: dirección de la aplicación ("https://.../"), para los enlaces.
+
         public ResultadoOperacion Suscribir(string correo, string nombre, IEnumerable<string> categorias, bool aceptaRecibir,
             string respuestaCaptcha, string urlBase)
         {
@@ -95,9 +95,9 @@ namespace StageUp.BLL
             return PedirConfirmacion(correoNormalizado, nombreNormalizado, elegidas, null, urlBase, false);
         }
 
-        // Pedido de suscripción (formulario o Mi perfil): queda Pendiente y
-        // se manda el enlace de confirmación. desdeCuenta: la respuesta puede
-        // decir el estado real, porque el correo es el de la propia cuenta.
+
+
+
         private ResultadoOperacion PedirConfirmacion(string correoNormalizado, string nombreNormalizado, List<string> elegidas,
             int? idUsuarioExterno, string urlBase, bool desdeCuenta)
         {
@@ -111,8 +111,8 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("No pudimos registrar la suscripción en este momento. Intentá nuevamente.");
             }
 
-            // Pedido repetido hace muy poco (y el correo anterior salió): no
-            // se vuelve a mandar nada.
+
+
             if (existente != null && existente.FechaUltimoEnvioConfirmacion.HasValue &&
                 DateTime.Now - existente.FechaUltimoEnvioConfirmacion.Value < EsperaEntreCorreos)
             {
@@ -184,7 +184,7 @@ namespace StageUp.BLL
                 UrlBaseConBarra(urlBase) + "Newsletter.aspx?confirmar=" + tokenConfirmacion, HorasValidezConfirmacion);
             if (!enviado)
             {
-                // No cuenta para la espera: se puede volver a pedir enseguida.
+
                 try
                 {
                     _mpp.AnularEnvioConfirmacion(suscriptor);
@@ -202,8 +202,8 @@ namespace StageUp.BLL
                 : MensajeSuscripcion);
         }
 
-        // Doble confirmación. Devuelve el suscriptor confirmado (para mostrar
-        // el enlace a sus preferencias).
+
+
         public ResultadoOperacion<SuscriptorNewsletter> Confirmar(string tokenConfirmacion)
         {
             const string invalido = "El enlace de confirmación no es válido o ya venció. Volvé a suscribirte para recibir uno nuevo.";
@@ -298,8 +298,8 @@ namespace StageUp.BLL
                 "Baja del newsletter desde el enlace de preferencias.");
         }
 
-        // Volver a suscribirse desde el enlace de preferencias (el token
-        // prueba que es el dueño del correo, no hace falta otra confirmación).
+
+
         public ResultadoOperacion Reactivar(string tokenPreferencias)
         {
             return CambiarEstado(tokenPreferencias, SuscriptorNewsletter.EstadoBaja, SuscriptorNewsletter.EstadoActivo,
@@ -307,9 +307,9 @@ namespace StageUp.BLL
                 "Nueva suscripción al newsletter desde el enlace de preferencias.");
         }
 
-        // ------------------------------------------------------------------
-        // Mi perfil: la suscripción del correo de la cuenta.
-        // ------------------------------------------------------------------
+
+
+
         public ResultadoOperacion<SuscripcionDeCuenta> ObtenerDeCuenta(int idUsuarioExterno)
         {
             UsuarioExterno cuenta;
@@ -336,7 +336,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Suscribirse (o volver a pedir la confirmación) desde Mi perfil.
+
         public ResultadoOperacion SuscribirDesdeCuenta(int idUsuarioExterno, IEnumerable<string> categorias, string urlBase)
         {
             UsuarioExterno cuenta;
@@ -422,12 +422,12 @@ namespace StageUp.BLL
             }
         }
 
-        // El correo de la cuenta ya recibe el newsletter por una suscripción
-        // hecha sin iniciar sesión. Para administrarla desde el perfil se
-        // vincula esa misma suscripción (no se crea otra), pero solo si el
-        // dueño del correo lo confirma con el enlace que le llega: el correo
-        // de la cuenta se puede cambiar sin verificarlo, así que coincidir no
-        // alcanza.
+
+
+
+
+
+
         public ResultadoOperacion SolicitarVinculoDesdeCuenta(int idUsuarioExterno, string urlBase)
         {
             ResultadoOperacion<SuscripcionDeCuenta> actual = ObtenerDeCuenta(idUsuarioExterno);
@@ -484,7 +484,7 @@ namespace StageUp.BLL
                 HorasValidezConfirmacion + " horas.");
         }
 
-        // Enlace del correo de vinculación (Newsletter.aspx?vincular=...).
+
         public ResultadoOperacion ConfirmarVinculo(string tokenVinculo)
         {
             const string invalido = "El enlace para vincular la suscripción no es válido o ya venció. Pedí uno nuevo desde Mi perfil.";
@@ -503,7 +503,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error(invalido);
                 }
 
-                // La cuenta que lo pidió tiene que seguir activa y con este correo.
+
                 UsuarioExterno cuenta = _mppUsuario.ObtenerPorId(new UsuarioExterno { IdUsuarioExterno = suscriptor.IdUsuarioExternoVinculoPendiente.Value });
                 if (cuenta == null || !cuenta.Activo ||
                     !string.Equals((cuenta.CorreoElectronico ?? string.Empty).Trim(), suscriptor.CorreoElectronico, StringComparison.OrdinalIgnoreCase))
@@ -525,9 +525,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // Administración (Interno/GestionNewsletter.aspx).
-        // ------------------------------------------------------------------
+
+
+
         public List<SuscriptorNewsletter> Listar(FiltroSuscriptoresNewsletter filtro, out int totalFiltrado)
         {
             totalFiltrado = 0;
@@ -555,8 +555,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Baja hecha por un usuario interno (por ejemplo, a pedido de la
-        // persona por otro canal).
+
+
         public ResultadoOperacion DarDeBajaAdministrativa(int idSuscriptorNewsletter, int idUsuarioInternoResponsable)
         {
             SuscriptorNewsletter suscriptor = ObtenerPorIdSeguro(idSuscriptorNewsletter);
@@ -587,7 +587,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Reenvía el enlace de confirmación a un suscriptor pendiente.
+
         public ResultadoOperacion ReenviarConfirmacion(int idSuscriptorNewsletter, int idUsuarioInternoResponsable, string urlBase)
         {
             SuscriptorNewsletter suscriptor = ObtenerPorIdSeguro(idSuscriptorNewsletter);
@@ -652,8 +652,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Destinatarios que tendría hoy un envío (solo suscriptores
-        // confirmados; no crea suscripciones).
+
+
         public List<DestinatarioNewsletter> ListarDestinatarios(string criterio, Novedad novedad)
         {
             return _mpp.ListarDestinatarios(criterio, novedad);
@@ -734,7 +734,7 @@ namespace StageUp.BLL
             return !string.IsNullOrEmpty(token) && FormatoToken.IsMatch(token.ToUpperInvariant());
         }
 
-        // 32 bytes aleatorios en hexadecimal (64 caracteres).
+
         private static string GenerarToken()
         {
             byte[] bytes = new byte[32];
@@ -780,7 +780,7 @@ namespace StageUp.BLL
             return ResultadoOperacion.Ok();
         }
 
-        // La suscripción del correo de la cuenta, activa y vinculada a ella.
+
         private ResultadoOperacion ObtenerVinculadaActiva(int idUsuarioExterno, out SuscriptorNewsletter suscriptor)
         {
             suscriptor = null;

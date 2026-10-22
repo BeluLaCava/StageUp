@@ -24,15 +24,15 @@ namespace StageUp.BLL
         private static readonly HashSet<string> EquipamientoPermitido =
             new HashSet<string> { "ESPEJOS", "SONIDO", "INSTRUMENTOS", "EQUIPAMIENTO", "ESCENARIO", "ILUMINACION" };
 
-        // Nombres del equipamiento para la descripción automática (A12).
+
         private static readonly Dictionary<string, string> NombresEquipamiento = new Dictionary<string, string>
         {
             { "ESPEJOS", "espejos" }, { "SONIDO", "equipo de sonido" }, { "INSTRUMENTOS", "instrumentos" },
             { "EQUIPAMIENTO", "equipamiento técnico" }, { "ESCENARIO", "escenario" }, { "ILUMINACION", "iluminación" }
         };
 
-        // CU-001-007: mínimos para considerar que la información alcanza para
-        // presentar el espacio (A18).
+
+
         private const int LongitudMinimaDescripcionFicha = 30;
         private const int LongitudMinimaCondiciones = 10;
         private const int LongitudMaximaCondiciones = 1000;
@@ -82,9 +82,9 @@ namespace StageUp.BLL
             foreach (string codigo in ficha.Equipamiento)
                 if (!permitidos.Contains(codigo) || !seleccionados.Add(codigo))
                     return ResultadoOperacion.Error("Hay características no válidas o repetidas.");
-            // CU-001-008: al editar un espacio existente la disponibilidad no
-            // viaja con la ficha (null): se gestiona desde "Disponibilidad del
-            // espacio" y se conserva tal cual.
+
+
+
             if (ficha.Disponibilidad == null && espacio.IdEspacioArtistico != 0)
                 return ResultadoOperacion.Ok();
             if (ficha.Disponibilidad == null || ficha.Disponibilidad.Count == 0 || ficha.Disponibilidad.Count > 100)
@@ -100,14 +100,14 @@ namespace StageUp.BLL
                     (fechaConcreta && !DateTime.TryParseExact(franja.Fecha, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out fecha)) ||
                     (!fechaConcreta && (franja.DiaSemana < 1 || franja.DiaSemana > 7)))
                     return ResultadoOperacion.Error("Cada horario debe indicar un día de la semana o una fecha válida.");
-                // Antes acá se exigía que todo bloqueo (Bloqueado = true) cubriera el día
-                // completo (0 a 1440) y tuviera una fecha puntual. Eso impedía cargar un
-                // bloqueo manual de gestor para una franja horaria específica (p. ej. "todos
-                // los lunes de 17 a 18hs tengo una clase fija"), que es justo el caso que
-                // pidió el profesor. Ahora un bloqueo puede ser tanto un día completo como
-                // una franja parcial, y tanto recurrente (día de la semana) como puntual
-                // (fecha concreta) — las validaciones de abajo (horario válido en intervalos
-                // de 30 minutos, sin superposición) ya alcanzan para que quede consistente.
+
+
+
+
+
+
+
+
                 if (franja.MinutoDesde < 0 || franja.MinutoHasta > 1440 || franja.MinutoHasta <= franja.MinutoDesde ||
                     franja.MinutoDesde % 30 != 0 || franja.MinutoHasta % 30 != 0)
                     return ResultadoOperacion.Error("Usá horarios en intervalos de 30 minutos, con fin posterior al inicio.");
@@ -124,9 +124,9 @@ namespace StageUp.BLL
             return tieneHorario ? ResultadoOperacion.Ok() : ResultadoOperacion.Error("Agregá al menos un horario abierto.");
         }
 
-        // CU-001-007 A14, A16, A17 y A18: datos que el documento pide para
-        // poder presentar el espacio (descripción, medidas, condiciones y
-        // reglas de uso, al menos una imagen).
+
+
+
         private static ResultadoOperacion ValidarDatosDePresentacion(EspacioArtistico espacio)
         {
             FichaEspacio ficha = espacio.Ficha;
@@ -162,8 +162,8 @@ namespace StageUp.BLL
             return ResultadoOperacion.Ok();
         }
 
-        // CU-001-007 A12: descripción redactada a partir de los datos cargados.
-        // Es una ayuda opcional: el gestor la puede cambiar antes de guardar.
+
+
         public static string GenerarDescripcion(EspacioArtistico espacio)
         {
             if (espacio == null)
@@ -179,7 +179,7 @@ namespace StageUp.BLL
             string nombre = string.IsNullOrWhiteSpace(espacio.NombreEspacio) ? null : espacio.NombreEspacio.Trim();
             string lugar = string.Join(", ", new[] { ficha.Ciudad, ficha.Provincia }.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p.Trim()));
 
-            // Redacción neutra para cualquier tipo ("un teatro", "una galería"...).
+
             oraciones.Add((nombre != null ? "«" + nombre + "» es un espacio" : "Espacio") +
                 " de tipo " + tipo.ToLower(cultura) + (lugar.Length > 0 ? ", en " + lugar : string.Empty) + ".");
 
@@ -215,10 +215,10 @@ namespace StageUp.BLL
             return descripcion.Length > LongitudMaximaDescripcion ? descripcion.Substring(0, LongitudMaximaDescripcion) : descripcion;
         }
 
-        // CU-001-007 A13: rango orientativo de precio por hora comparando con
-        // espacios publicados en la misma moneda. Se busca primero lo más
-        // parecido (mismo tipo, misma provincia y capacidad cercana) y, si no
-        // hay al menos 3 espacios para comparar, se amplía el criterio.
+
+
+
+
         public ResultadoOperacion<SugerenciaPrecio> SugerirValores(EspacioArtistico borrador)
         {
             if (borrador == null || borrador.Ficha == null)
@@ -274,8 +274,8 @@ namespace StageUp.BLL
                     break;
                 }
 
-                // Con 4 o más precios se usa el rango intercuartil (deja afuera
-                // los extremos); con menos, el mínimo y el máximo.
+
+
                 decimal minimo = precios.Count >= 4 ? Percentil(precios, 0.25m) : precios[0];
                 decimal maximo = precios.Count >= 4 ? Percentil(precios, 0.75m) : precios[precios.Count - 1];
 
@@ -316,8 +316,8 @@ namespace StageUp.BLL
             return texto.EndsWith(".") || texto.EndsWith("!") || texto.EndsWith("?") ? texto : texto + ".";
         }
 
-        // CU-001-007 A8: el gestor ve el detalle de su espacio aunque no esté
-        // publicado (borrador o pausado). null si no es suyo o está dado de baja.
+
+
         public EspacioArtistico ObtenerDetalleParaGestor(int idEspacioArtistico, int idUsuarioGestor)
         {
             try
@@ -331,9 +331,9 @@ namespace StageUp.BLL
             }
         }
 
-        // Búsqueda interna: consulta de solo lectura de cualquier espacio
-        // (borrador, pausado, publicado o dado de baja). La pantalla controla
-        // el permiso BUSCAR_EN_PLATAFORMA; acá no se publica ni se modifica nada.
+
+
+
         public ResultadoOperacion<EspacioArtistico> ObtenerDetalleInterno(int idEspacioArtistico)
         {
             if (idEspacioArtistico <= 0)
@@ -354,7 +354,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Etiqueta legible del estado del espacio para pantallas internas.
+
         public static string EtiquetaEstado(EspacioArtistico espacio)
         {
             if (espacio == null)
@@ -394,22 +394,22 @@ namespace StageUp.BLL
             if (espacio.Ficha.Fotos != null && espacio.Ficha.Fotos.Count > 0)
                 espacio.Ficha.FotoRuta = espacio.Ficha.Fotos[0];
 
-            // Observación de María sobre los scripts SQL (09/26, cascada):
-            // guardar la ficha ya NO borra y reinserta FichaEspacio. El
-            // mapper la actualiza (sp_FichaEspacio_Guardar, script 41) y solo
-            // reemplaza equipamiento, fotos y franjas con origen 'Manual', así
-            // que el ON DELETE CASCADE nunca se dispara desde acá y los
-            // bloqueos generados desde "Mis actividades" (origen 'Actividad')
-            // no se tocan. Por las dudas, si el formulario mandara alguna
-            // franja de actividad, se descarta antes de guardar para que no
-            // quede duplicada como manual.
+
+
+
+
+
+
+
+
+
             if (espacio.Ficha.Disponibilidad != null)
                 espacio.Ficha.Disponibilidad = ObtenerFranjasEditables(espacio.Ficha);
 
-            // La regeneración de bloqueos de actividad se mantiene: es
-            // idempotente (borra y recrea solo las franjas de cada actividad
-            // desde dbo.Actividad, la fuente de verdad) y deja todo
-            // consistente si alguna actividad cambió mientras tanto.
+
+
+
+
             return EjecutarProtegido(() =>
             {
                 int id = _mppEspacio.GuardarFicha(espacio);
@@ -484,9 +484,9 @@ namespace StageUp.BLL
             });
         }
 
-        // Franjas que el gestor puede editar desde la ficha de "Mis espacios":
-        // solo las manuales. Los bloqueos de una actividad se administran
-        // desde "Mis actividades" y nunca se mandan al formulario de la ficha.
+
+
+
         public static List<FranjaEspacio> ObtenerFranjasEditables(FichaEspacio ficha)
         {
             List<FranjaEspacio> editables = new List<FranjaEspacio>();
@@ -547,11 +547,11 @@ namespace StageUp.BLL
                 (tipo == null || ContieneTexto(espacio.TipoEspacio, tipo)));
         }
 
-        // Ordenamiento de los resultados del catálogo (ítems 4 y 8 de la
-        // segunda entrega). "Relevancia" deja el orden del SP (más recientes
-        // primero). "MejorValorados" usa el puntaje ponderado de
-        // BLL_Calificacion, así que la lista tiene que venir con las
-        // reputaciones ya completadas.
+
+
+
+
+
         public const string OrdenRelevancia = "";
         public const string OrdenMejorValorados = "valoracion";
         public const string OrdenPrecioMenor = "precio-asc";
@@ -574,7 +574,7 @@ namespace StageUp.BLL
                         .ThenByDescending(e => e.CantidadCalificaciones)
                         .ToList();
                 case OrdenPrecioMenor:
-                    // Los que no informan precio van al final.
+
                     return espacios
                         .OrderBy(e => e.Ficha != null && e.Ficha.PrecioHora.HasValue ? 0 : 1)
                         .ThenBy(e => e.Ficha != null && e.Ficha.PrecioHora.HasValue ? e.Ficha.PrecioHora.Value : 0m)

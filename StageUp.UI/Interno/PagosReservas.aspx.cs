@@ -10,9 +10,9 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // CU-002-001 Registrar y controlar pagos de reservas: pantalla "Pagos de
-    // reservas" (A6 a A10) y registro de avisos del medio de pago externo
-    // simulado (pasos 1 a 9 y A1 a A5).
+
+
+
     public partial class PagosReservas : Page
     {
         private const string PermisoRequerido = "CONTROLAR_PAGOS_RESERVAS";
@@ -29,7 +29,7 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-            // A6 paso 2 y A7.
+
             if (!GestorDeSesion.TienePermisoInterno(PermisoRequerido))
             {
                 Response.Redirect("~/Interno/PanelAdministrador.aspx?acceso=denegado");
@@ -78,7 +78,7 @@ namespace StageUp.UI.Interno
 
             if (!resultado.Exitoso)
             {
-                // A10: se vuelve al listado con el aviso.
+
                 MostrarMensaje(resultado.Mensaje, true);
                 CargarPagos();
                 return;
@@ -135,9 +135,9 @@ namespace StageUp.UI.Interno
             CargarPagos();
         }
 
-        // ------------------------------------------------------------------
-        // Ayudas para la grilla
-        // ------------------------------------------------------------------
+
+
+
         protected string ArgumentoDetalle(object dato)
         {
             ItemPagoReserva item = (ItemPagoReserva)dato;

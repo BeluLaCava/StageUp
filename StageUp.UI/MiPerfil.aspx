@@ -213,7 +213,7 @@
                         </asp:Panel>
                     </section>
 
-                    <%-- CU-001-007: acceso a la solicitud de habilitación como gestor desde el perfil. --%>
+
                     <section class="profile-card" aria-labelledby="manager-title">
                         <div class="profile-card-header">
                             <div>
@@ -225,7 +225,7 @@
                         <p><asp:Literal ID="litGestorTexto" runat="server" Mode="Encode" /></p>
                     </section>
 
-                    <%-- Newsletter: la suscripción del correo de la cuenta (la misma que se administra desde el enlace de cada newsletter). --%>
+
                     <section class="profile-card" aria-labelledby="newsletter-title">
                         <div class="profile-card-header">
                             <div>

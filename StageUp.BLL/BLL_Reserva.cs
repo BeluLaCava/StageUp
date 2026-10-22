@@ -23,12 +23,12 @@ namespace StageUp.BLL
         private const int LongitudMaximaComentario = 1000;
         private const string TipoEntidadBitacora = "Reserva";
 
-        // Throttle en memoria para GenerarRecordatorios24hsSiCorresponde: no
-        // hay SQL Server Agent disponible en la edición Express, así que en
-        // vez de un job programado, el chequeo se dispara oportunísticamente
-        // desde Site.Master en cada pageview autenticado, pero solo hace el
-        // trabajo real (la consulta a la base) una vez cada
-        // IntervaloMinutosRecordatorios minutos por proceso.
+
+
+
+
+
+
         private static DateTime? _ultimaGeneracionRecordatorios;
         private static readonly object _lockRecordatorios = new object();
         private const int IntervaloMinutosRecordatorios = 15;
@@ -150,8 +150,8 @@ namespace StageUp.BLL
                     "Recibiste una nueva solicitud de reserva para \"" + espacio.NombreEspacio + "\".",
                     UrlDetalle(idReserva));
 
-                // Ítem 5A: aviso por mail al solicitante (solicitud enviada) y
-                // al gestor (solicitud recibida).
+
+
                 reserva.IdReserva = idReserva;
                 reserva.NombreEspacio = espacio.NombreEspacio;
                 UsuarioExterno solicitante = ObtenerUsuarioParaCorreo(idUsuarioExternoSolicitante);
@@ -184,11 +184,11 @@ namespace StageUp.BLL
             FichaEspacio ficha = espacio.Ficha ?? new FichaEspacio();
             List<FranjaEspacio> franjas = ficha.Disponibilidad ?? new List<FranjaEspacio>();
 
-            // CU-001-008: mismas reglas que la pantalla "Disponibilidad del
-            // espacio", la búsqueda y el planificador del detalle. Una franja
-            // abierta de fecha concreta reemplaza el horario semanal de ese
-            // día; los bloqueos (manuales o de actividades) rigen siempre en
-            // su fecha o en su día de la semana.
+
+
+
+
+
             bool estaDisponible = franjas.Exists(franja =>
                 BLL_DisponibilidadEspacio.AbiertaRigeEnFecha(franja, franjas, fecha) &&
                 minutoDesde >= franja.MinutoDesde &&
@@ -199,8 +199,8 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("La franja elegida no está dentro de la disponibilidad informada para esa fecha.");
             }
 
-            // Ítem 27: tampoco puede superponerse con un horario bloqueado
-            // dentro de esa ventana (actividad interna o bloqueo del gestor).
+
+
             bool existeBloqueoSuperpuesto = franjas.Exists(franja =>
                 BLL_DisponibilidadEspacio.BloqueoRigeEnFecha(franja, fecha) &&
                 minutoDesde < franja.MinutoHasta &&
@@ -236,12 +236,12 @@ namespace StageUp.BLL
             return resto == 0 ? texto : texto + " y " + resto + " minutos";
         }
 
-        // Reservas Pendientes o Aceptadas, desde hoy en adelante, para un
-        // espacio puntual. Pensado para que la UI pública (el planificador
-        // de DetalleEspacio) pueda descontar visualmente estos horarios de
-        // la disponibilidad publicada por el gestor (ítems 24/25 del
-        // checklist de correcciones) — reutiliza la misma consulta que ya
-        // usa BLL_Actividad.ExisteConflictoConReservas.
+
+
+
+
+
+
         public List<Reserva> ListarOcupacionVigente(int idEspacioArtistico)
         {
             try
@@ -269,11 +269,11 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // Historial y seguimiento de reservas (ítems 6A y 6D de la segunda
-        // entrega): "Mis reservas" funciona como historial completo, con
-        // filtro por estado, y cada reserva muestra su línea de tiempo.
-        // ------------------------------------------------------------------
+
+
+
+
+
         public const string FiltroTodas = "Todas";
         public const string FiltroPendientes = "Pendientes";
         public const string FiltroPendientesDePago = "PendientesDePago";
@@ -297,8 +297,8 @@ namespace StageUp.BLL
             return filtradas;
         }
 
-        // CU-001-005 A7: también lo usa Solicitudes recibidas para el filtro
-        // por estado del gestor.
+
+
         public static bool CumpleFiltroHistorial(Reserva reserva, string filtro)
         {
             string estado = reserva.EstadoReserva;
@@ -323,12 +323,12 @@ namespace StageUp.BLL
             }
         }
 
-        // Línea de tiempo de una reserva. Los pasos futuros quedan como
-        // "Pendiente"; el paso en el que está la reserva ahora, como "Actual";
-        // un rechazo, una cancelación o un pago vencido cortan la línea con un
-        // paso "Interrumpido". Desde el módulo de pagos (script 49), entre la
-        // aceptación y el día de la reserva está el paso del pago; las
-        // reservas anteriores (estadoPago = NoRequerido) no lo muestran.
+
+
+
+
+
+
         public static List<PasoSeguimientoReserva> ConstruirSeguimiento(Reserva reserva)
         {
             return ConstruirSeguimiento(reserva, false);
@@ -454,7 +454,7 @@ namespace StageUp.BLL
                 return pasos;
             }
 
-            // Finalizada
+
             pasos.Add(Paso("Día de la reserva", momentoReserva, inicioReserva, "Completado"));
             pasos.Add(Paso("Reserva finalizada", null, reserva.FechaFinalizacion, "Completado"));
             pasos.Add(paraGestor
@@ -488,8 +488,8 @@ namespace StageUp.BLL
             }
         }
 
-        // CU-001-005 A8/A9: detalle de una reserva para su solicitante o para
-        // el gestor del espacio; nadie más puede verla.
+
+
         public ResultadoOperacion<Reserva> ObtenerDetalle(int idReserva, int idUsuarioExterno)
         {
             return EjecutarProtegido(() =>
@@ -506,8 +506,8 @@ namespace StageUp.BLL
             });
         }
 
-        // Ítem 36: antes traía todo el historial del gestor solo para contar
-        // las pendientes; ahora lo cuenta la base.
+
+
         public int ContarSolicitudesPendientes(int idUsuarioGestor)
         {
             try
@@ -520,11 +520,11 @@ namespace StageUp.BLL
             }
         }
 
-        // Ítem 36: vencer pagos y finalizar reservas son dos UPDATE sobre toda
-        // la tabla de reservas. Antes corrían en cada carga de Mis reservas y
-        // Solicitudes recibidas; ahora como mucho una vez por minuto por
-        // proceso. (Cancelar y el chequeo periódico de Site.Master los siguen
-        // ejecutando siempre.)
+
+
+
+
+
         private const int SegundosEntreActualizacionesDeEstado = 60;
         private static DateTime _ultimaActualizacionEstados = DateTime.MinValue;
         private static readonly object _lockEstados = new object();
@@ -545,8 +545,8 @@ namespace StageUp.BLL
             _mppReserva.FinalizarVencidas();
         }
 
-        // Para que Site.Master solo encole el chequeo periódico cuando
-        // realmente toca (ver GenerarRecordatorios24hsSiCorresponde).
+
+
         public static bool CorrespondeGenerarRecordatorios()
         {
             lock (_lockRecordatorios)
@@ -556,13 +556,13 @@ namespace StageUp.BLL
             }
         }
 
-        // Ítem 36 del checklist de correcciones: esta versión resuelve la
-        // reputación de TODOS los solicitantes distintos de "solicitudes" en
-        // un puñado fijo de consultas (una por cada dato que hace falta),
-        // en vez de repetir 3 consultas por cada solicitante distinto como
-        // hacía antes (patrón N+1 — con muchas solicitudes de muchos
-        // solicitantes distintos, eso significaba muchísimas idas y vueltas
-        // a la base para una sola pantalla de "Solicitudes recibidas").
+
+
+
+
+
+
+
         private void CompletarReputacionSolicitantes(List<Reserva> solicitudes)
         {
             HashSet<int> idsDistintos = new HashSet<int>();
@@ -677,10 +677,10 @@ namespace StageUp.BLL
                 string comentarioLimpio = string.IsNullOrWhiteSpace(comentarioResolucion) ? null : comentarioResolucion.Trim();
                 reserva.ComentarioResolucion = comentarioLimpio;
 
-                // Módulo de pagos: si la reserva tiene importe, el cliente
-                // tiene HorasLimitePago para pagarla (o hasta que empiece, si
-                // es antes). Si no paga, sp_Reserva_VencerPagosPendientes la
-                // cancela sin cargo.
+
+
+
+
                 bool requierePago = reserva.ImporteEstimado.HasValue && reserva.ImporteEstimado.Value > 0;
                 if (requierePago)
                 {
@@ -695,11 +695,11 @@ namespace StageUp.BLL
                     Reserva actual = _mppReserva.ObtenerPorId(new Reserva { IdReserva = idReserva });
                     if (actual != null && actual.EstadoReserva != EstadoReserva.Pendiente.ToString())
                     {
-                        // A11
+
                         return ResultadoOperacion.Error(MensajeSolicitudYaProcesada(actual));
                     }
 
-                    // A12: la solicitud sigue pendiente.
+
                     return ResultadoOperacion.Error(
                         "No se puede aceptar la solicitud porque el horario ya no está disponible (hay otra reserva aceptada " +
                         "o un bloqueo en ese horario). La solicitud sigue pendiente: podés rechazarla o esperar.");
@@ -752,8 +752,8 @@ namespace StageUp.BLL
                     ? null
                     : comentarioResolucion.Trim();
 
-                // A11: si otra pestaña o el vencimiento la resolvieron mientras
-                // tanto, no se toca.
+
+
                 if (!_mppReserva.Rechazar(reserva))
                 {
                     Reserva actual = _mppReserva.ObtenerPorId(new Reserva { IdReserva = idReserva });
@@ -789,9 +789,9 @@ namespace StageUp.BLL
             return "~/DetalleReserva.aspx?id=" + idReserva.ToString(CultureInfo.InvariantCulture);
         }
 
-        // CU-001-005 A14 a A16: política de cancelación vigente (parámetros
-        // DiasCancelacionSinCargo, DiasCancelacionCargoParcial,
-        // PorcentajeCargoParcial y PorcentajeCargoTotal).
+
+
+
         public PoliticaCancelacion ObtenerPoliticaCancelacion()
         {
             return new PoliticaCancelacion
@@ -812,8 +812,8 @@ namespace StageUp.BLL
                 FormatearPorcentaje(politica.PorcentajeCargoTotal) + ".";
         }
 
-        // Porcentaje del valor que se cobraría si se cancela ahora según la
-        // anticipación (0 si no es una reserva aceptada).
+
+
         public decimal ObtenerPorcentajeCargoCancelacion(Reserva reserva)
         {
             if (reserva == null || reserva.EstadoReserva != EstadoReserva.Aceptada.ToString())
@@ -833,9 +833,9 @@ namespace StageUp.BLL
             return diasRestantes >= politica.DiasCargoParcial ? politica.PorcentajeCargoParcial : politica.PorcentajeCargoTotal;
         }
 
-        // Cargo que correspondería si el cliente cancela ahora (0 si no
-        // corresponde). Con el módulo de pagos, una reserva aceptada que
-        // todavía espera el pago se cancela sin cargo: no se cobró nada.
+
+
+
         public decimal CalcularPenalidadCancelacion(Reserva reserva)
         {
             if (reserva == null
@@ -850,7 +850,7 @@ namespace StageUp.BLL
             return decimal.Round(reserva.ImporteEstimado.Value * porcentaje / 100m, 2);
         }
 
-        // Texto de confirmación antes de cancelar (A13 a A16, paso 2).
+
         public string ObtenerAvisoCancelacion(Reserva reserva)
         {
             if (reserva == null)
@@ -954,7 +954,7 @@ namespace StageUp.BLL
                 string mensaje;
                 if (esPendiente)
                 {
-                    // A13
+
                     mensaje = "Cancelaste la solicitud. No se aplicó ningún cargo.";
                 }
                 else if (estabaPagada && reserva.ImporteEstimado.HasValue && reserva.ImporteEstimado.Value - penalidad <= 0)
@@ -983,8 +983,8 @@ namespace StageUp.BLL
                     (comisionAplicada ? " Se aplicó " + textoCargo + "." : " Sin cargo.") +
                     (estabaPagada ? " Se emitió nota de crédito por el importe pagado." : string.Empty));
 
-                // CU-002-002 A1 y A2: transacción del cargo por cancelación (o
-                // actualización de la transacción de la reserva abonada).
+
+
                 try
                 {
                     new BLL_TransaccionEconomica().RegistrarPorCancelacion(idReserva, resultado.IdNotaDebito);
@@ -995,7 +995,7 @@ namespace StageUp.BLL
 
                 if (resultado.IdNotaDebito.HasValue)
                 {
-                    // Generación del cargo de cancelación (reglas del CU-001-005).
+
                     _bitacora.Registrar(
                         idUsuarioExternoSolicitante, "ALTA", "Comprobante", resultado.IdNotaDebito.Value,
                         "Nota de débito por " + textoCargo + " de la reserva N° " + idReserva +
@@ -1031,9 +1031,9 @@ namespace StageUp.BLL
             });
         }
 
-        // Cancela (sin cargo) las reservas aceptadas que no se pagaron a
-        // tiempo y avisa al cliente y al gestor. Se llama antes de listar o
-        // cancelar reservas y desde el chequeo periódico de Site.Master.
+
+
+
         private void ProcesarPagosVencidos()
         {
             List<Reserva> vencidas;
@@ -1072,18 +1072,18 @@ namespace StageUp.BLL
                 }
                 catch (ErrorAccesoDatosException)
                 {
-                    // La reserva ya quedó cancelada: un aviso que falla no
-                    // tiene que cortar el resto.
+
+
                 }
             }
         }
 
-        // Genera la notificación de "recordatorio 24hs antes" para las
-        // reservas Aceptadas que entraron en esa ventana y todavía no la
-        // tienen. Pensado para dispararse desde Site.Master en cualquier
-        // pageview autenticado (ver comentario del throttle más arriba): la
-        // llamada es barata cuando no corresponde volver a chequear, así que
-        // no hace falta que el llamador se preocupe por eso.
+
+
+
+
+
+
         public void GenerarRecordatorios24hsSiCorresponde()
         {
             lock (_lockRecordatorios)
@@ -1105,7 +1105,7 @@ namespace StageUp.BLL
                 {
                     try
                     {
-                        // CU-001-011 A8: espacio, fecha, franja y datos básicos.
+
                         string momento = reserva.MinutoDesde.HasValue && reserva.MinutoHasta.HasValue
                             ? reserva.FechaSolicitada.Date.ToString("dd/MM/yyyy") + " de " + FormatearHora(reserva.MinutoDesde.Value) +
                               " a " + FormatearHora(reserva.MinutoHasta.Value)
@@ -1119,8 +1119,8 @@ namespace StageUp.BLL
                                 : string.Empty) + ".",
                             UrlDetalle(reserva.IdReserva));
 
-                        // Un solo intento de mail: se marca como enviado igual,
-                        // para no reintentar cada 15 minutos si el SMTP falla.
+
+
                         Reserva reservaRecordatorio = reserva;
                         EnviarCorreoSinBloquear(ObtenerUsuarioParaCorreo(reserva.IdUsuarioExternoSolicitante), u =>
                             _servicioCorreo.EnviarRecordatorioReserva(u.CorreoElectronico, u.Nombre, reservaRecordatorio));
@@ -1129,9 +1129,9 @@ namespace StageUp.BLL
                     }
                     catch (ErrorAccesoDatosException)
                     {
-                        // Si falla un recordatorio puntual seguimos con el resto;
-                        // como no se marcó como enviado, se reintenta solo en la
-                        // próxima corrida.
+
+
+
                     }
                 }
 
@@ -1139,16 +1139,16 @@ namespace StageUp.BLL
             }
             catch (ErrorAccesoDatosException)
             {
-                // Nadie está mirando esto en vivo (se dispara de fondo desde
-                // Site.Master): si falla, no tiene que romper la página que
-                // lo disparó.
+
+
+
             }
         }
 
-        // Ítem 5A: mail de "reserva finalizada" (invitación a calificar). La
-        // finalización la hace sp_Reserva_FinalizarVencidas en bloque, así que
-        // se buscan las finalizadas todavía sin aviso (script 42). Un solo
-        // intento por reserva, igual que el recordatorio.
+
+
+
+
         private void EnviarAvisosDeReservasFinalizadas()
         {
             _mppReserva.FinalizarVencidas();
@@ -1165,14 +1165,14 @@ namespace StageUp.BLL
                 }
                 catch (ErrorAccesoDatosException)
                 {
-                    // Se reintenta en la próxima corrida.
+
                 }
             }
         }
 
-        // Los mails de reserva nunca hacen fallar la operación: la reserva ya
-        // quedó guardada y notificada en StageUp (campanita), que es lo que
-        // importa. Mismo criterio que BLL_Ticket con la respuesta de soporte.
+
+
+
         private UsuarioExterno ObtenerUsuarioParaCorreo(int idUsuarioExterno)
         {
             try
@@ -1198,7 +1198,7 @@ namespace StageUp.BLL
             }
             catch (Exception)
             {
-                // Un mail que no sale no debe romper la operación.
+
             }
         }
 

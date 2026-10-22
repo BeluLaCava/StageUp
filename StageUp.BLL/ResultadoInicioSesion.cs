@@ -1,10 +1,10 @@
 namespace StageUp.BLL
 {
-    // Resultado de BLL_Autenticacion.IniciarSesion (ítems 28/29 del checklist
-    // de correcciones): además de Exitoso/Mensaje (heredados de
-    // ResultadoOperacion), indica si la sesión que se abrió fue externa o
-    // interna, para que la pantalla unificada de login sepa a dónde
-    // redirigir.
+
+
+
+
+
     public class ResultadoInicioSesion : ResultadoOperacion
     {
         public bool EsInterno { get; private set; }

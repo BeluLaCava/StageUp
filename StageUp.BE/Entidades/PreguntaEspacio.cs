@@ -2,8 +2,8 @@ using System;
 
 namespace StageUp.BE.Entidades
 {
-    // Ítem 1 del profesor: pregunta pública sobre un espacio y su respuesta
-    // (estilo Mercado Libre). Ver Database/71_PreguntasEspacio.sql.
+
+
     public class PreguntaEspacio
     {
         public const string EstadoPendiente = "Pendiente";
@@ -36,7 +36,7 @@ namespace StageUp.BE.Entidades
             get { return Estado == EstadoPendiente; }
         }
 
-        // Lo que se muestra públicamente: nombre e inicial del apellido.
+
         public string NombreAutorPublico
         {
             get
@@ -48,7 +48,7 @@ namespace StageUp.BE.Entidades
         }
     }
 
-    // Preguntas públicas de un espacio (las últimas y la cantidad total).
+
     public class PreguntasDeEspacio
     {
         public System.Collections.Generic.List<PreguntaEspacio> Preguntas { get; set; } = new System.Collections.Generic.List<PreguntaEspacio>();

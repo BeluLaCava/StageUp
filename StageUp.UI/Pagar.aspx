@@ -82,7 +82,7 @@
                 </div>
 
                 <div class="auth-card">
-                    <%-- Ítem 7: elección explícita de cómo pagar. --%>
+
                     <asp:Panel ID="pnlSaldo" runat="server" CssClass="pago-saldo" Visible="false">
                         <strong>¿Cómo querés pagar?</strong>
                         <p class="pago-seguro">Tenés <asp:Literal ID="litSaldoDisponible" runat="server" /> de saldo a favor. Podés usarlo o no: la elección es tuya.</p>
@@ -110,7 +110,7 @@
 
                     <asp:Panel ID="pnlTarjeta" runat="server">
                         <h2>Tarjeta de crédito</h2>
-                        <%-- Ítem 8: tarjetas de la billetera (solo se pide el código). --%>
+
                         <asp:Panel ID="pnlElegirTarjeta" runat="server" Visible="false" CssClass="pago-billetera">
                             <div class="form-field">
                                 <label for="<%= ddlTarjetaGuardada.ClientID %>">¿Con qué tarjeta pagás?</label>

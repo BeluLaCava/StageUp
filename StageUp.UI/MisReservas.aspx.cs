@@ -100,7 +100,7 @@ namespace StageUp.UI
                     "if (!StageUpConfirm.confirmPostback(this, event, '" + EscaparConfirmacion(_bllReserva.ObtenerAvisoCancelacion(reserva)) + "')) return false;";
             }
 
-            // Módulo de pagos: estado del pago y botón para pagar.
+
             HyperLink lnkPagar = (HyperLink)e.Item.FindControl("lnkPagar");
             bool esperaPago = BLL_Pago.EsperaPago(reserva);
             lnkPagar.Visible = esperaPago;
@@ -237,7 +237,7 @@ namespace StageUp.UI
             rptMisReservas.DataBind();
         }
 
-        // Mensajería privada por reserva: mensajes sin leer de cada reserva.
+
         private Dictionary<int, int> _mensajesNoLeidos = new Dictionary<int, int>();
 
         protected string EtiquetaMensajesNoLeidos(int idReserva)

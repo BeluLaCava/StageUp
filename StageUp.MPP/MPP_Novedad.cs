@@ -9,8 +9,8 @@ namespace StageUp.MPP
 {
     public class MPP_Novedad
     {
-        // Panel de administración: todas menos las dadas de baja, o solo las
-        // de un estado (Borrador, Programada, Vigente, Vencida, DadaDeBaja).
+
+
         public List<Novedad> Listar(string estado = null)
         {
             return Mapear(Conexion.Instance.Leer(
@@ -18,8 +18,8 @@ namespace StageUp.MPP
                 new Hashtable { { "@estado", (object)estado ?? DBNull.Value } }));
         }
 
-        // Solo las vigentes, para la página pública de novedades
-        // (StageUp.UI/Novedades.aspx).
+
+
         public List<Novedad> ListarPublicadas()
         {
             return Mapear(Conexion.Instance.Leer("sp_Novedad_ListarPublicadas"));

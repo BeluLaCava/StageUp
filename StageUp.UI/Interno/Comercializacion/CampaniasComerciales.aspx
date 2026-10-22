@@ -16,7 +16,7 @@
                 <asp:Literal ID="litMensaje" runat="server" Mode="Encode" />
             </asp:Panel>
 
-            <%-- CU-004-001 pasos 2 a 7, A2, A3 y A4. --%>
+
             <asp:Panel ID="pnlListado" runat="server" Visible="false">
                 <div class="comercial-resumen" aria-label="Resumen de campañas">
                     <a href="CampaniasComerciales.aspx"><span>En gestión</span><strong><asp:Literal ID="litActivas" runat="server" /></strong></a>
@@ -76,12 +76,12 @@
                         </div>
                     </asp:Panel>
 
-                    <%-- A2 --%>
+
                     <asp:Panel ID="pnlSinCampanias" runat="server" Visible="false" CssClass="empty-state compact-empty-state">
                         <h3>No hay campañas comerciales cargadas</h3>
                         <p>Registrá la primera con "Agregar campaña".</p>
                     </asp:Panel>
-                    <%-- A4 --%>
+
                     <asp:Panel ID="pnlSinResultados" runat="server" Visible="false" CssClass="empty-state compact-empty-state">
                         <h3>No se encontraron campañas para los criterios seleccionados</h3>
                         <p>Modificá los filtros o limpialos para volver al listado general.</p>
@@ -113,7 +113,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- A5, A7, A8 y A9 --%>
+
             <asp:Panel ID="pnlDetalle" runat="server" Visible="false">
                 <div class="auth-card admin-editor-card">
                     <div class="auth-card-header comercial-detalle-cabecera">
@@ -172,7 +172,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- Pasos 8 a 26 (alta) y A6 (edición), con A10 a A17 --%>
+
             <asp:Panel ID="pnlFormulario" runat="server" Visible="false" DefaultButton="btnGuardar">
                 <div class="auth-card admin-editor-card">
                     <div class="auth-card-header">
@@ -249,7 +249,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- Orígenes de usuario (canales de captación que usan las métricas de CU-004-004) --%>
+
             <asp:Panel ID="pnlOrigenes" runat="server" Visible="false">
                 <div class="auth-card admin-list-card">
                     <div class="auth-card-header comercial-toolbar">

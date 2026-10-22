@@ -8,16 +8,16 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-004-002 Gestionar contactos comerciales.
-    //   * Alta, consulta y modificación de contactos (no se borran: el
-    //     historial de seguimiento se conserva).
-    //   * Seguimiento (A7) y cambio de estado comercial (A8), que siempre
-    //     deja un registro con el estado anterior y el nuevo.
-    //   * Incorporado (A9): se puede asociar con la cuenta de StageUp; el
-    //     contacto queda como antecedente comercial y la cuenta toma su
-    //     origen si no tenía uno.
-    //   * Detección de duplicados (A13) por correo, teléfono o nombre y
-    //     entidad.
+
+
+
+
+
+
+
+
+
+
     public class BLL_ContactoComercial
     {
         public const string PermisoGestionar = "GESTIONAR_CONTACTOS_COMERCIALES";
@@ -56,7 +56,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Id del contacto ya registrado que informa un error A13 (o null).
+
         public static int? IdDuplicado(ResultadoOperacion resultado)
         {
             int id;
@@ -122,7 +122,7 @@ namespace StageUp.BLL
             }
         }
 
-        // A9: cuenta de StageUp por correo.
+
         public ResultadoOperacion<CuentaParaVincular> BuscarCuenta(string correo)
         {
             string normalizado = (correo ?? string.Empty).Trim().ToLowerInvariant();
@@ -144,7 +144,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Pasos 9 a 28 (alta) y A6/A8/A9/A10 a A12 (modificación), con A13 a A19.
+
         public ResultadoOperacion<int> Guardar(ContactoComercial contacto, int idUsuarioInternoResponsable)
         {
             if (contacto == null)
@@ -155,7 +155,7 @@ namespace StageUp.BLL
             bool esAlta = contacto.IdContactoComercial <= 0;
             Normalizar(contacto);
 
-            // A14: obligatorios.
+
             List<string> faltantes = new List<string>();
             if (contacto.NombreContacto == null) faltantes.Add("nombre del contacto");
             if (string.IsNullOrEmpty(contacto.TipoEntidad)) faltantes.Add("tipo de entidad");
@@ -175,7 +175,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("Algún dato supera el largo permitido (nombre y apellido 150, entidad 200, otro dato 300, observaciones 2000 caracteres).", "A14");
             }
 
-            // A15: tipo de entidad.
+
             if (!_catalogos.EsValido(ItemCatalogoComercial.TipoEntidad, contacto.TipoEntidad))
             {
                 return ResultadoOperacion<int>.Error("Seleccioná el tipo de entidad para clasificar el contacto comercial.", "A15");
@@ -186,14 +186,14 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("Seleccioná un medio de contacto válido.", "A16");
             }
 
-            // A16: datos de contacto suficientes para el medio elegido.
+
             string errorDatos = ValidarDatosDeContacto(contacto);
             if (errorDatos != null)
             {
                 return ResultadoOperacion<int>.Error(errorDatos, "A16");
             }
 
-            // A17: estado.
+
             if (!Estados.ContainsKey(contacto.EstadoContacto))
             {
                 return ResultadoOperacion<int>.Error("Seleccioná un estado comercial válido (pendiente, contactado, interesado, rechazado o incorporado a la plataforma).", "A17");
@@ -214,7 +214,7 @@ namespace StageUp.BLL
                 }
             }
 
-            // A13: posible duplicado.
+
             try
             {
                 PosibleContactoDuplicado duplicado = _mpp.BuscarDuplicado(contacto);
@@ -263,7 +263,7 @@ namespace StageUp.BLL
                 : "El contacto comercial fue actualizado correctamente.");
         }
 
-        // A7 (y A8 cuando se indica un nuevo estado).
+
         public ResultadoOperacion RegistrarSeguimiento(SeguimientoContacto seguimiento, string fechaTexto, string fechaProximaTexto, int idUsuarioInternoResponsable)
         {
             if (seguimiento == null)
@@ -286,7 +286,7 @@ namespace StageUp.BLL
                 seguimiento.EstadoResultante = null;
             }
 
-            // A14: información mínima.
+
             List<string> faltantes = new List<string>();
             if (string.IsNullOrWhiteSpace(fechaTexto)) faltantes.Add("fecha de interacción");
             if (string.IsNullOrEmpty(seguimiento.TipoSeguimiento)) faltantes.Add("tipo de interacción");
@@ -333,7 +333,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("La observación admite hasta 2000 caracteres y la respuesta, el interés y la acción pendiente hasta 1000.", "A14");
             }
 
-            // A17.
+
             if (seguimiento.EstadoResultante != null && !Estados.ContainsKey(seguimiento.EstadoResultante))
             {
                 return ResultadoOperacion.Error("Seleccioná un estado comercial válido.", "A17");
@@ -434,8 +434,8 @@ namespace StageUp.BLL
             contacto.TelefonoNormalizado = digitos.Length == 0 ? null : (digitos.Length > 20 ? digitos.Substring(0, 20) : digitos);
         }
 
-        // A16: el medio elegido tiene que tener un dato con el que se pueda
-        // usar; además, lo que se cargue tiene que ser válido.
+
+
         private static string ValidarDatosDeContacto(ContactoComercial contacto)
         {
             bool correoValido = contacto.CorreoElectronico != null && contacto.CorreoElectronico.Length <= 254 && PatronCorreo.IsMatch(contacto.CorreoElectronico);

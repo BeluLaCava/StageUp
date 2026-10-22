@@ -8,9 +8,9 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // CU-001-007: revisión de las solicitudes de habilitación como gestor. Se
-    // ven todos los datos de la solicitud; para rechazar hay que escribir el
-    // motivo, que el usuario ve en "Ofrecer espacio".
+
+
+
     public partial class AprobacionGestores : Page
     {
         private readonly BLL_SolicitudHabilitacionGestor _bllSolicitud = new BLL_SolicitudHabilitacionGestor();

@@ -10,13 +10,13 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    // CU-001-005: "Detalle de reserva" (A8) para el solicitante y para el
-    // gestor del espacio, con las acciones que corresponden según el estado y
-    // la participación del usuario: cancelar (A13 a A16), aceptar o rechazar
-    // (A9 a A12), pagar, calificar y contactar soporte. Cada acción pide una
-    // confirmación antes de ejecutarse.
-    // También muestra los mensajes privados de la reserva entre el
-    // solicitante y el gestor (BLL_MensajeReserva).
+
+
+
+
+
+
+
     public partial class DetalleReserva : Page
     {
         private const string AccionCancelar = "Cancelar";
@@ -26,7 +26,7 @@ namespace StageUp.UI
         private readonly BLL_Reserva _bllReserva = new BLL_Reserva();
         private readonly BLL_MensajeReserva _bllMensajes = new BLL_MensajeReserva();
 
-        // Para pintar los mensajes: quién mira y cuáles no había leído todavía.
+
         private int _idUsuarioActual;
         private bool _actualEsSolicitante;
         private HashSet<int> _mensajesNuevos = new HashSet<int>();
@@ -69,7 +69,7 @@ namespace StageUp.UI
             ResultadoOperacion<int> resultado = _bllMensajes.Enviar(IdReserva, GestorDeSesion.ObtenerIdUsuarioActual().Value, txtMensaje.Text);
             if (resultado.Exitoso)
             {
-                // Se vuelve a pedir la página para que actualizar no reenvíe el mensaje.
+
                 Response.Redirect("~/DetalleReserva.aspx?id=" + IdReserva.ToString(CultureInfo.InvariantCulture) + "&enviado=1", false);
                 Context.ApplicationInstance.CompleteRequest();
                 return;
@@ -137,8 +137,8 @@ namespace StageUp.UI
             hfAccion.Value = string.Empty;
             txtComentarioGestor.Text = string.Empty;
 
-            // Con éxito o sin él (A11, A12), se vuelve a mostrar el detalle con
-            // la información actualizada.
+
+
             Cargar();
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
         }
@@ -268,7 +268,7 @@ namespace StageUp.UI
             lnkPagar.Visible = esSolicitante && BLL_Pago.EsperaPago(reserva);
             lnkPagar.NavigateUrl = "~/Pagar.aspx?reserva=" + reserva.IdReserva.ToString(CultureInfo.InvariantCulture);
 
-            // CU-002-001: el detalle del pago y su factura simulada.
+
             lnkVerPago.Visible = (esSolicitante || esGestor) &&
                 (reserva.EstadoPago == BLL_Pago.EstadoPagado || reserva.EstadoPago == BLL_Pago.EstadoDevuelto);
             lnkVerPago.NavigateUrl = "~/DetallePago.aspx?reserva=" + reserva.IdReserva.ToString(CultureInfo.InvariantCulture);
@@ -305,9 +305,9 @@ namespace StageUp.UI
             pnlSinAcciones.Visible = !hayAcciones;
         }
 
-        // Mensajería privada de la reserva: se listan los mensajes, se marcan
-        // como nuevos los que el usuario no había leído y después se marcan
-        // como leídos.
+
+
+
         private void CargarMensajes(Reserva reserva, int idUsuario, bool esSolicitante)
         {
             _idUsuarioActual = idUsuario;
@@ -333,8 +333,8 @@ namespace StageUp.UI
 
             if (_mensajesNuevos.Count > 0)
             {
-                // Solo los que se mostraron: si llega otro mientras tanto,
-                // queda sin leer.
+
+
                 _bllMensajes.MarcarLeidos(reserva, idUsuario, _mensajesNuevos);
             }
 

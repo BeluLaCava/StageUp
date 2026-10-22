@@ -18,7 +18,7 @@ namespace StageUp.UI
         private readonly BLL_Actividad _bllActividad = new BLL_Actividad();
         private readonly BLL_Participante _bllParticipante = new BLL_Participante();
 
-        // Misma convención que FranjaEspacio.DiaSemana / BLL_Reserva: 1 = lunes ... 7 = domingo.
+
         private static readonly Dictionary<string, int> DiaCodigoANumero = new Dictionary<string, int>
         {
             { "Lun", 1 }, { "Mar", 2 }, { "Mié", 3 }, { "Jue", 4 }, { "Vie", 5 }, { "Sáb", 6 }, { "Dom", 7 }
@@ -47,8 +47,8 @@ namespace StageUp.UI
 
             string perfil = GestorDeSesion.ObtenerPerfilActual();
 
-            // CU-001-007 (A1, A3 a A6): quien todavía no es gestor pide la
-            // habilitación o consulta su estado en "Ofrecer espacio".
+
+
             if (perfil != PerfilUsuarioExterno.GestorEspacios.ToString())
             {
                 Response.Redirect("~/OfrecerEspacio.aspx", false);
@@ -63,7 +63,7 @@ namespace StageUp.UI
             {
                 CargarFiltroEspacios();
 
-                // CU-001-009 paso 7: llegada desde el detalle del espacio.
+
                 int idEspacio;
                 if (int.TryParse(Request.QueryString["espacio"], NumberStyles.Integer, CultureInfo.InvariantCulture, out idEspacio) &&
                     ddlFiltroEspacio.Items.FindByValue(idEspacio.ToString(CultureInfo.InvariantCulture)) != null)
@@ -136,7 +136,7 @@ namespace StageUp.UI
         {
             pnlFormularioActividad.Visible = false;
 
-            // Al cancelar una edición se vuelve al detalle (A7).
+
             if (IdActividadEnEdicion.HasValue)
             {
                 int id = IdActividadEnEdicion.Value;
@@ -208,7 +208,7 @@ namespace StageUp.UI
             ResultadoOperacion<int> resultado = _bllActividad.Guardar(actividad, idUsuarioGestor, idsParticipantes);
             if (!resultado.Exitoso)
             {
-                // A2 a A5 / A8: el formulario queda con lo cargado.
+
                 MostrarMensaje(resultado.Mensaje, esError: true);
                 CargarSugerenciasParticipantes();
                 pnlFormularioActividad.Visible = true;
@@ -221,7 +221,7 @@ namespace StageUp.UI
             CargarPantallaGestor();
             MostrarMensaje(resultado.Mensaje, esError: false);
 
-            // A7 paso 9: después de editar se vuelve a mostrar el detalle.
+
             if (eraEdicion)
             {
                 MostrarDetalle(resultado.Valor);
@@ -244,7 +244,7 @@ namespace StageUp.UI
             }
             else if (e.CommandName == "Baja")
             {
-                // A9 paso 2: la baja se confirma desde el detalle.
+
                 if (MostrarDetalle(idActividad))
                 {
                     pnlConfirmarBajaActividad.Visible = true;
@@ -252,9 +252,9 @@ namespace StageUp.UI
             }
         }
 
-        // ------------------------------------------------------------------
-        // A6: detalle de la actividad
-        // ------------------------------------------------------------------
+
+
+
         private bool MostrarDetalle(int idActividad)
         {
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
@@ -310,7 +310,7 @@ namespace StageUp.UI
             pnlConfirmarDesvincularActividad.Visible = false;
             pnlDetalleParticipante.Visible = false;
 
-            // CU-001-010 pasos 13 y 14 y A7: agregar o asociar participantes.
+
             pnlParticipantesActividad.Visible = actividad.Activa;
             if (actividad.Activa)
             {
@@ -356,7 +356,7 @@ namespace StageUp.UI
             }
         }
 
-        // A11: se cancela la baja y se vuelve al detalle.
+
         protected void lnkCancelarBajaActividad_Click(object sender, EventArgs e)
         {
             if (IdActividadEnDetalle.HasValue)
@@ -377,22 +377,22 @@ namespace StageUp.UI
             ResultadoOperacion resultado = _bllActividad.DarDeBaja(idActividad, idUsuarioGestor);
             if (!resultado.Exitoso)
             {
-                // A10: la actividad mantiene su estado y se vuelve al detalle.
+
                 MostrarDetalle(idActividad);
                 MostrarMensajeDetalle(resultado.Mensaje, true);
                 return;
             }
 
-            // A9 pasos 9 y 10.
+
             pnlDetalleActividad.Visible = false;
             IdActividadEnDetalle = null;
             CargarPantallaGestor();
             MostrarMensaje(resultado.Mensaje, esError: false);
         }
 
-        // ------------------------------------------------------------------
-        // A7: edición con los datos actuales
-        // ------------------------------------------------------------------
+
+
+
         private void AbrirEdicion(int idActividad)
         {
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
@@ -453,9 +453,9 @@ namespace StageUp.UI
             pnlFormularioActividad.Visible = true;
         }
 
-        // ------------------------------------------------------------------
-        // CU-001-010: participantes
-        // ------------------------------------------------------------------
+
+
+
         private int? IdParticipanteEnEdicion
         {
             get { return ViewState["IdParticipanteEnEdicion"] as int?; }
@@ -468,22 +468,22 @@ namespace StageUp.UI
             set { ViewState["IdParticipanteEnDetalle"] = value; }
         }
 
-        // Actividad desde cuyo detalle se abrió el formulario (paso 14): al
-        // guardar se asocia y se vuelve a ese detalle (pasos 20 a 24).
+
+
         private int? IdActividadOrigenParticipante
         {
             get { return ViewState["IdActividadOrigenParticipante"] as int?; }
             set { ViewState["IdActividadOrigenParticipante"] = value; }
         }
 
-        // A5: participante activo con el mismo DNI.
+
         private int? IdParticipanteExistente
         {
             get { return ViewState["IdParticipanteExistente"] as int?; }
             set { ViewState["IdParticipanteExistente"] = value; }
         }
 
-        // A13: qué se desvincula y desde dónde se pidió.
+
         private int? IdActividadDesvincular
         {
             get { return ViewState["IdActividadDesvincular"] as int?; }
@@ -518,7 +518,7 @@ namespace StageUp.UI
             AbrirFormularioParticipante(null);
         }
 
-        // Paso 14: "Agregar participante" desde el detalle de la actividad.
+
         protected void btnAgregarParticipanteActividad_Click(object sender, EventArgs e)
         {
             if (IdActividadEnDetalle.HasValue)
@@ -581,8 +581,8 @@ namespace StageUp.UI
         {
             pnlFormularioParticipante.Visible = false;
 
-            // A11: al cancelar la edición se vuelve al detalle del participante;
-            // si se abrió desde una actividad, al detalle de la actividad.
+
+
             if (IdParticipanteEnEdicion.HasValue)
             {
                 int id = IdParticipanteEnEdicion.Value;
@@ -624,7 +624,7 @@ namespace StageUp.UI
             ResultadoOperacion<int> resultado = _bllParticipante.Guardar(participante, idUsuarioGestor);
             if (!resultado.Exitoso)
             {
-                // A3, A4, A12 o A5. En A5 se ofrece asociar el existente.
+
                 MostrarMensajeFormularioParticipante(resultado.Mensaje);
                 if (!esEdicion && resultado.CodigoAlternativo == "A5")
                 {
@@ -640,7 +640,7 @@ namespace StageUp.UI
 
             if (esEdicion)
             {
-                // A11 pasos 7 y 8.
+
                 CargarPantallaGestor();
                 MostrarDetalleParticipante(resultado.Valor);
                 MostrarMensajeParticipante(resultado.Mensaje, false);
@@ -652,8 +652,8 @@ namespace StageUp.UI
             int idActividad = ConvertirEntero(ddlActividadParticipante.SelectedValue);
             if (idActividad > 0)
             {
-                // Pasos 20 y 21 / A6: si la actividad está completa, el
-                // participante queda registrado pero sin asociar.
+
+
                 ResultadoOperacion asociacion = _bllActividad.AsociarParticipante(idActividad, resultado.Valor, idUsuarioGestor);
                 mensaje = asociacion.Exitoso
                     ? "El participante fue registrado y asociado correctamente a la actividad."
@@ -666,7 +666,7 @@ namespace StageUp.UI
             IdActividadOrigenParticipante = null;
             if (origen.HasValue || idActividad > 0)
             {
-                // Paso 24.
+
                 MostrarDetalle(origen ?? idActividad);
                 MostrarMensajeDetalle(mensaje, advertencia);
             }
@@ -693,7 +693,7 @@ namespace StageUp.UI
             pnlParticipanteExistente.Visible = true;
         }
 
-        // A5 paso 4: se asocia el existente (continúa en el paso 20).
+
         protected void btnAsociarExistenteFormulario_Click(object sender, EventArgs e)
         {
             int idActividad = ConvertirEntero(ddlActividadParticipante.SelectedValue);
@@ -713,7 +713,7 @@ namespace StageUp.UI
             MostrarMensajeDetalle(resultado.Mensaje, !resultado.Exitoso);
         }
 
-        // A5 paso 5: no se registra un participante nuevo.
+
         protected void lnkNoAsociarExistente_Click(object sender, EventArgs e)
         {
             IdParticipanteExistente = null;
@@ -748,7 +748,7 @@ namespace StageUp.UI
             CargarPantallaGestor();
         }
 
-        // A10: detalle del participante.
+
         private bool MostrarDetalleParticipante(int idParticipante)
         {
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
@@ -844,7 +844,7 @@ namespace StageUp.UI
             }
         }
 
-        // A14 pasos 3 a 7.
+
         protected void btnConfirmarBajaParticipante_Click(object sender, EventArgs e)
         {
             if (!IdParticipanteEnDetalle.HasValue)
@@ -860,7 +860,7 @@ namespace StageUp.UI
             MostrarMensajeParticipante(resultado.Mensaje, !resultado.Exitoso);
         }
 
-        // A7: asociar un participante existente desde el detalle de la actividad.
+
         protected void btnAsociarExistente_Click(object sender, EventArgs e)
         {
             if (!IdActividadEnDetalle.HasValue)
@@ -910,7 +910,7 @@ namespace StageUp.UI
             }
         }
 
-        // A13 paso 2.
+
         private void PedirConfirmacionDesvincular(int idActividad, int idParticipante, string origen)
         {
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
@@ -938,7 +938,7 @@ namespace StageUp.UI
             }
         }
 
-        // A13 pasos 3 a 7: se vuelve al detalle de la actividad.
+
         protected void btnConfirmarDesvincular_Click(object sender, EventArgs e)
         {
             if (!IdActividadDesvincular.HasValue || !IdParticipanteDesvincular.HasValue)
@@ -955,7 +955,7 @@ namespace StageUp.UI
             MostrarMensajeDetalle(resultado.Mensaje, !resultado.Exitoso);
         }
 
-        // Si se cancela, no hay cambios y se vuelve a donde estaba.
+
         protected void lnkCancelarDesvincular_Click(object sender, EventArgs e)
         {
             string origen = OrigenDesvincular;
@@ -1008,8 +1008,8 @@ namespace StageUp.UI
             pnlActividades.Visible = espacios.Count > 0;
             lnkNuevaActividad.Visible = espacios.Count > 0;
 
-            // Paso 9: el listado aplica los filtros en la consulta. Si son los
-            // de siempre (activas de todos los espacios) se reusa la lista.
+
+
             string estado = ddlFiltroEstado.SelectedValue;
             int idEspacioFiltro;
             int? espacioFiltro = int.TryParse(ddlFiltroEspacio.SelectedValue, out idEspacioFiltro) ? idEspacioFiltro : (int?)null;
@@ -1085,7 +1085,7 @@ namespace StageUp.UI
                     actividad.Nombre + " (" + actividad.NombreEspacio + ")", actividad.IdActividad.ToString(CultureInfo.InvariantCulture)));
             }
 
-            // A2: sin actividades internas no hay a qué asociarlo todavía.
+
             litSinActividadesParticipante.Visible = actividades.Count == 0;
         }
 
@@ -1215,8 +1215,8 @@ namespace StageUp.UI
             }
         }
 
-        // -1 si está vacío o no es una hora válida (la BLL lo informa como
-        // dato faltante). Como fin, 00:00 es el cierre del día.
+
+
         private static int ConvertirHoraAMinutos(string hora, bool esFin)
         {
             int minutos;

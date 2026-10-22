@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Pagos con tarjeta y saldo a favor (ítems 5B y 5D, script 49).
+
     public class MPP_Pago
     {
         public ResultadoMovimientoDinero RegistrarPagoReserva(Pago oPago)
@@ -33,8 +33,8 @@ namespace StageUp.MPP
                 }), "idPago");
         }
 
-        // CU-002-001: aviso del medio externo que no confirma el pago
-        // (pendiente, rechazado, cancelado, observado o no asociado).
+
+
         public int RegistrarAviso(Pago oPago, int? idUsuarioInternoRegistro)
         {
             object id = Conexion.Instance.LeerEscalar(
@@ -57,8 +57,8 @@ namespace StageUp.MPP
             return Convert.ToInt32(id);
         }
 
-        // Pagos ya registrados con ese identificador del medio de pago
-        // (primero el aprobado, después el pendiente).
+
+
         public List<Pago> BuscarPorIdentificador(Pago oPago)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -85,7 +85,7 @@ namespace StageUp.MPP
             return id == null || id == DBNull.Value ? (int?)null : Convert.ToInt32(id);
         }
 
-        // CU-002-001 A6: listado de "Pagos de reservas".
+
         public List<ItemPagoReserva> ListarAdministracion(FiltroPagosReserva oFiltro)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -129,8 +129,8 @@ namespace StageUp.MPP
             return total == null || total == DBNull.Value ? 0 : Convert.ToInt32(total);
         }
 
-        // CU-002-001 A6 paso 10. Con idPago, el pago; sin idPago, la reserva
-        // que espera el pago (o que venció sin pagarse).
+
+
         public DetallePagoReserva ObtenerDetalle(Pago oPago)
         {
             DataTable tabla = Conexion.Instance.Leer(

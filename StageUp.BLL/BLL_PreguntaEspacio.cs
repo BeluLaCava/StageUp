@@ -9,17 +9,17 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // Ítem 1 del profesor: preguntas y respuestas públicas sobre los espacios
-    // (estilo Mercado Libre).
-    //   * Cualquier visitante ve las preguntas y respuestas del espacio.
-    //   * Para preguntar hay que iniciar sesión; el gestor no pregunta en su
-    //     propio espacio.
-    //   * Solo el gestor dueño del espacio responde; se le avisa de cada
-    //     pregunta nueva y a quien preguntó se le avisa cuando le responden.
-    //   * Moderación: el gestor puede ocultar una pregunta indicando el
-    //     motivo; quien preguntó puede retirarla mientras siga sin respuesta.
-    //     Nada se borra (baja lógica).
-    //   * Como todo queda público, no se aceptan correos, teléfonos ni enlaces.
+
+
+
+
+
+
+
+
+
+
+
     public class BLL_PreguntaEspacio
     {
         public const int LongitudMinimaPregunta = 10;
@@ -43,9 +43,9 @@ namespace StageUp.BLL
         private readonly BLL_Notificacion _bllNotificacion = new BLL_Notificacion();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
-        // ------------------------------------------------------------------
-        // Detalle público del espacio
-        // ------------------------------------------------------------------
+
+
+
 
         public ResultadoOperacion<PreguntasDeEspacio> ListarPublicas(int idEspacioArtistico, bool todas)
         {
@@ -125,7 +125,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Quien preguntó la retira mientras siga sin respuesta.
+
         public ResultadoOperacion Retirar(int idPreguntaEspacio, int idUsuarioExterno)
         {
             try
@@ -158,9 +158,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // Gestor del espacio
-        // ------------------------------------------------------------------
+
+
+
 
         public ResultadoOperacion Responder(int idPreguntaEspacio, int idUsuarioGestor, string texto)
         {
@@ -207,7 +207,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Moderación: el gestor oculta una pregunta indicando el motivo.
+
         public ResultadoOperacion Ocultar(int idPreguntaEspacio, int idUsuarioGestor, string motivo)
         {
             string motivoLimpio = Limpiar(motivo);
@@ -285,9 +285,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // Auxiliares
-        // ------------------------------------------------------------------
+
+
+
 
         private static ResultadoOperacion ValidarTexto(string texto, int minimo, int maximo, string nombre)
         {

@@ -4,10 +4,10 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    // Aviso cuando la base se restauró y no se pudo comprobar la cuenta de la
-    // sesión (Global.asax suspende la sesión en ese pedido y trae acá a las
-    // páginas). "Volver a intentar" vuelve a la página pedida, que hace una
-    // verificación nueva.
+
+
+
+
     public partial class SesionNoVerificada : Page
     {
         protected void Page_Load(object sender, EventArgs e)

@@ -9,10 +9,10 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Interno.Comercializacion
 {
-    // CU-004-005: descarga del archivo de una pieza promocional, solo para
-    // usuarios internos con el permiso. ?id={id} descarga; &ver=1 muestra
-    // una imagen en el navegador (vista previa del detalle). En cada pedido
-    // se revalida la cuenta y el permiso contra la base.
+
+
+
+
     public class DescargarContenido : IHttpHandler, IRequiresSessionState
     {
         public bool IsReusable
@@ -22,8 +22,8 @@ namespace StageUp.UI.Interno.Comercializacion
 
         public void ProcessRequest(HttpContext context)
         {
-            // Al pedir el archivo directamente no pasa por el panel: se vuelve a
-            // leer la cuenta (activa, misma identidad) y sus permisos actuales.
+
+
             int? idUsuarioInterno = GestorDeSesion.ObtenerIdUsuarioInternoActual();
             if (!idUsuarioInterno.HasValue)
             {
@@ -39,7 +39,7 @@ namespace StageUp.UI.Interno.Comercializacion
             }
             catch (Exception)
             {
-                // Sin poder comprobar la cuenta no se entrega el archivo.
+
                 context.Response.StatusCode = 503;
                 return;
             }

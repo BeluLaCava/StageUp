@@ -21,7 +21,7 @@
                     </div>
                 </div>
 
-                <%-- Paso 6 y A4: filtros opcionales (sin filtros se ve el listado general, A3). --%>
+
                 <asp:Panel ID="pnlFiltros" runat="server" CssClass="internal-filter-row" DefaultButton="btnFiltrar" role="search">
                     <div class="form-field">
                         <label for="<%= txtDesde.ClientID %>">Desde</label>
@@ -53,12 +53,12 @@
                     </div>
                 </asp:Panel>
 
-                <%-- A2: no hay ninguna operación registrada. --%>
+
                 <asp:Panel ID="pnlSinOperaciones" runat="server" Visible="false" CssClass="empty-state compact-empty-state">
                     <h3>No hay información financiera disponible para consultar</h3>
                     <p>Las operaciones aparecen cuando se acepta y se paga una reserva, se cobra un cargo por cancelación, se liquida a un gestor o se emite una nota manual.</p>
                 </asp:Panel>
-                <%-- A5: hay operaciones pero ninguna cumple con los filtros. --%>
+
                 <asp:Panel ID="pnlSinResultados" runat="server" Visible="false" CssClass="empty-state compact-empty-state">
                     <h3>No se encontraron resultados para los filtros aplicados</h3>
                     <p>Modificá los filtros o limpialos para volver al listado general.</p>
@@ -80,7 +80,7 @@
                         </ItemTemplate>
                     </asp:Repeater>
 
-                    <%-- Saldo actual del gestor elegido en el filtro. --%>
+
                     <asp:Panel ID="pnlSaldoGestor" runat="server" Visible="false" CssClass="historial-resumen-moneda historial-saldo-gestor">
                         <span class="historial-resumen-titulo">Saldo actual de <asp:Literal ID="litNombreGestor" runat="server" Mode="Encode" /></span>
                         <dl>
@@ -96,7 +96,7 @@
 
                 <p class="internal-list-count"><asp:Literal ID="litCantidad" runat="server" Mode="Encode" /></p>
 
-                <%-- Paso 5: información resumida de cada operación. --%>
+
                 <div class="pagos-tabla-wrap">
                     <asp:Repeater ID="rptOperaciones" runat="server">
                         <HeaderTemplate>

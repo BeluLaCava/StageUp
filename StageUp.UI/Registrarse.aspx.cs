@@ -27,8 +27,8 @@ namespace StageUp.UI
             }
         }
 
-        // CU-004-004: si la persona llegó por un enlace de difusión
-        // (?origen=codigo), ese es su origen y no se le pregunta.
+
+
         private void CargarOrigenes()
         {
             if (_bllOrigen.ObtenerPorCodigo(OrigenDeDifusion.Leer(Context)) != null)

@@ -10,7 +10,7 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // ABMC del menú dinámico (ítem 19 de la segunda entrega).
+
     public partial class GestionMenu : Page
     {
         private readonly BLL_OpcionMenu _bllOpcionMenu = new BLL_OpcionMenu();

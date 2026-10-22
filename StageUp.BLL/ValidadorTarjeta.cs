@@ -5,11 +5,11 @@ using StageUp.BE.Entidades;
 
 namespace StageUp.BLL
 {
-    // Validación de tarjeta de crédito (ítem 5B de la segunda entrega).
-    // Todo se valida antes de llamar a la pasarela: número (algoritmo de
-    // Luhn), marca, vencimiento, código de seguridad y titular. El número
-    // completo y el código nunca se guardan: de la tarjeta solo se persisten
-    // la marca y los últimos 4 dígitos.
+
+
+
+
+
     public static class ValidadorTarjeta
     {
         public const string MarcaVisa = "Visa";
@@ -20,14 +20,14 @@ namespace StageUp.BLL
         private static readonly Regex PatronTitular =
             new Regex(@"^[\p{L}][\p{L}'\.\- ]{1,98}[\p{L}\.]$", RegexOptions.Compiled);
 
-        // Devuelve la marca si la tarjeta es válida.
+
         public static ResultadoOperacion<string> Validar(DatosTarjeta tarjeta)
         {
             return Validar(tarjeta, true);
         }
 
-        // Ítem 8: para guardar en la billetera no se pide el código de
-        // seguridad (no se guarda nunca; se pide en cada pago).
+
+
         public static ResultadoOperacion<string> ValidarParaGuardar(DatosTarjeta tarjeta)
         {
             return Validar(tarjeta, false);
@@ -169,7 +169,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("Indicá el vencimiento de la tarjeta (mes y año).");
             }
 
-            // La tarjeta vale hasta el último día del mes de vencimiento.
+
             DateTime hoy = DateTime.Today;
             DateTime finDeVigencia = new DateTime(anio, mes, 1).AddMonths(1);
             if (finDeVigencia <= hoy)

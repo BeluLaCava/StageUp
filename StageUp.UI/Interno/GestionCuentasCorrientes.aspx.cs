@@ -10,9 +10,9 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // Pagos y cuentas corrientes desde el panel interno (ítems 5C, 5D y 6B,
-    // permiso GESTIONAR_PAGOS): consulta de cuentas, NC/ND manuales,
-    // anulación, liquidaciones a gestores y listado de pagos.
+
+
+
     public partial class GestionCuentasCorrientes : Page
     {
         private const string PermisoRequerido = "GESTIONAR_PAGOS";
@@ -38,7 +38,7 @@ namespace StageUp.UI.Interno
             set { ViewState["IdComprobanteAAnular"] = value; }
         }
 
-        // Nombre y correo de los usuarios listados, para el encabezado de la cuenta.
+
         private Dictionary<int, string> NombresUsuarios
         {
             get { return ViewState["NombresUsuarios"] as Dictionary<int, string> ?? new Dictionary<int, string>(); }
@@ -217,8 +217,8 @@ namespace StageUp.UI.Interno
             }
         }
 
-        // Solo se anulan las NC/ND manuales vigentes (no las de una cancelación
-        // ni los movimientos de anulación).
+
+
         protected static bool EsAnulable(object item)
         {
             MovimientoCuentaCorriente movimiento = (MovimientoCuentaCorriente)item;

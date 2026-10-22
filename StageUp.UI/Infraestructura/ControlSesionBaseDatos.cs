@@ -7,32 +7,32 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Infraestructura
 {
-    // Sesión abierta después de restaurar un backup (script 79). Global.asax
-    // lo llama en cada pedido que usa la sesión, y BackupRestore.aspx justo
-    // después de restaurar.
-    //   * Si la marca de la base no cambió, no hace nada (la marca se lee
-    //     de memoria; la base se consulta como mucho cada 10 segundos).
-    //   * Si cambió, vuelve a validar la cuenta externa y la interna de la
-    //     sesión (mismo id y misma fecha de alta). Si alguna ya no
-    //     corresponde, cierra la sesión. Si las dos siguen siendo válidas,
-    //     actualiza nombre, perfil y permisos con los datos de la base
-    //     restaurada (sin tocar la identidad) y deja un aviso para mostrar
-    //     una vez.
-    //   * Si no se pudo consultar la cuenta (NoVerificada), la sesión queda
-    //     suspendida en este pedido: no hay usuario ni permisos hasta que se
-    //     compruebe en un pedido siguiente. Nunca sigue con los permisos
-    //     anteriores.
-    //   * Si no se pudo comprobar si hubo una restauración (falló la consulta
-    //     de la marca), no se da la sesión por válida por tener la misma
-    //     marca: se vuelve a validar la cuenta en cada pedido, sin guardar la
-    //     marca, hasta que la consulta vuelva a responder.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public static class ControlSesionBaseDatos
     {
         public const string MotivoCierre = "base_restaurada";
         public const string PaginaVerificacion = "~/SesionNoVerificada.aspx";
 
-        // Igual que Verificar, pero un error inesperado también cuenta como
-        // "no verificada" (y suspende la sesión en este pedido).
+
+
         public static ResultadoRevalidacionSesion VerificarSinExcepciones()
         {
             try
@@ -64,9 +64,9 @@ namespace StageUp.UI.Infraestructura
                 return ResultadoRevalidacionSesion.Valida;
             }
 
-            // Sin marca guardada es una sesión recién iniciada: se valida
-            // igual, pero no se muestra el aviso de restauración. Con una marca
-            // no confiable tampoco se avisa (no se sabe si hubo restauración).
+
+
+
             bool huboRestauracion = marcaConfiable && marcaSesion != null;
 
             UsuarioExterno usuarioExterno = null;
@@ -106,8 +106,8 @@ namespace StageUp.UI.Infraestructura
 
             if (!marcaConfiable)
             {
-                // La cuenta se comprobó, pero la marca no se guarda: en el
-                // próximo pedido se vuelve a comprobar.
+
+
                 return ResultadoRevalidacionSesion.Valida;
             }
 
@@ -122,8 +122,8 @@ namespace StageUp.UI.Infraestructura
 
         private static ResultadoRevalidacionSesion Cerrar(ResultadoRevalidacionSesion resultado)
         {
-            // Si no se pudo consultar la base, la sesión se suspende en este
-            // pedido y se vuelve a intentar en el próximo (la marca no se guarda).
+
+
             if (resultado == ResultadoRevalidacionSesion.Invalida)
             {
                 GestorDeSesion.CerrarSesion();

@@ -12,13 +12,13 @@ using System.Xml.Linq;
 
 namespace StageUp.BLL
 {
-    // CU-004-005: comprueba que un archivo subido sea de verdad del tipo que
-    // dice su extensión, recorriendo su estructura (no solo los primeros
-    // bytes). Rechaza archivos truncados, renombrados o armados a mano.
-    // Además se valida el contenido de las estructuras: las imágenes se
-    // decodifican, el PDF tiene que tener catálogo y páginas alcanzables
-    // desde su tráiler, el MP4 una pista con muestras y datos, y los
-    // documentos de Office su XML, tipos y relaciones.
+
+
+
+
+
+
+
     internal static class ValidadorEstructuraArchivo
     {
         public static bool EsValido(string extension, byte[] b)
@@ -46,13 +46,13 @@ namespace StageUp.BLL
             }
             catch (Exception)
             {
-                // Cualquier estructura que no se pueda recorrer es inválida.
+
                 return false;
             }
         }
 
-        // PNG: firma, IHDR primero (13 bytes, ancho y alto > 0), cada chunk
-        // completo y con su CRC correcto, y termina en IEND.
+
+
         private static bool EsPng(byte[] b)
         {
             byte[] firma = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
@@ -103,8 +103,8 @@ namespace StageUp.BLL
             return false;
         }
 
-        // JPEG: SOI, segmentos con su largo hasta el inicio de los datos
-        // (SOS), un marcador de tamaño de imagen (SOFn) y fin EOI.
+
+
         private static bool EsJpeg(byte[] b)
         {
             if (b.Length < 128 || b[0] != 0xFF || b[1] != 0xD8)
@@ -166,8 +166,8 @@ namespace StageUp.BLL
             return false;
         }
 
-        // GIF: encabezado, pantalla lógica, bloques de imagen y extensiones
-        // completos, al menos una imagen y terminador 0x3B.
+
+
         private static bool EsGif(byte[] b)
         {
             if (b.Length < 26)
@@ -251,8 +251,8 @@ namespace StageUp.BLL
             return -1;
         }
 
-        // PDF: versión al comienzo, al menos un objeto, tabla de referencias
-        // (xref o flujo XRef), startxref y %%EOF al final.
+
+
         private static bool EsPdf(byte[] b)
         {
             if (b.Length < 64)
@@ -278,8 +278,8 @@ namespace StageUp.BLL
                 (todo.IndexOf("xref", StringComparison.Ordinal) > 0 || todo.IndexOf("/XRef", StringComparison.Ordinal) > 0);
         }
 
-        // MP4: cajas de primer nivel que cubren exactamente el archivo, la
-        // primera "ftyp" y con "moov" (descripción) y "mdat" (datos).
+
+
         private static bool EsMp4(byte[] b)
         {
             long pos = 0;
@@ -330,9 +330,9 @@ namespace StageUp.BLL
             return pos == b.Length && hayMoov && hayMdat;
         }
 
-        // DOCX, PPTX y XLSX: ZIP completo (directorio central legible), con
-        // [Content_Types].xml que declara el documento principal del tipo
-        // esperado y esa parte presente.
+
+
+
         private static bool EsOffice(byte[] b, string partePrincipal, string tipoContenido)
         {
             if (b.Length < 200 || b[0] != 0x50 || b[1] != 0x4B || b[2] != 0x03 || b[3] != 0x04)
@@ -361,7 +361,7 @@ namespace StageUp.BLL
                     return false;
                 }
 
-                // La parte principal tiene que poder descomprimirse.
+
                 using (Stream datos = principal.Open())
                 {
                     byte[] buffer = new byte[4096];
@@ -381,12 +381,12 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // Imágenes: además de la estructura, se comprueba que se puedan
-        // decodificar (PNG: se descomprimen los datos de píxeles y tienen
-        // que alcanzar exactamente para el tamaño declarado; JPG, PNG y GIF:
-        // se dibujan con GDI+).
-        // ------------------------------------------------------------------
+
+
+
+
+
+
         private const long PixelesMaximos = 40000000;
 
         private static bool EsPngDecodificable(byte[] b)
@@ -417,7 +417,7 @@ namespace StageUp.BLL
                 default: return false;
             }
 
-            // Datos de píxeles (todos los IDAT juntos) y paleta si hace falta.
+
             MemoryStream datos = new MemoryStream();
             bool hayPaleta = false;
             int pos = 8;
@@ -442,8 +442,8 @@ namespace StageUp.BLL
                 return false;
             }
 
-            // Bytes esperados: por cada fila, un byte de filtro (0 a 4) y los
-            // píxeles; con entrelazado Adam7, las siete pasadas.
+
+
             int bitsPorPixel = canales * profundidad;
             List<long[]> pasadas = new List<long[]>();
             if (entrelazado == 0)
@@ -470,7 +470,7 @@ namespace StageUp.BLL
                 return false;
             }
 
-            // Encabezado zlib (2 bytes) y después el flujo deflate.
+
             int cmf = datos.ReadByte();
             int flg = datos.ReadByte();
             if ((cmf & 0x0F) != 8 || ((cmf << 8) + flg) % 31 != 0 || (flg & 0x20) != 0)
@@ -512,8 +512,8 @@ namespace StageUp.BLL
             return true;
         }
 
-        // GDI+ tiene que poder abrir la imagen y dibujarla completa (en una
-        // miniatura, para no ocupar memoria de más).
+
+
         private static bool SeDibuja(byte[] b, Guid formatoEsperado)
         {
             using (MemoryStream flujo = new MemoryStream(b, false))
@@ -535,13 +535,13 @@ namespace StageUp.BLL
             return true;
         }
 
-        // ------------------------------------------------------------------
-        // PDF: encabezado, startxref que apunta a una tabla "xref" o a un
-        // flujo XRef, un tráiler (o diccionario del flujo) con /Root, y ese
-        // objeto como catálogo (/Type /Catalog) con su árbol de páginas
-        // (/Pages). Si el catálogo está dentro de un flujo de objetos
-        // comprimido (/ObjStm), se descomprime para buscarlo.
-        // ------------------------------------------------------------------
+
+
+
+
+
+
+
         private static bool EsPdfValido(byte[] b)
         {
             if (!EsPdf(b))
@@ -606,8 +606,8 @@ namespace StageUp.BLL
             return HayEnFlujoDeObjetos(texto, b, @"/Type\s*/Catalog\b") && HayEnFlujoDeObjetos(texto, b, @"/Type\s*/Pages\b");
         }
 
-        // Texto del objeto "n g obj ... endobj", o null si no está como objeto
-        // suelto.
+
+
         private static string BuscarObjeto(string texto, string numero, string generacion)
         {
             Match objeto = Regex.Match(texto, @"(?<![0-9])" + numero + @"\s+" + generacion + @"\s+obj\b");
@@ -658,12 +658,12 @@ namespace StageUp.BLL
             return false;
         }
 
-        // ------------------------------------------------------------------
-        // MP4: además de las cajas de primer nivel, "moov" tiene que traer
-        // "mvhd" completo y al menos una pista ("trak") con "tkhd" y "mdia"
-        // (mdhd, hdlr y minf/stbl con descripción de muestras y al menos una
-        // muestra), y "mdat" tiene que tener datos.
-        // ------------------------------------------------------------------
+
+
+
+
+
+
         private static bool EsMp4Valido(byte[] b)
         {
             if (!EsMp4(b))
@@ -745,7 +745,7 @@ namespace StageUp.BLL
             public int LargoDatos { get { return FinDatos - InicioDatos; } }
         }
 
-        // Cajas hijas que cubren exactamente [desde, hasta); null si no.
+
         private static List<Caja> LeerCajas(byte[] b, int desde, int hasta)
         {
             List<Caja> cajas = new List<Caja>();
@@ -791,12 +791,12 @@ namespace StageUp.BLL
             return cajas;
         }
 
-        // ------------------------------------------------------------------
-        // DOCX, PPTX y XLSX: ZIP legible; [Content_Types].xml y _rels/.rels
-        // como XML válido; la relación officeDocument apunta a la parte
-        // principal esperada; esa parte está declarada con su tipo de
-        // contenido y es XML con el elemento raíz que corresponde.
-        // ------------------------------------------------------------------
+
+
+
+
+
+
         private static bool EsOfficeValido(byte[] b, string partePrincipal, string tipoContenido, string raizEsperada, string espacioNombres)
         {
             if (!EsOffice(b, partePrincipal, tipoContenido))
@@ -839,7 +839,7 @@ namespace StageUp.BLL
             }
         }
 
-        // XML sin DTD ni entidades externas, con un tope de tamaño.
+
         private static XDocument LeerXml(ZipArchiveEntry entrada)
         {
             if (entrada == null || entrada.Length == 0 || entrada.Length > 50L * 1024 * 1024)

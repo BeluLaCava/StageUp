@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Categorías de novedades y del newsletter (script 85).
+
     public class MPP_CategoriaNovedad
     {
         public List<CategoriaNovedad> Listar(bool soloActivas)

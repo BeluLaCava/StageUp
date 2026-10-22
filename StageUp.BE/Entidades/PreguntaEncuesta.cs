@@ -9,8 +9,8 @@ namespace StageUp.BE.Entidades
         public string Texto { get; set; }
         public int Orden { get; set; }
 
-        // Se completa desde la BLL (ObtenerEncuestaCompleta /
-        // ListarPreguntasConOpciones), no lo mapea directo el MPP.
+
+
         public List<OpcionPregunta> Opciones { get; set; }
 
         public PreguntaEncuesta()

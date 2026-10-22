@@ -8,12 +8,12 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // Orígenes de usuario (canales de captación). Se administran desde
-    // Campañas comerciales (mismo permiso) y alimentan las métricas de
-    // CU-004-004. El origen de cada usuario se registra al crear la cuenta:
-    // por el enlace de difusión (?origen=codigo) o por lo que la persona
-    // elige en "¿Cómo conociste StageUp?". Un contacto incorporado también
-    // le asigna su origen a la cuenta asociada si no tenía uno.
+
+
+
+
+
+
     public class BLL_OrigenUsuario
     {
         public const string EntidadBitacora = "OrigenUsuario";
@@ -46,7 +46,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Origen activo con ese código (el de un enlace de difusión), o null.
+
         public OrigenUsuario ObtenerPorCodigo(string codigo)
         {
             string normalizado = (codigo ?? string.Empty).Trim().ToLowerInvariant();
@@ -66,7 +66,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Opciones de "¿Cómo conociste StageUp?" en el registro.
+
         public List<OrigenUsuario> ListarParaRegistro()
         {
             ResultadoOperacion<List<OrigenUsuario>> resultado = Listar(true);
@@ -186,8 +186,8 @@ namespace StageUp.BLL
                 : "El origen se dio de baja: deja de ofrecerse en el registro y en los formularios, y los usuarios que llegaron por él se siguen contando.");
         }
 
-        // Al crear la cuenta: primero el enlace de difusión; si no hay, lo que
-        // eligió la persona. No pisa un origen ya registrado.
+
+
         public void AsignarAlRegistrarse(int idUsuarioExterno, string codigoEnlace, int? idOrigenElegido)
         {
             OrigenUsuario origen = ObtenerPorCodigo(codigoEnlace);
@@ -207,7 +207,7 @@ namespace StageUp.BLL
             }
             catch (ErrorAccesoDatosException)
             {
-                // El registro de la cuenta no depende del origen.
+
             }
         }
     }

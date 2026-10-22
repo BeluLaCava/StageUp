@@ -7,11 +7,11 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // CU-002-002 Gestionar transacciones económicas y comisiones (script 63).
+
     public class MPP_TransaccionEconomica
     {
-        // Devuelve el id de la transacción y si es nueva (false si ya estaba
-        // registrada para el mismo pago o cargo).
+
+
         public int Registrar(TransaccionEconomica oTransaccion, out bool esNueva)
         {
             DataTable tabla = Conexion.Instance.Leer(

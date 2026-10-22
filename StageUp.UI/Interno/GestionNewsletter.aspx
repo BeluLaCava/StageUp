@@ -23,7 +23,7 @@
                 <article><span>Dados de baja</span><strong><asp:Literal ID="litBajas" runat="server" /></strong></article>
             </div>
 
-            <%-- Suscriptores --%>
+
             <div class="auth-card admin-list-card" id="suscriptores">
                 <div class="auth-card-header">
                     <span class="admin-card-eyebrow">Suscriptores</span>
@@ -93,7 +93,7 @@
                 <asp:Panel ID="pnlSinSuscriptores" runat="server" CssClass="admin-empty-hint" Visible="false">No hay suscriptores con esos filtros.</asp:Panel>
             </div>
 
-            <%-- Categorías --%>
+
             <div class="auth-card admin-list-card" id="categorias">
                 <div class="auth-card-header">
                     <span class="admin-card-eyebrow">Categorías</span>
@@ -153,7 +153,7 @@
                 </asp:Panel>
             </div>
 
-            <%-- Envíos --%>
+
             <div class="auth-card admin-list-card" id="envios">
                 <div class="auth-card-header">
                     <span class="admin-card-eyebrow">Envíos</span>

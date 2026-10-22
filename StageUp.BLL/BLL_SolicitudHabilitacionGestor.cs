@@ -9,14 +9,14 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-001-007 Gestionar espacios artísticos, caminos A1 a A6: solicitud de
-    // habilitación como gestor desde "Ofrecer espacio" (OfrecerEspacio.aspx) y
-    // su revisión desde el panel interno (Interno/AprobacionGestores.aspx).
+
+
+
     public class BLL_SolicitudHabilitacionGestor
     {
         public const string CondicionNoInformada = "NoInformado";
 
-        // Condiciones fiscales que se pueden elegir en el formulario.
+
         public static readonly Dictionary<string, string> CondicionesFiscales = new Dictionary<string, string>
         {
             { "ConsumidorFinal", "Consumidor final" },
@@ -58,7 +58,7 @@ namespace StageUp.BLL
             return CondicionesFiscales.TryGetValue(condicion ?? string.Empty, out nombre) ? nombre : condicion;
         }
 
-        // A3, A4 y A6: última solicitud del usuario (null si nunca pidió).
+
         public SolicitudHabilitacionGestor ObtenerUltima(int idUsuarioExterno)
         {
             try
@@ -83,8 +83,8 @@ namespace StageUp.BLL
             }
         }
 
-        // A1 (pasos 6 a 10) y A5: valida todo el formulario y devuelve todos los
-        // errores juntos, para que el usuario sepa qué corregir.
+
+
         public ResultadoOperacion<int> Registrar(int idUsuarioExterno, SolicitudHabilitacionGestor datos)
         {
             if (datos == null)
@@ -306,7 +306,7 @@ namespace StageUp.BLL
                 : "No se encontró la solicitud indicada.";
         }
 
-        // CUIT: 11 números con dígito verificador módulo 11.
+
         public static bool EsCuitValido(string cuit)
         {
             string digitos = SoloDigitos(cuit);

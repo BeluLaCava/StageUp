@@ -8,11 +8,11 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // ABMC del menú dinámico (ítem 19 de la segunda entrega). Cada opción del
-    // menú del panel interno es una entidad administrable: texto, descripción,
-    // URL, módulo (agrupa opciones en el menú), orden, estado y el permiso que
-    // hace falta para verla. BLL_PermisoInterno.ConstruirMenuParaRol arma el
-    // menú desde acá.
+
+
+
+
+
     public class BLL_OpcionMenu
     {
         private const int LongitudMaximaTexto = 100;
@@ -21,9 +21,9 @@ namespace StageUp.BLL
         private const int LongitudMaximaModulo = 100;
         private const string TipoEntidadBitacora = "OpcionMenu";
 
-        // La opción de esta misma pantalla no se puede dar de baja: si se
-        // desactivara, nadie podría volver a entrar desde el menú a
-        // reactivarla.
+
+
+
         private const string CodigoPermisoGestionMenu = "GESTIONAR_MENU";
 
         private readonly MPP_OpcionMenu _mpp = new MPP_OpcionMenu();
@@ -54,7 +54,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Permisos (hojas del árbol) que se pueden exigir para ver una opción.
+
         public List<PermisoHoja> ListarPermisosDisponibles()
         {
             List<PermisoHoja> hojas = new List<PermisoHoja>();
@@ -144,8 +144,8 @@ namespace StageUp.BLL
             });
         }
 
-        // Sube o baja una opción un lugar, intercambiando su orden con la
-        // opción vecina.
+
+
         public ResultadoOperacion Mover(int idOpcionMenu, bool haciaArriba, int idUsuarioInternoResponsable)
         {
             return EjecutarProtegido(() =>
@@ -172,7 +172,7 @@ namespace StageUp.BLL
                 int ordenVecina = vecina.Orden;
                 if (ordenOpcion == ordenVecina)
                 {
-                    // Si dos opciones quedaron con el mismo orden, se separan.
+
                     ordenVecina = haciaArriba ? ordenOpcion - 1 : ordenOpcion + 1;
                 }
 
@@ -271,12 +271,12 @@ namespace StageUp.BLL
             }
         }
 
-        // El menú del panel interno solo puede llevar a páginas internas:
-        // "~/Interno/<carpetas opcionales>/<pagina>.aspx". Se rechazan las
-        // páginas públicas, "..", esquemas (http:, https:, javascript:),
-        // rutas externas ("//"), barras invertidas, espacios y parámetros.
-        // El CHECK CK_OpcionMenu_url de la base (scripts 45 y 50) aplica la
-        // misma regla.
+
+
+
+
+
+
         private static readonly System.Text.RegularExpressions.Regex PatronUrlInterna =
             new System.Text.RegularExpressions.Regex(@"^~/Interno/([A-Za-z0-9_\-]+/)*[A-Za-z0-9_\-]+\.aspx$",
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase);

@@ -12,17 +12,17 @@ namespace StageUp.BLL
     {
         private const int LongitudMaximaComentario = 1000;
 
-        // Ranking de espacios (ítem 8 de la segunda entrega). Para que una
-        // sola reseña de 5 estrellas no deje a un espacio primero, el orden
-        // usa un promedio ponderado (promedio bayesiano):
-        //
-        //   puntaje = (n * promedioEspacio + M * promedioGeneral) / (n + M)
-        //
-        // n = reseñas del espacio, M = MinimoResenasRanking, promedioGeneral =
-        // promedio de todas las reseñas de espacios. Con pocas reseñas, el
-        // puntaje queda cerca del promedio general; a medida que suma
-        // reseñas, pesa más su propio promedio. Además, el ranking público
-        // solo muestra espacios con al menos MinimoResenasRanking reseñas.
+
+
+
+
+
+
+
+
+
+
+
         public const int MinimoResenasRanking = 3;
         private readonly MPP_Calificacion _mppCalificacion = new MPP_Calificacion();
         private readonly MPP_Reserva _mppReserva = new MPP_Reserva();
@@ -141,9 +141,9 @@ namespace StageUp.BLL
             }
         }
 
-        // Ranking público: espacios con al menos MinimoResenasRanking reseñas,
-        // ordenados por puntaje ponderado. Espera la lista ya completada con
-        // CompletarReputacionesEspacios.
+
+
+
         public static List<EspacioArtistico> ObtenerRankingMejorValorados(IEnumerable<EspacioArtistico> espacios, int cantidad)
         {
             if (espacios == null)

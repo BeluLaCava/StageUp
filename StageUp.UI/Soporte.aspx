@@ -13,13 +13,13 @@
                 <asp:Literal ID="litMensaje" runat="server" Mode="Encode" />
             </asp:Panel>
 
-            <%-- Ítem 12: aviso de novedades cuando hay un borrador sin enviar. --%>
+
             <div class="ticket-novedades-aviso" data-soporte-aviso hidden>
                 <span>Hay novedades en tus solicitudes de soporte.</span>
                 <button type="button" class="button button-secondary button-small" data-soporte-recargar>Ver novedades</button>
             </div>
 
-            <%-- CU-003-002 A5 y A6: "Mis solicitudes de soporte". --%>
+
             <asp:Panel ID="pnlListado" runat="server" Visible="false">
                 <div class="auth-card helpdesk-card helpdesk-list-card">
                     <div class="auth-card-header helpdesk-detail-header">
@@ -69,7 +69,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- CU-003-002 pasos 2 a 16, A1 a A4: "Nueva solicitud de soporte". --%>
+
             <asp:Panel ID="pnlNueva" runat="server" Visible="false" DefaultButton="btnEnviar">
                 <div class="auth-card helpdesk-card helpdesk-compose-card">
                     <div class="auth-card-header">
@@ -81,7 +81,7 @@
                         Venís del asistente de ayuda: usamos tu consulta como motivo. Revisala y completá el resto de los datos.
                     </asp:Panel>
 
-                    <%-- A9: si ya hay casos en curso, se pueden seguir sin registrar otro. --%>
+
                     <asp:Panel ID="pnlEnCurso" runat="server" Visible="false" CssClass="ticket-estado-aviso">
                         <strong>Ya tenés solicitudes en curso.</strong> Si es por el mismo inconveniente, podés seguirla y agregar información sin registrar una nueva:
                         <asp:Repeater ID="rptEnCurso" runat="server">
@@ -131,7 +131,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- CU-003-002 A5 pasos 8 a 10, A7, A8 y A9: "Detalle de solicitud de soporte". --%>
+
             <asp:Panel ID="pnlDetalle" runat="server" Visible="false" DefaultButton="btnEnviarMensaje">
                 <div class="auth-card helpdesk-card helpdesk-detail-card">
                     <div class="auth-card-header helpdesk-detail-header">
@@ -142,12 +142,12 @@
                         <asp:Label ID="lblEstado" runat="server" CssClass="ticket-badge" />
                     </div>
 
-                    <%-- A8: actualizaciones desde la última visita. --%>
+
                     <asp:Panel ID="pnlNovedades" runat="server" Visible="false" CssClass="ticket-novedades-aviso">
                         <asp:Literal ID="litNovedades" runat="server" Mode="Encode" />
                     </asp:Panel>
 
-                    <%-- A7: mensaje según el estado. --%>
+
                     <asp:Panel ID="pnlEstadoAviso" runat="server" CssClass="ticket-estado-aviso">
                         <asp:Literal ID="litEstadoAviso" runat="server" Mode="Encode" />
                     </asp:Panel>
@@ -214,7 +214,7 @@
                         </asp:Repeater>
                     </ul>
 
-                    <%-- A8/A9: se sigue el mismo caso sin registrar otro. --%>
+
                     <asp:Panel ID="pnlResponder" runat="server" CssClass="helpdesk-reply">
                         <div class="form-field">
                             <label for="<%= txtNuevoMensaje.ClientID %>">Agregar información o responder</label>

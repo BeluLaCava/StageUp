@@ -11,20 +11,20 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    // Encuestas dinámicas con fecha de vencimiento y gráfico de resultados
-    // al instante, del lado del usuario externo. Tres vistas en una sola
-    // página, según query string:
-    //   Encuestas.aspx                 -> pendientes por responder + resultados disponibles
-    //   Encuestas.aspx?responder={id}  -> formulario para responder
-    //   Encuestas.aspx?ver={id}        -> resultados en barras, al instante
-    // Sin iniciar sesión se pueden responder las encuestas para "Todos": el
-    // navegador guarda una cookie con un identificador al azar para que no se
-    // responda dos veces, y se pide el CAPTCHA. La cookie se crea al abrir la
-    // página (antes de enviar) y en el envío se exige que el navegador la
-    // devuelva: así dos envíos simultáneos llevan la misma identidad y un
-    // navegador que bloquea cookies no puede responder como visitante. Con
-    // sesión, la respuesta también guarda el navegador, para que después no
-    // se pueda volver a responder desde ahí sin sesión.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public partial class Encuestas : Page
     {
         private const string NombreCookieEncuestado = "StageUp_Encuestado";
@@ -112,9 +112,9 @@ namespace StageUp.UI
                 return;
             }
 
-            // La identidad del navegador se estableció al abrir la encuesta:
-            // si el navegador no devuelve la cookie (bloqueada o borrada), no se
-            // acepta la respuesta, con o sin sesión (una respuesta por navegador).
+
+
+
             string identificadorNavegador = EsIdentificadorValido(IdentificadorNavegador) ? IdentificadorNavegador : null;
             if (identificadorNavegador == null)
             {
@@ -187,8 +187,8 @@ namespace StageUp.UI
             return BLL_Encuesta.EncuestadoSinSesion(identificadorNavegador).IdentificadorAnonimo != null;
         }
 
-        // Devuelve el identificador del navegador; si no tiene uno válido,
-        // genera uno nuevo y lo envía en la cookie en esta misma respuesta.
+
+
         private string AsegurarIdentificadorNavegador()
         {
             string actual = IdentificadorNavegador;
@@ -202,9 +202,9 @@ namespace StageUp.UI
             return nuevo;
         }
 
-        // Solo guarda un identificador al azar (sin datos personales). Dura
-        // un año, viaja solo por HTTPS cuando el sitio usa HTTPS y no es
-        // accesible desde JavaScript.
+
+
+
         private void GuardarCookieEncuestado(string identificadorNavegador)
         {
             HttpCookie cookie = new HttpCookie(NombreCookieEncuestado, identificadorNavegador)

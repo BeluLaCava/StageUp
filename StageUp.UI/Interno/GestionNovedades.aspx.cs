@@ -11,8 +11,8 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Interno
 {
-    // Novedades con vigencia (Borrador, Programada, Vigente, Vencida, Dada de
-    // baja) e imagen subida como archivo (Infraestructura/ImagenSubida).
+
+
     public partial class GestionNovedades : Page
     {
         private const string FormatoFechaHora = "yyyy-MM-ddTHH:mm";
@@ -20,7 +20,7 @@ namespace StageUp.UI.Interno
         private readonly BLL_Novedad _bllNovedad = new BLL_Novedad();
         private readonly BLL_UsuarioInterno _bllUsuarioInterno = new BLL_UsuarioInterno();
 
-        // Envío de cada novedad (script 85), para el listado.
+
         private Dictionary<int, EnvioNewsletter> _envios = new Dictionary<int, EnvioNewsletter>();
 
         private int? IdNovedadEnEdicion
@@ -29,9 +29,9 @@ namespace StageUp.UI.Interno
             set { ViewState["IdNovedadEnEdicion"] = value; }
         }
 
-        // Imagen que tiene la novedad en el formulario (la guardada o la que
-        // se acaba de subir). Va en ViewState para que no se pueda cambiar
-        // desde el navegador.
+
+
+
         private string ImagenActual
         {
             get { return ViewState["ImagenActual"] as string; }
@@ -350,9 +350,9 @@ namespace StageUp.UI.Interno
                 : Server.HtmlEncode(ObtenerEtiquetaCategoria(categoria));
         }
 
-        // Imagen a guardar: la nueva si se eligió un archivo (se valida y se
-        // guarda en Content/Uploads/Novedades), ninguna si se tildó "Quitar",
-        // o la que ya tenía.
+
+
+
         private string ResolverImagenFormulario(out string error)
         {
             error = null;
@@ -398,8 +398,8 @@ namespace StageUp.UI.Interno
             return BLL_CategoriaNovedad.ObtenerEtiqueta(categoria);
         }
 
-        // Categorías activas; al editar, también la que ya tenía la novedad
-        // aunque se haya desactivado.
+
+
         private void CargarCategorias(string categoriaActual)
         {
             ddlCategoria.Items.Clear();
@@ -431,7 +431,7 @@ namespace StageUp.UI.Interno
             return novedad != null && _envios.TryGetValue(novedad.IdNovedad, out envio) ? envio : null;
         }
 
-        // Sin envío, o con un intento anterior sin destinatarios.
+
         protected bool PuedeEnviarNewsletter(object dato)
         {
             EnvioNewsletter envio = ObtenerEnvio(dato);
@@ -547,7 +547,7 @@ namespace StageUp.UI.Interno
             }
         }
 
-        // Valor de un campo datetime-local ("2026-10-20T18:30"). Vacío = null.
+
         private static bool TryParsearFechaHora(string texto, out DateTime? valor)
         {
             valor = null;

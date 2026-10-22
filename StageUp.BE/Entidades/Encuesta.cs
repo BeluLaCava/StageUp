@@ -14,10 +14,10 @@ namespace StageUp.BE.Entidades
         public DateTime FechaAlta { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
 
-        // No hay un estado "Vencida" persistido (no hay SQL Server Agent en
-        // la edición Express para recalcularlo con un job). Se calcula acá,
-        // comparando la fecha de vencimiento contra la hora actual, igual
-        // criterio que ya se usa para los recordatorios de reserva.
+
+
+
+
         public bool EstaVencida
         {
             get { return FechaVencimiento < DateTime.Now; }

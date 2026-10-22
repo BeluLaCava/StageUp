@@ -11,9 +11,9 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // Ítem 10: Herramientas de seguridad. Muestra la versión activa del par
-    // de claves por su huella (nunca la clave privada), permite rotarlo con
-    // motivo (queda en la bitácora) y descifrar exportaciones de la bitácora.
+
+
+
     public partial class HerramientasSeguridad : Page
     {
         private const string PermisoRequerido = "GESTIONAR_ENCRIPTACION";

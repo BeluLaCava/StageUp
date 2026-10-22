@@ -7,11 +7,11 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // CU-001-007 (A1 a A6): solicitudes de habilitación como gestor (script 54).
+
     public class MPP_SolicitudHabilitacionGestor
     {
-        // Devuelve el resultado del SP (OK, YA_PENDIENTE, YA_ES_GESTOR,
-        // CUENTA_NO_ACTIVA, NO_EXISTE) y deja el id en oSolicitud.IdSolicitud.
+
+
         public string Registrar(SolicitudHabilitacionGestor oSolicitud)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -70,8 +70,8 @@ namespace StageUp.MPP
             return lista;
         }
 
-        // Devuelve el resultado del SP (OK, YA_RESUELTA, NO_EXISTE) y deja el
-        // usuario de la solicitud en oSolicitud.IdUsuarioExterno.
+
+
         public string Resolver(SolicitudHabilitacionGestor oSolicitud, bool aprobar)
         {
             DataTable tabla = Conexion.Instance.Leer(

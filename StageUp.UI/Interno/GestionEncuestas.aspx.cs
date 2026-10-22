@@ -16,9 +16,9 @@ namespace StageUp.UI.Interno
 
         private readonly BLL_Encuesta _bllEncuesta = new BLL_Encuesta();
 
-        // Se completa en CargarPreguntas(), justo antes de bindear
-        // rptPreguntas, para que el data-binding "Visible='<%# EsBorrador %>'"
-        // del ItemTemplate refleje la encuesta que se está mostrando.
+
+
+
         private bool _esBorrador;
         protected bool EsBorrador
         {

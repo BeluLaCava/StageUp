@@ -2,7 +2,7 @@ using System;
 
 namespace StageUp.BE.Entidades
 {
-    // CU-004-005 Pieza de contenido promocional (archivo o enlace).
+
     public class ContenidoPromocional
     {
         public const string EstadoActivo = "Activo";
@@ -32,7 +32,7 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaBaja { get; set; }
         public bool Activo { get; set; }
 
-        // Al guardar: quitar el archivo que tenía (queda solo el enlace).
+
         public bool QuitarArchivo { get; set; }
 
         public bool TieneArchivo
@@ -78,7 +78,7 @@ namespace StageUp.BE.Entidades
         public int Bajas { get; set; }
     }
 
-    // Archivo subido, ya validado (tipo real, tamaño).
+
     public class ArchivoPromocional
     {
         public string NombreOriginal { get; set; }

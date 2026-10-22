@@ -7,8 +7,8 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Ítem 8: billetera de tarjetas (script 66). Todas las operaciones
-    // filtran por el usuario dueño de la tarjeta.
+
+
     public class MPP_TarjetaGuardada
     {
         public List<TarjetaGuardada> ListarPorUsuario(TarjetaGuardada oTarjeta)
@@ -48,7 +48,7 @@ namespace StageUp.MPP
             return tarjeta;
         }
 
-        // Devuelve OK | REPETIDA | ALIAS_REPETIDO | LIMITE.
+
         public string Insertar(TarjetaGuardada oTarjeta, int maximo, out int idTarjetaGuardada, out bool quedoPreferida)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -117,7 +117,7 @@ namespace StageUp.MPP
                 new Hashtable { { "@idTarjetaGuardada", oTarjeta.IdTarjetaGuardada } });
         }
 
-        // Ítem 10: tarjetas que todavía usan una versión de clave anterior.
+
         public List<TarjetaGuardada> ListarParaReenvolver(ClaveCifrado oClaveActiva)
         {
             DataTable tabla = Conexion.Instance.Leer(

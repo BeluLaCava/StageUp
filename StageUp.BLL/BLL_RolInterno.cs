@@ -8,11 +8,11 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-001-012 Gestionar usuarios internos y permisos: roles internos (A11 a
-    // A15). El rol se guarda junto con sus permisos en una sola operación:
-    // nombre obligatorio y sin repetir entre los roles activos (A14), al menos
-    // un permiso (A13), permisos existentes y activos que den algún acceso
-    // real (A15) y sin dejar el sistema sin administradores activos.
+
+
+
+
+
     public class BLL_RolInterno
     {
         public const string FiltroActivos = "Activos";
@@ -31,7 +31,7 @@ namespace StageUp.BLL
         private readonly BLL_ControlAdministradores _control = new BLL_ControlAdministradores();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
-        // Roles activos (para asignar a un usuario interno).
+
         public List<RolInterno> Listar()
         {
             try
@@ -44,7 +44,7 @@ namespace StageUp.BLL
             }
         }
 
-        // A11 pasos 3 y 4: listado con área, estado y cantidades.
+
         public List<RolInterno> ListarResumen(string estado)
         {
             try
@@ -70,8 +70,8 @@ namespace StageUp.BLL
             }
         }
 
-        // A12 paso 2: detalle del rol (datos, lo tildado, los permisos que
-        // resultan y los usuarios internos que lo tienen).
+
+
         public DetalleRolInterno ObtenerDetalle(int idRolInterno)
         {
             try
@@ -109,9 +109,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // A11 pasos 9 a 13 (alta) y A12 pasos 6 a 10 (modificación)
-        // ------------------------------------------------------------------
+
+
+
         public ResultadoOperacion<int> Guardar(RolInterno datos, List<int> idsComponentes, int idUsuarioInternoResponsable)
         {
             return EjecutarProtegido(() =>
@@ -147,7 +147,7 @@ namespace StageUp.BLL
 
                 List<int> ids = (idsComponentes ?? new List<int>()).Where(id => id > 0).Distinct().ToList();
 
-                // Datos obligatorios del rol.
+
                 if (rol.NombreRol.Length == 0)
                 {
                     return ResultadoOperacion<int>.Error(
@@ -178,22 +178,22 @@ namespace StageUp.BLL
                     rol.NombreArea = area.NombreArea;
                 }
 
-                // A14: nombre repetido entre los roles activos.
+
                 if (_mppRol.ExisteNombreActivo(rol))
                 {
                     return ResultadoOperacion<int>.Error(
                         "Ya existe un rol activo llamado \"" + rol.NombreRol + "\". Elegí otro nombre para este rol.", "A14");
                 }
 
-                // A13: al menos un permiso.
+
                 if (ids.Count == 0)
                 {
                     return ResultadoOperacion<int>.Error(
                         "El rol debe tener al menos un permiso asignado. Tildá los permisos o grupos que va a tener.", "A13");
                 }
 
-                // A15: cada permiso tiene que existir y estar activo, y la
-                // selección tiene que dar al menos un acceso real.
+
+
                 GrupoPermisos arbol = _bllPermiso.ListarArbolCompleto();
                 if (ids.Any(id => BLL_PermisoInterno.BuscarEnArbol(arbol, id) == null))
                 {
@@ -210,7 +210,7 @@ namespace StageUp.BLL
                         esNuevo ? "A13" : "A15");
                 }
 
-                // No dejar el sistema sin administradores activos.
+
                 if (!esNuevo && !BLL_ControlAdministradores.EsRolAdministrador(hojas.Select(h => h.CodigoPermiso)) &&
                     _control.CambioDejaSinAdministradores(new BLL_ControlAdministradores.Cambio
                     {
@@ -280,9 +280,9 @@ namespace StageUp.BLL
             });
         }
 
-        // ------------------------------------------------------------------
-        // Bitácora: quién, qué y qué cambió (datos y permisos).
-        // ------------------------------------------------------------------
+
+
+
         private void RegistrarEnBitacora(
             bool esNuevo, int idRolInterno, RolInterno rol, RolInterno anterior,
             List<int> ids, List<int> idsAnteriores, GrupoPermisos arbol, int idResponsable)

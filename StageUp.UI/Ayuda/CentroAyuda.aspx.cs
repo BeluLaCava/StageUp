@@ -10,24 +10,24 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Ayuda
 {
-    // CU-003-001 Consultar ayuda y asistencia automatizada.
-    //   1) Preguntas frecuentes básicas en una lista breve, sin filtros
-    //      (pasos 4 a 9, A2, A3). Las categorías se usan solo internamente.
-    //   2) Asistente guiado por opciones, con contenido propio (A4 a A7,
-    //      Scripts/asistente-ayuda.js + AsistenteAyuda.ashx).
-    //   3) Solicitud de soporte (CU-003-002).
+
+
+
+
+
+
     public partial class CentroAyuda : Page
     {
         private readonly BLL_Faq _bllFaq = new BLL_Faq();
         protected string UrlSoporte
         {
-            // CU-003-002 A1: el asistente deriva al formulario indicando el
-            // origen (y la consulta escrita, que agrega el script).
+
+
             get { return ResolveUrl(GestorDeSesion.EstaAutenticado() ? "~/Soporte.aspx?nueva=1&origen=Asistente" : "~/IniciarSesion.aspx"); }
         }
 
-        // Primer nombre del usuario con sesión, para que el asistente lo
-        // salude ("¡Hola, Belén!"). Vacío si es un visitante.
+
+
         protected string NombreUsuario
         {
             get
@@ -49,8 +49,8 @@ namespace StageUp.UI.Ayuda
                 return;
             }
 
-            // Un usuario logueado va directo al formulario (CU-003-002 A1) y
-            // puede seguir sus solicitudes (A5).
+
+
             if (GestorDeSesion.EstaAutenticado())
             {
                 lnkContactarSoporte.NavigateUrl = "~/Soporte.aspx?nueva=1&origen=CentroAyuda";
@@ -58,9 +58,9 @@ namespace StageUp.UI.Ayuda
                 lnkMisSolicitudes.Visible = true;
             }
 
-            // A1: si la ayuda no puede leerse se avisa (soporte sigue disponible).
-            // Solo la selección breve de preguntas básicas, sin filtros: lo
-            // específico lo resuelve el asistente.
+
+
+
             ResultadoOperacion<List<Faq>> basicas = _bllFaq.ObtenerPreguntasBasicas();
             if (!basicas.Exitoso)
             {
@@ -75,8 +75,8 @@ namespace StageUp.UI.Ayuda
             MostrarPreguntaBuscada();
         }
 
-        // ?faq={id}: la pregunta que se eligió en los resultados de la
-        // búsqueda, con su respuesta. La lista sigue siendo la breve.
+
+
         private void MostrarPreguntaBuscada()
         {
             int idFaq;

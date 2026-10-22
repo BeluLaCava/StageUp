@@ -1,9 +1,9 @@
 namespace StageUp.BE.Entidades
 {
-    // Fila plana tal como la devuelve sp_Encuesta_ConsultarResultados
-    // (pregunta + opción + conteos). La BLL la agrupa en
-    // ResultadoPreguntaEncuesta / ResultadoOpcionEncuesta para que la UI arme
-    // el gráfico de barras.
+
+
+
+
     public class FilaResultadoEncuesta
     {
         public int IdPreguntaEncuesta { get; set; }

@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Cuenta corriente del cliente y del gestor (ítem 6B, script 49).
+
     public class MPP_CuentaCorriente
     {
         public List<SaldoCuentaCorriente> ObtenerSaldos(SaldoCuentaCorriente oCuenta)
@@ -75,8 +75,8 @@ namespace StageUp.MPP
             return movimientos;
         }
 
-        // Una fila por usuario, rol y moneda. Los usuarios encontrados por
-        // texto que todavía no tienen movimientos vienen con rol y moneda nulos.
+
+
         public List<SaldoCuentaCorriente> ListarCuentas(FiltroCuentasCorrientes oFiltro)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -101,8 +101,8 @@ namespace StageUp.MPP
             return cuentas;
         }
 
-        // oMovimiento.Importe es el importe a liquidar (positivo); el SP lo
-        // registra en negativo en la cuenta del gestor.
+
+
         public ResultadoMovimientoDinero RegistrarLiquidacion(MovimientoCuentaCorriente oMovimiento)
         {
             return MPP_Pago.MapearResultado(Conexion.Instance.Leer(

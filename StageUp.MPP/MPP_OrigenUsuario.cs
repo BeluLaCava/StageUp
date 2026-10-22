@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Orígenes de usuario (script 80).
+
     public class MPP_OrigenUsuario
     {
         public List<OrigenUsuario> Listar(OrigenUsuario oFiltro)

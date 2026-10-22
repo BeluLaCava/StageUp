@@ -11,10 +11,10 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Interno
 {
-    // Destino de los espacios que aparecen en la búsqueda interna. Muestra
-    // cualquier espacio (borrador, pausado, publicado o dado de baja) en modo
-    // solo lectura, con el mismo permiso que habilita buscarlos. No publica
-    // el espacio ni abre la ficha pública si no está publicado.
+
+
+
+
     public partial class DetalleEspacioInterno : Page
     {
         public const string PermisoRequerido = "BUSCAR_EN_PLATAFORMA";
@@ -123,8 +123,8 @@ namespace StageUp.UI.Interno
             litNoEncontrado.Text = mensaje;
         }
 
-        // Vuelve a la misma búsqueda. El parámetro "volver" se vuelve a armar
-        // con los filtros conocidos para no redirigir a cualquier dirección.
+
+
         private string UrlParaVolver()
         {
             string volver = Request.QueryString["volver"];

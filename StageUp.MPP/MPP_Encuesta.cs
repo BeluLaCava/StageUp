@@ -7,12 +7,12 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Encuestas dinámicas con fecha de vencimiento y gráfico de resultados
-    // al instante. Mismo patrón que MPP_Faq.cs (Conexion.Instance +
-    // Hashtable de parámetros). Todos los métodos públicos reciben objetos
-    // de negocio (Encuesta, PreguntaEncuesta, UsuarioExterno,
-    // RespuestaEncuesta...), no ids sueltos, igual que el resto de los
-    // mappers (corrección del profesor sobre "objetos, no variables").
+
+
+
+
+
+
     public class MPP_Encuesta
     {
         public List<Encuesta> Listar()
@@ -71,9 +71,9 @@ namespace StageUp.MPP
                 });
         }
 
-        // Eliminación controlada: el SP solo borra si la encuesta sigue en
-        // Borrador y no tiene respuestas (las preguntas y opciones caen por
-        // ON DELETE CASCADE). Devuelve true si efectivamente se eliminó.
+
+
+
         public bool EliminarBorrador(Encuesta oEncuesta)
         {
             object resultado = Conexion.Instance.LeerEscalar(
@@ -196,10 +196,10 @@ namespace StageUp.MPP
             return resultado != null && Convert.ToBoolean(resultado);
         }
 
-        // Cabecera y detalle en una sola transacción (script 83): se guarda
-        // la respuesta completa o nada. IdentificadorAnonimo trae el hash
-        // del navegador (con o sin sesión).
-        // descripcionBitacora: la auditoría se registra en la misma transacción.
+
+
+
+
         public int RegistrarRespuesta(RespuestaEncuesta oRespuesta, List<RespuestaEncuestaDetalle> detalles, string descripcionBitacora)
         {
             List<string> pares = new List<string>();
@@ -223,8 +223,8 @@ namespace StageUp.MPP
             return Convert.ToInt32(resultado);
         }
 
-        // Filas planas pregunta+opción con los conteos calculados en el
-        // momento. La BLL las agrupa en ResultadoPreguntaEncuesta.
+
+
         public List<FilaResultadoEncuesta> ConsultarResultadosFilas(Encuesta oEncuesta)
         {
             DataTable tabla = Conexion.Instance.Leer(

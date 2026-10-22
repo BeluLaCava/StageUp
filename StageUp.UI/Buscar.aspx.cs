@@ -10,10 +10,10 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI
 {
-    // Búsqueda global pública, simple y avanzada. La búsqueda viaja en la URL
-    // (ver Infraestructura/ConsultaBusqueda) para que se pueda compartir o
-    // volver atrás con el navegador. Los filtros los valida BLL_Busqueda y
-    // los aplica el SP sp_Busqueda_Publica (script 76).
+
+
+
+
     public partial class Buscar : Page
     {
         private readonly BLL_Busqueda _bllBusqueda = new BLL_Busqueda();
@@ -135,7 +135,7 @@ namespace StageUp.UI
                 return;
             }
 
-            // Aviso cuando un filtro obligó a buscar solo en algunos tipos de contenido.
+
             if (!string.IsNullOrWhiteSpace(resultado.Mensaje))
             {
                 MostrarMensaje(resultado.Mensaje, false);

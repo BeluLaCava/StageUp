@@ -6,8 +6,8 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // CU-003-001: pasos y acciones del asistente guiado (script 70). Mismo
-    // patrón que el resto de los MPP (Conexion.Instance).
+
+
     public class MPP_NodoAsistente
     {
         public List<NodoAsistente> ListarActivos()

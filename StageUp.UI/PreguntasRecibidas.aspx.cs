@@ -11,9 +11,9 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    // Ítem 1 del profesor: el gestor ve las preguntas públicas sobre sus
-    // espacios, las responde y, si hace falta, las oculta con un motivo.
-    //   PreguntasRecibidas.aspx[?espacio=ID]
+
+
+
     public partial class PreguntasRecibidas : Page
     {
         private readonly BLL_PreguntaEspacio _bll = new BLL_PreguntaEspacio();
@@ -53,7 +53,7 @@ namespace StageUp.UI
             ddlEstado.Items.Add(new ListItem("Ocultas", PreguntaEspacio.EstadoOculta));
             ddlEstado.Items.Add(new ListItem("Todas", string.Empty));
 
-            // Espacios del gestor que tienen preguntas.
+
             ddlEspacio.Items.Add(new ListItem("Todos", string.Empty));
             ResultadoOperacion<List<PreguntaEspacio>> todas = _bll.ListarParaGestor(IdGestor, null, null);
             if (todas.Exitoso)
@@ -63,7 +63,7 @@ namespace StageUp.UI
                     ddlEspacio.Items.Add(new ListItem(espacio.NombreEspacio, espacio.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture)));
                 }
 
-                // Desde una notificación: ese espacio y, si no tiene pendientes, todas.
+
                 string idEspacio = Request.QueryString["espacio"];
                 if (!string.IsNullOrEmpty(idEspacio) && ddlEspacio.Items.FindByValue(idEspacio) != null)
                 {
@@ -123,7 +123,7 @@ namespace StageUp.UI
 
             Cargar();
 
-            // Si la respuesta no se pudo guardar, se conserva lo escrito.
+
             if (escrito != null)
             {
                 foreach (RepeaterItem item in rptPreguntas.Items)

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-    // CU-004-004 Filtros del tablero de métricas comerciales.
+
     public class FiltroMetricasComerciales
     {
         public const string CanalNoInformado = "NoInformado";
@@ -29,8 +29,8 @@ namespace StageUp.BE.Entidades
         public int EspaciosIncorporados { get; set; }
         public int CampaniasActivas { get; set; }
         public int ContactosConvertidos { get; set; }
-        // Contactos incorporados comercialmente que todavía no tienen una
-        // cuenta de StageUp asociada (no cuentan como convertidos).
+
+
         public int IncorporadosSinCuenta { get; set; }
         public int TotalUsuarios { get; set; }
         public int TotalCampanias { get; set; }
@@ -41,14 +41,14 @@ namespace StageUp.BE.Entidades
             get { return NuevosUsuarios - UsuariosConOrigen; }
         }
 
-        // A2: no hay nada registrado todavía.
+
         public bool SinInformacion
         {
             get { return TotalUsuarios == 0 && TotalCampanias == 0 && TotalContactos == 0; }
         }
 
-        // Los incorporados sin cuenta también son un resultado (se muestran
-        // aparte de los convertidos).
+
+
         public bool SinResultados
         {
             get
@@ -59,7 +59,7 @@ namespace StageUp.BE.Entidades
         }
     }
 
-    // Usuarios registrados por un origen (IdOrigenUsuario null = origen no informado).
+
     public class MetricaOrigenUsuario
     {
         public int? IdOrigenUsuario { get; set; }
@@ -73,7 +73,7 @@ namespace StageUp.BE.Entidades
         public int CantidadGestores { get; set; }
     }
 
-    // Total por canal de origen (para el detalle de A10 y el gráfico).
+
     public class MetricaCanalOrigen
     {
         public string CanalOrigen { get; set; }

@@ -1,17 +1,17 @@
-// CU-003-001 A4 a A7: asistente guiado del centro de ayuda (sin IA), con
-// formato de chat (como los asistentes de WhatsApp que no usan IA).
-//   - Saluda por el nombre y pregunta qué querés hacer.
-//   - Cada paso con muchas opciones muestra un botón ("Menú principal",
-//     "Opciones de reservas"...) que abre un menú con título, descripción e
-//     ícono de cada opción; con pocas opciones se muestran botones de
-//     respuesta rápida dentro del mensaje.
-//   - Lo que elegís aparece como tu mensaje, citando la pregunta.
-//   - Cada respuesta ofrece acciones (ir a una pantalla, ver otra respuesta
-//     o registrar una solicitud de soporte, con un resumen para confirmar).
-//   - Se puede escribir el número de la opción, una consulta, "menú" para
-//     volver al inicio o "salir" para terminar.
-// Pide los pasos a Ayuda/AsistenteAyuda.ashx y muestra todo con textContent
-// (nunca HTML recibido).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 (function () {
     "use strict";
 
@@ -29,7 +29,7 @@
     const conSesion = urlSoporte.indexOf("Soporte.aspx") >= 0;
     const demoraEscritura = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 120 : 450;
 
-    // Íconos de las opciones (clave guardada en NodoAsistente.icono).
+
     const ICONOS = {
         reservas: "\u{1F4C5}", reservar: "\u{1F4DD}", cancelar: "❌", estado: "\u{1F50E}",
         espera: "⏳", politica: "\u{1F4C4}", pagos: "\u{1F4B3}", pagar: "\u{1F4B5}",
@@ -48,10 +48,10 @@
     let ultimaPregunta = "";
     let cola = Promise.resolve();
 
-    // Cada acción del usuario (escribir, elegir una opción, "menú") abre un
-    // turno nuevo. Las respuestas y los mensajes en cola de un turno
-    // anterior se descartan, y el pedido anterior se cancela: así una
-    // consulta lenta no puede reemplazar las opciones del recorrido actual.
+
+
+
+
     let turno = 0;
     let pedidoEnCurso = null;
     let esperandoConsulta = null;
@@ -73,7 +73,7 @@
         return numeroTurno === turno;
     }
 
-    // ---------------------------------------------------------------- util
+
 
     function hora() {
         const ahora = new Date();
@@ -99,8 +99,8 @@
         return clave && ICONOS[clave] ? ICONOS[clave] : "";
     }
 
-    // Los mensajes del asistente se muestran en orden, con un "escribiendo…"
-    // breve antes de cada uno.
+
+
     function enCola(tarea) {
         const turnoDelMensaje = turno;
         cola = cola.then(function () {
@@ -128,7 +128,7 @@
         return cola;
     }
 
-    // ------------------------------------------------------------ mensajes
+
 
     function pie(burbuja, deUsuario) {
         const meta = elemento("span", "asistente-hora", hora());
@@ -140,7 +140,7 @@
         burbuja.appendChild(meta);
     }
 
-    // Mensaje del asistente: { titulo, texto, nota }.
+
     function crearMensajeBot(partes) {
         const burbuja = elemento("div", "asistente-burbuja asistente-burbuja-bot");
         if (partes.titulo) {
@@ -173,7 +173,7 @@
         });
     }
 
-    // Mensaje del usuario; si eligió una opción, cita la pregunta del asistente.
+
     function mensajeUsuario(texto, descripcion, cita) {
         const burbuja = elemento("div", "asistente-burbuja asistente-burbuja-usuario");
         if (cita) {
@@ -191,7 +191,7 @@
         bajar();
     }
 
-    // ------------------------------------------------------------ opciones
+
 
     function desactivarOpcionesAnteriores() {
         chat.querySelectorAll(".asistente-respuestas button, .asistente-boton-lista").forEach(function (boton) {
@@ -222,7 +222,7 @@
         opcion.accion();
     }
 
-    // Botones de respuesta rápida dentro del mensaje (pocas opciones).
+
     function agregarRespuestasRapidas(burbuja, lista) {
         const contenedor = elemento("div", "asistente-respuestas");
         lista.forEach(function (opcion, indice) {
@@ -249,7 +249,7 @@
         registrarOpciones(lista);
     }
 
-    // Botón que abre el menú de opciones (muchas opciones).
+
     function agregarBotonLista(burbuja, texto, lista) {
         const boton = elemento("button", "asistente-boton-lista");
         boton.type = "button";
@@ -263,7 +263,7 @@
         registrarOpciones(lista);
     }
 
-    // --------------------------------------------------- menú de opciones
+
 
     const hoja = elemento("div", "asistente-hoja");
     hoja.hidden = true;
@@ -356,11 +356,11 @@
         }
     });
 
-    // ------------------------------------------------------------- pasos
 
-    // Devuelve una promesa que solo se cumple si el pedido sigue siendo del
-    // turno actual; si el usuario hizo otra cosa mientras tanto, la
-    // respuesta se descarta (la promesa queda pendiente y no muestra nada).
+
+
+
+
     function pedir(parametros, metodo) {
         const numeroTurno = turno;
         const controlador = typeof AbortController === "function" ? new AbortController() : null;
@@ -391,8 +391,8 @@
         });
     }
 
-    // CU-003-002 A1: el formulario de soporte se abre con el recorrido o la
-    // consulta como motivo (solo con sesión iniciada; si no, va al login).
+
+
     function enlaceSoporte(motivo) {
         if (!motivo || !conSesion) {
             return urlSoporte;
@@ -404,7 +404,7 @@
     const opcionMenuPrincipal = { texto: "Menú principal", descripcion: "Volver al inicio", icono: "menu", accion: function () { irANodo(""); } };
     const opcionSalir = { texto: "Salir", descripcion: "Finalizar esta conversación", icono: "salir", accion: salir };
 
-    // A7: se avisa y se ofrece soporte; las preguntas frecuentes siguen visibles.
+
     function noDisponible(mensaje) {
         disponible = false;
         entrada.disabled = true;
@@ -440,7 +440,7 @@
         recorridoActual = nodo.recorrido || "";
 
         if (!nodo.esRespuesta) {
-            // Paso con pregunta: las opciones llevan al siguiente nivel.
+
             const lista = nodo.opciones.map(function (opcion) {
                 return {
                     texto: opcion.texto,
@@ -459,7 +459,7 @@
             return;
         }
 
-        // Respuesta: acciones definidas para este paso.
+
         const acciones = [];
         let tieneSoporte = false;
         nodo.acciones.forEach(function (accion) {
@@ -473,7 +473,7 @@
             }
         });
 
-        // A6: si la respuesta no alcanza.
+
         if (!tieneSoporte) {
             acciones.push({ texto: "Necesito más ayuda", accion: necesitoMasAyuda });
         }
@@ -491,8 +491,8 @@
             ], "botones");
     }
 
-    // Antes de ir al formulario de soporte se muestra un resumen para
-    // confirmar (el formulario se abre con ese motivo precargado).
+
+
     function confirmarSoporte(motivo) {
         const lineas = ["Tema: " + (motivo || "Consulta general"), "Origen: Asistente de StageUp"];
         if (nombreUsuario) {
@@ -523,10 +523,10 @@
             [{ texto: "Empezar de nuevo", accion: function () { irANodo(""); } }], "botones");
     }
 
-    // ------------------------------------------------- consulta escrita
 
-    // El campo está dentro del formulario de la página: Enter no tiene que
-    // enviarlo, sino mandar la consulta al asistente.
+
+
+
     entrada.addEventListener("keydown", function (evento) {
         if (evento.key === "Enter") {
             evento.preventDefault();
@@ -548,8 +548,8 @@
         entrada.value = "";
         cerrarHoja();
 
-        // Un número elige la opción correspondiente de la última lista
-        // (antes de abrir el turno nuevo, que la vacía).
+
+
         const opcionesDelTurno = opcionesActuales.slice();
         nuevoTurno();
         if (/^\d{1,2}$/.test(texto)) {
@@ -580,8 +580,8 @@
         desactivarOpcionesAnteriores();
         mensajeUsuario(texto);
 
-        // Mientras se busca la respuesta (puede consultar al asistente
-        // automático por API) se muestra "escribiendo…".
+
+
         const esperando = elemento("div", "asistente-escribiendo");
         esperando.setAttribute("aria-hidden", "true");
         esperando.appendChild(elemento("span"));
@@ -603,9 +603,9 @@
                 return;
             }
 
-            // La consulta traía datos privados: no se envió al asistente
-            // automático ni se guardó su texto. Se avisa y, si no hubo
-            // respuesta propia, se ofrece soporte sin copiar la consulta.
+
+
+
             if (datos.conDatosPrivados) {
                 mensajeBot({
                     titulo: "\u{1F512} Cuidá tus datos",
@@ -624,7 +624,7 @@
                 return;
             }
 
-            // Respuesta del asistente automático por API (sin contenido propio).
+
             if (datos.respuestaAutomatica) {
                 recorridoActual = texto;
                 mensajeBot({
@@ -637,8 +637,8 @@
                 return;
             }
 
-            // A5: consulta no reconocida (o el asistente automático no
-            // respondió a tiempo): se deriva a soporte.
+
+
             recorridoActual = texto;
             const lista = [{ texto: "Registrar solicitud de soporte", destacada: true, accion: function () { confirmarSoporte(texto); } }]
                 .concat(convertirSugerencias(datos.sugerencias));
@@ -656,7 +656,7 @@
         });
     }
 
-    // ------------------------------------------------------------ inicio
+
 
     document.querySelectorAll("[data-assistant-open]").forEach(function (boton) {
         boton.addEventListener("click", function () {

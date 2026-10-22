@@ -8,7 +8,7 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    // Pago de una reserva aceptada (ítems 5B y 5D de la segunda entrega).
+
     public partial class Pagar : Page
     {
         private readonly BLL_Pago _bllPago = new BLL_Pago();
@@ -56,7 +56,7 @@ namespace StageUp.UI
             MostrarSegunTarjetaElegida();
         }
 
-        // Ítem 8: tarjetas vigentes de la billetera, con la preferida elegida.
+
         private void CargarBilletera()
         {
             ddlTarjetaGuardada.Items.Clear();
@@ -95,7 +95,7 @@ namespace StageUp.UI
             CargarContexto(false);
         }
 
-        // Lo que eligió el cliente. Sin saldo a favor, se paga con tarjeta.
+
         private EleccionPago LeerEleccion(out bool eligio)
         {
             eligio = !pnlSaldo.Visible || rblModoPago.SelectedItem != null;
@@ -155,7 +155,7 @@ namespace StageUp.UI
 
             ResultadoOperacion<Pago> resultado = _bllPago.PagarReserva(IdReserva, idUsuario, tarjeta, eleccion);
 
-            // El número y el código no se vuelven a mostrar en la página.
+
             txtNumero.Text = string.Empty;
             txtCodigo.Text = string.Empty;
             txtCodigoGuardada.Text = string.Empty;

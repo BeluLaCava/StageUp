@@ -17,7 +17,7 @@
                 <asp:HyperLink ID="lnkDuplicado" runat="server" Visible="false" CssClass="text-link" Text="Ver el contacto existente" />
             </asp:Panel>
 
-            <%-- CU-004-002 pasos 2 a 8, A2, A3 y A4 --%>
+
             <asp:Panel ID="pnlListado" runat="server" Visible="false">
                 <div class="comercial-resumen" aria-label="Resumen de contactos por estado">
                     <a href="ContactosComerciales.aspx"><span>Total</span><strong><asp:Literal ID="litTotal" runat="server" /></strong></a>
@@ -66,12 +66,12 @@
                         </div>
                     </asp:Panel>
 
-                    <%-- A2 --%>
+
                     <asp:Panel ID="pnlSinContactos" runat="server" Visible="false" CssClass="empty-state compact-empty-state">
                         <h3>No hay contactos comerciales cargados</h3>
                         <p>Registrá el primero con "Agregar contacto".</p>
                     </asp:Panel>
-                    <%-- A4 --%>
+
                     <asp:Panel ID="pnlSinResultados" runat="server" Visible="false" CssClass="empty-state compact-empty-state">
                         <h3>No se encontraron contactos para los criterios seleccionados</h3>
                         <p>Modificá los filtros o limpialos para volver al listado general.</p>
@@ -102,7 +102,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- A5 y A9 --%>
+
             <asp:Panel ID="pnlDetalle" runat="server" Visible="false">
                 <div class="auth-card admin-editor-card">
                     <div class="auth-card-header comercial-detalle-cabecera">
@@ -163,7 +163,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- Pasos 9 a 30 (alta) y A6, A8, A9, A10 a A12 (edición), con A13 a A19 --%>
+
             <asp:Panel ID="pnlFormulario" runat="server" Visible="false" DefaultButton="btnGuardar">
                 <div class="auth-card admin-editor-card">
                     <div class="auth-card-header">
@@ -240,7 +240,7 @@
                         </div>
                     </div>
 
-                    <%-- A9 --%>
+
                     <fieldset class="comercial-fieldset">
                         <legend>Cuenta en StageUp <small>(cuando el contacto está incorporado a la plataforma)</small></legend>
                         <p class="comercial-ayuda">El contacto queda como antecedente comercial: no reemplaza la cuenta. Si la cuenta no tenía origen registrado, toma el origen de este contacto.</p>
@@ -266,7 +266,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- A7 y A8 --%>
+
             <asp:Panel ID="pnlSeguimiento" runat="server" Visible="false" DefaultButton="btnGuardarSeguimiento">
                 <div class="auth-card admin-editor-card">
                     <div class="auth-card-header">

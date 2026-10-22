@@ -11,24 +11,24 @@ using StageUp.BLL;
 
 namespace StageUp.UI.Infraestructura
 {
-    // Validación y guardado de una imagen subida desde un formulario.
-    //   * Las reglas (JPG, PNG o WebP de hasta 3 MB y 20 megapíxeles, con
-    //     extensión y tipo MIME que coincidan con el contenido real) están en
-    //     BLL.ValidadorImagen.
-    //   * JPG y PNG se vuelven a dibujar en un JPG nuevo de 1600 px como
-    //     máximo: así se descarta cualquier contenido extra del archivo
-    //     original (metadatos o datos ocultos).
-    //   * WebP no se puede volver a generar en .NET Framework: se comprueba
-    //     que se pueda decodificar completa con el códec de Windows
-    //     (DecodificadorWebP) y se guarda tal cual, rearmada sin metadatos.
-    //   * El nombre lo genera el sistema (GUID).
+
+
+
+
+
+
+
+
+
+
+
     public static class ImagenSubida
     {
         public const int MaximoBytes = ValidadorImagen.MaximoBytes;
         private const int LadoMaximo = 1600;
 
-        // Devuelve la ruta virtual del archivo guardado ("~/carpeta/guid.jpg"
-        // o ".webp") o null con el motivo en error.
+
+
         public static string Guardar(HttpPostedFile archivo, string carpetaVirtual, HttpServerUtility servidor, out string error)
         {
             if (archivo == null)
@@ -40,7 +40,7 @@ namespace StageUp.UI.Infraestructura
             return Guardar(archivo.InputStream, archivo.FileName, archivo.ContentLength, archivo.ContentType, carpetaVirtual, servidor.MapPath, out error);
         }
 
-        // mapPath convierte la ruta virtual en física (Server.MapPath).
+
         public static string Guardar(Stream contenido, string nombreArchivo, int bytes, string tipoMime, string carpetaVirtual, Func<string, string> mapPath, out string error)
         {
             error = null;
@@ -75,8 +75,8 @@ namespace StageUp.UI.Infraestructura
             {
                 if (validacion.Valor.EsWebP)
                 {
-                    // La estructura ya se validó; además tiene que poder
-                    // decodificarse completa (no se confía en las cabeceras).
+
+
                     bool faltaCodec;
                     if (!DecodificadorWebP.SePuedeDecodificar(datos, validacion.Valor.Ancho, validacion.Valor.Alto, out faltaCodec))
                     {
@@ -134,7 +134,7 @@ namespace StageUp.UI.Infraestructura
             }
             catch (OutOfMemoryException)
             {
-                // GDI+ informa así los archivos que no puede interpretar.
+
                 error = "El archivo no es una imagen JPG o PNG válida.";
                 return null;
             }

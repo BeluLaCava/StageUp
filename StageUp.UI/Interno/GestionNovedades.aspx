@@ -272,8 +272,8 @@
         .envio-resumen-neutro { background: #eef2f7; color: #33475b; }
     </style>
     <script>
-        // Vista previa de la imagen elegida antes de guardar (las
-        // validaciones definitivas las hace el servidor).
+
+
         (function () {
             var entrada = document.getElementById("<%= fuImagen.ClientID %>");
             var quitarActual = document.getElementById("<%= chkQuitarImagen.ClientID %>");

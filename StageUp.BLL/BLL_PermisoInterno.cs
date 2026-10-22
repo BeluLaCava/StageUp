@@ -14,9 +14,9 @@ namespace StageUp.BLL
         private static readonly Dictionary<int, List<PermisoHoja>> CachePermisosPorRol =
             new Dictionary<int, List<PermisoHoja>>();
 
-        // Opciones del menú dinámico (ítem 19): se leen una vez y se guardan
-        // en memoria, porque el menú se arma en cada página del panel. Se
-        // invalida desde BLL_OpcionMenu cada vez que se modifica el menú.
+
+
+
         private static readonly object CacheMenuLock = new object();
         private static List<OpcionMenu> _cacheOpcionesMenu;
 
@@ -35,12 +35,12 @@ namespace StageUp.BLL
             return codigos;
         }
 
-        // Ítem 19: el menú se arma desde las opciones administrables
-        // (dbo.OpcionMenu, ABMC en Interno/GestionMenu.aspx). Se muestran las
-        // opciones activas, en su orden, cuyo permiso tenga el rol. Si la
-        // tabla todavía no existe (script 45 sin aplicar), se usa el armado
-        // anterior, directo desde los permisos, para no dejar el panel sin
-        // menú.
+
+
+
+
+
+
         public GrupoMenu ConstruirMenuParaRol(int idRolInterno)
         {
             List<PermisoHoja> hojasDelRol = ObtenerHojasAsignadas(idRolInterno);
@@ -149,10 +149,10 @@ namespace StageUp.BLL
                 return new GrupoPermisos(0, "Permisos");
             }
 
-            // Se marca cada nodo (hoja o grupo) según si está asignado DIRECTAMENTE al rol.
-            // Si un grupo entero está asignado, sus hijos heredan el acceso en tiempo de
-            // lectura (ver ObtenerHojasAsignadas), pero acá el tilde refleja el dato real
-            // guardado, no una asignación heredada, para no confundir al que administra.
+
+
+
+
             foreach (PermisoComponente nodo in RecorrerTodos(raiz))
             {
                 nodo.Asignado = idsAsignados.Contains(nodo.IdComponentePermiso);
@@ -289,17 +289,17 @@ namespace StageUp.BLL
             }
         }
 
-        // CU-001-012: la asignación de permisos a un rol ahora se guarda desde
-        // BLL_RolInterno.Guardar (rol y permisos juntos, con las validaciones
-        // A13, A15 y la de no dejar el sistema sin administradores).
 
-        // A7 paso 3 y A12 paso 2: permisos (hojas) que resultan del rol.
+
+
+
+
         public List<PermisoHoja> ListarPermisosDeRol(int idRolInterno)
         {
             return ObtenerHojasAsignadas(idRolInterno);
         }
 
-        // Lo tildado en el rol (grupos o permisos sueltos), tal como se guardó.
+
         public List<int> ListarIdsAsignados(int idRolInterno)
         {
             try
@@ -312,9 +312,9 @@ namespace StageUp.BLL
             }
         }
 
-        // Permisos (hojas, sin repetir) que resultan de tildar esos
-        // componentes en el árbol dado. Da lo mismo si cada id es un grupo o
-        // un permiso suelto: Listar() del Composite resuelve los dos casos.
+
+
+
         internal static List<PermisoHoja> HojasDeSeleccion(GrupoPermisos raiz, IEnumerable<int> idsComponentes)
         {
             HashSet<int> seleccion = new HashSet<int>(idsComponentes ?? new int[0]);
@@ -370,11 +370,11 @@ namespace StageUp.BLL
                 return hojasAsignadas;
             }
 
-            // Un rol puede tener asignada una hoja suelta O un grupo entero (idsAsignados
-            // guarda cualquiera de los dos). Acá es donde se ve el Composite funcionando de
-            // verdad: da lo mismo si el componente asignado es una hoja o un grupo, en los
-            // dos casos alcanza con llamar a Listar() para obtener las hojas reales que
-            // ese componente representa, sin distinguir casos a mano.
+
+
+
+
+
             HashSet<int> idsYaAgregados = new HashSet<int>();
             foreach (PermisoComponente nodo in RecorrerTodos(raiz))
             {
@@ -408,9 +408,9 @@ namespace StageUp.BLL
             }
         }
 
-        // Crear, mover o eliminar un grupo cambia la forma del árbol (y con ella el
-        // NombreGrupo/la pertenencia de las hojas), así que invalida lo cacheado para
-        // todos los roles en vez de solo uno.
+
+
+
         private static void InvalidarCacheCompleta()
         {
             lock (CacheLock)
@@ -419,9 +419,9 @@ namespace StageUp.BLL
             }
         }
 
-        // Recorre el árbol completo (grupos y hojas), no solo las hojas como Listar().
-        // Se usa para ubicar un componente puntual por id y para resolver asignaciones
-        // por grupo, sin necesidad de tocar las clases del BE.
+
+
+
         private static IEnumerable<PermisoComponente> RecorrerTodos(PermisoComponente nodo)
         {
             yield return nodo;

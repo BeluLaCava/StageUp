@@ -43,8 +43,8 @@ namespace StageUp.UI
 
             string perfil = GestorDeSesion.ObtenerPerfilActual();
 
-            // CU-001-007 (A1, A3 a A6): quien todavía no es gestor pide la
-            // habilitación o consulta su estado en "Ofrecer espacio".
+
+
             if (perfil != PerfilUsuarioExterno.GestorEspacios.ToString())
             {
                 Response.Redirect("~/OfrecerEspacio.aspx", false);
@@ -61,7 +61,7 @@ namespace StageUp.UI
                 {
                     CargarMisEspacios();
 
-                    // CU-001-007 A8/A9 y A10: llegadas desde el detalle del espacio.
+
                     int idEditar;
                     if (int.TryParse(Request.QueryString["editar"], out idEditar))
                     {
@@ -69,7 +69,7 @@ namespace StageUp.UI
                     }
                     else if (Request.QueryString["nuevo"] == "1")
                     {
-                        // CU-001-008 A1: llegada desde "Disponibilidad del espacio" sin espacios.
+
                         LimpiarFormulario();
                         pnlFormularioEspacio.Visible = true;
                     }
@@ -303,22 +303,22 @@ namespace StageUp.UI
             txtAltura.Text = ficha.AlturaM.HasValue ? ficha.AlturaM.Value.ToString("0.##", CultureInfo.InvariantCulture) : "";
             txtCondicionesUso.Text = ficha.CondicionesUso;
             txtReglasUso.Text = ficha.ReglasUso;
-            // Alta: se publica al guardar. Edición: se mantiene el estado actual.
+
             ddlEstadoPublicacion.SelectedValue = espacio.IdEspacioArtistico == 0 || espacio.Publicado ? "Publicar" : "NoPublicar";
             pnlSugerencia.Visible = false;
             foreach (ListItem item in cblEquipamiento.Items)
                 item.Selected = ficha.Equipamiento != null && ficha.Equipamiento.Contains(item.Value);
-            // Solo las franjas manuales: los bloqueos de "Mis actividades" no se
-            // editan desde la ficha (si se mandaran, volverían como manuales).
+
+
             hdnDisponibilidad.Value = new JavaScriptSerializer().Serialize(BLL_EspacioArtistico.ObtenerFranjasEditables(ficha));
             ConfigurarSeccionDisponibilidad(espacio);
         }
 
-        // CU-001-008: al crear un espacio se cargan los horarios iniciales en
-        // la ficha; al editarlo, la disponibilidad se gestiona desde
-        // "Disponibilidad del espacio" (con sus validaciones) y la ficha no
-        // la modifica. El editor queda oculto pero en la página, porque el
-        // script de la ficha también maneja el precio y las fotos.
+
+
+
+
+
         private void ConfigurarSeccionDisponibilidad(EspacioArtistico espacio)
         {
             bool editando = espacio.IdEspacioArtistico != 0;
@@ -374,7 +374,7 @@ namespace StageUp.UI
                     return;
                 }
 
-                // Paso 14 / A9: el estado elegido en el formulario.
+
                 string mensaje = resultado.Mensaje;
                 bool publicar = ddlEstadoPublicacion.SelectedValue == "Publicar";
                 ResultadoOperacion cambioEstado = null;
@@ -408,7 +408,7 @@ namespace StageUp.UI
             }
         }
 
-        // CU-001-007 A12: "Generar descripción automática".
+
         protected void lnkGenerarDescripcion_Click(object sender, EventArgs e)
         {
             if (!EsGestorEspacios())
@@ -430,7 +430,7 @@ namespace StageUp.UI
             pnlFormularioEspacio.Visible = true;
         }
 
-        // CU-001-007 A13: "Sugerir valores".
+
         protected void lnkSugerirValores_Click(object sender, EventArgs e)
         {
             if (!EsGestorEspacios())
@@ -465,9 +465,9 @@ namespace StageUp.UI
                 sugerencia.CantidadComparados + " " + sugerencia.Criterio + ". Es orientativo: el valor final lo definís vos.";
         }
 
-        // Arma el espacio con lo que hay en el formulario. Las fotos nuevas se
-        // guardan y se suman a la lista del formulario, así no se pierden si
-        // la validación falla o si se usa una de las ayudas (A12, A13).
+
+
+
         private EspacioArtistico ArmarEspacioDesdeFormulario(out string error, bool exigirNumeros = true)
         {
             error = null;
@@ -563,7 +563,7 @@ namespace StageUp.UI
                     AlturaM = alturaOk ? altura : (decimal?)null,
                     CondicionesUso = txtCondicionesUso.Text.Trim(),
                     ReglasUso = txtReglasUso.Text.Trim(),
-                    // CU-001-008: al editar, la ficha no toca la disponibilidad.
+
                     Disponibilidad = IdEspacioEnEdicion.HasValue ? null : disponibilidad
                 }
             };

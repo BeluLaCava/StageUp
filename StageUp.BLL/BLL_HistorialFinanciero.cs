@@ -8,18 +8,18 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-002-003 Consultar historial financiero. Solo consulta: no modifica
-    // pagos, transacciones, comisiones, facturas ni saldos.
-    //
-    // El historial junta en un solo listado las transacciones económicas
-    // (CU-002-002), los pagos que no se confirmaron, los pagos de deuda, las
-    // reservas aceptadas que esperan el pago, las liquidaciones a gestores y
-    // las notas de crédito o débito manuales (vista vw_HistorialFinanciero).
+
+
+
+
+
+
+
     public class BLL_HistorialFinanciero
     {
         public const string MensajeDetalleNoDisponible = "No es posible acceder al detalle de la operación seleccionada en este momento.";
 
-        // Tipo de operación económica (filtro del paso 6).
+
         private static readonly Dictionary<string, string> Tipos = new Dictionary<string, string>
         {
             { "ReservaAbonada", "Reserva aceptada y abonada" },
@@ -32,7 +32,7 @@ namespace StageUp.BLL
             { "NotaDebitoManual", "Nota de débito manual" }
         };
 
-        // Estado del pago (filtro del paso 6).
+
         private static readonly Dictionary<string, string> Estados = new Dictionary<string, string>
         {
             { "Pagado", "Pagado" },
@@ -62,8 +62,8 @@ namespace StageUp.BLL
             return Estados.Keys.ToDictionary(e => e, DescribirEstado);
         }
 
-        // Estados cuyo texto se configura en los parámetros administrativos
-        // (CU-002-004 A5).
+
+
         private static readonly Dictionary<string, string> EstadosConfigurables = new Dictionary<string, string>
         {
             { "Pagado", BLL_ParametroPlataforma.EstadoOperacionPagado },
@@ -97,8 +97,8 @@ namespace StageUp.BLL
             return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoFacturaPendiente);
         }
 
-        // Código visible de la operación ("TX-00000012", "PG-...", "RS-...",
-        // "LQ-...", "NC-..." o "ND-...") a origen + id.
+
+
         public static bool IntentarLeerCodigo(string codigo, out string origen, out int idOrigen)
         {
             origen = null;
@@ -119,7 +119,7 @@ namespace StageUp.BLL
             return Origenes.Contains(origen);
         }
 
-        // Pasos 4 a 9, A3 y A4.
+
         public ResultadoOperacion<List<OperacionFinanciera>> Listar(FiltroHistorialFinanciero filtro)
         {
             filtro = filtro ?? new FiltroHistorialFinanciero();
@@ -158,7 +158,7 @@ namespace StageUp.BLL
             }
         }
 
-        // A2: true si no hay ninguna operación económica registrada.
+
         public bool NoHayOperaciones()
         {
             try
@@ -183,14 +183,14 @@ namespace StageUp.BLL
             }
         }
 
-        // Saldos actuales de la cuenta corriente de gestor (uno por moneda).
+
         public List<SaldoCuentaCorriente> ObtenerSaldosGestor(int idUsuarioGestor)
         {
             return _cuentaCorriente.ObtenerSaldos(idUsuarioGestor, BLL_CuentaCorriente.RolGestor);
         }
 
-        // Totales del listado por moneda: lo cobrado (pagado o cobrado), la
-        // comisión de StageUp, lo del gestor, lo pendiente y lo liquidado.
+
+
         public static List<ResumenHistorialFinanciero> Resumir(IEnumerable<OperacionFinanciera> operaciones)
         {
             return (operaciones ?? Enumerable.Empty<OperacionFinanciera>())
@@ -213,7 +213,7 @@ namespace StageUp.BLL
                 .ToList();
         }
 
-        // Pasos 11 a 13 y A7.
+
         public ResultadoOperacion<OperacionFinanciera> ObtenerDetalle(string codigo)
         {
             string origen;
@@ -250,8 +250,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Paso 13: estados o datos particulares de la operación (factura
-        // pendiente, pago pendiente, cargo por cancelación aplicado, etc.).
+
+
         public static List<string> EstadosParticulares(OperacionFinanciera o)
         {
             List<string> avisos = new List<string>();

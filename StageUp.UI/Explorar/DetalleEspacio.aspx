@@ -26,7 +26,7 @@
             </asp:Panel>
 
             <asp:Panel ID="pnlDetalleEspacio" runat="server" CssClass="space-detail" Visible="false">
-                <%-- CU-001-007 A8 a A11: el gestor ve su espacio (aunque no esté publicado) con sus acciones. --%>
+
                 <asp:Panel ID="pnlGestion" runat="server" CssClass="space-owner-panel" Visible="false">
                     <div class="space-owner-heading">
                         <strong>Estás viendo tu espacio</strong>
@@ -206,7 +206,7 @@
                             </asp:Panel>
                         </section>
 
-                        <%-- Ítem 1: preguntas y respuestas públicas sobre el espacio. --%>
+
                         <section class="space-detail-section space-questions" id="preguntas" aria-labelledby="space-questions-title">
                             <span class="eyebrow">Consultas públicas</span>
                             <h2 id="space-questions-title">Preguntas sobre el espacio</h2>

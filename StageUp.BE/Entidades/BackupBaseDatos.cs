@@ -2,8 +2,8 @@ using System;
 
 namespace StageUp.BE.Entidades
 {
-    // Backup completo de la base (ítem 17 de la segunda entrega). Los datos
-    // salen del historial de backups de SQL Server (msdb).
+
+
     public class BackupBaseDatos
     {
         public int IdBackup { get; set; }

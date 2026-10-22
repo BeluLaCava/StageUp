@@ -16,7 +16,7 @@
                 <asp:Literal ID="litMensaje" runat="server" Mode="Encode" />
             </asp:Panel>
 
-            <%-- Pasos 7, 9 y 10, A3, A4 --%>
+
             <div class="auth-card admin-list-card">
                 <asp:Panel ID="pnlFiltros" runat="server" CssClass="comercial-filtros" DefaultButton="btnAplicarFiltros" role="search">
                     <div class="form-field">
@@ -47,19 +47,19 @@
                 </asp:Panel>
             </div>
 
-            <%-- A2 --%>
+
             <asp:Panel ID="pnlSinInformacion" runat="server" Visible="false" CssClass="empty-state compact-empty-state">
                 <h3>Todavía no hay datos comerciales suficientes para consultar</h3>
                 <p>Las métricas aparecen cuando hay usuarios registrados, campañas o contactos comerciales cargados.</p>
             </asp:Panel>
 
-            <%-- A5 --%>
+
             <asp:Panel ID="pnlSinResultados" runat="server" Visible="false" CssClass="empty-state compact-empty-state">
                 <h3>No se encontraron resultados para los criterios seleccionados</h3>
                 <p>Modificá los filtros o limpialos para volver al tablero general.</p>
             </asp:Panel>
 
-            <%-- Pasos 5 y 6 --%>
+
             <asp:Panel ID="pnlTablero" runat="server" Visible="false">
                 <div class="metricas-tiles" aria-label="Indicadores comerciales">
                     <div class="metricas-tile">
@@ -88,7 +88,7 @@
                     </div>
                 </div>
 
-                <%-- Pasos 12 a 16, A7, A8, A9, A10 --%>
+
                 <div class="auth-card admin-list-card" id="origen">
                     <div class="auth-card-header">
                         <span class="admin-card-eyebrow">Origen de usuarios</span>
@@ -96,7 +96,7 @@
                         <p class="comercial-ayuda">Usuarios registrados según su canal de origen. Los que no informaron cómo llegaron se agrupan en "Origen no informado".</p>
                     </div>
 
-                    <%-- A7 --%>
+
                     <asp:Panel ID="pnlSinOrigen" runat="server" Visible="false" CssClass="comercial-aviso">
                         Todavía no hay información de origen de usuarios disponible: ninguno de los usuarios de este período llegó por un canal identificado.
                     </asp:Panel>

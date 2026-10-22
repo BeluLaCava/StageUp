@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Mensajería privada por reserva (script 73).
+
     public class MPP_MensajeReserva
     {
         public int Insertar(MensajeReserva oMensaje)

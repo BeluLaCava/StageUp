@@ -28,10 +28,10 @@ namespace StageUp.MPP
 
             FichaEspacio ficha = oEspacioArtistico.Ficha ?? new FichaEspacio();
 
-            // La ficha ya no se borra y se vuelve a insertar: se actualiza si
-            // existe (sp_FichaEspacio_Guardar, script 41). Así el ON DELETE
-            // CASCADE de FichaEspacio nunca se dispara al guardar y los
-            // bloqueos generados desde "Mis actividades" no se pierden.
+
+
+
+
             Conexion.Instance.Guardar(
                 "sp_FichaEspacio_Guardar",
                 new Hashtable
@@ -52,11 +52,11 @@ namespace StageUp.MPP
                     { "@reglasUso", (object)ficha.ReglasUso ?? DBNull.Value }
                 });
 
-            // Solo se limpia lo que el formulario vuelve a mandar completo:
-            // equipamiento, fotos y (al crear el espacio) franjas con origen
-            // 'Manual'. CU-001-008: al editar un espacio la ficha llega sin
-            // disponibilidad (null) y las franjas se conservan, porque se
-            // gestionan desde "Disponibilidad del espacio".
+
+
+
+
+
             bool reemplazarFranjas = ficha.Disponibilidad != null;
             Conexion.Instance.Guardar(
                 "sp_FichaEspacio_LimpiarDatosEditables",
@@ -238,14 +238,14 @@ namespace StageUp.MPP
                     { "@reqIluminacion", equipamiento.Contains("ILUMINACION") }
                 }));
 
-            // A diferencia de ListarPublicados() (que muestra el catalogo completo y
-            // necesita los datos hijos de todos los espacios publicados), aca "lista" ya
-            // viene acotada a los espacios que matchearon el filtro. Antes se reusaban los
-            // mismos SP "_ListarPublicados" sin filtro (traían las franjas/equipamiento/
-            // fotos de TODOS los espacios publicados del sistema y se descartaba en memoria
-            // lo que no hacia falta), lo cual escala mal si hay muchos espacios publicados
-            // y la busqueda devuelve pocos resultados. Usamos la variante "_PorIds" para
-            // traer unicamente los datos hijos de los espacios que ya matchearon.
+
+
+
+
+
+
+
+
             if (lista.Count > 0)
             {
                 string idsEspacios = string.Join(",", lista.Select(e => e.IdEspacioArtistico));
@@ -353,8 +353,8 @@ namespace StageUp.MPP
             };
         }
 
-        // Las columnas del script 55 solo vienen en los SP que se recrearon
-        // ahí; en los demás quedan en null.
+
+
         private static decimal? LeerDecimal(DataRow fila, string columna)
         {
             return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value ? Convert.ToDecimal(fila[columna]) : (decimal?)null;
@@ -372,7 +372,7 @@ namespace StageUp.MPP
             return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value ? fila[columna].ToString() : null;
         }
 
-        // CU-001-007 A13: precios de los espacios publicados en una moneda.
+
         public List<EspacioArtistico> ListarPreciosReferencia(EspacioArtistico oEspacio)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -445,8 +445,8 @@ namespace StageUp.MPP
                         Origen = fila.Table.Columns.Contains("origen") && fila["origen"] != DBNull.Value
                             ? fila["origen"].ToString()
                             : "Manual",
-                        // CU-001-008 (script 56): solo los listados del gestor
-                        // traen estas columnas; los públicos no.
+
+
                         IdFranjaEspacio = LeerEnteroOpcional(fila, "idFranjaEspacio"),
                         MotivoBloqueo = LeerTexto(fila, "motivoBloqueo"),
                         IdActividad = LeerEnteroOpcional(fila, "idActividad"),

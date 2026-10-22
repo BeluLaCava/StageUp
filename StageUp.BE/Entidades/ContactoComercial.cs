@@ -2,8 +2,8 @@ using System;
 
 namespace StageUp.BE.Entidades
 {
-    // CU-004-002 Contacto comercial. No es un usuario de StageUp: cuando se
-    // incorpora a la plataforma se lo puede asociar con su cuenta.
+
+
     public class ContactoComercial
     {
         public const string EstadoPendiente = "Pendiente";
@@ -39,7 +39,7 @@ namespace StageUp.BE.Entidades
         public bool Activo { get; set; }
         public int CantidadSeguimientos { get; set; }
 
-        // Observación del cambio de estado hecho desde la edición (A8).
+
         public string ObservacionCambioEstado { get; set; }
 
         public string NombreCompleto
@@ -48,7 +48,7 @@ namespace StageUp.BE.Entidades
         }
     }
 
-    // Observación de seguimiento de un contacto (A7) o cambio de estado (A8).
+
     public class SeguimientoContacto
     {
         public const string TipoCambioEstado = "CambioEstado";
@@ -93,7 +93,7 @@ namespace StageUp.BE.Entidades
         public int Incorporados { get; set; }
     }
 
-    // A13: contacto ya registrado con datos equivalentes.
+
     public class PosibleContactoDuplicado
     {
         public int IdContactoComercial { get; set; }
@@ -101,7 +101,7 @@ namespace StageUp.BE.Entidades
         public string Coincidencia { get; set; }
     }
 
-    // A9: cuenta de StageUp con la que se asocia un contacto incorporado.
+
     public class CuentaParaVincular
     {
         public int IdUsuarioExterno { get; set; }

@@ -9,11 +9,11 @@ namespace StageUp.UI
 {
     public class Global : HttpApplication
     {
-        // Sesión abierta después de restaurar un backup (script 79): antes de
-        // que la página o el handler procese nada, se comprueba que la cuenta
-        // de la sesión siga existiendo en la base. Si no, se cierra la sesión
-        // y las páginas llevan al inicio de sesión con el motivo; los handlers
-        // (.ashx) siguen y responden como sin sesión.
+
+
+
+
+
         protected void Application_PostAcquireRequestState(object sender, EventArgs e)
         {
             HttpContext contexto = HttpContext.Current;
@@ -22,9 +22,9 @@ namespace StageUp.UI
                 return;
             }
 
-            // Si la base se restauró y no se pudo comprobar la cuenta, la sesión
-            // queda suspendida en este pedido (sin usuario ni permisos): las
-            // páginas van a un aviso y los handlers la ven como sin sesión.
+
+
+
             ResultadoRevalidacionSesion resultado = ControlSesionBaseDatos.VerificarSinExcepciones();
             if (!(contexto.Handler is Page))
             {
@@ -82,7 +82,7 @@ namespace StageUp.UI
             }
             catch
             {
-                // Si falla el registro en bitácora, no debe tapar el error original.
+
             }
         }
     }

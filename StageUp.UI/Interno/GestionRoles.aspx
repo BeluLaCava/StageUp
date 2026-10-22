@@ -13,7 +13,7 @@
                 <asp:Literal ID="litMensaje" runat="server" Mode="Encode" />
             </asp:Panel>
 
-            <%-- A11 pasos 2 a 5. --%>
+
             <div class="auth-card admin-list-card">
                 <div class="auth-card-header internal-users-list-heading">
                     <div>
@@ -76,7 +76,7 @@
         </div>
     </section>
 
-    <%-- A11 pasos 6 a 9 (alta) y A12 pasos 3 a 6 (edición). --%>
+
     <asp:Panel ID="pnlFormularioRol" runat="server" Visible="false" CssClass="review-dialog-layer">
         <dialog class="review-dialog internal-dialog" open aria-labelledby="internal-role-form-title">
             <asp:LinkButton ID="lnkCerrarFormulario" runat="server" CssClass="review-dialog-close" CausesValidation="false" OnClick="lnkCancelarEdicionRol_Click" aria-label="Cerrar">×</asp:LinkButton>
@@ -128,7 +128,7 @@
         </dialog>
     </asp:Panel>
 
-    <%-- A12 paso 2: detalle del rol. --%>
+
     <asp:Panel ID="pnlDetalleRol" runat="server" Visible="false" CssClass="review-dialog-layer">
         <dialog class="review-dialog internal-dialog" open aria-labelledby="internal-role-detail-title">
             <asp:LinkButton ID="lnkCerrarDetalle" runat="server" CssClass="review-dialog-close" CausesValidation="false" OnClick="lnkCerrarDetalle_Click" aria-label="Cerrar">×</asp:LinkButton>

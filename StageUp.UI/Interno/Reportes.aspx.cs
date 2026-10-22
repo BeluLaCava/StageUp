@@ -12,9 +12,9 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // Reportes con gráficos y tablero de indicadores (ítem 15 de la segunda
-    // entrega). Los gráficos son HTML/CSS (sin librerías externas): una sola
-    // serie por gráfico, un solo color, con tooltip y vista de tabla.
+
+
+
     public partial class Reportes : Page
     {
         private const string PermisoRequerido = "VER_REPORTES";
@@ -88,7 +88,7 @@ namespace StageUp.UI.Interno
             string nombreArchivo = "StageUp_reporte_" + filtro.Desde.ToString("yyyyMMdd", CultureInfo.InvariantCulture) +
                                    "_" + filtro.Hasta.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + ".csv";
 
-            // Con BOM, para que Excel reconozca los acentos.
+
             UTF8Encoding codificacion = new UTF8Encoding(true);
             byte[] contenido = codificacion.GetPreamble()
                 .Concat(codificacion.GetBytes(BLL_Reporte.GenerarCsvReporteCompleto(resultado.Valor)))
@@ -101,7 +101,7 @@ namespace StageUp.UI.Interno
             Response.End();
         }
 
-        // ---- Carga ----------------------------------------------------------
+
 
         private void CargarCombos()
         {
@@ -186,7 +186,7 @@ namespace StageUp.UI.Interno
             ReporteCompleto reporte = resultado.Valor;
             _filtroActual = reporte.Filtro;
 
-            // La BLL puede haber cambiado la agrupación (períodos muy largos).
+
             SeleccionarValor(ddlAgrupacion, reporte.Filtro.Agrupacion);
             pnlAviso.Visible = !string.IsNullOrEmpty(reporte.Aviso);
             litAviso.Text = Server.HtmlEncode(reporte.Aviso ?? string.Empty);
@@ -268,7 +268,7 @@ namespace StageUp.UI.Interno
             rptEncuestasTabla.DataBind();
         }
 
-        // ---- Ayudas para el marcado --------------------------------------
+
 
         protected string Importe(object valor)
         {
@@ -281,7 +281,7 @@ namespace StageUp.UI.Interno
             return Convert.ToDecimal(valor, CultureInfo.InvariantCulture).ToString("0.#", Cultura) + " %";
         }
 
-        // Alto/ancho de la barra. Un valor mayor a cero nunca queda invisible.
+
         protected static string EstiloAlto(object porcentaje)
         {
             return "height:" + Medida(porcentaje) + "%;";
@@ -303,8 +303,8 @@ namespace StageUp.UI.Interno
             return Math.Min(100m, Math.Max(0m, valor)).ToString("0.##", CultureInfo.InvariantCulture);
         }
 
-        // Con muchos períodos se muestra una etiqueta cada tantos, para que
-        // no se pisen. El valor exacto de cada barra está en el tooltip.
+
+
         protected string MostrarEtiquetaEje(int indice, string etiqueta)
         {
             int paso = Math.Max(1, (int)Math.Ceiling(_cantidadPeriodos / (double)MaximoEtiquetasEje));
@@ -386,7 +386,7 @@ namespace StageUp.UI.Interno
             return HttpUtility.HtmlAttributeEncode(texto ?? string.Empty);
         }
 
-        // ---- Varios ---------------------------------------------------------
+
 
         private static void SeleccionarValor(DropDownList lista, string valor)
         {

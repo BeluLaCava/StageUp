@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // CU-004-005 Contenido promocional (script 81).
+
     public class MPP_ContenidoPromocional
     {
         public List<ContenidoPromocional> Listar(FiltroContenidoPromocional oFiltro)
@@ -54,7 +54,7 @@ namespace StageUp.MPP
             return tabla.Rows.Count == 0 ? null : Mapear(tabla.Rows[0]);
         }
 
-        // Devuelve el id y, si el archivo se reemplazó o se quitó, la ruta del anterior.
+
         public int Guardar(ContenidoPromocional oContenido, UsuarioInterno oUsuario, out string rutaArchivoAnterior)
         {
             DataTable tabla = Conexion.Instance.Leer(

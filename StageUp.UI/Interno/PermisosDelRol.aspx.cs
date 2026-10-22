@@ -4,9 +4,9 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // CU-001-012: la edición de permisos quedó dentro del formulario del rol
-    // (GestionRoles.aspx), con las validaciones A13 y A15. Esta página solo
-    // redirige para no romper enlaces anteriores.
+
+
+
     public partial class PermisosDelRol : Page
     {
         protected void Page_Load(object sender, EventArgs e)

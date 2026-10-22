@@ -3,20 +3,20 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-    // Ítems 28/29 del checklist de correcciones: "unificar de verdad" el
-    // login de usuarios externos e internos en una sola pantalla
-    // (IniciarSesion.aspx), sin fusionar los modelos de datos ni los
-    // sistemas de permisos de UsuarioExterno/UsuarioInterno, que siguen
-    // siendo completamente independientes.
-    //
-    // El token de reCAPTCHA es de un solo uso: ServicioRecaptcha.Validar
-    // hace una llamada real a la API de Google en cada invocación, y
-    // validar el mismo token dos veces haría fallar la segunda validación.
-    // Por eso esta clase valida el CAPTCHA UNA sola vez acá, y después
-    // intenta autenticar primero como usuario externo y, si no corresponde,
-    // como usuario interno, usando las variantes internas sin CAPTCHA
-    // (BLL_UsuarioExterno.IniciarSesionSinCaptcha /
-    // BLL_UsuarioInterno.IniciarSesionSinCaptcha).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public class BLL_Autenticacion
     {
         private readonly BLL_UsuarioExterno _bllUsuarioExterno = new BLL_UsuarioExterno();
@@ -53,12 +53,12 @@ namespace StageUp.BLL
             return ResultadoInicioSesion.Error(ElegirMensajeDeError(resultadoExterno.Mensaje, resultadoInterno.Mensaje));
         }
 
-        // Cuando el login falla de los dos lados, preferimos mostrar el
-        // mensaje más específico (por ej. "tu cuenta todavía no fue
-        // activada" o "esta cuenta interna no se encuentra habilitada")
-        // antes que el genérico "correo o contraseña incorrectos" que
-        // comparten ambos flujos, porque el específico le sirve más al
-        // usuario para entender qué le pasa a su cuenta.
+
+
+
+
+
+
         private static string ElegirMensajeDeError(string mensajeExterno, string mensajeInterno)
         {
             const string mensajeGenerico = "El correo electrónico o la contraseña son incorrectos.";

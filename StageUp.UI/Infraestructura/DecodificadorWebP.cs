@@ -7,15 +7,15 @@ using System.Windows.Media.Imaging;
 
 namespace StageUp.UI.Infraestructura
 {
-    // Decodifica una WebP completa con el códec de imágenes de Windows (WIC,
-    // el mismo que usa el Explorador; viene con Windows 10 y 11). .NET
-    // Framework no tiene un decodificador propio de WebP: así se comprueba
-    // en el servidor que el archivo es una imagen que realmente se puede
-    // abrir, no solo que sus cabeceras sean coherentes.
-    //   * Se decodifican todos los píxeles (fila por fila).
-    //   * Corre en un hilo STA aparte, con un tiempo máximo.
-    //   * Si el servidor no tiene el códec WebP, se informa con faltaCodec
-    //     (la imagen se rechaza igual: no se guarda nada sin comprobar).
+
+
+
+
+
+
+
+
+
     internal static class DecodificadorWebP
     {
         private static readonly TimeSpan TiempoMaximo = TimeSpan.FromSeconds(20);
@@ -57,12 +57,12 @@ namespace StageUp.UI.Infraestructura
                 }
                 catch (NotSupportedException)
                 {
-                    // "No se encontró un componente de imágenes adecuado".
+
                     sinCodec = true;
                 }
                 catch (Exception)
                 {
-                    // Archivo incompleto o dañado.
+
                 }
             });
 

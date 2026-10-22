@@ -13,13 +13,13 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    // CU-001-008 Gestionar disponibilidad de espacios artísticos.
-    //  - Escenario principal: agregar disponibilidad (uno o varios días).
-    //  - A1: el gestor no tiene espacios.
-    //  - A2 a A5: validaciones (BLL_DisponibilidadEspacio).
-    //  - A6 / A7: ver el detalle de una franja y editarla.
-    //  - A8 / A9: bloqueo manual con motivo.
-    //  - A10 / A11: eliminar una franja con confirmación.
+
+
+
+
+
+
+
     public partial class DisponibilidadEspacio : Page
     {
         private const string ModoSemanal = "Semanal";
@@ -67,7 +67,7 @@ namespace StageUp.UI
                 return;
             }
 
-            // Precondición: habilitado como gestor.
+
             if (GestorDeSesion.ObtenerPerfilActual() != PerfilUsuarioExterno.GestorEspacios.ToString())
             {
                 Response.Redirect("~/OfrecerEspacio.aspx", false);
@@ -82,14 +82,14 @@ namespace StageUp.UI
             }
         }
 
-        // ------------------------------------------------------------------
-        // Carga
-        // ------------------------------------------------------------------
+
+
+
         private void Inicializar()
         {
             List<EspacioArtistico> espacios = _bllEspacio.ListarMisEspacios(IdUsuario);
 
-            // A1.
+
             if (espacios.Count == 0)
             {
                 pnlSinEspacios.Visible = true;
@@ -141,7 +141,7 @@ namespace StageUp.UI
             return true;
         }
 
-        // Paso 9: nombre, calendario y listado.
+
         private void Cargar()
         {
             if (!CargarEspacio())
@@ -235,9 +235,9 @@ namespace StageUp.UI
             litCalendario.Text = html.ToString();
         }
 
-        // ------------------------------------------------------------------
-        // Selección de espacio y calendario
-        // ------------------------------------------------------------------
+
+
+
         protected void ddlEspacio_SelectedIndexChanged(object sender, EventArgs e)
         {
             int id;
@@ -275,9 +275,9 @@ namespace StageUp.UI
             Cargar();
         }
 
-        // ------------------------------------------------------------------
-        // Escenario principal y A6: formulario de disponibilidad
-        // ------------------------------------------------------------------
+
+
+
         protected void btnAgregar_Click(object sender, EventArgs e)
         {
             OcultarFormularios();
@@ -336,14 +336,14 @@ namespace StageUp.UI
 
             if (!resultado.Exitoso)
             {
-                // A2 a A5 / A7: el formulario queda con lo cargado para corregir.
+
                 MostrarMensaje(resultado.Mensaje, true);
                 AplicarModo();
                 Cargar();
                 return;
             }
 
-            // Pasos 15 a 18 / A6 pasos 8 a 11.
+
             int? editada = IdFranjaEnEdicion;
             OcultarFormularios();
             MostrarMensaje(resultado.Mensaje, false);
@@ -358,9 +358,9 @@ namespace StageUp.UI
             Cargar();
         }
 
-        // ------------------------------------------------------------------
-        // A6 / A10: detalle, edición y eliminación de una franja
-        // ------------------------------------------------------------------
+
+
+
         protected void rptDisponibilidad_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
             int id;
@@ -405,7 +405,7 @@ namespace StageUp.UI
                 return;
             }
 
-            // A6 paso 4: se habilitan los campos con los datos actuales.
+
             OcultarFormularios();
             pnlMensaje.Visible = false;
             IdFranjaEnEdicion = franja.IdFranjaEspacio;
@@ -452,7 +452,7 @@ namespace StageUp.UI
                 CerrarDetalle();
             }
 
-            // A11: la disponibilidad mantiene su configuración y se informa por qué.
+
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
             Cargar();
         }
@@ -470,9 +470,9 @@ namespace StageUp.UI
             pnlConfirmarEliminar.Visible = false;
         }
 
-        // ------------------------------------------------------------------
-        // A8 / A9: bloqueo manual
-        // ------------------------------------------------------------------
+
+
+
         protected void btnBloquear_Click(object sender, EventArgs e)
         {
             OcultarFormularios();
@@ -529,7 +529,7 @@ namespace StageUp.UI
 
             if (!resultado.Exitoso)
             {
-                // A9: no se registra el bloqueo y se vuelve al paso 3 de A8.
+
                 MostrarMensaje(resultado.Mensaje, true);
                 AplicarModoBloqueo();
                 Cargar();
@@ -561,9 +561,9 @@ namespace StageUp.UI
             Cargar();
         }
 
-        // ------------------------------------------------------------------
-        // Ayudas para la vista
-        // ------------------------------------------------------------------
+
+
+
         protected string Cuando(object dato)
         {
             return BLL_DisponibilidadEspacio.DescribirCuando((FranjaEspacio)dato);

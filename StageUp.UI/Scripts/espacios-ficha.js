@@ -103,7 +103,7 @@
         const vacia = document.getElementById("photo-gallery-vacia");
         const appRoot = gallery.getAttribute("data-app-root") || "/";
         function resolverRuta(ruta) {
-            return appRoot + ruta.replace(/^~\//, "");
+            return appRoot + ruta.replace(/^~\
         }
         function renderFotos() {
             fotosHidden.value = JSON.stringify(fotos);

@@ -8,13 +8,13 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // Reportes con gráficos y tablero de indicadores (ítem 15 de la segunda
-    // entrega). Solo lo usa Interno/Reportes.aspx (permiso VER_REPORTES).
-    //
-    // Criterio de ingresos (script 48): importe estimado de las reservas
-    // Aceptadas o Finalizadas, imputado a la fecha del alquiler, más las
-    // comisiones cobradas por cancelaciones tardías, imputadas a la fecha de
-    // cancelación. Cada moneda se informa por separado.
+
+
+
+
+
+
+
     public class BLL_Reporte
     {
         public const string AgrupacionDia = "Dia";
@@ -24,8 +24,8 @@ namespace StageUp.BLL
 
         public static readonly string[] Monedas = { "ARS", "USD" };
 
-        // Límites para que el gráfico siga siendo legible: si se pide más,
-        // se agrupa en la unidad siguiente y se avisa.
+
+
         private const int MaximoDiasAgrupandoPorDia = 92;
         private const int MaximoDiasAgrupandoPorSemana = 730;
         private const int MaximoAniosDeRango = 10;
@@ -46,8 +46,8 @@ namespace StageUp.BLL
             };
         }
 
-        // Por defecto: los últimos 12 meses completos, incluido el actual,
-        // agrupados por mes, en pesos.
+
+
         public static FiltroReporte CrearFiltroPorDefecto()
         {
             DateTime hoy = DateTime.Today;
@@ -187,10 +187,10 @@ namespace StageUp.BLL
             }
         }
 
-        // CSV del reporte completo (ingresos por período, por zona, reservas
-        // por estado y participación en encuestas), con punto y coma (lo abre
-        // Excel en configuración regional de Argentina), importes sin
-        // separador de miles y porcentajes con coma decimal.
+
+
+
+
         public static string GenerarCsvReporteCompleto(ReporteCompleto reporte)
         {
             System.Text.StringBuilder csv = new System.Text.StringBuilder();
@@ -276,7 +276,7 @@ namespace StageUp.BLL
         private static string CampoCsv(string valor)
         {
             string texto = valor ?? string.Empty;
-            // Evita que Excel interprete el contenido como fórmula.
+
             if (texto.Length > 0 && "=+-@".IndexOf(texto[0]) >= 0)
             {
                 texto = "'" + texto;
@@ -310,7 +310,7 @@ namespace StageUp.BLL
             return null;
         }
 
-        // Mismo criterio que el SP: la semana empieza el lunes.
+
         private static DateTime InicioDePeriodo(DateTime fecha, string agrupacion)
         {
             switch (agrupacion)
@@ -342,8 +342,8 @@ namespace StageUp.BLL
             }
         }
 
-        // El SP solo devuelve los períodos con movimientos. Para que el gráfico
-        // no "salte" períodos sin ingresos, se completan con cero.
+
+
         private static List<FilaReportePeriodo> CompletarPeriodos(List<FilaReportePeriodo> filas, FiltroReporte filtro)
         {
             Dictionary<DateTime, FilaReportePeriodo> porInicio = filas
@@ -378,8 +378,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Se muestran las 10 zonas con más ingresos; el resto se suma en "Otras".
-        // Todas las zonas (copias, sin agrupar), con su porcentaje del total.
+
+
         private static List<FilaReporteZona> CalcularPorcentajesZonasDetalle(List<FilaReporteZona> zonas)
         {
             List<FilaReporteZona> detalle = zonas

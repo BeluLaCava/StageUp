@@ -10,11 +10,11 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI
 {
-    // CU-001-011 Consultar notificaciones y acceder a elementos relacionados:
-    // centro de notificaciones ("Ver todas" del menú). Lista con título,
-    // descripción, fecha, tipo y estado de lectura (A2/A3), filtro, marcar
-    // como leídas solo las del usuario y aviso cuando el elemento ya no está
-    // disponible (A9).
+
+
+
+
+
     public partial class Notificaciones : Page
     {
         private readonly BLL_Notificacion _bll = new BLL_Notificacion();
@@ -34,7 +34,7 @@ namespace StageUp.UI
 
             if (!IsPostBack)
             {
-                // A9: se llegó desde el menú porque el elemento no estaba disponible.
+
                 int idNotificacion;
                 if (int.TryParse(Request.QueryString["no_disponible"], NumberStyles.Integer, CultureInfo.InvariantCulture, out idNotificacion))
                 {
@@ -89,7 +89,7 @@ namespace StageUp.UI
                     return;
                 }
 
-                // A9: se informa y se mantiene el centro de notificaciones.
+
                 MostrarMensaje(error, true);
                 Cargar();
                 RecargarMenu();
@@ -117,8 +117,8 @@ namespace StageUp.UI
                 : string.Empty;
         }
 
-        // El contador y el menú del encabezado se cargan antes que la acción:
-        // se vuelven a pedir para que muestren lo actualizado.
+
+
         private void RecargarMenu()
         {
             SiteMaster master = Master as SiteMaster;

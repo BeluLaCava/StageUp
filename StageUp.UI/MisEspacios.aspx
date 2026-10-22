@@ -146,7 +146,7 @@
                     <section class="space-form-section">
                         <h3>04 · Disponibilidad</h3>
                         <asp:HiddenField ID="hdnDisponibilidad" runat="server" ClientIDMode="Static" Value="[]" />
-                        <%-- CU-001-008: al editar un espacio la disponibilidad se gestiona desde su propia pantalla. --%>
+
                         <asp:Panel ID="pnlDisponibilidadGestionada" runat="server" CssClass="space-assist" Visible="false">
                             <p><asp:Literal ID="litResumenDisponibilidad" runat="server" Mode="Encode" /></p>
                             <asp:HyperLink ID="lnkConfigurarDisponibilidad" runat="server" CssClass="button button-secondary button-small" Text="Configurar disponibilidad" />

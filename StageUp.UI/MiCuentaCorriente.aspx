@@ -80,7 +80,7 @@
                     <h3>Pagar saldo deudor</h3>
                     <p>Tenés <strong><asp:Literal ID="litDeuda" runat="server" /></strong> pendiente de pago. Podés cancelarlo con tarjeta.</p>
                     <asp:HiddenField ID="hfMonedaDeuda" runat="server" />
-                    <%-- Ítem 8: también se puede pagar con una tarjeta de la billetera. --%>
+
                     <asp:Panel ID="pnlElegirTarjeta" runat="server" Visible="false" CssClass="cc-billetera">
                         <div class="form-field">
                             <label for="<%= ddlTarjetaGuardada.ClientID %>">Tarjeta</label>

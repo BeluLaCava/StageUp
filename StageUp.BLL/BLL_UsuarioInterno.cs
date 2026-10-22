@@ -43,11 +43,11 @@ namespace StageUp.BLL
             });
         }
 
-        // Ítems 28/29 del checklist de correcciones (login unificado): variante
-        // sin validación de CAPTCHA, usada por BLL_Autenticacion para poder
-        // probar el login como usuario externo y, si no corresponde, como
-        // usuario interno, validando el token de reCAPTCHA una sola vez (es de
-        // un solo uso) desde un único lugar.
+
+
+
+
+
         internal ResultadoOperacion<UsuarioInterno> IniciarSesionSinCaptcha(
             string correoElectronico, string password)
         {
@@ -105,8 +105,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Pasos 4 y 5 del escenario principal: listado con búsqueda por
-        // nombre, apellido o correo y filtros de rol y estado.
+
+
         public List<UsuarioInterno> Buscar(string texto, int? idRolInterno, string estado)
         {
             string busqueda = (texto ?? string.Empty).Trim().ToLowerInvariant();
@@ -150,10 +150,10 @@ namespace StageUp.BLL
             }
         }
 
-        // A10 paso 4 y A16: en cada página del panel interno se vuelve a leer
-        // la cuenta, para que una baja o un cambio de rol o de permisos rija
-        // enseguida aunque la persona ya tenga la sesión abierta. Devuelve
-        // null si la cuenta ya no está activa.
+
+
+
+
         public UsuarioInterno ObtenerParaSesion(int idUsuarioInterno, out List<string> codigosPermisos)
         {
             codigosPermisos = null;
@@ -195,8 +195,8 @@ namespace StageUp.BLL
                     EstadoCuenta = estadoCuenta
                 };
 
-                // La contraseña pasa por Seguridad como objeto completo, tanto acá
-                // (alta) como en el cambio de contraseña de Modificar más abajo.
+
+
                 ProtectorDeCredenciales.ProtegerPassword(usuario, password);
 
                 int idUsuarioInterno = _mppUsuarioInterno.Insertar(usuario);
@@ -293,7 +293,7 @@ namespace StageUp.BLL
             });
         }
 
-        // A10: baja lógica (deja de tener acceso y se conserva su historial).
+
         public ResultadoOperacion DarDeBaja(int idUsuarioInterno, int idUsuarioInternoResponsable)
         {
             return EjecutarProtegido(() =>
@@ -377,9 +377,9 @@ namespace StageUp.BLL
             return string.Join("; ", cambios);
         }
 
-        // Paso 12 del escenario principal y A8 paso 5: A3 (obligatorios),
-        // A4 (formato del correo), A5 (correo repetido) y A6 (rol válido). En
-        // la modificación todos se informan como A9.
+
+
+
         private ResultadoOperacion ValidarDatos(
             string nombre, string apellido, string correoElectronico, int idAreaInterna,
             int idRolInterno, string estadoCuenta, string password, string confirmacionPassword,
@@ -391,7 +391,7 @@ namespace StageUp.BLL
             bool seIngresoPassword = !string.IsNullOrWhiteSpace(password) ||
                                      !string.IsNullOrWhiteSpace(confirmacionPassword);
 
-            // A3: se informan juntos todos los datos que faltan.
+
             List<string> faltantes = new List<string>();
             if (string.IsNullOrWhiteSpace(nombre)) faltantes.Add("el nombre");
             if (string.IsNullOrWhiteSpace(apellido)) faltantes.Add("el apellido");
@@ -414,7 +414,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("El nombre y el apellido no pueden superar los 200 caracteres.", codigo("A3"));
             }
 
-            // A4.
+
             string correoNormalizado = correoElectronico.Trim().ToLowerInvariant();
             if (correoNormalizado.Length > 300 || !PatronCorreo.IsMatch(correoNormalizado))
             {
@@ -422,7 +422,7 @@ namespace StageUp.BLL
                     "El correo electrónico no tiene un formato válido (por ejemplo, persona@artera.com). Corregilo para continuar.", codigo("A4"));
             }
 
-            // A5.
+
             UsuarioInterno usuarioBuscado = new UsuarioInterno
             {
                 IdUsuarioInterno = idUsuarioInternoExcluido ?? 0,
@@ -453,7 +453,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("El área interna seleccionada no existe o no está activa. Seleccioná un área válida.", codigo("A3"));
             }
 
-            // A6: el rol existe, está activo y tiene permisos.
+
             RolInterno rol = _mppRolInterno.ObtenerPorId(
                 new RolInterno { IdRolInterno = idRolInterno });
             if (rol == null || !rol.Activo || rol.EstadoRol != "Activo")

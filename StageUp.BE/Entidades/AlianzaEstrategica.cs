@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-    // CU-004-003 Alianza estratégica.
+
     public class AlianzaEstrategica
     {
         public const string EstadoEnEvaluacion = "EnEvaluacion";
@@ -36,10 +36,10 @@ namespace StageUp.BE.Entidades
         public int CantidadContenidos { get; set; }
         public int CantidadOrigenes { get; set; }
 
-        // Observación del cambio de estado hecho desde la edición (A8).
+
         public string ObservacionCambioEstado { get; set; }
 
-        // Vínculos elegidos en el formulario (para guardar).
+
         public List<int> IdsContactos { get; set; } = new List<int>();
         public List<int> IdsCampanias { get; set; } = new List<int>();
         public List<int> IdsContenidos { get; set; } = new List<int>();
@@ -50,7 +50,7 @@ namespace StageUp.BE.Entidades
             get { return EstadoAlianza == EstadoEnEvaluacion || EstadoAlianza == EstadoActiva || EstadoAlianza == EstadoPausada; }
         }
 
-        // A12: activa o pausada con la fecha de finalización ya cumplida.
+
         public bool Vencida
         {
             get
@@ -66,8 +66,8 @@ namespace StageUp.BE.Entidades
         }
     }
 
-    // Seguimiento de una alianza: interacciones (A7), cambios de estado (A8),
-    // renovaciones (A9), finalización (A10), baja (A11) y reactivación.
+
+
     public class SeguimientoAlianza
     {
         public const string TipoSeguimiento = "Seguimiento";
@@ -94,7 +94,7 @@ namespace StageUp.BE.Entidades
         public DateTime FechaRegistro { get; set; }
     }
 
-    // A9: vigencia anterior guardada al renovar.
+
     public class VigenciaAlianza
     {
         public int IdAlianzaVigencia { get; set; }
@@ -107,7 +107,7 @@ namespace StageUp.BE.Entidades
         public DateTime FechaRegistro { get; set; }
     }
 
-    // A9: datos de una renovación (o reactivación).
+
     public class RenovacionAlianza
     {
         public int IdAlianzaEstrategica { get; set; }

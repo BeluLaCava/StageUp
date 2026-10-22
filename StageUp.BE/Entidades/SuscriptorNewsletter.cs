@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-    // Suscriptor del newsletter (con o sin cuenta). Ver
-    // Database/78_NewsletterSuscriptores.sql.
+
+
     public class SuscriptorNewsletter
     {
         public const string EstadoPendiente = "Pendiente";
@@ -26,15 +26,15 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaConfirmacion { get; set; }
         public DateTime? FechaBaja { get; set; }
 
-        // Vínculo con una cuenta pedido desde Mi perfil y todavía no
-        // confirmado por el dueño del correo.
+
+
         public int? IdUsuarioExternoVinculoPendiente { get; set; }
         public DateTime? VencimientoVinculo { get; set; }
 
-        // Categorías elegidas. Vacía = todas.
+
         public List<string> Categorias { get; set; } = new List<string>();
 
-        // Cuenta externa activa con el mismo correo (listado de administración).
+
         public int? IdCuenta { get; set; }
         public string PerfilCuenta { get; set; }
 
@@ -43,7 +43,7 @@ namespace StageUp.BE.Entidades
             get { return IdCuenta.HasValue; }
         }
 
-        // Para mostrar el correo sin exponerlo entero: "ju***@gmail.com".
+
         public string CorreoEnmascarado
         {
             get
@@ -61,7 +61,7 @@ namespace StageUp.BE.Entidades
         }
     }
 
-    // Un destinatario de un envío de newsletter.
+
     public class DestinatarioNewsletter
     {
         public int IdSuscriptorNewsletter { get; set; }
@@ -70,16 +70,16 @@ namespace StageUp.BE.Entidades
         public string TokenPreferencias { get; set; }
     }
 
-    // Suscripción del correo de una cuenta, vista desde Mi perfil.
+
     public class SuscripcionDeCuenta
     {
         public string CorreoElectronico { get; set; }
 
-        // null: el correo no tiene suscripción.
+
         public SuscriptorNewsletter Suscripcion { get; set; }
 
-        // La suscripción se pidió o confirmó desde esta cuenta: se puede
-        // administrar desde el perfil.
+
+
         public bool Vinculada { get; set; }
 
         public string Estado
@@ -88,7 +88,7 @@ namespace StageUp.BE.Entidades
         }
     }
 
-    // Filtros del listado de suscriptores (administración).
+
     public class FiltroSuscriptoresNewsletter
     {
         public string Texto { get; set; }

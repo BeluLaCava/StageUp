@@ -12,10 +12,10 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // CU-002-003 Consultar historial financiero: listado general, filtros
-    // opcionales y acceso al detalle (DetalleOperacionFinanciera.aspx).
-    // Los filtros viajan en la dirección para poder volver desde el detalle
-    // con la misma consulta.
+
+
+
+
     public partial class HistorialFinanciero : Page
     {
         public const string PermisoRequerido = "CONSULTAR_HISTORIAL_FINANCIERO";
@@ -30,7 +30,7 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-            // Paso 2 y A1.
+
             if (!GestorDeSesion.TienePermisoInterno(PermisoRequerido))
             {
                 Response.Redirect("~/Interno/PanelAdministrador.aspx?acceso=denegado");
@@ -42,7 +42,7 @@ namespace StageUp.UI.Interno
                 CargarOpciones();
                 LeerFiltrosDeLaDireccion();
 
-                // A7: se vuelve desde el detalle que no estaba disponible.
+
                 if (Request.QueryString["detalle"] == "no_disponible")
                 {
                     MostrarMensaje(BLL_HistorialFinanciero.MensajeDetalleNoDisponible, true);
@@ -155,7 +155,7 @@ namespace StageUp.UI.Interno
             }
         }
 
-        // Filtros actuales como consulta de la dirección (para volver del detalle).
+
         private string ArmarConsulta()
         {
             List<string> partes = new List<string>();
@@ -201,7 +201,7 @@ namespace StageUp.UI.Interno
                 MostrarMensaje(resultado.Mensaje, true);
             }
 
-            // A2 frente a A5.
+
             bool noHayNinguna = lista.Count == 0 && resultado.Exitoso && (!hayFiltros || _bll.NoHayOperaciones());
             pnlSinOperaciones.Visible = noHayNinguna;
             pnlSinResultados.Visible = lista.Count == 0 && resultado.Exitoso && !noHayNinguna;

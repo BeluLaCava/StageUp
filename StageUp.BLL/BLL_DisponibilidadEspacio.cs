@@ -8,20 +8,20 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-001-008 Gestionar disponibilidad de espacios artísticos.
-    //
-    // La disponibilidad son las franjas con origen 'Manual' de FranjaEspacio:
-    //  - abiertas (Bloqueado = false): semanales (día de la semana) o de una
-    //    fecha concreta; la de fecha concreta reemplaza el horario semanal de
-    //    ese día (excepción);
-    //  - bloqueos manuales (Bloqueado = true, A8) con su motivo.
-    // Las actividades internas generan sus propios bloqueos (origen
-    // 'Actividad') y se administran desde "Mis actividades".
-    //
-    // Antes de guardar cualquier cambio se controla que no se superponga
-    // con otra disponibilidad (A4), con un bloqueo, con reservas aceptadas,
-    // solicitudes pendientes o actividades internas (A5), y que no deje sin
-    // horario a una reserva o solicitud que ya existe (A7, A9, A11).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public class BLL_DisponibilidadEspacio
     {
         public const string TipoEntidadBitacora = "Disponibilidad";
@@ -41,10 +41,10 @@ namespace StageUp.BLL
         private readonly MPP_Reserva _mppReserva = new MPP_Reserva();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
-        // ------------------------------------------------------------------
-        // Reglas compartidas con BLL_Reserva, la búsqueda (script 56) y el
-        // planificador del detalle del espacio.
-        // ------------------------------------------------------------------
+
+
+
+
 
         public static int DiaSemanaDe(DateTime fecha)
         {
@@ -66,8 +66,8 @@ namespace StageUp.BLL
             return franja != null && franja.Origen == OrigenActividad;
         }
 
-        // ¿La franja abierta rige en esa fecha? Si ese día hay alguna franja
-        // abierta de fecha concreta, el horario semanal no se usa.
+
+
         public static bool AbiertaRigeEnFecha(FranjaEspacio franja, List<FranjaEspacio> todas, DateTime fecha)
         {
             if (franja == null || franja.Bloqueado)
@@ -84,8 +84,8 @@ namespace StageUp.BLL
                 : !EsDeFechaConcreta(franja) && franja.DiaSemana == DiaSemanaDe(fecha);
         }
 
-        // Los bloqueos (manuales o de actividades) rigen en su fecha o, si son
-        // semanales, todos los días de ese día de la semana.
+
+
         public static bool BloqueoRigeEnFecha(FranjaEspacio franja, DateTime fecha)
         {
             if (franja == null || !franja.Bloqueado)
@@ -98,8 +98,8 @@ namespace StageUp.BLL
                 : franja.DiaSemana == DiaSemanaDe(fecha);
         }
 
-        // Un horario de una fecha se puede usar si está dentro de una franja
-        // abierta que rige ese día y no se superpone con ningún bloqueo.
+
+
         public static bool HorarioCubierto(List<FranjaEspacio> franjas, DateTime fecha, int minutoDesde, int minutoHasta)
         {
             franjas = franjas ?? new List<FranjaEspacio>();
@@ -114,11 +114,11 @@ namespace StageUp.BLL
                 BloqueoRigeEnFecha(f, fecha) && SeSuperponen(f.MinutoDesde, f.MinutoHasta, minutoDesde, minutoHasta));
         }
 
-        // ------------------------------------------------------------------
-        // Consultas para la pantalla "Disponibilidad del espacio"
-        // ------------------------------------------------------------------
 
-        // Espacio activo del gestor, con sus franjas.
+
+
+
+
         public ResultadoOperacion<EspacioArtistico> ObtenerEspacioDelGestor(int idEspacioArtistico, int idUsuarioGestor)
         {
             try
@@ -147,8 +147,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Para la pantalla: reservas aceptadas y solicitudes pendientes de hoy
-        // en adelante, sin propagar errores de acceso a datos.
+
+
         public ResultadoOperacion<List<Reserva>> ConsultarOperacionesVigentes(int idEspacioArtistico)
         {
             try
@@ -161,7 +161,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Reservas aceptadas y solicitudes pendientes de hoy en adelante.
+
         private List<Reserva> ListarOperacionesVigentes(int idEspacioArtistico)
         {
             return _mppReserva.ListarActivasPorEspacio(new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico })
@@ -169,13 +169,13 @@ namespace StageUp.BLL
                 .ToList();
         }
 
-        // Disponibilidad configurada (abierta), sin las fechas que ya pasaron.
+
         public static List<FranjaEspacio> ListarDisponibilidad(EspacioArtistico espacio)
         {
             return Ordenar(Franjas(espacio).Where(f => !f.Bloqueado && f.Origen != OrigenActividad && !YaPaso(f)));
         }
 
-        // Bloqueos manuales vigentes.
+
         public static List<FranjaEspacio> ListarBloqueos(EspacioArtistico espacio)
         {
             return Ordenar(Franjas(espacio).Where(f => EsBloqueoManual(f) && !YaPaso(f)));
@@ -187,7 +187,7 @@ namespace StageUp.BLL
                 f.IdFranjaEspacio == idFranjaEspacio && f.Origen != OrigenActividad);
         }
 
-        // A6/A10 paso 2: lo que tiene asociado una franja.
+
         public static OperacionesAsociadasFranja ContarOperacionesAsociadas(
             EspacioArtistico espacio, FranjaEspacio franja, List<Reserva> operaciones)
         {
@@ -213,7 +213,7 @@ namespace StageUp.BLL
             return resultado;
         }
 
-        // Calendario (paso 9) de "cantidadDias" días desde "desde".
+
         public static List<DiaCalendarioDisponibilidad> ArmarCalendario(
             EspacioArtistico espacio, List<Reserva> operaciones, DateTime desde, int cantidadDias)
         {
@@ -282,11 +282,11 @@ namespace StageUp.BLL
             return dias;
         }
 
-        // ------------------------------------------------------------------
-        // Escenario principal: agregar disponibilidad (pasos 10 a 18)
-        // ------------------------------------------------------------------
-        // porFecha: true para una fecha concreta (horario especial de ese
-        // día), false para uno o varios días de la semana.
+
+
+
+
+
         public ResultadoOperacion AgregarDisponibilidad(
             int idEspacioArtistico, int idUsuarioGestor, bool porFecha, List<int> diasSemana, string fecha, string horaDesde, string horaHasta)
         {
@@ -299,7 +299,7 @@ namespace StageUp.BLL
             EspacioArtistico espacio = espacioResultado.Valor;
             List<int> dias = (diasSemana ?? new List<int>()).Distinct().OrderBy(d => d).ToList();
 
-            // A2 y A3.
+
             int minutoDesde, minutoHasta;
             ResultadoOperacion datos = ValidarDatos(porFecha, dias, fecha, horaDesde, horaHasta, null, out minutoDesde, out minutoHasta);
             if (!datos.Exitoso)
@@ -320,7 +320,7 @@ namespace StageUp.BLL
             {
                 List<Reserva> operaciones = ListarOperacionesVigentes(idEspacioArtistico);
 
-                // A4 y A5: se informan todos los días con conflicto juntos.
+
                 List<string> errores = new List<string>();
                 string codigo = null;
                 List<FranjaEspacio> simuladas = new List<FranjaEspacio>(Franjas(espacio));
@@ -370,9 +370,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // A6 / A7: modificar una disponibilidad existente
-        // ------------------------------------------------------------------
+
+
+
         public ResultadoOperacion ModificarDisponibilidad(
             int idEspacioArtistico, int idUsuarioGestor, int idFranjaEspacio,
             int? diaSemana, string fecha, string horaDesde, string horaHasta)
@@ -412,7 +412,7 @@ namespace StageUp.BLL
             {
                 List<Reserva> operaciones = ListarOperacionesVigentes(idEspacioArtistico);
 
-                // A7: reservas o solicitudes de esta franja que quedarían afuera.
+
                 List<FranjaEspacio> antes = Franjas(espacio);
                 List<FranjaEspacio> despues = antes.Where(f => f.IdFranjaEspacio != original.IdFranjaEspacio).ToList();
                 despues.Add(nueva);
@@ -425,7 +425,7 @@ namespace StageUp.BLL
                         ". Elegí otra franja o resolvé antes esa operación.", "A7");
                 }
 
-                // A6 paso 7: superposiciones con el resto.
+
                 ResultadoOperacion conflicto = ValidarConflictosDeAbierta(espacio, nueva, original, operaciones);
                 if (!conflicto.Exitoso)
                 {
@@ -447,9 +447,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // A8 / A9: bloqueo manual de horario
-        // ------------------------------------------------------------------
+
+
+
         public ResultadoOperacion BloquearHorario(
             int idEspacioArtistico, int idUsuarioGestor, bool porFecha, int? diaSemana, string fecha,
             string horaDesde, string horaHasta, string motivo)
@@ -503,7 +503,7 @@ namespace StageUp.BLL
             {
                 List<Reserva> operaciones = ListarOperacionesVigentes(idEspacioArtistico);
 
-                // A9: reservas aceptadas o solicitudes pendientes en ese horario.
+
                 Reserva reserva = operaciones.FirstOrDefault(r =>
                     RigeEnFecha(bloqueo, r.FechaSolicitada) &&
                     SeSuperponen(bloqueo.MinutoDesde, bloqueo.MinutoHasta, r.MinutoDesde.Value, r.MinutoHasta.Value));
@@ -514,7 +514,7 @@ namespace StageUp.BLL
                         ". Cambiá la franja del bloqueo o resolvé antes esa operación.", "A9");
                 }
 
-                // A8 paso 5: tampoco sobre actividades internas registradas.
+
                 FranjaEspacio actividad = Franjas(espacio).FirstOrDefault(f =>
                     EsBloqueoDeActividad(f) && !YaPaso(f) && CompartenDias(f, bloqueo) &&
                     SeSuperponen(f.MinutoDesde, f.MinutoHasta, bloqueo.MinutoDesde, bloqueo.MinutoHasta));
@@ -543,9 +543,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // A10 / A11: eliminar una disponibilidad (o quitar un bloqueo manual)
-        // ------------------------------------------------------------------
+
+
+
         public ResultadoOperacion EliminarFranja(int idEspacioArtistico, int idUsuarioGestor, int idFranjaEspacio)
         {
             ResultadoOperacion<EspacioArtistico> espacioResultado = ObtenerEspacioDelGestor(idEspacioArtistico, idUsuarioGestor);
@@ -611,9 +611,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // Textos
-        // ------------------------------------------------------------------
+
+
+
 
         public static string NombreDia(int diaSemana)
         {
@@ -630,7 +630,7 @@ namespace StageUp.BLL
             return (minutos / 60).ToString("00", CultureInfo.InvariantCulture) + ":" + (minutos % 60).ToString("00", CultureInfo.InvariantCulture);
         }
 
-        // Para los <input type="time">: el fin del día se carga como 00:00.
+
         public static string HoraParaFormulario(int minutos)
         {
             return minutos >= 1440 ? "00:00" : FormatearHora(minutos);
@@ -656,11 +656,11 @@ namespace StageUp.BLL
             return DescribirCuando(franja) + " de " + FormatearHora(franja.MinutoDesde) + " a " + FormatearHora(franja.MinutoHasta);
         }
 
-        // ------------------------------------------------------------------
-        // Validaciones internas
-        // ------------------------------------------------------------------
 
-        // A2 (campos obligatorios, todos juntos) y A3 (franja válida).
+
+
+
+
         private static ResultadoOperacion ValidarDatos(
             bool porFecha, List<int> dias, string fecha, string horaDesde, string horaHasta, FranjaEspacio original,
             out int minutoDesde, out int minutoHasta)
@@ -735,7 +735,7 @@ namespace StageUp.BLL
             return ResultadoOperacion.Ok();
         }
 
-        // "HH:mm". Como fin, 00:00 (o 24:00) es el cierre del día.
+
         public static bool TryLeerHora(string texto, bool esFin, out int minutos)
         {
             minutos = 0;
@@ -756,13 +756,13 @@ namespace StageUp.BLL
             return true;
         }
 
-        // A4, franja bloqueada y A5 para una franja abierta nueva o modificada.
+
         private static ResultadoOperacion ValidarConflictosDeAbierta(
             EspacioArtistico espacio, FranjaEspacio nueva, FranjaEspacio original, List<Reserva> operaciones)
         {
             List<FranjaEspacio> franjas = Franjas(espacio);
 
-            // A4: otra disponibilidad del mismo tipo para el mismo día.
+
             FranjaEspacio superpuesta = franjas.FirstOrDefault(f =>
                 !f.Bloqueado && f.Origen != OrigenActividad && !YaPaso(f) &&
                 (original == null || f.IdFranjaEspacio != original.IdFranjaEspacio) &&
@@ -774,7 +774,7 @@ namespace StageUp.BLL
                     "Ya existe disponibilidad registrada para ese día y horario (" + Describir(superpuesta) + "). Cambiá el día o la franja horaria.", "A4");
             }
 
-            // Paso 14: no puede caer sobre un horario bloqueado.
+
             FranjaEspacio bloqueo = franjas.FirstOrDefault(f =>
                 EsBloqueoManual(f) && !YaPaso(f) && BloqueoCubreTodosLosDias(f, nueva) &&
                 SeSuperponen(f.MinutoDesde, f.MinutoHasta, nueva.MinutoDesde, nueva.MinutoHasta));
@@ -786,8 +786,8 @@ namespace StageUp.BLL
                     "). Quitá el bloqueo o elegí otra franja.", "A5");
             }
 
-            // A5: actividades internas registradas (las que ya estaban dentro
-            // de la franja original son de esa franja y no cuentan).
+
+
             FranjaEspacio actividad = franjas.FirstOrDefault(f =>
                 EsBloqueoDeActividad(f) && !YaPaso(f) && CompartenDias(f, nueva) &&
                 SeSuperponen(f.MinutoDesde, f.MinutoHasta, nueva.MinutoDesde, nueva.MinutoHasta) &&
@@ -800,7 +800,7 @@ namespace StageUp.BLL
                     ". Cambiá el día o la franja horaria.", "A5");
             }
 
-            // A5: reservas aceptadas y solicitudes pendientes.
+
             Reserva reserva = (operaciones ?? new List<Reserva>()).FirstOrDefault(r =>
                 RigeEnFecha(nueva, r.FechaSolicitada) &&
                 SeSuperponen(nueva.MinutoDesde, nueva.MinutoHasta, r.MinutoDesde.Value, r.MinutoHasta.Value) &&
@@ -816,8 +816,8 @@ namespace StageUp.BLL
             return ResultadoOperacion.Ok();
         }
 
-        // Reservas y solicitudes que hoy se pueden atender y dejarían de
-        // estar dentro de la disponibilidad con el cambio.
+
+
         private static Reserva PrimeraAfectada(List<FranjaEspacio> antes, List<FranjaEspacio> despues, List<Reserva> operaciones)
         {
             return (operaciones ?? new List<Reserva>()).FirstOrDefault(r =>
@@ -842,7 +842,7 @@ namespace StageUp.BLL
                 .ToList();
         }
 
-        // ¿La franja (por su patrón, sin mirar excepciones) cae en esa fecha?
+
         private static bool RigeEnFecha(FranjaEspacio franja, DateTime fecha)
         {
             return EsDeFechaConcreta(franja)
@@ -850,7 +850,7 @@ namespace StageUp.BLL
                 : franja.DiaSemana == DiaSemanaDe(fecha);
         }
 
-        // ¿Hay algún día en que rijan las dos franjas?
+
         internal static bool CompartenDias(FranjaEspacio a, FranjaEspacio b)
         {
             bool aFecha = EsDeFechaConcreta(a);
@@ -872,8 +872,8 @@ namespace StageUp.BLL
                 DiaSemanaDe(fecha) == semanal.DiaSemana;
         }
 
-        // Un bloqueo de una sola fecha no impide cargar el horario semanal de
-        // ese día (es una excepción); uno semanal sí.
+
+
         private static bool BloqueoCubreTodosLosDias(FranjaEspacio bloqueo, FranjaEspacio franja)
         {
             if (!EsDeFechaConcreta(franja))

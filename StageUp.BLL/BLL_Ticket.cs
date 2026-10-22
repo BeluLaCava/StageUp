@@ -9,18 +9,18 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-    // Solicitudes de soporte.
-    //   CU-003-002 Registrar y realizar seguimiento de solicitudes de soporte
-    //     (usuario externo: Soporte.aspx).
-    //   CU-003-003 Gestionar solicitudes de soporte internamente (equipo
-    //     interno: Interno/GestionSoporte.aspx, permiso GESTIONAR_SOPORTE).
-    //   Ítem 12 del profesor: conversación entre el usuario y el equipo,
-    //     leído / no leído de cada lado, actualización periódica de las
-    //     pantallas (AyudaSoporte.ashx) y asignación de responsables.
-    //
-    // Estados: Pendiente -> En proceso -> Resuelta -> Cerrada. Una resuelta
-    // puede volver a "en proceso" (el usuario sigue necesitando ayuda) y una
-    // cerrada solo se reabre con el permiso REABRIR_SOLICITUD_SOPORTE (A10).
+
+
+
+
+
+
+
+
+
+
+
+
     public class BLL_Ticket
     {
         public const string EstadoPendiente = "Pendiente";
@@ -38,7 +38,7 @@ namespace StageUp.BLL
 
         public static readonly string[] Estados = { EstadoPendiente, EstadoEnProceso, EstadoResuelta, EstadoCerrada };
 
-        // CU-003-002 paso 5: funcionalidad vinculada al inconveniente.
+
         public static readonly string[] Funcionalidades = { "Reserva", "Pago", "Espacio", "Cuenta", "Gestor", "Otra" };
 
         public const int LongitudMinimaMotivo = 5;
@@ -50,8 +50,8 @@ namespace StageUp.BLL
         public const int LongitudMinimaRespuesta = 10;
         private const int PalabrasMinimasDescripcion = 5;
 
-        // Transiciones válidas (CU-003-003 paso 21 y A9). Cerrada -> En proceso
-        // es la reapertura y requiere el permiso específico (A10).
+
+
         private static readonly Dictionary<string, string[]> Transiciones = new Dictionary<string, string[]>
         {
             { EstadoPendiente, new[] { EstadoEnProceso, EstadoResuelta } },
@@ -70,9 +70,9 @@ namespace StageUp.BLL
         private readonly BLL_Notificacion _bllNotificacion = new BLL_Notificacion();
         private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
 
-        // ------------------------------------------------------------------
-        // Textos para las pantallas
-        // ------------------------------------------------------------------
+
+
+
 
         public static string TextoEstado(string estado)
         {
@@ -123,7 +123,7 @@ namespace StageUp.BLL
             }
         }
 
-        // CU-003-002 A7: qué se le muestra al usuario según el estado.
+
         public static string MensajeSegunEstado(string estado)
         {
             switch (estado)
@@ -141,9 +141,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // CU-003-002: registro (pasos 3 a 16, A2, A3 y A4)
-        // ------------------------------------------------------------------
+
+
+
 
         public ResultadoOperacion<int> RegistrarSolicitud(SolicitudSoporteNueva datos)
         {
@@ -157,7 +157,7 @@ namespace StageUp.BLL
                 origen = OrigenSoporte;
             }
 
-            // A2: campos obligatorios.
+
             List<string> faltantes = new List<string>();
             if (motivo == null) faltantes.Add("motivo de la consulta");
             if (funcionalidad == null || !Funcionalidades.Contains(funcionalidad)) faltantes.Add("funcionalidad vinculada");
@@ -187,7 +187,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("La información adicional no puede superar los " + LongitudMaximaInformacion + " caracteres.", "A2");
             }
 
-            // A3: información insuficiente para analizar el caso.
+
             string insuficiente = EvaluarInformacionSuficiente(motivo, funcionalidad, descripcion, informacion, datos.IdReservaAsociada);
             if (insuficiente != null)
             {
@@ -206,8 +206,8 @@ namespace StageUp.BLL
                     }
                 }
 
-                // Pasos 10 a 14 (el SP genera el identificador, deja el estado
-                // pendiente y la primera entrada del historial).
+
+
                 int idTicket = _mpp.Registrar(new Ticket
                 {
                     IdUsuarioExterno = datos.IdUsuarioExterno,
@@ -224,7 +224,7 @@ namespace StageUp.BLL
                     "Registro de la solicitud de soporte " + codigo + " \"" + motivo + "\" (funcionalidad: " + TextoFuncionalidad(funcionalidad) +
                     ", origen: " + TextoOrigen(origen) + (reserva != null ? ", reserva #" + reserva.IdReserva : string.Empty) + ").");
 
-                // Paso 15.
+
                 _bllNotificacion.Notificar(datos.IdUsuarioExterno, TipoNotificacion.SolicitudSoporteRegistrada,
                     "Registramos tu solicitud " + codigo + " (\"" + motivo + "\"). Estado: " + TextoEstado(EstadoPendiente) + ".",
                     UrlSeguimiento(idTicket));
@@ -234,12 +234,12 @@ namespace StageUp.BLL
             }
             catch (ErrorAccesoDatosException)
             {
-                // A4: no queda registrada; el formulario conserva lo cargado.
+
                 return ResultadoOperacion<int>.Error(MensajeErrorRegistro, "A4");
             }
         }
 
-        // A3. Devuelve null si alcanza, o el mensaje con lo que falta.
+
         private static string EvaluarInformacionSuficiente(string motivo, string funcionalidad, string descripcion, string informacion, int? idReserva)
         {
             string normalizada = BLL_Faq.Normalizar(descripcion);
@@ -271,9 +271,9 @@ namespace StageUp.BLL
             return null;
         }
 
-        // ------------------------------------------------------------------
-        // CU-003-002: seguimiento (A5 a A9)
-        // ------------------------------------------------------------------
+
+
+
 
         public ResultadoOperacion<List<Ticket>> ListarDelUsuario(int idUsuarioExterno)
         {
@@ -287,7 +287,7 @@ namespace StageUp.BLL
             }
         }
 
-        // A5 pasos 8 y 9, A7 y A8. Al abrirla, lo que había queda leído.
+
         public ResultadoOperacion<TicketCompleto> ObtenerSeguimiento(int idTicket, int idUsuarioExterno)
         {
             try
@@ -312,8 +312,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Solo verifica que exista y sea del usuario (lo usa el centro de
-        // notificaciones antes de redirigir); no marca nada como leído.
+
+
         public ResultadoOperacion<TicketCompleto> ObtenerDetalleParaUsuario(int idTicket, int idUsuarioExterno)
         {
             try
@@ -329,8 +329,8 @@ namespace StageUp.BLL
             }
         }
 
-        // A8/A9: el usuario agrega información al mismo caso en lugar de
-        // registrar otro. Si estaba resuelta, vuelve a "en proceso".
+
+
         public ResultadoOperacion AgregarMensajeUsuario(int idTicket, int idUsuarioExterno, string mensaje)
         {
             string texto;
@@ -377,7 +377,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Reservas del usuario que puede asociar a una solicitud.
+
         public List<Reserva> ListarReservasParaAsociar(int idUsuarioExterno)
         {
             try
@@ -390,7 +390,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Ítem 12: contador del menú del usuario.
+
         public int ContarNovedadesUsuario(int idUsuarioExterno)
         {
             try
@@ -403,9 +403,9 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // CU-003-003: gestión interna
-        // ------------------------------------------------------------------
+
+
+
 
         public ResultadoOperacion<ResumenSoporte> ObtenerResumen()
         {
@@ -419,7 +419,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Pasos 4 a 6, A2, A3 y A4.
+
         public ResultadoOperacion<PaginaTickets> ListarInterno(FiltroTicket filtro)
         {
             FiltroTicket f = filtro ?? new FiltroTicket();
@@ -465,8 +465,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Pasos 9 y 10, A5, A10 y A11. Abrir el detalle deja leídos los
-        // mensajes del usuario para todo el equipo.
+
+
         public ResultadoOperacion<TicketCompleto> ObtenerDetalleInterno(int idTicket, bool puedeReabrir)
         {
             try
@@ -492,8 +492,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Pasos 12 a 17 y 24 a 26, A6, A7 y A12. estadoVisto es el estado que
-        // tenía la pantalla: si otro integrante lo cambió, no se guarda.
+
+
         public ResultadoOperacion RegistrarRespuesta(int idTicket, int idUsuarioInterno, string respuesta, bool marcarResuelta, string estadoVisto)
         {
             string texto;
@@ -533,7 +533,7 @@ namespace StageUp.BLL
                     "Respuesta de soporte en la solicitud " + ticket.Codigo + " \"" + ticket.Motivo + "\"" +
                     (cambioEstado ? "; estado: " + TextoEstado(ticket.Estado) + " -> " + TextoEstado(estadoNuevo) + "." : "."));
 
-                // Paso 25 / A7 paso 8.
+
                 _bllNotificacion.Notificar(ticket.IdUsuarioExterno, TipoNotificacion.RespuestaTicket,
                     "Soporte respondió tu solicitud " + ticket.Codigo + " (\"" + ticket.Motivo + "\")" +
                     (estadoNuevo == EstadoResuelta && cambioEstado ? " y la marcó como resuelta." :
@@ -551,8 +551,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Paso 21 y A9 (también lo usa la pantalla para avisar antes de pedir
-        // la confirmación).
+
+
         public static ResultadoOperacion ValidarCambioEstado(Ticket ticket, string estadoNuevo, bool puedeReabrir)
         {
             if (!Estados.Contains(estadoNuevo))
@@ -593,7 +593,7 @@ namespace StageUp.BLL
             return Estados.Where(e => ValidarCambioEstado(ticket, e, puedeReabrir).Exitoso).ToList();
         }
 
-        // Pasos 18 a 26, A8, A9, A10 (reapertura), A11 (cierre) y A12.
+
         public ResultadoOperacion CambiarEstado(int idTicket, string estadoNuevo, int idUsuarioInterno, bool puedeReabrir, string estadoVisto)
         {
             try
@@ -648,7 +648,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Ítem 12: asignar un responsable (o quitarlo).
+
         public ResultadoOperacion Asignar(int idTicket, int? idUsuarioInternoAsignado, int idUsuarioInternoResponsable)
         {
             try
@@ -698,8 +698,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Ítem 12: "Tomar solicitud" (asignármela; si estaba pendiente pasa a
-        // en proceso y se avisa al usuario).
+
+
         public ResultadoOperacion Tomar(int idTicket, int idUsuarioInterno)
         {
             try
@@ -742,7 +742,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Integrantes activos del equipo con permiso de gestionar soporte.
+
         public List<UsuarioInterno> ListarResponsables()
         {
             BLL_PermisoInterno bllPermiso = new BLL_PermisoInterno();
@@ -779,8 +779,8 @@ namespace StageUp.BLL
             return resultado.OrderBy(u => u.Apellido).ThenBy(u => u.Nombre).ToList();
         }
 
-        // Contador del menú del panel interno: solicitudes que requieren
-        // atención (pendientes o con mensajes del usuario sin leer).
+
+
         public int ContarTicketsAbiertos()
         {
             try
@@ -793,11 +793,11 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // Ítem 12: actualización periódica. La "marca" cambia cada vez que la
-        // solicitud (o el listado) tiene actividad; las pantallas la comparan
-        // con la que tenían al cargarse.
-        // ------------------------------------------------------------------
+
+
+
+
+
 
         public string ObtenerMarcaSolicitud(int idTicket, int? idUsuarioExterno)
         {
@@ -831,12 +831,12 @@ namespace StageUp.BLL
             }
         }
 
-        // ------------------------------------------------------------------
-        // Auxiliares
-        // ------------------------------------------------------------------
 
-        // Marca como nuevo lo posterior a la última lectura de quien mira, y
-        // como leído por la otra parte lo anterior a su última lectura.
+
+
+
+
+
         private TicketCompleto ArmarDetalle(Ticket ticket, bool paraSoporte)
         {
             DateTime miLectura = (paraSoporte ? ticket.FechaUltimaLecturaSoporte : ticket.FechaUltimaLecturaUsuario) ?? DateTime.MinValue;
@@ -874,7 +874,7 @@ namespace StageUp.BLL
             }
             catch (ErrorAccesoDatosException)
             {
-                // Que no se marque como leído no impide ver la solicitud.
+
             }
         }
 
@@ -894,7 +894,7 @@ namespace StageUp.BLL
                 "\"). Revisá la información actualizada e intentá nuevamente.";
         }
 
-        // A12: la solicitud mantiene la última información guardada.
+
         private static ResultadoOperacion ErrorDeActualizacion(ErrorAccesoDatosException ex)
         {
             switch (NumeroErrorSql(ex))
@@ -943,7 +943,7 @@ namespace StageUp.BLL
             }
             catch (Exception)
             {
-                // Un correo que no sale no invalida la respuesta ya guardada.
+
             }
         }
 

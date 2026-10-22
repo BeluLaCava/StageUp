@@ -10,13 +10,13 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-    // CU-001-007 Gestionar espacios artísticos, caminos A1 a A6:
-    //  - A1: quien no es gestor completa la solicitud de habilitación;
-    //  - A2: si ya es gestor, va directo a Mis espacios;
-    //  - A3: con una solicitud pendiente no puede enviar otra y ve su estado;
-    //  - A4: con una rechazada ve el motivo y puede enviar una nueva;
-    //  - A5: los errores de validación se muestran todos juntos;
-    //  - A6: el estado de la solicitud se consulta acá.
+
+
+
+
+
+
+
     public partial class OfrecerEspacio : Page
     {
         private readonly BLL_SolicitudHabilitacionGestor _bllSolicitud = new BLL_SolicitudHabilitacionGestor();
@@ -46,8 +46,8 @@ namespace StageUp.UI
                 return;
             }
 
-            // A4: se arranca con los datos de la solicitud anterior para no
-            // volver a cargar todo.
+
+
             MostrarFormulario(ultima);
             lnkCancelarFormulario.Visible = true;
         }
@@ -80,7 +80,7 @@ namespace StageUp.UI
             ResultadoOperacion<int> resultado = _bllSolicitud.Registrar(idUsuario, datos);
             if (!resultado.Exitoso)
             {
-                // A5: el formulario queda con lo cargado para corregirlo.
+
                 MostrarMensaje(resultado.Mensaje, true);
                 pnlFormulario.Visible = true;
                 return;
@@ -96,7 +96,7 @@ namespace StageUp.UI
             int idUsuario = GestorDeSesion.ObtenerIdUsuarioActual().Value;
             UsuarioExterno usuario = _bllUsuario.ObtenerPerfilPorId(idUsuario);
 
-            // A2: ya es gestor.
+
             if (usuario != null && usuario.PerfilUsuario == PerfilUsuarioExterno.GestorEspacios.ToString())
             {
                 GestorDeSesion.ActualizarPerfilEnSesion(usuario.PerfilUsuario);
@@ -113,7 +113,7 @@ namespace StageUp.UI
             SolicitudHabilitacionGestor ultima = _bllSolicitud.ObtenerUltima(idUsuario);
             if (ultima == null)
             {
-                // A1: nunca pidió la habilitación.
+
                 pnlEstado.Visible = false;
                 MostrarFormulario(null);
                 lnkCancelarFormulario.Visible = false;
@@ -145,18 +145,18 @@ namespace StageUp.UI
 
             if (pendiente)
             {
-                // A3 / A6 paso 4.
+
                 litExplicacionEstado.Text = "Todavía no fue revisada. No podés enviar otra solicitud mientras esta esté pendiente; " +
                     "hasta que se apruebe, seguís usando StageUp como solicitante (buscar y reservar espacios).";
             }
             else if (rechazada)
             {
-                // A4 / A6 paso 6.
+
                 litExplicacionEstado.Text = "Tu solicitud fue rechazada. Podés revisar el motivo y enviar una nueva solicitud con los datos corregidos.";
             }
             else if (aprobada)
             {
-                // A6 paso 5 (si la sesión todavía no lo reflejaba).
+
                 litExplicacionEstado.Text = "Tu solicitud fue aprobada: ya podés publicar y administrar tus espacios.";
             }
 

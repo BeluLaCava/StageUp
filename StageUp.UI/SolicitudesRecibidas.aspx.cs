@@ -149,7 +149,7 @@ namespace StageUp.UI
             txtComentarioCalificacionSolicitante.Text = string.Empty;
         }
 
-        // CU-001-005 A7: filtro por estado para el gestor.
+
         private void CargarFiltros()
         {
             ddlFiltroEstado.Items.Clear();
@@ -196,7 +196,7 @@ namespace StageUp.UI
             rptSolicitudes.DataBind();
         }
 
-        // Mensajería privada por reserva: mensajes sin leer de cada reserva.
+
         private Dictionary<int, int> _mensajesNoLeidos = new Dictionary<int, int>();
 
         protected string EtiquetaMensajesNoLeidos(int idReserva)

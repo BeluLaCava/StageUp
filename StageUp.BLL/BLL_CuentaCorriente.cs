@@ -10,12 +10,12 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-    // Cuenta corriente, notas de crédito/débito y liquidaciones (ítems 5C y
-    // 6B de la segunda entrega, script 49).
-    //
-    // El saldo de una cuenta es la suma de sus movimientos: positivo = a favor
-    // del usuario, negativo = le debe a StageUp. Cada moneda es una cuenta
-    // aparte y un mismo usuario puede tener cuenta como cliente y como gestor.
+
+
+
+
+
+
     public class BLL_CuentaCorriente
     {
         public const string RolCliente = "Cliente";
@@ -68,7 +68,7 @@ namespace StageUp.BLL
             return (moneda == "USD" ? "US$ " : "$ ") + importe.ToString("N2", CultureInfo.GetCultureInfo("es-AR"));
         }
 
-        // Acepta "1.234,56", "1234,56" o "1234.56".
+
         public static bool IntentarLeerImporte(string texto, out decimal importe)
         {
             importe = 0m;
@@ -98,7 +98,7 @@ namespace StageUp.BLL
             }
         }
 
-        // Saldo a favor del cliente en una moneda (0 si no tiene o si debe).
+
         public decimal ObtenerSaldoDisponible(int idUsuarioExterno, string moneda)
         {
             SaldoCuentaCorriente saldo = ObtenerSaldos(idUsuarioExterno, RolCliente).FirstOrDefault(s => s.Moneda == moneda);
@@ -138,7 +138,7 @@ namespace StageUp.BLL
             }
         }
 
-        // ---- Administración -------------------------------------------------
+
 
         public List<SaldoCuentaCorriente> ListarCuentas(string texto)
         {
@@ -330,8 +330,8 @@ namespace StageUp.BLL
             }
         }
 
-        // Notificación y mail de un comprobante recién emitido (manual o por
-        // la cancelación de una reserva). Nunca hace fallar la operación.
+
+
         public void AvisarComprobanteEmitido(int idComprobante)
         {
             try
@@ -358,7 +358,7 @@ namespace StageUp.BLL
             }
             catch (Exception)
             {
-                // El comprobante ya quedó emitido: el aviso es secundario.
+
             }
         }
 

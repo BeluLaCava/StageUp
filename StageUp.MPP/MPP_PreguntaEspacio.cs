@@ -7,7 +7,7 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Ítem 1: preguntas públicas sobre los espacios (script 71).
+
     public class MPP_PreguntaEspacio
     {
         public int Insertar(PreguntaEspacio oPregunta)
@@ -80,7 +80,7 @@ namespace StageUp.MPP
                 new Hashtable { { "@idUsuarioGestor", oGestor.IdUsuarioExterno } }));
         }
 
-        // Devuelve false si ya no estaba pendiente o el espacio no es del gestor.
+
         public bool Responder(PreguntaEspacio oPregunta, int idUsuarioGestor)
         {
             return Entero(Conexion.Instance.LeerEscalar(
@@ -93,7 +93,7 @@ namespace StageUp.MPP
                 })) > 0;
         }
 
-        // Devuelve false si el estado cambió mientras tanto.
+
         public bool DarDeBaja(PreguntaEspacio oPregunta, string estadoAnterior, int idUsuarioBaja)
         {
             return Entero(Conexion.Instance.LeerEscalar(

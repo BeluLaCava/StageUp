@@ -16,8 +16,8 @@ namespace StageUp.DAL
             NombreStoredProcedure = nombreStoredProcedure;
         }
 
-        // Número del error de SQL Server (por ejemplo el de un THROW 51031 de
-        // un stored procedure), o 0 si el error no vino de SQL Server.
+
+
         public int NumeroErrorSql
         {
             get
@@ -146,12 +146,12 @@ namespace StageUp.DAL
             }
         }
 
-        // ------------------------------------------------------------------
-        // Backup y restore (ítem 17 de la segunda entrega). Son operaciones
-        // largas (timeout de 10 minutos en vez de los 30 segundos por
-        // defecto) y la restauración se ejecuta conectada a master, porque
-        // una base no se puede restaurar a sí misma mientras está en uso.
-        // ------------------------------------------------------------------
+
+
+
+
+
+
         private const int SegundosTimeoutOperacionLarga = 600;
 
         public string ObtenerNombreBaseDeDatos()
@@ -227,8 +227,8 @@ namespace StageUp.DAL
             }
         }
 
-        // Consulta corta en master (script 79). A diferencia de EjecutarEnMaster
-        // se llama seguido, por eso usa el pool de conexiones.
+
+
         public object LeerEscalarEnMaster(string nombreSp, Hashtable parametros = null)
         {
             try
@@ -262,8 +262,8 @@ namespace StageUp.DAL
             }
         }
 
-        // Después de restaurar, las conexiones que quedaron en el pool apuntan
-        // a sesiones que SQL Server cerró: se descartan todas.
+
+
         public void LimpiarConexionesAbiertas()
         {
             SqlConnection.ClearAllPools();

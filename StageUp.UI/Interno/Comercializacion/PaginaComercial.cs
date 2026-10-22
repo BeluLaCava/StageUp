@@ -11,9 +11,9 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno.Comercializacion
 {
-    // Base de las pantallas de Comercialización (CU-004): acceso por
-    // permiso (A1 de cada CU), mensajes que sobreviven a la redirección
-    // después de guardar y utilidades de formularios.
+
+
+
     public abstract class PaginaComercial : Page
     {
         private const string ClaveMensaje = "StageUp.Comercializacion.Mensaje";
@@ -59,7 +59,7 @@ namespace StageUp.UI.Interno.Comercializacion
             Context.ApplicationInstance.CompleteRequest();
         }
 
-        // Mensaje dejado antes de la última redirección (se muestra una vez).
+
         protected void MostrarMensajePendiente(Panel panel, Literal literal)
         {
             string mensaje = Session[ClaveMensaje] as string;
@@ -207,7 +207,7 @@ namespace StageUp.UI.Interno.Comercializacion
             string texto = Convert.ToString(valor);
             return string.IsNullOrWhiteSpace(texto) ? "—" : texto;
         }
-    
+
 
         protected static string Resumir(object valor, int largo)
         {
@@ -222,7 +222,7 @@ namespace StageUp.UI.Interno.Comercializacion
             return inicio + " al " + fin;
         }
 
-        // Opciones de un vínculo único (campaña, alianza) para un desplegable.
+
         protected void CargarVinculoUnico(DropDownList lista, string tipo, string textoVacio)
         {
             lista.Items.Clear();
@@ -233,9 +233,9 @@ namespace StageUp.UI.Interno.Comercializacion
             }
         }
 
-        // Lo que ya estaba vinculado pero no aparece entre las opciones
-        // disponibles (por ejemplo, una campaña finalizada) se agrega para no
-        // perderlo al guardar.
+
+
+
         protected static void AsegurarOpcion(DropDownList lista, int? id, string nombre)
         {
             if (!id.HasValue)
@@ -297,8 +297,8 @@ namespace StageUp.UI.Interno.Comercializacion
             }
         }
 
-        // Nombre del vínculo con enlace a su detalle (si el usuario tiene el
-        // permiso de esa sección).
+
+
         protected string EnlaceVinculo(object dato)
         {
             VinculoComercial vinculo = (VinculoComercial)dato;

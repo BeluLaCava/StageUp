@@ -8,10 +8,10 @@ using StageUp.BLL;
 
 namespace StageUp.UI.Interno.Comercializacion
 {
-    // CU-004-004 Consultar métricas comerciales y origen de usuarios.
-    //   MetricasComerciales.aspx?[desde, hasta, campania, canal, tipo]
-    // Sin filtros muestra los indicadores generales (A3); los filtros viajan
-    // en la query string (A4). Solo consulta.
+
+
+
+
     public partial class MetricasComerciales : PaginaComercial
     {
         private const string Pagina = "MetricasComerciales.aspx";
@@ -51,7 +51,7 @@ namespace StageUp.UI.Interno.Comercializacion
 
         private void CargarFiltros()
         {
-            // Todas las campañas, también las finalizadas o dadas de baja (A9).
+
             ddlCampania.Items.Clear();
             ddlCampania.Items.Add(new ListItem("Todas", string.Empty));
             ResultadoOperacion<List<CampaniaComercial>> campanias = new BLL_CampaniaComercial()
@@ -82,14 +82,14 @@ namespace StageUp.UI.Interno.Comercializacion
             ResumenMetricasComerciales r = resumen.Valor;
             litCriterios.Text = DescribirFiltro(filtro);
 
-            // A2: la sección se puede abrir igual, sin indicadores.
+
             if (r.SinInformacion)
             {
                 pnlSinInformacion.Visible = true;
                 return;
             }
 
-            // A5: hay información, pero nada coincide con los filtros.
+
             if (filtro.TieneCriterios && r.SinResultados)
             {
                 pnlSinResultados.Visible = true;
@@ -103,8 +103,8 @@ namespace StageUp.UI.Interno.Comercializacion
                 : r.UsuariosConOrigen + " con origen informado · " + r.UsuariosSinOrigen + " sin informar";
             litEspacios.Text = r.EspaciosIncorporados.ToString("N0", CultureInfo.GetCultureInfo("es-AR"));
             litCampanias.Text = r.CampaniasActivas.ToString("N0", CultureInfo.GetCultureInfo("es-AR"));
-            // Con período, el cálculo es por vigencia y estado actual (las
-            // campañas no guardan historial de estados): se nombra así.
+
+
             bool conPeriodo = filtro.Desde.HasValue || filtro.Hasta.HasValue;
             litCampaniasTitulo.Text = conPeriodo ? "Campañas con vigencia en el período" : "Campañas comerciales activas";
             litCampaniasDetalle.Text = conPeriodo
@@ -125,7 +125,7 @@ namespace StageUp.UI.Interno.Comercializacion
                 return;
             }
 
-            // A7: hay usuarios, pero ninguno con origen identificado.
+
             pnlSinOrigen.Visible = r.NuevosUsuarios > 0 && r.UsuariosConOrigen == 0;
             _maximoBarra = canales.Valor.Count == 0 ? 0 : canales.Valor.Max(c => c.CantidadUsuarios);
             rptCanales.DataSource = canales.Valor;
@@ -162,8 +162,8 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(ArmarUrl(Pagina, partes) + "#origen", null);
         }
 
-        // Qué filtros usa cada indicador (los que no le corresponden se dicen
-        // explícitamente para que no parezca que se aplicaron).
+
+
         private void MostrarFiltrosPorIndicador(FiltroMetricasComerciales filtro)
         {
             bool periodo = filtro.Desde.HasValue || filtro.Hasta.HasValue;
@@ -210,8 +210,8 @@ namespace StageUp.UI.Interno.Comercializacion
             return texto;
         }
 
-        // Ancho de la barra relativo al canal con más usuarios (mínimo visible
-        // si tiene al menos uno).
+
+
         protected string AnchoBarra(object cantidad)
         {
             int valor = Convert.ToInt32(cantidad, CultureInfo.InvariantCulture);

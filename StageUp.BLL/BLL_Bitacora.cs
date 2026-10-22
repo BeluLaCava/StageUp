@@ -73,8 +73,8 @@ namespace StageUp.BLL
             });
         }
 
-        // CU-001-013 / ítem 36: búsqueda con todos los filtros (responsable
-        // externo o interno por nombre o correo) y un tope de filas.
+
+
         public const int MaximoRegistrosPorBusqueda = 500;
 
         public List<RegistroActividad> Buscar(FiltroRegistroActividad filtro)

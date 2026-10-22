@@ -5,10 +5,10 @@ using StageUp.BLL;
 
 namespace StageUp.UI.Infraestructura
 {
-    // CU-001-011 pasos 7 a 9 y A9: abrir una notificación desde el menú del
-    // sitio o desde el centro de notificaciones. La BLL la marca como leída y
-    // valida el elemento relacionado; acá solo se controla que la página
-    // exista en el sitio.
+
+
+
+
     public static class AperturaNotificacion
     {
         public static string ObtenerDestino(int idNotificacion, int idUsuarioExterno, out string error)

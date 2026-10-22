@@ -9,8 +9,8 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-    // CU-002-003 pasos 11 a 14: pantalla "Detalle de operación financiera".
-    // Si el detalle no está disponible vuelve al historial con el aviso (A7).
+
+
     public partial class DetalleOperacionFinanciera : Page
     {
         private readonly BLL_HistorialFinanciero _bll = new BLL_HistorialFinanciero();
@@ -40,7 +40,7 @@ namespace StageUp.UI.Interno
             ResultadoOperacion<OperacionFinanciera> resultado = _bll.ObtenerDetalle(Request.QueryString["op"]);
             if (!resultado.Exitoso)
             {
-                // A7: vuelve al historial con el aviso.
+
                 Response.Redirect("~/Interno/HistorialFinanciero.aspx?detalle=no_disponible" + (volver.Length == 0 ? string.Empty : "&" + volver), false);
                 Context.ApplicationInstance.CompleteRequest();
                 return;
@@ -65,7 +65,7 @@ namespace StageUp.UI.Interno
             return tipo == "FC" ? "Factura" : tipo == "NC" ? "Nota de crédito" : tipo == "ND" ? "Nota de débito" : tipo;
         }
 
-        // Solo se aceptan los filtros conocidos del historial.
+
         private string ConsultaParaVolver()
         {
             string volver = Request.QueryString["volver"];

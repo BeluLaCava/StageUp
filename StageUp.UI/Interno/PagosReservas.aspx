@@ -13,7 +13,7 @@
                 <asp:Literal ID="litMensaje" runat="server" Mode="Encode" />
             </asp:Panel>
 
-            <%-- A6 pasos 4 a 7: listado y filtros. --%>
+
             <div class="auth-card admin-list-card">
                 <div class="auth-card-header internal-users-list-heading">
                     <div>
@@ -52,7 +52,7 @@
                     </div>
                 </asp:Panel>
 
-                <%-- A8 y A9. --%>
+
                 <asp:Panel ID="pnlSinPagos" runat="server" Visible="false" CssClass="empty-state compact-empty-state">
                     <h3>No hay pagos disponibles para consultar</h3>
                     <p>Todavía no se registró ningún pago de reservas.</p>
@@ -89,7 +89,7 @@
                 </div>
             </div>
 
-            <%-- Pasos 1 a 9 y A1 a A5: el medio de pago externo está simulado. --%>
+
             <details class="auth-card admin-list-card pagos-aviso" <%= AvisoAbierto ? "open" : "" %>>
                 <summary><strong>Registrar aviso del medio de pago (simulación)</strong></summary>
                 <p class="field-help">StageUp no está conectado a una pasarela real. Desde acá se carga lo que informaría el medio de pago externo para una operación: el sistema valida los datos, busca la reserva y clasifica el pago.</p>
@@ -149,7 +149,7 @@
         </div>
     </section>
 
-    <%-- A6 pasos 9 y 10 (A10 si no está disponible). --%>
+
     <asp:Panel ID="pnlDetalle" runat="server" Visible="false" CssClass="review-dialog-layer">
         <dialog class="review-dialog internal-dialog" open aria-labelledby="pago-detalle-titulo">
             <asp:LinkButton ID="lnkCerrarDetalle" runat="server" CssClass="review-dialog-close" CausesValidation="false" OnClick="lnkCerrarDetalle_Click" aria-label="Cerrar">×</asp:LinkButton>

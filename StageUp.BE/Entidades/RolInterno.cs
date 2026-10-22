@@ -17,22 +17,22 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaUltimaModificacion { get; set; }
         public bool Activo { get; set; }
 
-        // CU-001-012 A11 paso 4: datos resumidos del listado de roles.
+
         public int CantidadUsuariosActivos { get; set; }
         public int CantidadComponentes { get; set; }
     }
 
-    // CU-001-012 A12 paso 2: detalle del rol con sus permisos y los usuarios
-    // internos que lo tienen asignado.
+
+
     public class DetalleRolInterno
     {
         public RolInterno Rol { get; set; }
 
-        // Lo que está tildado en el rol (grupos enteros o permisos sueltos).
+
         public List<PermisoComponente> ComponentesAsignados { get; set; }
 
-        // Los permisos que resultan de esa asignación (los de cada grupo
-        // más los sueltos, sin repetir).
+
+
         public List<PermisoHoja> PermisosEfectivos { get; set; }
 
         public List<UsuarioInterno> Usuarios { get; set; }

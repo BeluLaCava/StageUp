@@ -20,14 +20,14 @@ namespace StageUp.UI
             base.OnInit(e);
             InicializarMultidioma(ddlIdioma, hdnDiccionarioIdioma, HtmlRoot, LanguageSelector);
 
-            // CU-004-004: enlace de difusión con ?origen=codigo.
+
             if (!IsPostBack)
             {
                 OrigenDeDifusion.Capturar(Context);
             }
 
-            // CU-001-003: si la cuenta se dio de baja (por ejemplo desde otro
-            // navegador), la sesión se corta antes de que la página procese nada.
+
+
             int? idUsuario = GestorDeSesion.ObtenerIdUsuarioActual();
             if (idUsuario.HasValue && GestorDeSesion.CorrespondeVerificarCuenta())
             {
@@ -39,8 +39,8 @@ namespace StageUp.UI
                     return;
                 }
 
-                // CU-001-007: si un administrador resolvió la habilitación como
-                // gestor, el menú se actualiza sin volver a iniciar sesión.
+
+
                 if (perfilActual != null && perfilActual != GestorDeSesion.ObtenerPerfilActual())
                 {
                     GestorDeSesion.ActualizarPerfilEnSesion(perfilActual);
@@ -62,20 +62,20 @@ namespace StageUp.UI
             {
                 UserSummary.InnerText = GestorDeSesion.ObtenerNombreCompletoActual();
 
-                // Script 79: la sesión siguió abierta después de restaurar la
-                // base; el aviso se muestra una sola vez.
+
+
                 pnlAvisoRestauracion.Visible = GestorDeSesion.TomarAvisoRestauracion();
 
-                // "Mis actividades" es exclusivo de gestores de espacios: a diferencia
-                // de "Mis espacios" (que se muestra siempre y es la propia pantalla la
-                // que le explica al solicitante que todavía no es gestor), acá el pedido
-                // puntual fue que el botón ni aparezca para el perfil ExternoSolicitante.
+
+
+
+
                 bool esGestorEspacios = GestorDeSesion.ObtenerPerfilActual() == PerfilUsuarioExterno.GestorEspacios.ToString();
                 MisActividadesLink.Visible = esGestorEspacios;
                 PreguntasRecibidasLink.Visible = esGestorEspacios;
 
-                // CU-001-007: quien todavía no es gestor ve "Ofrecer espacio"
-                // (solicitud de habilitación y su estado) en lugar de "Mis espacios".
+
+
                 if (!esGestorEspacios)
                 {
                     MisEspaciosLink.InnerText = "Ofrecer espacio";
@@ -83,12 +83,12 @@ namespace StageUp.UI
                     MisEspaciosLink.Attributes.Remove("data-i18n");
                 }
 
-                // No hay SQL Server Agent en la edición Express para un job
-                // programado, así que el chequeo de recordatorios se
-                // aprovecha de cualquier pageview autenticado (ver el
-                // throttle en BLL_Reserva, que hace que esto sea barato).
-                // Ítem 36: corre en segundo plano, para que el usuario que
-                // dispara el chequeo no espere el envío de los mails.
+
+
+
+
+
+
                 if (BLL_Reserva.CorrespondeGenerarRecordatorios())
                 {
                     try
@@ -98,8 +98,8 @@ namespace StageUp.UI
                     }
                     catch (InvalidOperationException)
                     {
-                        // Fuera de IIS / IIS Express no hay cola en segundo plano:
-                        // se genera en el mismo request, como antes.
+
+
                         new BLL_Reserva().GenerarRecordatorios24hsSiCorresponde();
                     }
                 }
@@ -110,8 +110,8 @@ namespace StageUp.UI
             }
         }
 
-        // Ítem 12: cantidad de solicitudes de soporte con respuestas o cambios
-        // de estado que el usuario todavía no vio.
+
+
         private void CargarIndicadorSoporte()
         {
             int novedades = new BLL_Ticket().ContarNovedadesUsuario(GestorDeSesion.ObtenerIdUsuarioActual().Value);
@@ -119,7 +119,7 @@ namespace StageUp.UI
                 ? "Soporte <span class=\"sidebar-badge\" title=\"Solicitudes de soporte con novedades\">" + novedades + "</span>"
                 : "Soporte";
 
-            // Ítem 1: preguntas sin responder sobre los espacios del gestor.
+
             if (PreguntasRecibidasLink.Visible)
             {
                 int pendientes = new BLL_PreguntaEspacio().ContarPendientesGestor(GestorDeSesion.ObtenerIdUsuarioActual().Value);
@@ -129,10 +129,10 @@ namespace StageUp.UI
             }
         }
 
-        // Mensajería privada por reserva: mensajes sin leer como solicitante
-        // (junto a "Mis reservas") y como gestor (junto a "Mis espacios",
-        // donde están las solicitudes recibidas). El texto del enlace queda en
-        // su propio span para que el cambio de idioma no borre el contador.
+
+
+
+
         private void CargarIndicadorMensajesReserva(bool esGestorEspacios)
         {
             List<MensajesNoLeidosReserva> noLeidos = new BLL_MensajeReserva().NoLeidos(GestorDeSesion.ObtenerIdUsuarioActual().Value);
@@ -173,9 +173,9 @@ namespace StageUp.UI
                 return;
             }
 
-            // CU-001-011 pasos 7 a 9: el destino sale de la notificación
-            // guardada (no del navegador). Si el elemento ya no se puede
-            // consultar (A9) se muestra el motivo en el centro de notificaciones.
+
+
+
             int idNotificacion;
             if (!int.TryParse(Convert.ToString(e.CommandArgument), out idNotificacion))
             {
@@ -198,8 +198,8 @@ namespace StageUp.UI
             CargarNotificaciones();
         }
 
-        // Para páginas que cambian el estado de las notificaciones después de
-        // que el menú ya se cargó (centro de notificaciones).
+
+
         public void ActualizarNotificaciones()
         {
             if (GestorDeSesion.EstaAutenticado())

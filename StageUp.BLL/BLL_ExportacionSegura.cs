@@ -11,12 +11,12 @@ using StageUp.Seguridad;
 
 namespace StageUp.BLL
 {
-    // Exportación cifrada de la bitácora (ítem 23) con el esquema híbrido del
-    // ítem 9. Desde el script 66 se cifra con la versión activa del par de
-    // claves de StageUp (BLL_ClaveCifrado) y el archivo indica la versión,
-    // así se puede descifrar aunque después se roten las claves (ítem 10).
-    // Los archivos viejos, sin versión, se descifran con las claves de
-    // AppSettings si siguen configuradas.
+
+
+
+
+
+
     public class BLL_ExportacionSegura
     {
         private readonly BLL_Bitacora _bllBitacora = new BLL_Bitacora();
@@ -36,8 +36,8 @@ namespace StageUp.BLL
             });
         }
 
-        // Exporta los mismos registros que muestra la pantalla con los
-        // filtros aplicados (hasta el máximo por búsqueda).
+
+
         public ResultadoOperacion<string> ExportarBitacoraCifrada(FiltroRegistroActividad filtro)
         {
             try
@@ -114,7 +114,7 @@ namespace StageUp.BLL
                 }
                 else if (EncriptadorAsimetrico.HayClavesConfiguradas())
                 {
-                    // Exportaciones anteriores al script 66.
+
                     xmlOriginal = EncriptadorHibrido.Desencriptar(iv, claveCifrada, datosCifrados);
                 }
                 else

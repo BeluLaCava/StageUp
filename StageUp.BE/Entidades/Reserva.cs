@@ -28,7 +28,7 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaCancelacion { get; set; }
         public bool RecordatorioEnviado { get; set; }
 
-        // Módulo de pagos (script 49): NoRequerido | Pendiente | Pagado | Devuelto | Vencido
+
         public string EstadoPago { get; set; }
         public DateTime? FechaLimitePago { get; set; }
         public DateTime? FechaPago { get; set; }
@@ -46,8 +46,8 @@ namespace StageUp.BE.Entidades
         public bool CalificacionSolicitanteRealizada { get; set; }
         public List<Calificacion> CalificacionesSolicitante { get; set; } = new List<Calificacion>();
 
-        // Detalle de reserva (CU-001-005 A8): datos del espacio que muestra
-        // la pantalla DetalleReserva.aspx (sp_Reserva_ObtenerDetalle).
+
+
         public string TipoEspacio { get; set; }
         public string ProvinciaEspacio { get; set; }
         public string CiudadEspacio { get; set; }
@@ -57,8 +57,8 @@ namespace StageUp.BE.Entidades
         public string DetalleEquipamiento { get; set; }
     }
 
-    // Política de cancelación vigente (CU-001-005 A14 a A16), tomada de los
-    // parámetros de la plataforma.
+
+
     public class PoliticaCancelacion
     {
         public int DiasSinCargo { get; set; }

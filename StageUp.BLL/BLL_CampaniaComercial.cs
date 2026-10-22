@@ -7,12 +7,12 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-    // CU-004-001 Gestionar campañas comerciales.
-    //   * Alta, consulta, modificación y baja lógica (la baja conserva la
-    //     campaña para consulta histórica y la saca del listado activo).
-    //   * Una campaña se vincula con contactos, alianzas, contenido
-    //     promocional y orígenes de usuario (A16 si alguno no está disponible).
-    //   * Todo queda en la bitácora (entidad CampaniaComercial).
+
+
+
+
+
+
     public class BLL_CampaniaComercial
     {
         public const string PermisoGestionar = "GESTIONAR_CAMPANIAS_COMERCIALES";
@@ -61,7 +61,7 @@ namespace StageUp.BLL
             }
         }
 
-        // A7: la baja se ofrece desde una campaña activa o planificada.
+
         public static bool PuedeDarseDeBaja(CampaniaComercial campania)
         {
             return campania != null && campania.Activa &&
@@ -127,9 +127,9 @@ namespace StageUp.BLL
             }
         }
 
-        // Distingue "sin vínculos" (lista vacía) de "no se pudieron consultar"
-        // (error): con una carga incompleta no se puede guardar el formulario,
-        // porque se borrarían las asociaciones existentes.
+
+
+
         public ResultadoOperacion<List<VinculoComercial>> ListarVinculos(int idCampaniaComercial)
         {
             try
@@ -145,7 +145,7 @@ namespace StageUp.BLL
         public const string MensajeVinculosNoDisponibles =
             "No se pudieron consultar los vínculos de la campaña. Para no perder las asociaciones existentes, no se puede guardar hasta que se puedan consultar: recargá la página en unos minutos.";
 
-        // Pasos 9 a 25 (alta) y A6 (modificación), con A10 a A17.
+
         public ResultadoOperacion<int> Guardar(CampaniaComercial campania, string fechaInicioTexto, string fechaFinTexto, int idUsuarioInternoResponsable)
         {
             if (campania == null)
@@ -158,7 +158,7 @@ namespace StageUp.BLL
             campania.Descripcion = BLL_CatalogoComercial.LimpiarTextoLargo(campania.Descripcion);
             campania.PublicoObjetivo = (campania.PublicoObjetivo ?? new List<string>()).Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToList();
 
-            // A10: campos obligatorios.
+
             List<string> faltantes = new List<string>();
             if (campania.Nombre == null) faltantes.Add("nombre identificatorio");
             if (campania.Descripcion == null) faltantes.Add("descripción");
@@ -182,7 +182,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("La descripción no puede superar los 2000 caracteres.", "A10");
             }
 
-            // A11 y A12: vigencia.
+
             DateTime? inicio, fin;
             if (!BLL_CatalogoComercial.LeerFecha(fechaInicioTexto, out inicio) || !BLL_CatalogoComercial.LeerFecha(fechaFinTexto, out fin))
             {
@@ -197,19 +197,19 @@ namespace StageUp.BLL
             campania.FechaInicio = inicio.Value;
             campania.FechaFin = fin.Value;
 
-            // A13: público objetivo.
+
             if (campania.PublicoObjetivo.Any(s => !_catalogos.EsValido(ItemCatalogoComercial.PublicoObjetivo, s)))
             {
                 return ResultadoOperacion<int>.Error("Seleccioná al menos un público objetivo de la lista.", "A13");
             }
 
-            // A14: canal.
+
             if (!_catalogos.EsValido(ItemCatalogoComercial.CanalDifusion, campania.CanalDifusion))
             {
                 return ResultadoOperacion<int>.Error("Seleccioná un canal de difusión válido.", "A14");
             }
 
-            // A15: estado.
+
             if (!Estados.ContainsKey(campania.EstadoCampania))
             {
                 return ResultadoOperacion<int>.Error("Seleccioná un estado válido para la campaña (planificada, activa, finalizada o cancelada).", "A15");
@@ -225,8 +225,8 @@ namespace StageUp.BLL
                 }
             }
 
-            // A16: lo elegido tiene que existir y estar disponible (lo que ya
-            // estaba vinculado se puede conservar).
+
+
             List<VinculoComercial> actuales = new List<VinculoComercial>();
             if (!esAlta)
             {
@@ -245,8 +245,8 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error(errorVinculos, "A16");
             }
 
-            // La auditoría se arma antes y se registra dentro de la misma
-            // transacción que los datos: no queda un cambio sin su registro.
+
+
             string resumenVinculos = campania.IdsContactos.Count + " contactos, " + campania.IdsAlianzas.Count + " alianzas, " +
                 campania.IdsContenidos.Count + " contenidos y " + campania.IdsOrigenes.Count + " orígenes";
             string descripcionBitacora = BLL_CatalogoComercial.Recortar(
@@ -274,8 +274,8 @@ namespace StageUp.BLL
                     EstadoCampania = campania.EstadoCampania,
                     PublicoObjetivo = campania.PublicoObjetivo,
                     IdUsuarioInternoResponsable = esAlta ? idUsuarioInternoResponsable : (int?)null,
-                    // Pasos 16 y 22: los vínculos se guardan en la misma
-                    // transacción que los datos (todo o nada).
+
+
                     IdsContactos = campania.IdsContactos,
                     IdsAlianzas = campania.IdsAlianzas,
                     IdsContenidos = campania.IdsContenidos,
@@ -332,7 +332,7 @@ namespace StageUp.BLL
             return null;
         }
 
-        // A7.
+
         public ResultadoOperacion DarDeBaja(int idCampaniaComercial, int idUsuarioInternoResponsable)
         {
             CampaniaComercial campania = Obtener(idCampaniaComercial);

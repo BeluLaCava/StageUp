@@ -7,9 +7,9 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Solicitudes de soporte (CU-003-002, CU-003-003 e ítem 12). Mismo patrón
-    // que el resto de los MPP: Conexion.Instance + Hashtable de parámetros, y
-    // los métodos públicos reciben objetos (Ticket, TicketMensaje, filtro).
+
+
+
     public class MPP_Ticket
     {
         public int Registrar(Ticket oTicket)
@@ -81,7 +81,7 @@ namespace StageUp.MPP
             };
         }
 
-        // Devuelve el estado en que quedó la solicitud.
+
         public string RegistrarRespuesta(TicketMensaje oMensaje, string estadoAnterior, bool marcarResuelta)
         {
             object resultado = Conexion.Instance.LeerEscalar(
@@ -113,7 +113,7 @@ namespace StageUp.MPP
                 });
         }
 
-        // Devuelve el estado en que quedó la solicitud.
+
         public string Asignar(Ticket oTicket, int idUsuarioInternoResponsable, bool tomar)
         {
             object resultado = Conexion.Instance.LeerEscalar(
@@ -129,7 +129,7 @@ namespace StageUp.MPP
             return Convert.ToString(resultado);
         }
 
-        // Devuelve el estado en que quedó la solicitud.
+
         public string InsertarMensajeUsuario(TicketMensaje oMensaje)
         {
             object resultado = Conexion.Instance.LeerEscalar(
@@ -155,7 +155,7 @@ namespace StageUp.MPP
                 });
         }
 
-        // Ítem 12 (actualización periódica): estado y última actividad.
+
         public Ticket ObtenerMarca(Ticket oTicket)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -177,7 +177,7 @@ namespace StageUp.MPP
             };
         }
 
-        // Cantidad de solicitudes y última actividad (todas, o las de un usuario).
+
         public KeyValuePair<int, DateTime?> ObtenerMarcaListado(UsuarioExterno oUsuario)
         {
             DataTable tabla = Conexion.Instance.Leer(

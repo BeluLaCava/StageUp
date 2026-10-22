@@ -43,7 +43,7 @@ namespace StageUp.UI
             rptNovedades.DataBind();
         }
 
-        // Nombre de la categoría (tabla CategoriaNovedad, script 85).
+
         protected static string ObtenerEtiquetaCategoria(string categoria)
         {
             return BLL_CategoriaNovedad.ObtenerEtiqueta(categoria);

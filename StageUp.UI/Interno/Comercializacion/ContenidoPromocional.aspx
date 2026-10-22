@@ -16,7 +16,7 @@
                 <asp:Literal ID="litMensaje" runat="server" Mode="Encode" />
             </asp:Panel>
 
-            <%-- CU-004-005 pasos 2 a 8, A2, A3 y A4 --%>
+
             <asp:Panel ID="pnlListado" runat="server" Visible="false">
                 <div class="comercial-resumen" aria-label="Resumen de contenido promocional">
                     <a href="ContenidoPromocional.aspx?estado=Activo"><span>Activos</span><strong><asp:Literal ID="litActivos" runat="server" /></strong></a>
@@ -106,7 +106,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- A5, A7, A8, A9, A10 --%>
+
             <asp:Panel ID="pnlDetalle" runat="server" Visible="false">
                 <div class="auth-card admin-editor-card">
                     <div class="auth-card-header comercial-detalle-cabecera">
@@ -156,7 +156,7 @@
                 </div>
             </asp:Panel>
 
-            <%-- Pasos 9 a 30 (alta) y A6 (edición), con A11 a A20 --%>
+
             <asp:Panel ID="pnlFormulario" runat="server" Visible="false" DefaultButton="btnGuardar">
                 <div class="auth-card admin-editor-card">
                     <div class="auth-card-header">

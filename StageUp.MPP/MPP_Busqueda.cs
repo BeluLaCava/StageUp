@@ -7,8 +7,8 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-    // Búsqueda global (ítems 4 y 13, script 47) y avanzada (script 76): el
-    // filtro completo viaja como parámetros del SP.
+
+
     public class MPP_Busqueda
     {
         public List<ResultadoBusqueda> BuscarPublico(FiltroBusquedaGlobal oFiltro)

@@ -287,7 +287,7 @@
     </style>
 </asp:Content>
 <asp:Content ID="MisEspaciosScripts" ContentPlaceHolderID="PageScripts" runat="server">
-    <script src="<%= ResolveUrl("~/Scripts/espacios-ficha.js") %>?v=20260909-1"></script>
+    <script src="<%= ResolveUrl("~/Scripts/espacios-ficha.js") %>?v=20261022-1"></script>
     <script>
         (function () {
             const dialog = document.getElementById("space-editor");

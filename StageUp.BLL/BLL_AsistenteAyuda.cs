@@ -10,23 +10,6 @@ using StageUp.Servicios;
 namespace StageUp.BLL
 {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public class BLL_AsistenteAyuda
     {
         public const string MensajeNoDisponible = "El asistente no está disponible en este momento. Podés consultar las preguntas básicas del centro de ayuda o registrar una solicitud de soporte.";

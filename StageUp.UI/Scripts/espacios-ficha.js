@@ -103,7 +103,12 @@
         const vacia = document.getElementById("photo-gallery-vacia");
         const appRoot = gallery.getAttribute("data-app-root") || "/";
         function resolverRuta(ruta) {
-            return appRoot + ruta.replace(/^~\
+            let raiz = appRoot;
+            let relativa = ruta || "";
+            if (raiz.charAt(raiz.length - 1) !== "/") raiz += "/";
+            if (relativa.indexOf("~/") === 0) relativa = relativa.substring(2);
+            while (relativa.charAt(0) === "/") relativa = relativa.substring(1);
+            return raiz + relativa;
         }
         function renderFotos() {
             fotosHidden.value = JSON.stringify(fotos);

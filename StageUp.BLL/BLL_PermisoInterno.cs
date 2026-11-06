@@ -35,6 +35,12 @@ namespace StageUp.BLL
             return codigos;
         }
 
+        public List<string> ListarCodigosPermisosVigentesDeRol(int idRolInterno)
+        {
+            // Autorizar siempre con datos actuales; la caché se reserva para el menú.
+            return ObtenerHojasAsignadas(idRolInterno, false).Select(p => p.CodigoPermiso).ToList();
+        }
+
 
 
 
@@ -344,12 +350,12 @@ namespace StageUp.BLL
             return idComponentePermiso == 0 ? null : BuscarComponente(raiz, idComponentePermiso);
         }
 
-        private List<PermisoHoja> ObtenerHojasAsignadas(int idRolInterno)
+        private List<PermisoHoja> ObtenerHojasAsignadas(int idRolInterno, bool usarCache = true)
         {
             lock (CacheLock)
             {
                 List<PermisoHoja> hojasCacheadas;
-                if (CachePermisosPorRol.TryGetValue(idRolInterno, out hojasCacheadas))
+                if (usarCache && CachePermisosPorRol.TryGetValue(idRolInterno, out hojasCacheadas))
                 {
                     return new List<PermisoHoja>(hojasCacheadas);
                 }
@@ -367,6 +373,7 @@ namespace StageUp.BLL
             }
             catch (ErrorAccesoDatosException)
             {
+                if (!usarCache) throw;
                 return hojasAsignadas;
             }
 

@@ -175,7 +175,7 @@ namespace StageUp.BLL
 
                 new BLL_Bitacora().Registrar(null, "CIERRE", tipoEntidad, idCuenta,
                     "Se cerró la sesión abierta de la cuenta " + idCuenta +
-                    " porque cambió la base de datos (restauración de un backup) y la cuenta no está, no está activa o el id es de otra cuenta.",
+                    " porque la cuenta ya no existe, no está activa o su identidad cambió.",
                     "Control de sesión");
             }
             catch (Exception)

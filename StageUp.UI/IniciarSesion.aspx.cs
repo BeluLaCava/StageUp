@@ -53,7 +53,7 @@ namespace StageUp.UI
             if (!IsPostBack && Request.QueryString["motivo"] == ControlSesionBaseDatos.MotivoCierre)
             {
                 MostrarMensaje(pnlMensajeLogin, litMensajeLogin,
-                    "Se restauró la base de datos de StageUp desde una copia de seguridad y tu cuenta no figura activa en esa copia, por eso se cerró la sesión. Si tu cuenta es reciente, puede que tengas que volver a registrarte; si no, probá iniciar sesión o consultalo con soporte.",
+                    "Se cerró la sesión porque la cuenta ya no está activa o su identidad cambió, por ejemplo después de restaurar una copia de seguridad. Volvé a iniciar sesión o consultá a soporte.",
                     esError: true);
             }
         }

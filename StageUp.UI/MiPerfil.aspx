@@ -111,12 +111,12 @@
                             <div class="form-grid form-grid-two-columns">
                                 <div class="form-field">
                                     <label for="<%= txtNombre.ClientID %>">Nombre</label>
-                                    <asp:TextBox ID="txtNombre" runat="server" MaxLength="100" autocomplete="given-name" />
+                                    <asp:TextBox ID="txtNombre" runat="server" MaxLength="200" autocomplete="given-name" />
                                     <asp:RequiredFieldValidator ID="rfvNombre" runat="server" ControlToValidate="txtNombre" Display="Dynamic" CssClass="field-error-text" ErrorMessage="Ingresá tu nombre." ValidationGroup="Perfil" />
                                 </div>
                                 <div class="form-field">
                                     <label for="<%= txtApellido.ClientID %>">Apellido</label>
-                                    <asp:TextBox ID="txtApellido" runat="server" MaxLength="100" autocomplete="family-name" />
+                                    <asp:TextBox ID="txtApellido" runat="server" MaxLength="200" autocomplete="family-name" />
                                     <asp:RequiredFieldValidator ID="rfvApellido" runat="server" ControlToValidate="txtApellido" Display="Dynamic" CssClass="field-error-text" ErrorMessage="Ingresá tu apellido." ValidationGroup="Perfil" />
                                 </div>
                             </div>
@@ -131,7 +131,7 @@
                             <div class="form-field">
                                 <label for="<%= txtTelefono.ClientID %>">Teléfono <span class="field-help">(opcional)</span></label>
                                 <asp:TextBox ID="txtTelefono" runat="server" MaxLength="30" autocomplete="tel" placeholder="Ej: +54 11 5555-5555" />
-                                <asp:RegularExpressionValidator ID="revTelefono" runat="server" ControlToValidate="txtTelefono" Display="Dynamic" CssClass="field-error-text" ValidationExpression="^[0-9+()\-\s]{6,30}$" ErrorMessage="El teléfono ingresado no es válido." ValidationGroup="Perfil" />
+                                <asp:RegularExpressionValidator ID="revTelefono" runat="server" ControlToValidate="txtTelefono" Display="Dynamic" CssClass="field-error-text" ValidationExpression="^(?=(?:[^0-9]*[0-9]){6})\+?[0-9() \-]{6,30}$" ErrorMessage="El teléfono ingresado no es válido." ValidationGroup="Perfil" />
                             </div>
 
                             <div class="form-field">

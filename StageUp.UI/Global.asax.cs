@@ -9,6 +9,11 @@ namespace StageUp.UI
 {
     public class Global : HttpApplication
     {
+        protected void Application_PreRequestHandlerExecute(object sender, EventArgs e)
+        {
+            Page pagina = Context.Handler as Page;
+            if (pagina != null) ProteccionFormularios.Preparar(pagina, Context);
+        }
 
 
 
@@ -59,14 +64,18 @@ namespace StageUp.UI
                 : excepcionOriginal;
 
             RegistrarEnBitacora(excepcion);
+            Server.ClearError();
+            RespuestaErrorSegura.Escribir(Context, excepcion);
+            CompleteRequest();
         }
 
         private void RegistrarEnBitacora(Exception excepcion)
         {
             try
             {
-                string url = Request != null ? Request.Url.ToString() : "(sin request)";
-                string descripcion = excepcion.GetType().Name + " en " + url + ": " + excepcion.Message;
+                // No registrar los valores del formulario ni tokens de la URL.
+                string url = Request != null ? Request.Url.AbsolutePath : "(sin request)";
+                string descripcion = excepcion.GetType().Name + " en " + url + ". La operación no pudo completarse. " + excepcion.StackTrace;
                 if (descripcion.Length > 1900)
                 {
                     descripcion = descripcion.Substring(0, 1900);

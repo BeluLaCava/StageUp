@@ -1,7 +1,7 @@
+using StageUp.Seguridad;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using StageUp.BE.Entidades;
 using StageUp.BE.Enumerados;
 using StageUp.DAL;
@@ -24,9 +24,6 @@ namespace StageUp.BLL
             { "ResponsableInscripto", "Responsable inscripto" },
             { "Exento", "Exento" }
         };
-
-        private static readonly Regex PatronCorreo = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled);
-        private static readonly Regex PatronTelefono = new Regex(@"^[0-9+()\-\s]{6,30}$", RegexOptions.Compiled);
 
         private const int LongitudMinimaDescripcion = 30;
         private const int LongitudMinimaMotivo = 10;
@@ -114,7 +111,7 @@ namespace StageUp.BLL
             {
                 errores.Add("Ingresá un teléfono de contacto.");
             }
-            else if (!PatronTelefono.IsMatch(telefono))
+            else if (!ValidacionContacto.EsTelefonoValido(telefono))
             {
                 errores.Add("El teléfono de contacto no es válido. Usá solo números, espacios y los símbolos + - ( ).");
             }
@@ -126,7 +123,7 @@ namespace StageUp.BLL
             {
                 errores.Add("Ingresá un correo electrónico de contacto.");
             }
-            else if (correo.Length > 300 || !PatronCorreo.IsMatch(correo))
+            else if (correo.Length > 300 || !ValidacionContacto.EsCorreoValido(correo))
             {
                 errores.Add("El correo electrónico de contacto no tiene un formato válido.");
             }

@@ -320,6 +320,7 @@
         });
         fondoHoja.hidden = false;
         hoja.hidden = false;
+        window.StageUpModalFocus.activate(hoja, botonQueAbrio || entrada);
         requestAnimationFrame(function () {
             hoja.classList.add("is-open");
             fondoHoja.classList.add("is-open");
@@ -338,6 +339,7 @@
         fondoHoja.classList.remove("is-open");
         hoja.hidden = true;
         fondoHoja.hidden = true;
+        window.StageUpModalFocus.deactivate(hoja);
         if (botonQueAbrio && !botonQueAbrio.disabled) {
             botonQueAbrio.focus();
         } else {
@@ -346,6 +348,7 @@
         botonQueAbrio = null;
     }
 
+    modal.addEventListener("stageup:assistant-closing", cerrarHoja);
     cerrarHojaBoton.addEventListener("click", cerrarHoja);
     fondoHoja.addEventListener("click", cerrarHoja);
     hoja.addEventListener("keydown", function (evento) {
@@ -366,8 +369,9 @@
         const controlador = typeof AbortController === "function" ? new AbortController() : null;
         pedidoEnCurso = controlador;
         const cuerpo = new URLSearchParams(parametros);
+        const tokenFormulario = document.querySelector('input[name="__StageUpCsrf"]');
         const opcionesFetch = metodo === "POST"
-            ? { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: cuerpo.toString(), credentials: "same-origin" }
+            ? { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded", "X-StageUp-CSRF": tokenFormulario ? tokenFormulario.value : "" }, body: cuerpo.toString(), credentials: "same-origin" }
             : { method: "GET", credentials: "same-origin" };
         if (controlador) {
             opcionesFetch.signal = controlador.signal;

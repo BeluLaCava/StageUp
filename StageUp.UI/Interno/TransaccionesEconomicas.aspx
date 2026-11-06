@@ -1,4 +1,4 @@
-<%@ Page Title="Transacciones económicas | StageUp" Language="C#" MasterPageFile="~/Interno/PanelInterno.Master" AutoEventWireup="true" CodeBehind="TransaccionesEconomicas.aspx.cs" Inherits="StageUp.UI.Interno.TransaccionesEconomicas" %>
+﻿<%@ Page Title="Transacciones económicas | StageUp" Language="C#" MasterPageFile="~/Interno/PanelInterno.Master" AutoEventWireup="true" CodeBehind="TransaccionesEconomicas.aspx.cs" Inherits="StageUp.UI.Interno.TransaccionesEconomicas" %>
 
 <asp:Content ID="TransaccionesEconomicasContent" ContentPlaceHolderID="MainContent" runat="server">
     <section class="static-page internal-page internal-management-page">
@@ -6,6 +6,7 @@
             <span class="section-label">Administración</span>
             <h1>Transacciones económicas</h1>
             <p>Reservas abonadas y cargos por cancelación, con la comisión de StageUp y el importe que le corresponde al gestor.</p>
+            <a class="text-link" href="HistorialCorreos.aspx">Consultar historial de correos</a>
         </div>
 
         <div class="static-page-body internal-admin-stack">

@@ -1,6 +1,5 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using StageUp.BE.Entidades;
 using StageUp.BE.Enumerados;
 using StageUp.DAL;
@@ -12,8 +11,6 @@ namespace StageUp.BLL
 {
     public class BLL_UsuarioInterno
     {
-        private static readonly Regex PatronCorreo = new Regex(
-            @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled);
 
         private readonly MPP_UsuarioInterno _mppUsuarioInterno = new MPP_UsuarioInterno();
         private readonly MPP_AreaInterna _mppAreaInterna = new MPP_AreaInterna();
@@ -39,7 +36,9 @@ namespace StageUp.BLL
                     return ResultadoOperacion<UsuarioInterno>.Error(ObtenerMensajeCaptcha(captcha.Estado));
                 }
 
-                return IniciarSesionSinCaptchaInterno(correoElectronico, password);
+                return ControlIntentosAcceso.Ejecutar(correoElectronico,
+                    () => IniciarSesionSinCaptchaInterno(correoElectronico, password),
+                    mensaje => ResultadoOperacion<UsuarioInterno>.Error(mensaje));
             });
         }
 
@@ -78,7 +77,7 @@ namespace StageUp.BLL
             }
 
             List<string> codigosPermisos = _bllPermiso.ListarCodigosPermisosDeRol(usuario.IdRolInterno);
-            GestorDeSesion.IniciarSesionInterna(usuario, codigosPermisos);
+            Conexion.Instance.DespuesDeConfirmar(() => GestorDeSesion.IniciarSesionInterna(usuario, codigosPermisos));
 
             _bitacora.RegistrarInterno(
                 usuario.IdUsuarioInterno, "LOGIN", "UsuarioInterno", usuario.IdUsuarioInterno,
@@ -164,7 +163,9 @@ namespace StageUp.BLL
                 return null;
             }
 
-            codigosPermisos = _bllPermiso.ListarCodigosPermisosDeRol(usuario.IdRolInterno);
+            RolInterno rol = _mppRolInterno.ObtenerPorId(new RolInterno { IdRolInterno = usuario.IdRolInterno });
+            if (rol == null || !rol.Activo || rol.EstadoRol != "Activo") return null;
+            codigosPermisos = _bllPermiso.ListarCodigosPermisosVigentesDeRol(usuario.IdRolInterno);
             return usuario;
         }
 
@@ -416,7 +417,7 @@ namespace StageUp.BLL
 
 
             string correoNormalizado = correoElectronico.Trim().ToLowerInvariant();
-            if (correoNormalizado.Length > 300 || !PatronCorreo.IsMatch(correoNormalizado))
+            if (correoNormalizado.Length > 300 || !ValidacionContacto.EsCorreoValido(correoNormalizado))
             {
                 return ResultadoOperacion.Error(
                     "El correo electrónico no tiene un formato válido (por ejemplo, persona@artera.com). Corregilo para continuar.", codigo("A4"));

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using StageUp.BE.Entidades;
@@ -32,7 +32,7 @@ namespace StageUp.BLL
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly BLL_Notificacion _notificacion = new BLL_Notificacion();
         private readonly ServicioPasarelaPago _pasarela = new ServicioPasarelaPago();
-        private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
+        private readonly ServicioCorreo _servicioCorreo = BLL_CorreoAdministrativo.CrearServicio();
         private readonly BLL_Billetera _billetera = new BLL_Billetera();
 
         public static bool EsperaPago(Reserva reserva)
@@ -285,7 +285,14 @@ namespace StageUp.BLL
 
 
 
-                ResultadoMovimientoDinero resultado = _mpp.RegistrarPagoReserva(pago);
+                ResultadoMovimientoDinero resultado = RegistrarPagoYTransaccion(pago, () =>
+                {
+                _bitacora.Registrar(
+                    idUsuarioExterno, "PAGO", "Pago", pago.IdPago,
+                    "Pago de la reserva N° " + idReserva + " (\"" + reserva.NombreEspacio + "\") por " +
+                    BLL_CuentaCorriente.FormatearImporte(pago.ImporteTotal, pago.Moneda) + DescribirMedios(pago) +
+                    ". Se emitió la factura simulada.");
+                });
                 if (!resultado.EsOk || !resultado.IdGenerado.HasValue)
                 {
                     RegistrarAutorizacionAnulada(pago, MensajeDeResultado(resultado.Resultado));
@@ -299,14 +306,9 @@ namespace StageUp.BLL
                 pago.FechaPago = DateTime.Now;
                 pago.ImporteComisionPlataforma = decimal.Round(pago.ImporteTotal * pago.PorcentajeComisionPlataforma.Value / 100m, 2);
 
-                _bitacora.Registrar(
-                    idUsuarioExterno, "PAGO", "Pago", pago.IdPago,
-                    "Pago de la reserva N° " + idReserva + " (\"" + reserva.NombreEspacio + "\") por " +
-                    BLL_CuentaCorriente.FormatearImporte(pago.ImporteTotal, pago.Moneda) + DescribirMedios(pago) +
-                    ". Se emitió la factura simulada.");
+
 
                 AvisarPagoAprobado(reserva, pago);
-                RegistrarTransaccionEconomica(pago.IdPago);
 
                 return ResultadoOperacion<Pago>.Ok(pago, "¡Listo! Recibimos el pago y tu reserva quedó confirmada. Ya tenés la factura del pago.");
             }
@@ -667,7 +669,14 @@ namespace StageUp.BLL
                     PorcentajeComisionPlataforma = _bllParametros.ObtenerDecimal(BLL_ParametroPlataforma.ComisionPlataformaPorcentaje)
                 };
 
-                ResultadoMovimientoDinero resultado = _mpp.RegistrarPagoReserva(pago);
+                ResultadoMovimientoDinero resultado = RegistrarPagoYTransaccion(pago, () =>
+                {
+                _bitacora.RegistrarInterno(
+                    idUsuarioInternoResponsable, "PAGO", "Pago", pago.IdPago,
+                    "Pago confirmado por el medio de pago (" + medio + ", operación " + identificador + ") para la reserva N° " +
+                    reserva.IdReserva + " por " + BLL_CuentaCorriente.FormatearImporte(pago.ImporteTotal, pago.Moneda) +
+                    ". Comisión " + pago.PorcentajeComisionPlataforma.Value.ToString("0.##", CultureInfo.InvariantCulture) + " %. Se emitió la factura simulada.");
+                });
                 if (!resultado.EsOk || !resultado.IdGenerado.HasValue)
                 {
                     return ResultadoOperacion<int>.Error(MensajeDeResultado(resultado.Resultado));
@@ -678,14 +687,9 @@ namespace StageUp.BLL
                 pago.FechaPago = DateTime.Now;
                 pago.ImporteComisionPlataforma = decimal.Round(pago.ImporteTotal * pago.PorcentajeComisionPlataforma.Value / 100m, 2);
 
-                _bitacora.RegistrarInterno(
-                    idUsuarioInternoResponsable, "PAGO", "Pago", pago.IdPago,
-                    "Pago confirmado por el medio de pago (" + medio + ", operación " + identificador + ") para la reserva N° " +
-                    reserva.IdReserva + " por " + BLL_CuentaCorriente.FormatearImporte(pago.ImporteTotal, pago.Moneda) +
-                    ". Comisión " + pago.PorcentajeComisionPlataforma.Value.ToString("0.##", CultureInfo.InvariantCulture) + " %. Se emitió la factura simulada.");
+
 
                 AvisarPagoAprobado(reserva, pago);
-                RegistrarTransaccionEconomica(pago.IdPago);
 
                 return ResultadoOperacion<int>.Ok(pago.IdPago,
                     "Pago confirmado. La reserva N° " + reserva.IdReserva + " quedó pagada, se registraron los movimientos y se emitió la factura simulada.");
@@ -861,19 +865,28 @@ namespace StageUp.BLL
 
 
 
-        private static void RegistrarTransaccionEconomica(int idPago)
+        private ResultadoMovimientoDinero RegistrarPagoYTransaccion(Pago pago, Action auditar)
         {
-            try
+            return Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
             {
-                new BLL_TransaccionEconomica().RegistrarPorPagoAprobado(idPago);
-            }
-            catch (Exception)
-            {
-            }
+                ResultadoMovimientoDinero resultado = _mpp.RegistrarPagoReserva(pago);
+                if (resultado.EsOk && resultado.IdGenerado.HasValue)
+                {
+                    ResultadoOperacion<int> transaccion = new BLL_TransaccionEconomica().RegistrarPorPagoAprobado(resultado.IdGenerado.Value);
+                    if (!transaccion.Exitoso)
+                        throw new ErrorAccesoDatosException("TransaccionEconomica", "No se pudo registrar el pago completo. No se guardaron cambios; intentá nuevamente.", null);
+                    pago.IdPago = resultado.IdGenerado.Value;
+                    auditar();
+                }
+                return resultado;
+            }, r => r.EsOk && r.IdGenerado.HasValue);
         }
 
         private void AvisarPagoAprobado(Reserva reserva, Pago pago)
         {
+            try
+            {
+
             reserva.EstadoPago = EstadoPagado;
             reserva.FechaPago = pago.FechaPago;
 
@@ -908,6 +921,12 @@ namespace StageUp.BLL
             catch (Exception)
             {
 
+            }
+
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError("No se completaron los avisos del pago " + pago.IdPago + ": " + ex.GetType().Name);
             }
         }
 

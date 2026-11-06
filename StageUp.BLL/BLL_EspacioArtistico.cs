@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -387,6 +387,10 @@ namespace StageUp.BLL
 
         public ResultadoOperacion<int> GuardarFicha(EspacioArtistico espacio, int idUsuarioGestor)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
+                {
             if (!FichaCompletaHabilitada)
                 return ResultadoOperacion<int>.Error("El guardado de los datos adicionales todavía no está habilitado.");
             ResultadoOperacion validacion = ValidarFicha(espacio);
@@ -427,6 +431,13 @@ namespace StageUp.BLL
                     TipoEntidadBitacora, id, "Guardado de ficha completa del espacio artístico.");
                 return ResultadoOperacion<int>.Ok(id, "El espacio se guardó correctamente.");
             });
+
+                }, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion<int>.Error(ex.Message);
+            }
         }
 
         public ResultadoOperacion<int> Registrar(int idUsuarioGestor, string nombreEspacio, string descripcion, string tipoEspacio)

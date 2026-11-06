@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -290,6 +290,10 @@ namespace StageUp.BLL
         public ResultadoOperacion AgregarDisponibilidad(
             int idEspacioArtistico, int idUsuarioGestor, bool porFecha, List<int> diasSemana, string fecha, string horaDesde, string horaHasta)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
+                {
             ResultadoOperacion<EspacioArtistico> espacioResultado = ObtenerEspacioDelGestor(idEspacioArtistico, idUsuarioGestor);
             if (!espacioResultado.Exitoso)
             {
@@ -368,6 +372,13 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error(ex.Message);
             }
+
+                }, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion.Error(ex.Message);
+            }
         }
 
 
@@ -377,6 +388,10 @@ namespace StageUp.BLL
             int idEspacioArtistico, int idUsuarioGestor, int idFranjaEspacio,
             int? diaSemana, string fecha, string horaDesde, string horaHasta)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
+                {
             ResultadoOperacion<EspacioArtistico> espacioResultado = ObtenerEspacioDelGestor(idEspacioArtistico, idUsuarioGestor);
             if (!espacioResultado.Exitoso)
             {
@@ -445,6 +460,13 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error(ex.Message);
             }
+
+                }, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion.Error(ex.Message);
+            }
         }
 
 
@@ -454,6 +476,10 @@ namespace StageUp.BLL
             int idEspacioArtistico, int idUsuarioGestor, bool porFecha, int? diaSemana, string fecha,
             string horaDesde, string horaHasta, string motivo)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
+                {
             ResultadoOperacion<EspacioArtistico> espacioResultado = ObtenerEspacioDelGestor(idEspacioArtistico, idUsuarioGestor);
             if (!espacioResultado.Exitoso)
             {
@@ -541,6 +567,13 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error(ex.Message);
             }
+
+                }, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion.Error(ex.Message);
+            }
         }
 
 
@@ -548,6 +581,10 @@ namespace StageUp.BLL
 
         public ResultadoOperacion EliminarFranja(int idEspacioArtistico, int idUsuarioGestor, int idFranjaEspacio)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
+                {
             ResultadoOperacion<EspacioArtistico> espacioResultado = ObtenerEspacioDelGestor(idEspacioArtistico, idUsuarioGestor);
             if (!espacioResultado.Exitoso)
             {
@@ -604,6 +641,13 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Ok(quedaDisponibilidad
                     ? "La disponibilidad fue eliminada correctamente."
                     : "La disponibilidad fue eliminada correctamente. El espacio quedó sin horarios disponibles: no va a recibir reservas hasta que agregues uno.");
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion.Error(ex.Message);
+            }
+
+                }, r => r.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {

@@ -141,232 +141,148 @@
         const backdrop = document.querySelector("[data-filter-backdrop]");
         const activeRegion = document.querySelector("[data-active-filters]");
         const activeList = document.querySelector("[data-active-filter-list]");
-        let lastTrigger = null;
+        if (!panel || !backdrop || !activeRegion || !activeList) return;
 
-        if (!panel || !backdrop || !activeRegion || !activeList) {
-            return;
+        const fields = [
+            ["filter-type", "tipo", "Tipo"], ["filter-location", "ubicacion", "Ubicación"],
+            ["filter-province", "provincia", "Provincia"], ["filter-city", "ciudad", "Ciudad"],
+            ["filter-zone", "zona", "Zona"], ["filter-capacity", "capacidadMin", "Capacidad mínima"],
+            ["filter-price-min", "precioMin", "Precio mínimo"], ["filter-price", "precioMax", "Precio máximo"],
+            ["filter-availability", "fecha", "Disponibilidad"], ["filter-time-from", "horaDesde", "Desde"],
+            ["filter-time-to", "horaHasta", "Hasta"], ["filter-rating", "calificacionMin", "Calificación mínima"],
+            ["filter-floor", "piso", "Tipo de piso"], ["filter-features", "caracteristicas", "Características"]
+        ];
+        const equipment = Array.from(panel.querySelectorAll("[data-equip-code]"));
+        const quickFilters = Array.from(document.querySelectorAll("[data-filter-target]"));
+        const applied = new URLSearchParams(window.location.search);
+        let lastTrigger = null;
+        let closeTimer = null;
+
+        function restoreFields() {
+            fields.forEach(function (field) {
+                const element = document.getElementById(field[0]);
+                if (element) element.value = applied.get(field[1]) || "";
+            });
+            const codes = (applied.get("equip") || "").split(",");
+            equipment.forEach(function (checkbox) {
+                checkbox.checked = codes.indexOf(checkbox.getAttribute("data-equip-code")) >= 0;
+            });
         }
 
-        const quickFilters = Array.from(document.querySelectorAll("[data-filter-chip]"));
-        const advancedFilters = Array.from(document.querySelectorAll("[data-advanced-filter]"));
-        const advancedSelect = document.querySelector("[data-advanced-select]");
-        const generalFields = [
-            { id: "filter-type", label: "Tipo" },
-            { id: "filter-location", label: "Ubicación" },
-            { id: "filter-province", label: "Provincia" },
-            { id: "filter-city", label: "Ciudad" },
-            { id: "filter-zone", label: "Zona" },
-            { id: "filter-capacity", label: "Capacidad mínima" },
-            { id: "filter-price-min", label: "Valor mínimo" },
-            { id: "filter-price", label: "Valor máximo" },
-            { id: "filter-availability", label: "Disponibilidad" },
-            { id: "filter-time-from", label: "Desde" },
-            { id: "filter-time-to", label: "Hasta" },
-            { id: "filter-rating", label: "Calificación mínima" },
-            { id: "filter-features", label: "Características" }
-        ];
+        function navigate(params) {
+            const query = params.toString();
+            window.location.href = window.location.pathname + (query ? "?" + query : "");
+        }
+
+        function removeFilter(param, code) {
+            const next = new URLSearchParams(applied.toString());
+            if (code) {
+                const remaining = (next.get(param) || "").split(",").filter(function (item) { return item !== code; });
+                if (remaining.length) next.set(param, remaining.join(",")); else next.delete(param);
+            } else {
+                next.delete(param);
+            }
+            navigate(next);
+        }
+
+        function addChip(label, param, code) {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = "active-filter-chip";
+            chip.textContent = label + " ×";
+            chip.setAttribute("aria-label", "Quitar filtro " + label);
+            chip.addEventListener("click", function () { removeFilter(param, code); });
+            activeList.appendChild(chip);
+        }
+
+        function renderApplied() {
+            activeList.textContent = "";
+            fields.forEach(function (field) {
+                const value = applied.get(field[1]);
+                if (value) addChip(field[2] + ": " + value, field[1]);
+            });
+            (applied.get("equip") || "").split(",").filter(Boolean).forEach(function (code) {
+                const checkbox = equipment.find(function (item) { return item.getAttribute("data-equip-code") === code; });
+                addChip(checkbox ? checkbox.value : code, "equip", code);
+            });
+            activeRegion.hidden = activeList.children.length === 0;
+            quickFilters.forEach(function (button) {
+                const keys = button.getAttribute("data-filter-params").split(",");
+                const selected = keys.some(function (key) { return !!applied.get(key); });
+                button.classList.toggle("has-value", selected);
+                button.setAttribute("aria-label", button.textContent.trim() + (selected ? ": modificar filtros aplicados" : ": elegir filtro"));
+            });
+        }
 
         function openPanel(event) {
-            lastTrigger = event ? event.currentTarget : null;
+            window.clearTimeout(closeTimer);
+            lastTrigger = event.currentTarget;
+            restoreFields();
             panel.hidden = false;
             backdrop.hidden = false;
             document.body.classList.add("overlay-open");
+            window.StageUpModalFocus.activate(panel, lastTrigger);
+            document.querySelectorAll("[data-filter-open],[data-filter-target]").forEach(function (button) {
+                button.setAttribute("aria-expanded", String(button === lastTrigger));
+            });
             window.requestAnimationFrame(function () {
+                if (panel.hidden) return;
                 panel.classList.add("is-open");
                 backdrop.classList.add("is-open");
-                const closeButton = panel.querySelector("[data-filter-close]");
-                if (closeButton) {
-                    closeButton.focus();
-                }
+                const target = document.getElementById(lastTrigger.getAttribute("data-filter-target")) || panel.querySelector("[data-filter-close]");
+                if (target) { target.focus(); target.scrollIntoView({ block: "nearest" }); }
             });
         }
 
         function closePanel() {
+            if (panel.hidden) return;
             panel.classList.remove("is-open");
             backdrop.classList.remove("is-open");
-            document.body.classList.remove("overlay-open");
-            window.setTimeout(function () {
+            document.querySelectorAll("[data-filter-open],[data-filter-target]").forEach(function (button) { button.setAttribute("aria-expanded", "false"); });
+            closeTimer = window.setTimeout(function () {
                 panel.hidden = true;
                 backdrop.hidden = true;
-                if (lastTrigger) {
-                    lastTrigger.focus();
-                }
+                window.StageUpModalFocus.deactivate(panel);
             }, 240);
         }
 
-        function getSelections() {
-            const selections = [];
-
-            quickFilters.forEach(function (filter, index) {
-                if (filter.getAttribute("aria-pressed") === "true") {
-                    selections.push({ label: filter.getAttribute("data-filter-label"), element: filter, type: "quick", index: index });
-                }
-            });
-
-            generalFields.forEach(function (definition) {
-                const field = document.getElementById(definition.id);
-                if (field && field.value.trim()) {
-                    selections.push({ label: definition.label + ": " + field.value.trim(), element: field, type: "field" });
-                }
-            });
-
-            if (advancedSelect && advancedSelect.value) {
-                selections.push({ label: advancedSelect.value, element: advancedSelect, type: "field" });
-            }
-
-            advancedFilters.forEach(function (filter) {
-                if (filter.checked) {
-                    selections.push({ label: filter.value, element: filter, type: "checkbox" });
-                }
-            });
-
-            return selections;
-        }
-
-        function clearSelection(selection) {
-            if (selection.type === "quick") {
-                selection.element.setAttribute("aria-pressed", "false");
-            } else if (selection.type === "checkbox") {
-                selection.element.checked = false;
-            } else {
-                selection.element.value = "";
-            }
-        }
-
-        function renderSelections() {
-            const selections = getSelections();
-            activeList.innerHTML = "";
-            activeRegion.hidden = selections.length === 0;
-
-            selections.forEach(function (selection) {
-                const chip = document.createElement("button");
-                const removeIcon = document.createElement("span");
-                chip.type = "button";
-                chip.className = "active-filter-chip";
-                chip.appendChild(document.createTextNode(selection.label));
-                removeIcon.setAttribute("aria-hidden", "true");
-                removeIcon.textContent = "×";
-                chip.appendChild(removeIcon);
-                chip.setAttribute("aria-label", "Quitar filtro " + selection.label);
-                chip.addEventListener("click", function () {
-                    clearSelection(selection);
-                    renderSelections();
-                });
-                activeList.appendChild(chip);
-            });
-        }
-
-        function clearAllFilters() {
-            getSelections().forEach(clearSelection);
-            renderSelections();
-        }
-
-        document.querySelectorAll("[data-filter-open]").forEach(function (trigger) {
-            trigger.addEventListener("click", openPanel);
-        });
-        document.querySelectorAll("[data-filter-close]").forEach(function (trigger) {
-            trigger.addEventListener("click", closePanel);
-        });
-        document.querySelectorAll("[data-clear-filters]").forEach(function (trigger) {
-            trigger.addEventListener("click", clearAllFilters);
-        });
-
-        quickFilters.forEach(function (filter) {
-            filter.addEventListener("click", function () {
-                const selected = filter.getAttribute("aria-pressed") === "true";
-                filter.setAttribute("aria-pressed", String(!selected));
-                renderSelections();
+        document.querySelectorAll("[data-filter-open],[data-filter-target]").forEach(function (button) { button.addEventListener("click", openPanel); });
+        panel.querySelectorAll("[data-filter-close]").forEach(function (button) { button.addEventListener("click", closePanel); });
+        document.querySelectorAll("[data-clear-filters]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                const next = new URLSearchParams(applied.toString());
+                fields.forEach(function (field) { next.delete(field[1]); });
+                next.delete("equip");
+                navigate(next);
             });
         });
-
-        advancedFilters.forEach(function (filter) {
-            filter.addEventListener("change", renderSelections);
+        panel.querySelector("[data-reset-filter-fields]").addEventListener("click", function () {
+            fields.forEach(function (field) { const element = document.getElementById(field[0]); if (element) element.value = ""; });
+            equipment.forEach(function (checkbox) { checkbox.checked = false; });
         });
-
-        generalFields.forEach(function (definition) {
-            const field = document.getElementById(definition.id);
-            if (field) {
-                field.addEventListener("change", renderSelections);
-            }
-        });
-
-        if (advancedSelect) {
-            advancedSelect.addEventListener("change", renderSelections);
-        }
-
-        const applyButton = document.querySelector("[data-apply-filters]");
-        if (applyButton) {
-            applyButton.addEventListener("click", function () {
-                const typeField = document.getElementById("filter-type");
-
-                if (typeField && typeof window.URLSearchParams !== "undefined") {
-                    const searchInput = document.querySelector("[data-results-search-input]");
-                    const currentParams = new window.URLSearchParams(window.location.search);
-                    const nextParams = new window.URLSearchParams();
-
-                    const term = searchInput ? searchInput.value.trim() : (currentParams.get("q") || "").trim();
-                    if (term) {
-                        nextParams.set("q", term);
-                    }
-
-                    if (typeField.value) {
-                        nextParams.set("tipo", typeField.value);
-                    }
-
-                    const camposTexto = [
-                        { id: "filter-location", param: "ubicacion" },
-                        { id: "filter-province", param: "provincia" },
-                        { id: "filter-city", param: "ciudad" },
-                        { id: "filter-zone", param: "zona" },
-                        { id: "filter-capacity", param: "capacidadMin" },
-                        { id: "filter-price-min", param: "precioMin" },
-                        { id: "filter-price", param: "precioMax" },
-                        { id: "filter-availability", param: "fecha" },
-                        { id: "filter-time-from", param: "horaDesde" },
-                        { id: "filter-time-to", param: "horaHasta" },
-                        { id: "filter-rating", param: "calificacionMin" },
-                        { id: "filter-floor", param: "piso" },
-                        { id: "filter-features", param: "caracteristicas" }
-                    ];
-
-                    camposTexto.forEach(function (campo) {
-                        const elemento = document.getElementById(campo.id);
-                        const valor = elemento ? elemento.value.trim() : "";
-                        if (valor) {
-                            nextParams.set(campo.param, valor);
-                        }
-                    });
-
-                    const codigosEquipamiento = Array.from(document.querySelectorAll("[data-equip-code]"))
-                        .filter(function (checkbox) { return checkbox.checked; })
-                        .map(function (checkbox) { return checkbox.getAttribute("data-equip-code"); });
-
-                    if (codigosEquipamiento.length > 0) {
-                        nextParams.set("equip", codigosEquipamiento.join(","));
-                    }
-
-
-                    if (currentParams.get("orden")) {
-                        nextParams.set("orden", currentParams.get("orden"));
-                    }
-
-                    const queryString = nextParams.toString();
-                    window.location.href = window.location.pathname + (queryString ? "?" + queryString : "");
-                    return;
-                }
-
-                renderSelections();
-                closePanel();
+        panel.querySelector("[data-apply-filters]").addEventListener("click", function () {
+            const invalid = Array.from(panel.querySelectorAll("input,select")).find(function (field) { return !field.checkValidity(); });
+            if (invalid) { invalid.reportValidity(); return; }
+            const next = new URLSearchParams(applied.toString());
+            fields.forEach(function (field) {
+                const element = document.getElementById(field[0]);
+                const value = element ? element.value.trim() : "";
+                if (value) next.set(field[1], value); else next.delete(field[1]);
             });
-        }
-
+            const codes = equipment.filter(function (checkbox) { return checkbox.checked; }).map(function (checkbox) { return checkbox.getAttribute("data-equip-code"); });
+            if (codes.length) next.set("equip", codes.join(",")); else next.delete("equip");
+            const search = document.querySelector("[data-results-search-input]");
+            if (search) { if (search.value.trim()) next.set("q", search.value.trim()); else next.delete("q"); }
+            navigate(next);
+        });
         backdrop.addEventListener("click", closePanel);
         document.addEventListener("keydown", function (event) {
-            if (event.key === "Escape" && !panel.hidden) {
-                closePanel();
-            }
+            if (event.key === "Escape" && window.StageUpModalFocus.isTop(panel)) { event.preventDefault(); closePanel(); }
         });
+        restoreFields();
+        renderApplied();
     }
+
 
     function setupComparisonBar() {
         const bar = document.querySelector("[data-compare-bar]");
@@ -508,14 +424,17 @@
         const openButtons = document.querySelectorAll("[data-assistant-open]");
         const closeButtons = document.querySelectorAll("[data-assistant-close]");
         let lastTrigger = null;
+        let closeTimer = null;
 
         if (!modal || !backdrop) {
             return;
         }
 
         function openAssistant(event) {
+            window.clearTimeout(closeTimer);
             lastTrigger = event.currentTarget;
             modal.hidden = false;
+            window.StageUpModalFocus.activate(modal, lastTrigger);
             backdrop.hidden = false;
             document.body.classList.add("overlay-open");
             window.requestAnimationFrame(function () {
@@ -529,15 +448,14 @@
         }
 
         function closeAssistant() {
+            if (modal.hidden) return;
+            modal.dispatchEvent(new Event("stageup:assistant-closing"));
             modal.classList.remove("is-open");
             backdrop.classList.remove("is-open");
-            document.body.classList.remove("overlay-open");
-            window.setTimeout(function () {
+            closeTimer = window.setTimeout(function () {
                 modal.hidden = true;
                 backdrop.hidden = true;
-                if (lastTrigger) {
-                    lastTrigger.focus();
-                }
+                window.StageUpModalFocus.deactivate(modal);
             }, 220);
         }
 
@@ -560,7 +478,7 @@
         });
 
         document.addEventListener("keydown", function (event) {
-            if (event.key === "Escape" && !modal.hidden) {
+            if (event.key === "Escape" && window.StageUpModalFocus.isTop(modal)) {
                 closeAssistant();
             }
         });
@@ -720,7 +638,54 @@
         });
     }
 
+    function setupAccountNavigation() {
+        const sidebar = document.querySelector(".app-sidebar");
+        const toggle = document.querySelector("[data-sidebar-toggle]");
+        const navigation = document.querySelector("[data-sidebar-navigation]");
+        if (sidebar && toggle && navigation) {
+            sidebar.classList.add("is-collapsible");
+            function setOpen(open) {
+                sidebar.classList.toggle("is-open", open);
+                toggle.setAttribute("aria-expanded", String(open));
+                toggle.textContent = open ? "Ocultar menú" : "Mostrar menú";
+            }
+            toggle.addEventListener("click", function () { setOpen(toggle.getAttribute("aria-expanded") !== "true"); });
+            sidebar.addEventListener("keydown", function (event) {
+                if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+                    setOpen(false);
+                    toggle.focus();
+                }
+            });
+        }
+
+        function file(url) { return new URL(url, window.location.href).pathname.split("/").pop().toLowerCase(); }
+        const current = file(window.location.href);
+        const parents = {
+            "solicitudesrecibidas.aspx": "misespacios.aspx", "disponibilidadespacio.aspx": "misespacios.aspx",
+            "pagar.aspx": "misreservas.aspx", "detallereserva.aspx": "misreservas.aspx", "detallepago.aspx": "misreservas.aspx",
+            "detalleespacio.aspx": "resultadosbusqueda.aspx", "compararespacios.aspx": "resultadosbusqueda.aspx",
+            "compararservicios.aspx": "resultadosbusqueda.aspx"
+        };
+        // The server already resolves the participant's role in the return link.
+        if (current === "detallereserva.aspx" || current === "detallepago.aspx") {
+            const back = document.querySelector("a[id$='lnkVolverListado'],a[id$='lnkVolver']");
+            if (back) {
+                const target = file(back.href);
+                parents[current] = parents[target] || target;
+            }
+        }
+        document.querySelectorAll(".sidebar-navigation a,.primary-navigation a,.user-profile-link").forEach(function (link) {
+            const target = file(link.href);
+            const exact = target === current;
+            if (exact || target === parents[current]) {
+                link.classList.add("is-active");
+                link.setAttribute("aria-current", exact ? "page" : "location");
+            }
+        });
+    }
+
     setupNavigation();
+    setupAccountNavigation();
     setupFilters();
     setupResultsSearchState();
     setupSearchRedirects();

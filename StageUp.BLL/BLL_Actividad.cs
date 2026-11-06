@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -62,6 +62,10 @@ namespace StageUp.BLL
 
         public ResultadoOperacion<int> Guardar(Actividad actividad, int idUsuarioGestor, List<int> idsParticipantes)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
+                {
             return EjecutarProtegido(() =>
             {
                 if (actividad == null)
@@ -124,6 +128,13 @@ namespace StageUp.BLL
                 }
 
 
+                EspacioArtistico espacioAgenda = _mppEspacio.ObtenerPorId(new EspacioArtistico { IdEspacioArtistico = actividad.IdEspacioArtistico });
+                List<FranjaEspacio> franjasActividad = GenerarFranjas(actividad, DateTime.Now.Date);
+                if ((espacioAgenda.Ficha.Disponibilidad ?? new List<FranjaEspacio>()).Exists(b =>
+                    BLL_DisponibilidadEspacio.EsBloqueoManual(b) && !BLL_DisponibilidadEspacio.YaPaso(b) &&
+                    franjasActividad.Exists(f => f.MinutoDesde < b.MinutoHasta && b.MinutoDesde < f.MinutoHasta && BLL_DisponibilidadEspacio.CompartenDias(f, b))))
+                    return ResultadoOperacion<int>.Error("El horario está ocupado por un bloqueo manual. Cambiá el horario o resolvé ese bloqueo.", "A5");
+
                 Actividad superpuesta = BuscarActividadSuperpuesta(actividad);
                 if (superpuesta != null)
                 {
@@ -182,6 +193,13 @@ namespace StageUp.BLL
                     ? "La actividad interna fue guardada correctamente. Su horario ya bloquea el espacio para reservas externas."
                     : "La actividad interna fue actualizada correctamente.");
             });
+
+                }, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion<int>.Error(ex.Message);
+            }
         }
 
         private int ModificarYDevolverId(Actividad actividad)
@@ -212,6 +230,10 @@ namespace StageUp.BLL
 
         public ResultadoOperacion DarDeBaja(int idActividad, int idUsuarioGestor)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
+                {
             return EjecutarProtegido(() =>
             {
                 Actividad actividad = _mppActividad.ObtenerPorId(new Actividad { IdActividad = idActividad });
@@ -247,6 +269,13 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Ok(
                     "La actividad interna fue dada de baja correctamente. Dejó de bloquear el horario del espacio y se conserva su historial.");
             });
+
+                }, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion.Error(ex.Message);
+            }
         }
 
 

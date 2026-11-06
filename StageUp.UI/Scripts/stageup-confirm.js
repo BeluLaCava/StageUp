@@ -8,6 +8,7 @@
     var cancelButton;
     var lastFocused;
     var pendingResolve;
+    var closing = false;
 
     function translate(text) {
         if (window.StageUpI18n && typeof window.StageUpI18n.traducir === "function") {
@@ -58,31 +59,28 @@
         });
 
         document.addEventListener("keydown", function (event) {
-            if (dialog && !dialog.hidden && event.key === "Escape") {
+            if (dialog && !dialog.hidden && event.key === "Escape" && window.StageUpModalFocus.isTop(dialog)) {
                 close(false);
             }
         });
     }
 
     function close(result) {
-        if (!dialog || dialog.hidden) {
+        if (!dialog || dialog.hidden || closing) {
             return;
         }
 
+        closing = true;
         dialog.classList.remove("is-open");
-        document.body.classList.remove("overlay-open");
 
+        var resolve = pendingResolve;
+        pendingResolve = null;
         window.setTimeout(function () {
             dialog.hidden = true;
-            if (lastFocused && typeof lastFocused.focus === "function") {
-                lastFocused.focus();
-            }
+            window.StageUpModalFocus.deactivate(dialog);
+            closing = false;
+            if (resolve) resolve(result);
         }, 180);
-
-        if (pendingResolve) {
-            pendingResolve(result);
-            pendingResolve = null;
-        }
     }
 
     function show(options) {
@@ -96,6 +94,7 @@
         cancelButton.textContent = translate(config.cancelText || "Cancelar");
 
         dialog.hidden = false;
+        window.StageUpModalFocus.activate(dialog, lastFocused);
         window.requestAnimationFrame(function () {
             dialog.classList.add("is-open");
             confirmButton.focus();

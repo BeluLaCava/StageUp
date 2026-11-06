@@ -1,3 +1,4 @@
+using StageUp.Seguridad;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,15 +30,6 @@ namespace StageUp.BLL
 
         public const int LongitudMaximaNombre = 120;
         public const int LongitudMaximaNotas = 800;
-
-        private static readonly Regex FormatoCorreo =
-            new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled);
-
-        private static readonly Regex FormatoTelefono =
-            new Regex(@"^\+?[0-9][0-9 \-()]{5,28}$", RegexOptions.Compiled);
-
-
-
 
         public ResultadoOperacion<int> Guardar(Participante participante, int idUsuarioGestor)
         {
@@ -284,12 +276,12 @@ namespace StageUp.BLL
                     esNuevo ? "A4" : "A12");
             }
 
-            if (participante.Correo != null && (participante.Correo.Length > 254 || !FormatoCorreo.IsMatch(participante.Correo)))
+            if (participante.Correo != null && (participante.Correo.Length > 254 || !ValidacionContacto.EsCorreoValido(participante.Correo)))
             {
                 return ResultadoOperacion.Error("El correo electrónico no tiene un formato válido.", codigoDatos);
             }
 
-            if (participante.Telefono != null && !FormatoTelefono.IsMatch(participante.Telefono))
+            if (participante.Telefono != null && !ValidacionContacto.EsTelefonoValido(participante.Telefono))
             {
                 return ResultadoOperacion.Error("El teléfono no tiene un formato válido: usá solo números, espacios, guiones o el signo +.", codigoDatos);
             }

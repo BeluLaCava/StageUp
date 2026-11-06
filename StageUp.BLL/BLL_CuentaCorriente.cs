@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -49,7 +49,7 @@ namespace StageUp.BLL
         private readonly MPP_UsuarioExterno _mppUsuario = new MPP_UsuarioExterno();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly BLL_Notificacion _notificacion = new BLL_Notificacion();
-        private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
+        private readonly ServicioCorreo _servicioCorreo = BLL_CorreoAdministrativo.CrearServicio();
 
         public static string EtiquetaMovimiento(string tipoMovimiento)
         {
@@ -353,7 +353,7 @@ namespace StageUp.BLL
                 if (usuario != null && !string.IsNullOrWhiteSpace(usuario.CorreoElectronico))
                 {
                     _servicioCorreo.Administrativo = new BLL_ParametroPlataforma().ObtenerConfiguracionCorreoAdministrativo();
-                    _servicioCorreo.EnviarComprobanteEmitido(usuario.CorreoElectronico, usuario.Nombre, comprobante);
+                    Conexion.Instance.DespuesDeConfirmar(() => _servicioCorreo.EnviarComprobanteEmitido(usuario.CorreoElectronico, usuario.Nombre, comprobante));
                 }
             }
             catch (Exception)

@@ -23,7 +23,7 @@
 
                     <div class="groups-tree-wrapper">
                         <asp:TreeView ID="tvGrupos" runat="server" ShowLines="true" CssClass="permission-tree" OnSelectedNodeChanged="tvGrupos_SelectedNodeChanged">
-                            <NodeStyle Font-Size="0.9rem" ForeColor="#3E2925" NodeSpacing="4px" VerticalPadding="4px" />
+                            <NodeStyle Font-Size="14px" ForeColor="#3E2925" NodeSpacing="4px" VerticalPadding="4px" />
                             <ParentNodeStyle Font-Bold="true" ForeColor="#4D0B17" />
                             <SelectedNodeStyle BackColor="#FCF7F3" Font-Bold="true" ForeColor="#6D1021" />
                             <HoverNodeStyle ForeColor="#6D1021" />

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using StageUp.BE.Entidades;
@@ -17,7 +17,7 @@ namespace StageUp.BLL
         private readonly MPP_Calificacion _mppCalificacion = new MPP_Calificacion();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly BLL_Notificacion _notificacion = new BLL_Notificacion();
-        private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
+        private readonly ServicioCorreo _servicioCorreo = BLL_CorreoAdministrativo.CrearServicio();
         private readonly BLL_ParametroPlataforma _bllParametros = new BLL_ParametroPlataforma();
 
         private const int LongitudMaximaComentario = 1000;
@@ -65,6 +65,10 @@ namespace StageUp.BLL
             int? duracionMinutos,
             string comentario)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
+                {
             return EjecutarProtegido(() =>
             {
                 if (fechaSolicitada.Date < DateTime.Now.Date)
@@ -164,6 +168,13 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Ok(idReserva,
                     "Enviamos tu solicitud de reserva. El gestor del espacio la va a revisar y te vamos a avisar cuando la resuelva.");
             });
+
+                }, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion<int>.Error(ex.Message);
+            }
         }
 
         private static ResultadoOperacion ValidarHorarioSolicitado(
@@ -653,6 +664,10 @@ namespace StageUp.BLL
 
         public ResultadoOperacion Aceptar(int idReserva, int idUsuarioGestorSolicitante, string comentarioResolucion)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
+                {
             return EjecutarProtegido(() =>
             {
                 if (!string.IsNullOrEmpty(comentarioResolucion) && comentarioResolucion.Trim().Length > LongitudMaximaComentario)
@@ -689,6 +704,15 @@ namespace StageUp.BLL
                     reserva.FechaLimitePago = inicioReserva < limite ? inicioReserva : limite;
                 }
 
+                EspacioArtistico espacioActual = _mppEspacio.ObtenerPorId(new EspacioArtistico { IdEspacioArtistico = reserva.IdEspacioArtistico });
+                if (espacioActual == null || !espacioActual.Activo)
+                    return ResultadoOperacion.Error("El espacio ya no está disponible para aceptar reservas.");
+                if (reserva.MinutoDesde.HasValue && reserva.MinutoHasta.HasValue)
+                {
+                    ResultadoOperacion horarioActual = ValidarHorarioSolicitado(espacioActual, reserva.FechaSolicitada,
+                        reserva.MinutoDesde.Value, reserva.MinutoHasta.Value - reserva.MinutoDesde.Value);
+                    if (!horarioActual.Exitoso) return horarioActual;
+                }
                 bool aceptada = _mppReserva.AceptarSiDisponible(reserva);
                 if (!aceptada)
                 {
@@ -728,6 +752,13 @@ namespace StageUp.BLL
                     ? "Aceptaste la solicitud. El solicitante tiene hasta el " + textoLimite + " para pagarla; te avisamos cuando lo haga."
                     : "Aceptaste la solicitud. La reserva quedó confirmada.");
             });
+
+                }, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion.Error(ex.Message);
+            }
         }
 
         public ResultadoOperacion Rechazar(int idReserva, int idUsuarioGestorSolicitante, string comentarioResolucion)
@@ -906,6 +937,10 @@ namespace StageUp.BLL
 
         public ResultadoOperacion Cancelar(int idReserva, int idUsuarioExternoSolicitante)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
+                {
             return EjecutarProtegido(() =>
             {
                 ProcesarPagosVencidos();
@@ -985,13 +1020,9 @@ namespace StageUp.BLL
 
 
 
-                try
-                {
-                    new BLL_TransaccionEconomica().RegistrarPorCancelacion(idReserva, resultado.IdNotaDebito);
-                }
-                catch (Exception)
-                {
-                }
+                ResultadoOperacion<int> transaccionCancelacion = new BLL_TransaccionEconomica().RegistrarPorCancelacion(idReserva, resultado.IdNotaDebito);
+                if (!transaccionCancelacion.Exitoso)
+                    return ResultadoOperacion.Error("No se pudo registrar la cancelación completa. No se guardaron cambios; intentá nuevamente.");
 
                 if (resultado.IdNotaDebito.HasValue)
                 {
@@ -1029,6 +1060,13 @@ namespace StageUp.BLL
 
                 return ResultadoOperacion.Ok(mensaje);
             });
+
+                }, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion.Error(ex.Message);
+            }
         }
 
 
@@ -1194,7 +1232,7 @@ namespace StageUp.BLL
 
             try
             {
-                envio(destinatario);
+                Conexion.Instance.DespuesDeConfirmar(() => envio(destinatario));
             }
             catch (Exception)
             {

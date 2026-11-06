@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Web;
 using StageUp.BE.Entidades;
@@ -80,6 +80,7 @@ namespace StageUp.Seguridad
 
         public static void CerrarSesion()
         {
+            if (HttpContext.Current == null || HttpContext.Current.Session == null) return;
             HttpContext.Current.Session.Remove(ClaveIdUsuario);
             HttpContext.Current.Session.Remove(ClaveNombreCompleto);
             HttpContext.Current.Session.Remove(ClavePerfil);
@@ -192,6 +193,7 @@ namespace StageUp.Seguridad
 
         public static void CerrarSesionInterna()
         {
+            if (HttpContext.Current == null || HttpContext.Current.Session == null) return;
             HttpContext.Current.Session.Remove(ClaveIdUsuarioInterno);
             HttpContext.Current.Session.Remove(ClaveNombreCompletoInterno);
             HttpContext.Current.Session.Remove(ClaveIdRolInterno);

@@ -5,7 +5,7 @@
         <div class="static-page-header internal-page-hero internal-dashboard-hero">
             <span class="section-label">Panel administrativo</span>
             <h1>Bienvenido/a, <asp:Literal ID="litNombreAdministrador" runat="server" /></h1>
-            <p>Desde acá podés gestionar las solicitudes de habilitación como gestor y consultar la bitácora del sistema.</p>
+            <p>Desde acá podés acceder a las herramientas de administración de StageUp habilitadas para tu rol. Elegí una sección para gestionar o consultar su información.</p>
         </div>
 
         <div class="static-page-body internal-dashboard-body">

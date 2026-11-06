@@ -106,6 +106,8 @@
       <DependentUpon>MiPerfil.aspx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Interno\HistorialCorreos.aspx.designer.cs" />
+    <Compile Include="Interno\HistorialCorreos.aspx.cs" />
     <Compile Include="Registrarse.aspx.cs">
       <DependentUpon>Registrarse.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -507,6 +509,8 @@
     <Compile Include="ErrorGeneral.aspx.designer.cs">
       <DependentUpon>ErrorGeneral.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Infraestructura\ProteccionFormularios.cs" />
+    <Compile Include="Infraestructura\RespuestaErrorSegura.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -556,6 +560,7 @@
     <Compile Include="Interno\ConfigurarIdioma.aspx.designer.cs">
       <DependentUpon>ConfigurarIdioma.aspx</DependentUpon>
     </Compile>
+    <Content Include="Interno\HistorialCorreos.aspx" />
     <Content Include="Ayuda\CentroAyuda.aspx" />
     <Content Include="Content\Css\site.css" />
     <Content Include="Content\Uploads\Novedades\Web.config" />
@@ -635,6 +640,7 @@
     <Content Include="Soporte.aspx" />
     <Content Include="Interno\GestionIdiomas.aspx" />
     <Content Include="Interno\ConfigurarIdioma.aspx" />
+    <Content Include="Scripts\modal-focus.js" />
     <Content Include="Scripts\site.js" />
     <Content Include="Scripts\stageup-confirm.js" />
     <Content Include="Scripts\espacios-ficha.js" />

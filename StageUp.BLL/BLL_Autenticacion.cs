@@ -1,4 +1,4 @@
-using StageUp.BE.Entidades;
+﻿using StageUp.BE.Entidades;
 using StageUp.Servicios;
 
 namespace StageUp.BLL
@@ -36,6 +36,8 @@ namespace StageUp.BLL
                 return ResultadoInicioSesion.Error(ObtenerMensajeCaptcha(captcha.Estado));
             }
 
+            return ControlIntentosAcceso.Ejecutar(correoElectronico, () =>
+            {
             ResultadoOperacion<UsuarioExterno> resultadoExterno =
                 _bllUsuarioExterno.IniciarSesionSinCaptcha(correoElectronico, password);
             if (resultadoExterno.Exitoso)
@@ -51,6 +53,7 @@ namespace StageUp.BLL
             }
 
             return ResultadoInicioSesion.Error(ElegirMensajeDeError(resultadoExterno.Mensaje, resultadoInterno.Mensaje));
+            }, mensaje => ResultadoInicioSesion.Error(mensaje));
         }
 
 

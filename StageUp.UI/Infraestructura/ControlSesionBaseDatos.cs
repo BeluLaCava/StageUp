@@ -59,15 +59,9 @@ namespace StageUp.UI.Infraestructura
             bool marcaConfiable;
             string marcaActual = bll.ObtenerMarcaActual(out marcaConfiable);
             string marcaSesion = GestorDeSesion.ObtenerMarcaBaseDatos();
-            if (marcaConfiable && marcaActual == marcaSesion)
-            {
-                return ResultadoRevalidacionSesion.Valida;
-            }
-
-
-
-
-            bool huboRestauracion = marcaConfiable && marcaSesion != null;
+            // La marca detecta restauraciones, no cambios de permisos ni bajas.
+            // Revalidar la identidad antes de ejecutar cualquier operación de la sesión.
+            bool huboRestauracion = marcaConfiable && marcaSesion != null && marcaActual != marcaSesion;
 
             UsuarioExterno usuarioExterno = null;
             if (idUsuarioExterno.HasValue)

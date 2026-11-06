@@ -1,6 +1,5 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using StageUp.BE.Entidades;
 using StageUp.BE.Enumerados;
 using StageUp.DAL;
@@ -12,11 +11,6 @@ namespace StageUp.BLL
 {
     public class BLL_UsuarioExterno
     {
-        private static readonly Regex PatronCorreo = new Regex(
-            @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled);
-
-        private static readonly Regex PatronTelefono = new Regex(
-            @"^[0-9+()\-\s]{6,30}$", RegexOptions.Compiled);
 
         private const string MensajeCuentaNoActiva =
             "Tu cuenta no está activa, por eso no podés modificarla. Cerrá sesión y volvé a ingresar.";
@@ -50,7 +44,12 @@ namespace StageUp.BLL
                         "Completá todos los campos obligatorios para crear la cuenta.", "A1");
                 }
 
-                if (!PatronCorreo.IsMatch(correoElectronico.Trim()))
+                if (nombre.Trim().Length > ValidacionContacto.MaximoNombre || apellido.Trim().Length > ValidacionContacto.MaximoNombre)
+                {
+                    return ResultadoOperacion<int>.Error("El nombre y el apellido no pueden superar los 200 caracteres.", "A1");
+                }
+
+                if (!ValidacionContacto.EsCorreoValido(correoElectronico.Trim()))
                 {
                     return ResultadoOperacion<int>.Error(
                         "El correo electrónico ingresado no tiene un formato válido.", "A2");
@@ -77,7 +76,7 @@ namespace StageUp.BLL
                 }
 
                 telefono = string.IsNullOrWhiteSpace(telefono) ? null : telefono.Trim();
-                if (telefono != null && !PatronTelefono.IsMatch(telefono))
+                if (telefono != null && !ValidacionContacto.EsTelefonoValido(telefono))
                 {
                     return ResultadoOperacion<int>.Error(
                         "El teléfono ingresado no es válido. Usá solo números, espacios y los símbolos + - ( ).", "A6");
@@ -208,7 +207,9 @@ namespace StageUp.BLL
                     return ResultadoOperacion<UsuarioExterno>.Error(ObtenerMensajeCaptcha(captcha.Estado));
                 }
 
-                return IniciarSesionSinCaptchaInterno(correoElectronico, password);
+                return ControlIntentosAcceso.Ejecutar(correoElectronico,
+                    () => IniciarSesionSinCaptchaInterno(correoElectronico, password),
+                    mensaje => ResultadoOperacion<UsuarioExterno>.Error(mensaje));
             });
         }
 
@@ -258,7 +259,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion<UsuarioExterno>.Error("Esta cuenta no se encuentra habilitada.");
             }
 
-            GestorDeSesion.IniciarSesion(usuario);
+            Conexion.Instance.DespuesDeConfirmar(() => GestorDeSesion.IniciarSesion(usuario));
 
             _bitacora.Registrar(
                 usuario.IdUsuarioExterno, "LOGIN", "UsuarioExterno", usuario.IdUsuarioExterno,
@@ -277,7 +278,7 @@ namespace StageUp.BLL
                         "Ingresá el correo electrónico asociado a tu cuenta.", "A1");
                 }
 
-                if (!PatronCorreo.IsMatch(correoElectronico.Trim()))
+                if (!ValidacionContacto.EsCorreoValido(correoElectronico.Trim()))
                 {
                     return ResultadoOperacion.Error(
                         "El correo electrónico ingresado no tiene un formato válido.", "A2");
@@ -725,17 +726,17 @@ namespace StageUp.BLL
                 fotoPerfilRuta = string.IsNullOrWhiteSpace(fotoPerfilRuta) ? null : fotoPerfilRuta.Trim();
                 telefono = string.IsNullOrWhiteSpace(telefono) ? null : telefono.Trim();
 
-                if (nombre.Length > 100 || apellido.Length > 100)
+                if (nombre.Length > ValidacionContacto.MaximoNombre || apellido.Length > ValidacionContacto.MaximoNombre)
                 {
-                    return ResultadoOperacion.Error("El nombre y el apellido no pueden superar los 100 caracteres.");
+                    return ResultadoOperacion.Error("El nombre y el apellido no pueden superar los 200 caracteres.");
                 }
 
-                if (correoElectronico.Length > 300 || !PatronCorreo.IsMatch(correoElectronico))
+                if (correoElectronico.Length > 300 || !ValidacionContacto.EsCorreoValido(correoElectronico))
                 {
                     return ResultadoOperacion.Error("El correo electrónico ingresado no tiene un formato válido.");
                 }
 
-                if (telefono != null && !PatronTelefono.IsMatch(telefono))
+                if (telefono != null && !ValidacionContacto.EsTelefonoValido(telefono))
                 {
                     return ResultadoOperacion.Error("El teléfono ingresado no es válido. Usá solo números, espacios y los símbolos + - ( ).");
                 }

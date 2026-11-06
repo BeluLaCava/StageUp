@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
@@ -20,6 +20,7 @@ namespace StageUp.Servicios
 
 
         public ConfiguracionCorreoAdministrativo Administrativo { get; set; }
+        public IHistorialCorreoAdministrativo HistorialAdministrativo { get; set; }
 
         public bool EnviarCodigoActivacion(string destinatario, string nombreDestinatario, string codigo)
         {
@@ -419,7 +420,7 @@ namespace StageUp.Servicios
                 Nota = "Si cancelás la reserva, lo que pagaste vuelve como saldo a favor, descontando el cargo por cancelación que corresponda según la anticipación."
             });
 
-            return Enviar(destinatario, "Comprobante de pago: " + reserva.NombreEspacio, cuerpo, null, Administrativo);
+            return EnviarRegistrado(destinatario, "Comprobante de pago: " + reserva.NombreEspacio, cuerpo, reserva.IdReserva, pago.IdPago, null, Administrativo);
         }
 
         public bool EnviarPagoRecibidoGestor(string destinatario, string nombreDestinatario, Reserva reserva, decimal importeNeto)
@@ -500,7 +501,7 @@ namespace StageUp.Servicios
                 Detalles = detalles
             });
 
-            return Enviar(destinatario, nombreTipo + " " + comprobante.Numero + " | StageUp", cuerpo, null, Administrativo);
+            return EnviarRegistrado(destinatario, nombreTipo + " " + comprobante.Numero + " | StageUp", cuerpo, comprobante.IdReserva, null, comprobante.IdComprobante, Administrativo);
         }
 
         private bool AdministrativosActivos()
@@ -513,7 +514,7 @@ namespace StageUp.Servicios
             return reserva.EstadoPago == "Pendiente" && reserva.FechaLimitePago.HasValue;
         }
 
-        private static bool EnviarAvisoReserva(
+        private bool EnviarAvisoReserva(
             string destinatario, string nombreDestinatario, Reserva reserva,
             string etiqueta, string titulo, string[] parrafos, string nota, string asunto,
             ConfiguracionCorreoAdministrativo administrativo = null)
@@ -533,7 +534,35 @@ namespace StageUp.Servicios
                 Nota = nota
             });
 
-            return Enviar(destinatario, asunto, cuerpo, null, administrativo);
+            return EnviarRegistrado(destinatario, asunto, cuerpo, reserva.IdReserva, null, null, administrativo);
+        }
+
+        private bool EnviarRegistrado(string destinatario, string asunto, string cuerpo, int? reserva, int? pago,
+            int? comprobante, ConfiguracionCorreoAdministrativo configuracion)
+        {
+            int id = 0;
+            try
+            {
+                if (HistorialAdministrativo != null)
+                    id = HistorialAdministrativo.Iniciar(new CorreoAdministrativo {
+                        Destinatario = destinatario, Asunto = asunto, IdReserva = reserva, IdPago = pago, IdComprobante = comprobante });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError("No se pudo registrar el intento de correo: " + ex.GetType().Name);
+                return false; // No untraceable send; the business operation remains confirmed.
+            }
+            bool enviado = Enviar(destinatario, asunto, cuerpo, null, configuracion);
+            try
+            {
+                if (id > 0) HistorialAdministrativo.Finalizar(id, enviado);
+            }
+            catch (Exception ex)
+            {
+                // Keep EnProceso (uncertain outcome) rather than misreporting or sending a duplicate.
+                System.Diagnostics.Trace.TraceError("No se pudo actualizar el resultado del correo " + id + ": " + ex.GetType().Name);
+            }
+            return enviado;
         }
 
         private static List<KeyValuePair<string, string>> ConstruirDetallesReserva(Reserva reserva)

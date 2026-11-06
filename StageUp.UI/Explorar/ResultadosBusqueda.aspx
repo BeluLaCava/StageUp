@@ -87,15 +87,15 @@
                     <span class="filters-hint">Elegí uno o varios criterios</span>
                 </div>
                 <div class="quick-filters" aria-label="Filtros rápidos">
-                    <button class="filter-chip explore-filter-chip" type="button" aria-pressed="false" data-filter-chip data-filter-label="Tipo de espacio">Tipo de espacio</button>
-                    <button class="filter-chip explore-filter-chip" type="button" aria-pressed="false" data-filter-chip data-filter-label="Ubicación">Ubicación</button>
-                    <button class="filter-chip explore-filter-chip" type="button" aria-pressed="false" data-filter-chip data-filter-label="Disponibilidad">Disponibilidad</button>
-                    <button class="filter-chip explore-filter-chip" type="button" aria-pressed="false" data-filter-chip data-filter-label="Capacidad">Capacidad</button>
-                    <button class="filter-chip explore-filter-chip" type="button" aria-pressed="false" data-filter-chip data-filter-label="Precio">Precio</button>
-                    <button class="more-filters-button explore-more-filters" type="button" data-filter-open><span class="sliders-icon" aria-hidden="true"></span>Más filtros</button>
+                    <button class="filter-chip explore-filter-chip" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="space-filter-panel" data-filter-target="filter-type" data-filter-params="tipo">Tipo de espacio</button>
+                    <button class="filter-chip explore-filter-chip" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="space-filter-panel" data-filter-target="filter-location" data-filter-params="ubicacion,provincia,ciudad,zona">Ubicación</button>
+                    <button class="filter-chip explore-filter-chip" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="space-filter-panel" data-filter-target="filter-availability" data-filter-params="fecha,horaDesde,horaHasta">Disponibilidad</button>
+                    <button class="filter-chip explore-filter-chip" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="space-filter-panel" data-filter-target="filter-capacity" data-filter-params="capacidadMin">Capacidad</button>
+                    <button class="filter-chip explore-filter-chip" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="space-filter-panel" data-filter-target="filter-price" data-filter-params="precioMin,precioMax">Precio</button>
+                    <button class="more-filters-button explore-more-filters" type="button" data-filter-open aria-haspopup="dialog" aria-expanded="false" aria-controls="space-filter-panel"><span class="sliders-icon" aria-hidden="true"></span>Más filtros</button>
                 </div>
                 <div class="active-filters" data-active-filters hidden>
-                    <div class="active-filters-heading"><span>Filtros seleccionados</span><button class="text-button" type="button" data-clear-filters>Limpiar todos</button></div>
+                    <div class="active-filters-heading"><span>Filtros aplicados</span><button class="text-button" type="button" data-clear-filters>Limpiar todos</button></div>
                     <div class="active-filter-list" data-active-filter-list aria-live="polite"></div>
                 </div>
             </section>
@@ -236,7 +236,7 @@
     </script>
 
     <div class="filter-backdrop" data-filter-backdrop hidden></div>
-    <aside class="filter-drawer" data-filter-panel hidden aria-labelledby="advanced-filters-title" aria-modal="true" role="dialog">
+    <aside id="space-filter-panel" class="filter-drawer" data-filter-panel hidden aria-labelledby="advanced-filters-title" aria-modal="true" role="dialog">
         <div class="filter-drawer-header"><div><span class="eyebrow">Combiná tus necesidades</span><h2 id="advanced-filters-title">Más filtros</h2></div><button class="icon-button" type="button" aria-label="Cerrar filtros" data-filter-close>×</button></div>
         <div class="filter-drawer-body">
             <section class="filter-group" aria-labelledby="general-filters-title">
@@ -271,6 +271,6 @@
                 <div class="filter-combination-note"><strong>Una búsqueda, varios criterios.</strong><span>Por ejemplo: espejos + tipo de piso + sonido, o escenario + iluminación + capacidad.</span></div>
             </section>
         </div>
-        <div class="filter-drawer-footer"><button class="text-button" type="button" data-clear-filters>Limpiar</button><button class="button button-primary" type="button" data-apply-filters>Aplicar filtros visuales</button></div>
+        <div class="filter-drawer-footer"><p class="filter-apply-help">Los cambios se aplican al presionar «Aplicar filtros».</p><button class="text-button" type="button" data-reset-filter-fields>Restablecer campos</button><button class="button button-primary" type="button" data-apply-filters>Aplicar filtros</button></div>
     </aside>
 </asp:Content>

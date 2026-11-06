@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Configuration;
 using System.Data;
@@ -28,7 +28,7 @@ namespace StageUp.DAL
         }
     }
 
-    public sealed class Conexion
+    public sealed partial class Conexion
     {
         private static Conexion _instance;
         private static readonly object _lock = new object();
@@ -63,6 +63,24 @@ namespace StageUp.DAL
 
         public DataTable Leer(string nombreSp, Hashtable parametros = null)
         {
+            if (_conexionAtomica != null)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand(nombreSp, _conexionAtomica, _transaccionAtomica))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        AgregarParametros(cmd, parametros);
+                        DataTable tabla = new DataTable();
+                        using (SqlDataAdapter adapter = new SqlDataAdapter(cmd)) adapter.Fill(tabla);
+                        return tabla;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new ErrorAccesoDatosException(nombreSp, "No se pudo completar la operación. Los cambios no se guardaron; intentá nuevamente.", ex);
+                }
+            }
             try
             {
                 DataTable tabla = new DataTable();
@@ -95,6 +113,22 @@ namespace StageUp.DAL
 
         public object LeerEscalar(string nombreSp, Hashtable parametros = null)
         {
+            if (_conexionAtomica != null)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand(nombreSp, _conexionAtomica, _transaccionAtomica))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        AgregarParametros(cmd, parametros);
+                        return cmd.ExecuteScalar();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new ErrorAccesoDatosException(nombreSp, "No se pudo completar la operación. Los cambios no se guardaron; intentá nuevamente.", ex);
+                }
+            }
             try
             {
                 using (SqlConnection conexion = ObtenerConexion())
@@ -121,6 +155,23 @@ namespace StageUp.DAL
 
         public bool Guardar(string nombreSp, Hashtable parametros = null)
         {
+            if (_conexionAtomica != null)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand(nombreSp, _conexionAtomica, _transaccionAtomica))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        AgregarParametros(cmd, parametros);
+                        cmd.ExecuteNonQuery();
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new ErrorAccesoDatosException(nombreSp, "No se pudo completar la operación. Los cambios no se guardaron; intentá nuevamente.", ex);
+                }
+            }
             try
             {
                 using (SqlConnection conexion = ObtenerConexion())

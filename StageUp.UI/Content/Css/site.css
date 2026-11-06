@@ -12439,3 +12439,57 @@ table tbody tr:hover {
         transition: none;
     }
 }
+
+/* Testing Beta: orientation and navigation without covering the page. */
+.sidebar-toggle { display: none; }
+.sidebar-link.is-active {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: inset 3px 0 var(--color-nude-light);
+    font-weight: 800;
+}
+.primary-navigation .nav-link.is-active {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: .4em;
+    font-weight: 800;
+}
+.user-profile-link.is-active { border-color: var(--color-primary); }
+.explore-page .explore-filter-chip.has-value {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+}
+.filter-drawer-footer { flex-wrap: wrap; }
+.filter-apply-help { flex-basis: 100%; margin: 0; font-size: .85rem; color: var(--color-text-muted); }
+@media (max-width: 62rem) {
+    .app-shell { flex-direction: column; }
+    .app-sidebar {
+        position: static;
+        width: 100%;
+        padding: .75rem 1rem;
+        box-shadow: none;
+    }
+    .app-sidebar .sidebar-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin: 0;
+    }
+    .app-sidebar.is-collapsible .sidebar-toggle {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.5rem;
+        padding: .4rem .7rem;
+        border: 1px solid currentColor;
+        border-radius: var(--radius-small);
+        background: transparent;
+        color: var(--color-nude-light);
+        font: inherit;
+        cursor: pointer;
+    }
+    .app-sidebar.is-collapsible:not(.is-open) .sidebar-navigation { display: none; }
+    .app-sidebar .sidebar-navigation { padding-top: .5rem; }
+    .app-sidebar .sidebar-toggle:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+}

@@ -1,7 +1,7 @@
+using StageUp.Seguridad;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 using StageUp.MPP;
@@ -23,8 +23,6 @@ namespace StageUp.BLL
         public const string PermisoGestionar = "GESTIONAR_CONTACTOS_COMERCIALES";
         public const string EntidadBitacora = "ContactoComercial";
         public const string CodigoDuplicado = "A13";
-
-        private static readonly Regex PatronCorreo = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
 
         public static readonly Dictionary<string, string> Estados = new Dictionary<string, string>
         {
@@ -126,7 +124,7 @@ namespace StageUp.BLL
         public ResultadoOperacion<CuentaParaVincular> BuscarCuenta(string correo)
         {
             string normalizado = (correo ?? string.Empty).Trim().ToLowerInvariant();
-            if (!PatronCorreo.IsMatch(normalizado) || normalizado.Length > 254)
+            if (!ValidacionContacto.EsCorreoValido(normalizado) || normalizado.Length > 254)
             {
                 return ResultadoOperacion<CuentaParaVincular>.Error("Ingresá el correo con el que la persona se registró en StageUp.");
             }
@@ -438,7 +436,7 @@ namespace StageUp.BLL
 
         private static string ValidarDatosDeContacto(ContactoComercial contacto)
         {
-            bool correoValido = contacto.CorreoElectronico != null && contacto.CorreoElectronico.Length <= 254 && PatronCorreo.IsMatch(contacto.CorreoElectronico);
+            bool correoValido = contacto.CorreoElectronico != null && contacto.CorreoElectronico.Length <= 254 && ValidacionContacto.EsCorreoValido(contacto.CorreoElectronico);
             bool telefonoValido = contacto.TelefonoNormalizado != null && contacto.TelefonoNormalizado.Length >= 8 && contacto.TelefonoNormalizado.Length <= 15 &&
                 contacto.Telefono.Length <= 40 && contacto.Telefono.All(c => char.IsDigit(c) || " +-()".IndexOf(c) >= 0);
 

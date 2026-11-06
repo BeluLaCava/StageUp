@@ -44,6 +44,7 @@
     <Compile Include="ProtectorDeClavesAsimetricas.cs" />
     <Compile Include="GeneradorDeCodigos.cs" />
     <Compile Include="GestorDeSesion.cs" />
+    <Compile Include="ValidacionContacto.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StageUp.BE\StageUp.BE.csproj">

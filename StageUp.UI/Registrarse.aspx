@@ -50,7 +50,7 @@
                     <asp:TextBox ID="txtTelefono" runat="server" TextMode="SingleLine" autocomplete="tel" placeholder="Ej: +54 11 5555-5555" MaxLength="30" />
                     <asp:RegularExpressionValidator ID="revTelefono" runat="server" ControlToValidate="txtTelefono"
                         Display="Dynamic" CssClass="field-error-text" ErrorMessage="El teléfono ingresado no es válido."
-                        ValidationExpression="^[0-9+()\-\s]{6,30}$" ValidationGroup="Registro" />
+                        ValidationExpression="^(?=(?:[^0-9]*[0-9]){6})\+?[0-9() \-]{6,30}$" ValidationGroup="Registro" />
                 </div>
 
 

@@ -6,6 +6,7 @@ using System.Web.SessionState;
 using StageUp.BE.Entidades;
 using StageUp.BLL;
 using StageUp.Seguridad;
+using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Ayuda
 {
@@ -50,6 +51,13 @@ namespace StageUp.UI.Ayuda
                             break;
                         }
 
+                        if (!ProteccionFormularios.EsPeticionValida(context))
+                        {
+                            context.Response.StatusCode = 400;
+                            context.Response.TrySkipIisCustomErrors = true;
+                            respuesta = Error("La sesión del asistente venció. Recargá la página para continuar.", "SESION_VENCIDA");
+                            break;
+                        }
                         ResultadoOperacion<RespuestaAsistente> consulta = asistente.Consultar(
                             context.Request.Form["texto"], GestorDeSesion.ObtenerIdUsuarioActual());
                         respuesta = consulta.Exitoso

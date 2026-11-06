@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><asp:ContentPlaceHolder ID="TitleContent" runat="server">StageUp</asp:ContentPlaceHolder></title>
     <link rel="icon" type="image/png" href="<%= ResolveUrl("~/Content/Images/favicon.png") %>" />
-    <link id="SiteStyles" href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20261018-1" rel="stylesheet" />
+    <link id="SiteStyles" href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20261106-3" rel="stylesheet" />
     <asp:ContentPlaceHolder ID="HeadContent" runat="server" />
 </head>
 <body>
@@ -118,8 +118,8 @@
 
         <div class="app-shell">
             <aside id="AuthenticatedSidebar" runat="server" class="app-sidebar" aria-label="Navegación de usuario autenticado">
-                <div class="sidebar-heading" data-i18n="Nav_MiStageUp">Mi StageUp</div>
-                <nav class="sidebar-navigation">
+                <div class="sidebar-heading"><span data-i18n="Nav_MiStageUp">Mi StageUp</span><button type="button" class="sidebar-toggle" data-sidebar-toggle aria-expanded="false" aria-controls="account-navigation">Mostrar menú</button></div>
+                <nav id="account-navigation" class="sidebar-navigation" data-sidebar-navigation>
                     <a id="MisReservasLink" runat="server" class="sidebar-link" href="~/MisReservas.aspx" data-i18n="Nav_MisReservas">Mis reservas</a>
                     <a id="MiCuentaCorrienteLink" runat="server" class="sidebar-link" href="~/MiCuentaCorriente.aspx">Mi cuenta corriente</a>
                     <a id="MiBilleteraLink" runat="server" class="sidebar-link" href="~/MiBilletera.aspx">Mi billetera</a>
@@ -156,10 +156,11 @@
         </footer>
 
         <asp:HiddenField ID="hdnDiccionarioIdioma" runat="server" ClientIDMode="Static" EnableViewState="false" />
+        <script src="<%= ResolveUrl("~/Scripts/modal-focus.js") %>?v=20261106-1"></script>
         <asp:ContentPlaceHolder ID="PageScripts" runat="server" />
-        <script src="<%= ResolveUrl("~/Scripts/site.js") %>?v=20260930-1"></script>
+        <script src="<%= ResolveUrl("~/Scripts/site.js") %>?v=20261106-3"></script>
         <script src="<%= ResolveUrl("~/Scripts/multidioma.js") %>?v=20260910-2"></script>
-        <script src="<%= ResolveUrl("~/Scripts/stageup-confirm.js") %>?v=20261012-1"></script>
+        <script src="<%= ResolveUrl("~/Scripts/stageup-confirm.js") %>?v=20261106-3"></script>
         <script src="<%= ResolveUrl("~/Scripts/charts-stageup.js") %>?v=20261008-1"></script>
         <script src="<%= ResolveUrl("~/Scripts/ui-motion.js") %>?v=20261008-1"></script>
     </form>

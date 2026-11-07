@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,20 +7,6 @@ GO
 USE StageUp;
 GO
 
--- =============================================================================
--- 06_Reservas.sql
--- ADVERTENCIA: SCRIPT INICIAL DESTRUCTIVO (contiene DROP TABLE).
---
--- Sirve para armar la base desde cero. NO debe ejecutarse a mano sobre una base
--- con datos: borraría estas tablas y todo su contenido: Reserva.
--- El flujo normal de instalación y actualización es Database/EjecutarTodosLosScripts.ps1,
--- que usa dbo._ScriptsEjecutados y nunca vuelve a correr un script ya aplicado.
--- Ver Database/LEEME_Scripts.md.
---
--- Protección: si alguna de esas tablas ya tiene filas, el script se detiene acá
--- con un error y no ejecuta nada más (SET NOEXEC ON). En una base nueva las tablas
--- no existen o están vacías, así que sigue normalmente.
--- =============================================================================
 IF EXISTS
 (
     SELECT 1
@@ -191,6 +177,5 @@ BEGIN
 END
 GO
 
--- Deja la sesión como estaba si la protección de arriba frenó el script.
 SET NOEXEC OFF;
 GO

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
@@ -174,9 +174,6 @@ namespace StageUp.UI.Infraestructura
             int separador = codigoIdioma.IndexOf('-');
             return separador > 0 ? codigoIdioma.Substring(0, separador) : codigoIdioma;
         }
-
-
-
 
         private sealed class ConfiguracionDiccionarioIdioma
         {

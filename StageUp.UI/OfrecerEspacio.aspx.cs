@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Web.UI;
@@ -10,12 +10,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-
-
-
-
-
-
 
     public partial class OfrecerEspacio : Page
     {
@@ -45,8 +39,6 @@ namespace StageUp.UI
                 Cargar();
                 return;
             }
-
-
 
             MostrarFormulario(ultima);
             lnkCancelarFormulario.Visible = true;
@@ -95,7 +87,6 @@ namespace StageUp.UI
         {
             int idUsuario = GestorDeSesion.ObtenerIdUsuarioActual().Value;
             UsuarioExterno usuario = _bllUsuario.ObtenerPerfilPorId(idUsuario);
-
 
             if (usuario != null && usuario.PerfilUsuario == PerfilUsuarioExterno.GestorEspacios.ToString())
             {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Security.Cryptography;
@@ -10,12 +10,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
 
     public class BLL_Billetera
     {
@@ -34,9 +28,9 @@ namespace StageUp.BLL
             {
                 return _mpp.ListarPorUsuario(new TarjetaGuardada { IdUsuarioExterno = idUsuarioExterno });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<TarjetaGuardada>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -116,7 +110,6 @@ namespace StageUp.BLL
                 _bitacora.Registrar(idUsuarioExterno, "ALTA", "TarjetaGuardada", id,
                     "Guardó en su billetera la tarjeta " + tarjeta.Marca + " terminada en " + tarjeta.UltimosDigitos +
                     " (alias \"" + aliasFinal + "\"" + (quedoPreferida ? ", preferida" : string.Empty) + "), cifrada con la clave versión " + clave.Version + ".");
-
 
                 tarjeta.Iv = null;
                 tarjeta.ClaveCifrada = null;
@@ -205,8 +198,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("No se pudo eliminar la tarjeta. Probá de nuevo.");
             }
         }
-
-
 
         public ResultadoOperacion<DatosTarjeta> ObtenerDatosParaPagar(int idUsuarioExterno, int idTarjetaGuardada, string codigoSeguridad)
         {

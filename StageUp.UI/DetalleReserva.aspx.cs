@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,12 +11,6 @@ using StageUp.Seguridad;
 namespace StageUp.UI
 {
 
-
-
-
-
-
-
     public partial class DetalleReserva : Page
     {
         private const string AccionCancelar = "Cancelar";
@@ -25,7 +19,6 @@ namespace StageUp.UI
 
         private readonly BLL_Reserva _bllReserva = new BLL_Reserva();
         private readonly BLL_MensajeReserva _bllMensajes = new BLL_MensajeReserva();
-
 
         private int _idUsuarioActual;
         private bool _actualEsSolicitante;
@@ -136,8 +129,6 @@ namespace StageUp.UI
             pnlConfirmacion.Visible = false;
             hfAccion.Value = string.Empty;
             txtComentarioGestor.Text = string.Empty;
-
-
 
             Cargar();
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
@@ -254,6 +245,12 @@ namespace StageUp.UI
             rptSeguimiento.DataSource = seguimiento;
             rptSeguimiento.DataBind();
 
+            var notas = new BLL_Comprobante().ListarNotasDeReservaParaUsuario(reserva.IdReserva, idUsuario);
+            pnlNotas.Visible = !notas.Exitoso || notas.Valor.Count > 0;
+            litErrorNotas.Text = notas.Exitoso ? string.Empty : notas.Mensaje;
+            rptNotas.DataSource = notas.Exitoso ? notas.Valor : null;
+            rptNotas.DataBind();
+
             ConfigurarAcciones(reserva, esSolicitante, esGestor);
             CargarMensajes(reserva, idUsuario, esSolicitante);
 
@@ -308,7 +305,6 @@ namespace StageUp.UI
             lnkPagar.Text = "Pagar";
             lnkPagar.NavigateUrl = "~/Pagar.aspx?reserva=" + reserva.IdReserva.ToString(CultureInfo.InvariantCulture);
 
-
             lnkVerPago.Visible = (esSolicitante || esGestor) &&
                 (reserva.EstadoPago == BLL_Pago.EstadoPagado || reserva.EstadoPago == BLL_Pago.EstadoDevuelto);
             lnkVerPago.Text = "Ver pago";
@@ -324,13 +320,13 @@ namespace StageUp.UI
             {
                 lnkCalificar.Visible = true;
                 lnkCalificar.Text = "Calificar el espacio";
-                lnkCalificar.NavigateUrl = "~/MisReservas.aspx";
+                lnkCalificar.NavigateUrl = "~/MisReservas.aspx?calificar=" + reserva.IdReserva.ToString(CultureInfo.InvariantCulture);
             }
             else if (esGestor && finalizada && !reserva.CalificacionSolicitanteRealizada)
             {
                 lnkCalificar.Visible = true;
                 lnkCalificar.Text = "Calificar al solicitante";
-                lnkCalificar.NavigateUrl = "~/SolicitudesRecibidas.aspx";
+                lnkCalificar.NavigateUrl = "~/SolicitudesRecibidas.aspx?calificar=" + reserva.IdReserva.ToString(CultureInfo.InvariantCulture);
             }
             else
             {
@@ -346,9 +342,6 @@ namespace StageUp.UI
             pnlAcciones.Visible = hayAcciones;
             pnlSinAcciones.Visible = !hayAcciones;
         }
-
-
-
 
         private void CargarMensajes(Reserva reserva, int idUsuario, bool esSolicitante)
         {
@@ -375,7 +368,6 @@ namespace StageUp.UI
 
             if (_mensajesNuevos.Count > 0)
             {
-
 
                 _bllMensajes.MarcarLeidos(reserva, idUsuario, _mensajesNuevos);
             }

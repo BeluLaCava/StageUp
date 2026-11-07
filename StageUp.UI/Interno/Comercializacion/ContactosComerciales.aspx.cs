@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,12 +9,6 @@ using StageUp.BLL;
 
 namespace StageUp.UI.Interno.Comercializacion
 {
-
-
-
-
-
-
 
     public partial class ContactosComerciales : PaginaComercial
     {
@@ -27,7 +21,6 @@ namespace StageUp.UI.Interno.Comercializacion
         {
             get { return BLL_ContactoComercial.PermisoGestionar; }
         }
-
 
         private int? IdCuentaElegida
         {
@@ -65,10 +58,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 CargarListado();
             }
         }
-
-
-
-
 
         private void CargarListado()
         {
@@ -108,7 +97,6 @@ namespace StageUp.UI.Interno.Comercializacion
             litRechazados.Text = resumen.Valor.Rechazados.ToString(CultureInfo.InvariantCulture);
             litIncorporados.Text = resumen.Valor.Incorporados.ToString(CultureInfo.InvariantCulture);
 
-
             if (resumen.Valor.Total == 0)
             {
                 pnlSinContactos.Visible = true;
@@ -124,7 +112,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 rptContactos.Visible = false;
                 return;
             }
-
 
             pnlSinResultados.Visible = resultado.Valor.Count == 0;
             rptContactos.Visible = resultado.Valor.Count > 0;
@@ -150,10 +137,6 @@ namespace StageUp.UI.Interno.Comercializacion
             Agregar(partes, "q", txtFiltroTexto.Text);
             Redirigir(ArmarUrl(Pagina, partes), null);
         }
-
-
-
-
 
         private void CargarDetalle(int idContacto)
         {
@@ -202,7 +185,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 ? contacto.NombreUsuarioExterno + " (" + contacto.CorreoUsuarioExterno + ")"
                 : (contacto.EstadoContacto == ContactoComercial.EstadoIncorporado ? "Sin asociar todavía" : "—");
 
-
             if (contacto.EstadoContacto == ContactoComercial.EstadoIncorporado)
             {
                 pnlAvisoIncorporado.Visible = true;
@@ -220,10 +202,6 @@ namespace StageUp.UI.Interno.Comercializacion
             lnkEditar.NavigateUrl = Pagina + "?editar=" + idContacto;
             lnkSeguimiento.NavigateUrl = Pagina + "?seguimiento=" + idContacto;
         }
-
-
-
-
 
         private void CargarFormulario(int? idContacto)
         {
@@ -364,13 +342,8 @@ namespace StageUp.UI.Interno.Comercializacion
                 return;
             }
 
-
             Redirigir(idEditar.HasValue ? Pagina + "?ver=" + resultado.Valor : Pagina, resultado.Mensaje);
         }
-
-
-
-
 
         private void CargarFormularioSeguimiento(int idContacto)
         {
@@ -425,10 +398,6 @@ namespace StageUp.UI.Interno.Comercializacion
 
             Redirigir(Pagina + "?ver=" + idContacto.Value, resultado.Mensaje);
         }
-
-
-
-
 
         private void CargarOrigenes(DropDownList lista, string textoVacio, ContactoComercial contacto)
         {

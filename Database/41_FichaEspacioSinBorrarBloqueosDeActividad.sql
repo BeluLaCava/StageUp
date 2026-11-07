@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -76,8 +76,6 @@ BEGIN
         DELETE FROM dbo.FichaEspacioEquipamiento WHERE idEspacioArtistico = @idEspacioArtistico;
         DELETE FROM dbo.EspacioFoto WHERE idEspacioArtistico = @idEspacioArtistico;
 
-        -- Solo las franjas cargadas a mano desde la ficha. Los bloqueos
-        -- generados desde "Mis actividades" se conservan siempre.
         DELETE FROM dbo.FranjaEspacio
         WHERE idEspacioArtistico = @idEspacioArtistico
           AND origen = N'Manual';
@@ -119,10 +117,6 @@ BEGIN
 END
 GO
 
--- Limpieza de datos: copias "manuales" de un bloqueo de actividad que quedaron
--- duplicadas por el guardado anterior (misma franja exacta que un bloqueo con
--- origen = 'Actividad' del mismo espacio). El bloqueo real de la actividad se
--- conserva, así que no cambia qué horarios quedan bloqueados.
 DELETE m
 FROM dbo.FranjaEspacio m
 WHERE m.origen = N'Manual'

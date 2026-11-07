@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -22,13 +22,9 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Encuestas ya empezadas y dirigidas al perfil del usuario, que además
-    -- están vencidas o cerradas, o que el usuario ya respondió (para que vea
-    -- el gráfico al instante apenas responde, aunque la encuesta siga
-    -- vigente y abierta para otros usuarios).
     SELECT e.idEncuesta, e.titulo, e.descripcion, e.fechaInicio, e.fechaVencimiento, e.publicoObjetivo, e.estado, e.fechaAlta, e.fechaUltimaModificacion
     FROM dbo.Encuesta e
-    WHERE e.estado IN (N'Activa', N'Cerrada') -- un Borrador nunca se publicó: no tiene resultados, aunque esté vencido
+    WHERE e.estado IN (N'Activa', N'Cerrada')
       AND e.fechaInicio <= GETDATE()
       AND (e.publicoObjetivo = N'Todos' OR e.publicoObjetivo = @perfilUsuario)
       AND
@@ -53,9 +49,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Eliminación controlada: solo borra si la encuesta sigue en Borrador y
-    -- no tiene ninguna respuesta. Las preguntas y opciones caen por
-    -- ON DELETE CASCADE. Una encuesta publicada nunca se borra (se cierra).
     DELETE FROM dbo.Encuesta
     WHERE idEncuesta = @idEncuesta
       AND estado = N'Borrador'

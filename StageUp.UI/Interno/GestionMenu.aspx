@@ -2,6 +2,7 @@
 
 <asp:Content ID="GestionMenuContent" ContentPlaceHolderID="MainContent" runat="server">
     <style type="text/css">
+        .menu-management-page .admin-editor-card { position: static; }
         .menu-admin-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--color-border, #e2e2e2); flex-wrap: wrap; }
         .menu-admin-row.inactiva { opacity: 0.6; }
         .menu-admin-meta { color: var(--color-text-muted, #6b7280); font-size: 0.85em; }
@@ -9,11 +10,11 @@
         .menu-admin-modulo { display: inline-block; padding: 2px 10px; border-radius: 999px; background: #eef2ff; color: #1e3a8a; font-size: 0.78em; font-weight: bold; }
     </style>
 
-    <section class="static-page internal-page internal-management-page">
+    <section class="static-page internal-page internal-management-page menu-management-page">
         <div class="static-page-header internal-page-hero">
             <span class="section-label">Administración</span>
             <h1>Gestión del menú</h1>
-            <p>Administrá las opciones del menú del panel interno: qué texto muestran, a qué página llevan, en qué módulo y orden aparecen, y qué permiso hace falta para verlas.</p>
+            <p>Administrá las opciones del menú del panel interno: qué texto muestran, a qué página llevan, a qué módulo pertenecen, y qué permiso hace falta para verlas.</p>
         </div>
 
         <asp:Panel ID="pnlMensaje" runat="server" Visible="false" CssClass="form-message">
@@ -38,7 +39,7 @@
                 <div class="form-field">
                     <label for="<%= txtUrl.ClientID %>">URL *</label>
                     <asp:TextBox ID="txtUrl" runat="server" MaxLength="300" placeholder="Ej: ~/Interno/GestionFaq.aspx" />
-                    <small class="field-help">Tiene que ser una página de StageUp y empezar con ~/</small>
+                    <small class="field-help">Debe ser una página interna: empezar con ~/Interno/ y terminar en .aspx. No se admiten enlaces externos ni ..</small>
                     <asp:RequiredFieldValidator ID="rfvUrl" runat="server" ControlToValidate="txtUrl"
                         ValidationGroup="Menu" Display="Dynamic" CssClass="field-error-text" ErrorMessage="Ingresá la URL." />
                 </div>
@@ -46,7 +47,7 @@
                 <div class="form-field">
                     <label for="<%= txtModulo.ClientID %>">Módulo *</label>
                     <asp:TextBox ID="txtModulo" runat="server" MaxLength="100" placeholder="Ej: Administración" />
-                    <small class="field-help">Las opciones consecutivas del mismo módulo se agrupan en el menú.</small>
+                    <small class="field-help">Identifica el módulo al que pertenece la opción. El menú lateral muestra las opciones alfabéticamente.</small>
                     <asp:RequiredFieldValidator ID="rfvModulo" runat="server" ControlToValidate="txtModulo"
                         ValidationGroup="Menu" Display="Dynamic" CssClass="field-error-text" ErrorMessage="Ingresá el módulo." />
                 </div>
@@ -79,7 +80,7 @@
                 <div class="auth-card-header">
                     <span class="admin-card-eyebrow">Menú actual</span>
                     <h2>Opciones cargadas</h2>
-                    <p>Se muestran en el orden en que aparecen en el menú.</p>
+                    <p>Este listado conserva el orden de configuración, que podés ajustar con Subir y Bajar. El menú lateral se ordena automáticamente por nombre, también al agregar o renombrar opciones.</p>
                 </div>
 
                 <asp:Panel ID="pnlSinOpciones" runat="server" CssClass="admin-empty-hint" Visible="false">

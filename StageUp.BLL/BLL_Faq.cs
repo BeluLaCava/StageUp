@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -10,10 +10,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
 
     public class BLL_Faq
     {
@@ -35,20 +31,17 @@ namespace StageUp.BLL
         private readonly MPP_Faq _mpp = new MPP_Faq();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
-
-
         public List<Faq> ListarActivas()
         {
             try
             {
                 return _mpp.ListarActivas();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Faq>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
 
         public ResultadoOperacion<List<Faq>> ObtenerContenidoPublico()
         {
@@ -74,9 +67,9 @@ namespace StageUp.BLL
 
                 return _mpp.Listar(filtro);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Faq>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -98,9 +91,9 @@ namespace StageUp.BLL
             {
                 return _mpp.ListarCategorias();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<CategoriaAyuda>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -110,9 +103,9 @@ namespace StageUp.BLL
             {
                 return _mpp.ListarConsultasSinRespuesta();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<ConsultaAsistenteSinRespuesta>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -135,8 +128,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("No se pudo actualizar la consulta. Probá de nuevo.");
             }
         }
-
-
 
         public const int SugerenciaMaximaBasicas = 12;
 
@@ -163,9 +154,6 @@ namespace StageUp.BLL
                 : string.Empty;
         }
 
-
-
-
         public ResultadoOperacion<Faq> ObtenerPublicada(int idFaq)
         {
             ResultadoOperacion<List<Faq>> contenido = ObtenerContenidoPublico();
@@ -176,7 +164,6 @@ namespace StageUp.BLL
 
             return ResultadoOperacion<Faq>.Ok(contenido.Valor.FirstOrDefault(f => f.IdFaq == idFaq));
         }
-
 
         public ResultadoOperacion<List<Faq>> ObtenerPreguntasBasicas()
         {
@@ -198,10 +185,6 @@ namespace StageUp.BLL
         {
             return estado == EstadoActivo ? "Publicado" : estado == EstadoInactivo ? "Desactivado" : "Borrador";
         }
-
-
-
-
 
         public ResultadoOperacion<int> Registrar(Faq datos, int idUsuarioInternoResponsable, string textoConsultaOrigen = null)
         {
@@ -244,7 +227,6 @@ namespace StageUp.BLL
                     : "El contenido de ayuda se guardó y quedó publicado. No es una pregunta básica: no aparece en la lista del centro de ayuda, pero sí en la búsqueda.")
                 : "El contenido de ayuda se guardó como borrador. Todavía no lo ven los usuarios.") + AvisoListaBasica(normalizado));
         }
-
 
         public ResultadoOperacion Modificar(Faq datos, int idUsuarioInternoResponsable)
         {
@@ -292,7 +274,6 @@ namespace StageUp.BLL
                 : "El contenido de ayuda se actualizó correctamente.") + AvisoListaBasica(normalizado));
         }
 
-
         public ResultadoOperacion Publicar(int idFaq, int idUsuarioInternoResponsable)
         {
             Faq faq = ObtenerPorId(idFaq);
@@ -320,7 +301,6 @@ namespace StageUp.BLL
                     ? "El contenido se publicó entre las preguntas básicas del centro de ayuda."
                     : "El contenido se publicó (se encuentra con la búsqueda; no está en la lista de preguntas básicas).");
         }
-
 
         public ResultadoOperacion Desactivar(int idFaq, int idUsuarioInternoResponsable)
         {
@@ -357,8 +337,6 @@ namespace StageUp.BLL
             _bitacora.RegistrarInterno(idUsuarioInternoResponsable, estado == EstadoActivo ? "MODIFICACION" : "BAJA", TipoEntidadBitacora, faq.IdFaq, descripcionBitacora);
             return ResultadoOperacion.Ok(mensaje);
         }
-
-
 
         private ResultadoOperacion Validar(Faq datos, int? idExcluir, out Faq normalizado)
         {
@@ -467,8 +445,6 @@ namespace StageUp.BLL
             CategoriaAyuda categoria = idCategoria.HasValue ? ListarCategorias().FirstOrDefault(c => c.IdCategoriaAyuda == idCategoria.Value) : null;
             return categoria == null ? "sin categoría" : categoria.Nombre;
         }
-
-
 
         public static string Normalizar(string texto)
         {

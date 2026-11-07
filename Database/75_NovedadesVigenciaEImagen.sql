@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -48,7 +48,6 @@ SELECT n.idNovedad, n.titulo, n.resumen, n.contenido, n.categoria, n.urlImagen, 
 FROM dbo.Novedad n;
 GO
 
--- Panel de administración: todas menos las dadas de baja (o solo un estado).
 IF OBJECT_ID('dbo.sp_Novedad_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Novedad_Listar;
 GO
 CREATE PROCEDURE dbo.sp_Novedad_Listar
@@ -64,7 +63,6 @@ BEGIN
 END
 GO
 
--- Página pública: solo las vigentes.
 IF OBJECT_ID('dbo.sp_Novedad_ListarPublicadas', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Novedad_ListarPublicadas;
 GO
 CREATE PROCEDURE dbo.sp_Novedad_ListarPublicadas
@@ -148,7 +146,6 @@ BEGIN
 END
 GO
 
--- Baja lógica: deja de verse en todos lados pero queda en el historial.
 IF OBJECT_ID('dbo.sp_Novedad_DarDeBaja', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Novedad_DarDeBaja;
 GO
 CREATE PROCEDURE dbo.sp_Novedad_DarDeBaja
@@ -169,8 +166,6 @@ BEGIN
 END
 GO
 
--- Una novedad dada de baja vuelve como borrador (hay que revisarla y
--- publicarla de nuevo).
 IF OBJECT_ID('dbo.sp_Novedad_Restaurar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Novedad_Restaurar;
 GO
 CREATE PROCEDURE dbo.sp_Novedad_Restaurar
@@ -191,7 +186,6 @@ BEGIN
 END
 GO
 
--- Búsqueda pública: las novedades solo aparecen mientras están vigentes.
 IF OBJECT_ID('dbo.sp_Busqueda_Publica', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Busqueda_Publica;
 GO
 CREATE PROCEDURE dbo.sp_Busqueda_Publica

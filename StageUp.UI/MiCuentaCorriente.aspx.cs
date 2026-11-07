@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,8 +11,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-
-
 
     public partial class MiCuentaCorriente : Page
     {
@@ -63,6 +61,7 @@ namespace StageUp.UI
 
         protected void lnkLimpiar_Click(object sender, EventArgs e)
         {
+            pnlMensaje.Visible = false;
             txtDesde.Text = string.Empty;
             txtHasta.Text = string.Empty;
             ddlMoneda.SelectedIndex = 0;
@@ -175,7 +174,6 @@ namespace StageUp.UI
                 btnPagarDeuda.Text = "Pagar " + Importe(-deuda.Saldo, deuda.Moneda);
             }
         }
-
 
         private void CargarBilletera()
         {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -9,17 +9,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
-
-
-
-
 
     public class BLL_MensajeReserva
     {
@@ -40,15 +29,12 @@ namespace StageUp.BLL
                 (reserva.IdUsuarioExternoSolicitante == idUsuarioExterno || reserva.IdUsuarioGestor == idUsuarioExterno);
         }
 
-
         public static bool AdmiteMensajes(Reserva reserva)
         {
             return reserva != null &&
                 (reserva.EstadoReserva == EstadoReserva.Aceptada.ToString() ||
                  reserva.EstadoReserva == EstadoReserva.Finalizada.ToString());
         }
-
-
 
         public ResultadoOperacion<List<MensajeReserva>> Listar(Reserva reserva, int idUsuarioExterno)
         {
@@ -67,8 +53,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<List<MensajeReserva>>.Error("No pudimos cargar los mensajes de la reserva en este momento.");
             }
         }
-
-
 
         public int MarcarLeidos(Reserva reserva, int idUsuarioExterno, IEnumerable<int> idsMostrados)
         {
@@ -138,7 +122,6 @@ namespace StageUp.BLL
                 int idDestinatario = esSolicitante ? reserva.IdUsuarioGestor : reserva.IdUsuarioExternoSolicitante;
                 string emisor = esSolicitante ? reserva.NombreSolicitante : reserva.NombreGestor;
 
-
                 Bitacora(idUsuarioExterno, idMensaje,
                     "Mensaje privado en la reserva N° " + idReserva + " (" + (esSolicitante ? "del solicitante al gestor" : "del gestor al solicitante") + ").");
 
@@ -165,17 +148,15 @@ namespace StageUp.BLL
             }
         }
 
-
-
         public List<MensajesNoLeidosReserva> NoLeidos(int idUsuarioExterno)
         {
             try
             {
                 return _mpp.NoLeidosPorUsuario(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<MensajesNoLeidosReserva>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -197,7 +178,6 @@ namespace StageUp.BLL
             {
             }
         }
-
 
         private static string Limpiar(string texto)
         {

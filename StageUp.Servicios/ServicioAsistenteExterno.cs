@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
@@ -20,7 +20,6 @@ namespace StageUp.Servicios
         TiempoAgotado,
         NoDisponible,
 
-
         Bloqueada
     }
 
@@ -34,24 +33,6 @@ namespace StageUp.Servicios
             return new ResultadoAsistenteExterno { Estado = estado, Respuesta = respuesta };
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     public class ServicioAsistenteExterno
     {
@@ -71,12 +52,6 @@ namespace StageUp.Servicios
         private static readonly Regex Telefono = new Regex(@"(\+?\d[\s\-\.\(\)]?){8,}", RegexOptions.Compiled);
         private static readonly Regex Documento = new Regex(@"\b\d{1,2}\.?\d{3}\.?\d{3}\b", RegexOptions.Compiled);
 
-
-
-
-
-
-
         private const string PalabrasIntermedias =
             @"(?:\s+(?:actual|actuales|nueva|nuevo|vieja|viejo|anterior|temporal|provisoria|provisorio|definitiva|real|verdadera|" +
             @"de|del|la|el|los|las|mi|mis|tu|tus|su|sus|esta|este|cuenta|tarjeta|tarjetas|banco|bancaria|bancario|home|banking|" +
@@ -91,8 +66,6 @@ namespace StageUp.Servicios
             @"\b(?:(?:el\s+)?codigo(?:\s+(?:temporal|provisorio|de\s+acceso|de\s+ingreso|de\s+confirmacion|de\s+autenticacion|de\s+recuperacion|de\s+un\s+solo\s+uso|de\s+uso\s+unico))?(?:\s+que\s+(?:(?:me|nos)\s+)?(?:llego|enviaron|mandaron|dieron|pasaron|recibi|recibimos))?|(?:me|nos)\s+(?:llego|enviaron|mandaron|dieron|pasaron)\s+(?:el\s+)?codigo(?:\s+(?:temporal|de\s+acceso|de\s+ingreso|de\s+confirmacion))?)\s*(?:(?<conector>es|era|fue|seria|sera|:|=)\s*)?(?<valor>[A-Za-z0-9][A-Za-z0-9_-]{3,31})\b",
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         private static readonly Regex Token = new Regex(@"\b(?:sk-[A-Za-z0-9_\-]{10,}|[A-Za-z0-9_\-]{24,})\b", RegexOptions.Compiled);
-
-
 
         private static readonly HashSet<string> NoEsValor = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -110,8 +83,6 @@ namespace StageUp.Servicios
                     !string.IsNullOrWhiteSpace(Leer("AsistenteApiUrl", "STAGEUP_ASISTENTE_API_URL"));
             }
         }
-
-
 
         public ResultadoAsistenteExterno Consultar(string consulta, string contexto)
         {
@@ -134,7 +105,6 @@ namespace StageUp.Servicios
                     return ResultadoAsistenteExterno.Crear(EstadoAsistenteExterno.NoDisponible);
                 }
             }
-
 
             if (ContieneDatosPrivados(consulta))
             {
@@ -220,7 +190,6 @@ namespace StageUp.Servicios
             }
         }
 
-
         public static bool ContieneDatosPrivados(string texto)
         {
             if (string.IsNullOrWhiteSpace(texto))
@@ -262,9 +231,6 @@ namespace StageUp.Servicios
             return false;
         }
 
-
-
-
         private static bool EsSecreto(Match coincidencia)
         {
             string valor = coincidencia.Groups["valor"].Value.Trim('.', '"', '\'', '(', ')', '!', '?');
@@ -292,15 +258,11 @@ namespace StageUp.Servicios
                 (valor.Length >= 5 && Regex.IsMatch(valor, @"\d") && Regex.IsMatch(valor, @"[A-Za-z]"));
         }
 
-
-
-
         private static string OcultarSecretos(string texto)
         {
             string normalizado = SinTildes(texto);
             if (normalizado.Length != texto.Length)
             {
-
 
                 texto = normalizado;
             }
@@ -351,15 +313,12 @@ namespace StageUp.Servicios
             return resultado.ToString().Normalize(System.Text.NormalizationForm.FormC);
         }
 
-
         public static string OcultarDatosSensibles(string texto)
         {
             if (string.IsNullOrEmpty(texto))
             {
                 return string.Empty;
             }
-
-
 
             string resultado = OcultarSecretos(texto);
             resultado = Token.Replace(resultado, m => EsToken(m.Value) ? "[dato oculto]" : m.Value);
@@ -409,7 +368,6 @@ namespace StageUp.Servicios
                 _pausadoHasta = DateTime.UtcNow.Add(PausaTrasFalla);
             }
         }
-
 
         public static void ReiniciarPausa()
         {

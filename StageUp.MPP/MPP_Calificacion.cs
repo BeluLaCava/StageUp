@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -93,8 +93,6 @@ namespace StageUp.MPP
                 "idUsuarioExterno");
         }
 
-
-
         public Dictionary<int, ResumenReputacion> ListarResumenesPorUsuarios(IEnumerable<int> idsUsuarios)
         {
             List<int> ids = new List<int>(idsUsuarios);
@@ -109,12 +107,6 @@ namespace StageUp.MPP
                     new Hashtable { { "@idsUsuarios", string.Join(",", ids) } }),
                 "idUsuarioExterno");
         }
-
-
-
-
-
-
 
         public Dictionary<int, List<Calificacion>> ListarRecibidasTop3PorUsuarios(IEnumerable<int> idsUsuarios)
         {

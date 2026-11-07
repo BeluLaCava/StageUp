@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -65,9 +65,6 @@ namespace StageUp.UI.Explorar
             CargarPreguntas();
         }
 
-
-
-
         private int IdGestorEspacio
         {
             get { return ViewState["IdGestorEspacio"] as int? ?? 0; }
@@ -91,7 +88,6 @@ namespace StageUp.UI.Explorar
             get { return ViewState["PreguntaDestacada"] as int? ?? 0; }
             set { ViewState["PreguntaDestacada"] = value; }
         }
-
 
         protected int PreguntaOcultando
         {
@@ -212,7 +208,6 @@ namespace StageUp.UI.Explorar
                 pnlMensajePreguntas.Visible = false;
             }
 
-
             string textoEscrito = e.CommandName == "Responder" && resultado != null && !resultado.Exitoso
                 ? ((System.Web.UI.WebControls.TextBox)e.Item.FindControl("txtRespuesta")).Text
                 : null;
@@ -236,9 +231,6 @@ namespace StageUp.UI.Explorar
             pnlMensajePreguntas.CssClass = esError ? "form-message form-message-error" : "form-message form-message-success";
             pnlMensajePreguntas.Visible = !string.IsNullOrEmpty(mensaje);
         }
-
-
-
 
         private void ConfigurarGestion(EspacioArtistico espacio)
         {
@@ -273,13 +265,11 @@ namespace StageUp.UI.Explorar
             EjecutarAccionGestion(id => _bllEspacio.Pausar(id, GestorDeSesion.ObtenerIdUsuarioActual().Value));
         }
 
-
         protected void lnkBajaGestion_Click(object sender, EventArgs e)
         {
             pnlConfirmarBaja.Visible = true;
             pnlMensajeGestion.Visible = false;
         }
-
 
         protected void lnkCancelarBaja_Click(object sender, EventArgs e)
         {
@@ -301,7 +291,6 @@ namespace StageUp.UI.Explorar
                 MostrarMensajeGestion(resultado.Mensaje, true);
                 return;
             }
-
 
             Response.Redirect("~/MisEspacios.aspx?baja=1", false);
             Context.ApplicationInstance.CompleteRequest();
@@ -577,7 +566,6 @@ namespace StageUp.UI.Explorar
             pnlPlanificadorNoDisponible.Visible = !puedePlanificar;
             litPrecioReserva.Text = ficha.PrecioHora.HasValue ? FormatearPrecio(ficha) : "Valor a consultar";
 
-
             hdnDisponibilidadDetalle.Value = new JavaScriptSerializer().Serialize(
                 disponibilidad.Where(f => f != null).Select(f => new
                 {
@@ -604,16 +592,6 @@ namespace StageUp.UI.Explorar
             pnlReservarPropio.Visible = esPropio;
             pnlReservarFormulario.Visible = idUsuarioActual.HasValue && !esPropio && puedePlanificar;
         }
-
-
-
-
-
-
-
-
-
-
 
         private List<object> ObtenerHorariosOcupados(int idEspacioArtistico)
         {

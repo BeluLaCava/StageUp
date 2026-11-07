@@ -42,11 +42,6 @@ namespace StageUp.BLL
             });
         }
 
-
-
-
-
-
         internal ResultadoOperacion<UsuarioInterno> IniciarSesionSinCaptcha(
             string correoElectronico, string password)
         {
@@ -98,13 +93,11 @@ namespace StageUp.BLL
             {
                 return _mppUsuarioInterno.Listar();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<UsuarioInterno>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
-
 
         public List<UsuarioInterno> Buscar(string texto, int? idRolInterno, string estado)
         {
@@ -149,10 +142,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
-
         public UsuarioInterno ObtenerParaSesion(int idUsuarioInterno, out List<string> codigosPermisos)
         {
             codigosPermisos = null;
@@ -195,8 +184,6 @@ namespace StageUp.BLL
                     CorreoElectronico = correoNormalizado,
                     EstadoCuenta = estadoCuenta
                 };
-
-
 
                 ProtectorDeCredenciales.ProtegerPassword(usuario, password);
 
@@ -294,7 +281,6 @@ namespace StageUp.BLL
             });
         }
 
-
         public ResultadoOperacion DarDeBaja(int idUsuarioInterno, int idUsuarioInternoResponsable)
         {
             return EjecutarProtegido(() =>
@@ -378,9 +364,6 @@ namespace StageUp.BLL
             return string.Join("; ", cambios);
         }
 
-
-
-
         private ResultadoOperacion ValidarDatos(
             string nombre, string apellido, string correoElectronico, int idAreaInterna,
             int idRolInterno, string estadoCuenta, string password, string confirmacionPassword,
@@ -391,7 +374,6 @@ namespace StageUp.BLL
 
             bool seIngresoPassword = !string.IsNullOrWhiteSpace(password) ||
                                      !string.IsNullOrWhiteSpace(confirmacionPassword);
-
 
             List<string> faltantes = new List<string>();
             if (string.IsNullOrWhiteSpace(nombre)) faltantes.Add("el nombre");
@@ -415,14 +397,12 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("El nombre y el apellido no pueden superar los 200 caracteres.", codigo("A3"));
             }
 
-
             string correoNormalizado = correoElectronico.Trim().ToLowerInvariant();
             if (correoNormalizado.Length > 300 || !ValidacionContacto.EsCorreoValido(correoNormalizado))
             {
                 return ResultadoOperacion.Error(
                     "El correo electrónico no tiene un formato válido (por ejemplo, persona@artera.com). Corregilo para continuar.", codigo("A4"));
             }
-
 
             UsuarioInterno usuarioBuscado = new UsuarioInterno
             {
@@ -453,7 +433,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error("El área interna seleccionada no existe o no está activa. Seleccioná un área válida.", codigo("A3"));
             }
-
 
             RolInterno rol = _mppRolInterno.ObtenerPorId(
                 new RolInterno { IdRolInterno = idRolInterno });

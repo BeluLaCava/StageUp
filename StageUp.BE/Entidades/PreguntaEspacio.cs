@@ -1,8 +1,7 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
-
 
     public class PreguntaEspacio
     {
@@ -36,7 +35,6 @@ namespace StageUp.BE.Entidades
             get { return Estado == EstadoPendiente; }
         }
 
-
         public string NombreAutorPublico
         {
             get
@@ -47,7 +45,6 @@ namespace StageUp.BE.Entidades
             }
         }
     }
-
 
     public class PreguntasDeEspacio
     {

@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -41,11 +41,11 @@ BEGIN
     (
         idTicketActualizacion  INT IDENTITY(1,1) NOT NULL,
         idTicket               INT NOT NULL,
-        tipoActualizacion      NVARCHAR(20) NOT NULL,   -- Alta, CambioEstado, Asignacion
+        tipoActualizacion      NVARCHAR(20) NOT NULL,
         estadoAnterior         NVARCHAR(20) NULL,
         estadoNuevo            NVARCHAR(20) NULL,
-        idUsuarioInterno       INT NULL,                -- responsable interno (si lo hubo)
-        idUsuarioExterno       INT NULL,                -- o el propio usuario solicitante
+        idUsuarioInterno       INT NULL,
+        idUsuarioExterno       INT NULL,
         detalle                NVARCHAR(300) NULL,
         fecha                  DATETIME NOT NULL CONSTRAINT DF_TicketActualizacion_fecha DEFAULT (GETDATE()),
         CONSTRAINT PK_TicketActualizacion PRIMARY KEY (idTicketActualizacion),
@@ -59,9 +59,6 @@ BEGIN
 END
 GO
 
--- -----------------------------------------------------------------------------
--- Conversión de los datos anteriores (idempotente).
--- -----------------------------------------------------------------------------
 UPDATE dbo.Ticket
 SET estado = CASE estado
                  WHEN N'Abierto' THEN N'Pendiente'
@@ -76,8 +73,6 @@ UPDATE dbo.Ticket
 SET categoria = N'Otra'
 WHERE categoria NOT IN (N'Reserva', N'Pago', N'Espacio', N'Cuenta', N'Gestor', N'Otra');
 
--- Antes la descripción se guardaba como primer mensaje del hilo: pasa a la
--- solicitud y ese mensaje queda marcado como inicial (no se borra).
 UPDATE t
 SET t.descripcion = m.mensaje
 FROM dbo.Ticket t
@@ -107,8 +102,6 @@ WHERE m.esInicial = 0
 
 UPDATE dbo.Ticket SET descripcion = asunto WHERE descripcion IS NULL;
 
--- Las solicitudes anteriores se toman como leídas por ambos lados, para que
--- no aparezcan todas como "nuevas" al aplicar el script.
 UPDATE t
 SET t.fechaUltimaLecturaUsuario = ISNULL(t.fechaUltimaLecturaUsuario, t.fechaUltimaActividad),
     t.fechaUltimaLecturaSoporte = CASE WHEN t.estado = N'Pendiente' THEN t.fechaUltimaLecturaSoporte
@@ -117,8 +110,6 @@ SET t.fechaUltimaLecturaUsuario = ISNULL(t.fechaUltimaLecturaUsuario, t.fechaUlt
 FROM dbo.Ticket t
 WHERE NOT EXISTS (SELECT 1 FROM dbo.TicketActualizacion a WHERE a.idTicket = t.idTicket);
 
--- Historial inicial de las solicitudes anteriores: el alta y, si ya no
--- estaban pendientes, el estado al que habían llegado.
 INSERT INTO dbo.TicketActualizacion (idTicket, tipoActualizacion, estadoAnterior, estadoNuevo, idUsuarioInterno, idUsuarioExterno, detalle, fecha)
 SELECT t.idTicket, N'Alta', NULL, N'Pendiente', NULL, t.idUsuarioExterno, N'Solicitud registrada.', t.fechaCreacion
 FROM dbo.Ticket t
@@ -132,7 +123,6 @@ WHERE t.estado <> N'Pendiente'
   AND NOT EXISTS (SELECT 1 FROM dbo.TicketActualizacion a WHERE a.idTicket = t.idTicket AND a.tipoActualizacion = N'CambioEstado');
 GO
 
--- Estado inicial por defecto y valores válidos.
 IF EXISTS (SELECT 1 FROM sys.default_constraints WHERE name = N'DF_Ticket_estado' AND definition <> N'(N''Pendiente'')')
     ALTER TABLE dbo.Ticket DROP CONSTRAINT DF_Ticket_estado;
 GO
@@ -149,19 +139,11 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Ticket_fechaCreacion'
     CREATE INDEX IX_Ticket_fechaCreacion ON dbo.Ticket (fechaCreacion);
 GO
 
--- Los SP de alta y de mensajes del script 38 se reemplazan por los de abajo.
 IF OBJECT_ID('dbo.sp_Ticket_Crear', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Ticket_Crear;
 GO
 IF OBJECT_ID('dbo.sp_TicketMensaje_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TicketMensaje_Insertar;
 GO
 
--- -----------------------------------------------------------------------------
--- Vista con todo lo que muestran el listado y el detalle (de los dos lados).
---   novedadesUsuario: respuestas de soporte y cambios de estado hechos por
---     soporte después de la última vez que el usuario abrió la solicitud.
---   novedadesSoporte: mensajes del usuario después de la última vez que el
---     equipo abrió la solicitud (+1 si nunca la abrió nadie).
--- -----------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.vw_TicketSoporte', N'V') IS NOT NULL DROP VIEW dbo.vw_TicketSoporte;
 GO
 CREATE VIEW dbo.vw_TicketSoporte
@@ -200,10 +182,6 @@ LEFT JOIN dbo.Reserva r ON r.idReserva = t.idReservaAsociada
 LEFT JOIN dbo.EspacioArtistico ea ON ea.idEspacioArtistico = r.idEspacioArtistico;
 GO
 
--- -----------------------------------------------------------------------------
--- CU-003-002 pasos 10 a 14: registro con identificador único, estado
--- inicial pendiente, asociación al usuario y primera entrada del historial.
--- -----------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Ticket_Registrar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Ticket_Registrar;
 GO
 CREATE PROCEDURE dbo.sp_Ticket_Registrar
@@ -219,7 +197,6 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
-    -- Segunda barrera (la primera es BLL_Ticket): solo una reserva propia.
     IF @idReservaAsociada IS NOT NULL
        AND NOT EXISTS
        (
@@ -264,7 +241,6 @@ BEGIN
 END
 GO
 
--- CU-003-002 A5: "Mis solicitudes de soporte".
 IF OBJECT_ID('dbo.sp_Ticket_ListarPorUsuario', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Ticket_ListarPorUsuario;
 GO
 CREATE PROCEDURE dbo.sp_Ticket_ListarPorUsuario
@@ -279,12 +255,6 @@ BEGIN
 END
 GO
 
--- -----------------------------------------------------------------------------
--- CU-003-003 pasos 4 a 6 y A3: listado interno con filtros por estado,
--- funcionalidad, fecha de registro, usuario solicitante, número de caso,
--- responsable asignado y "solo sin leer", paginado. Primero lo que tiene
--- mensajes sin leer y después por última actividad.
--- -----------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Ticket_ListarParaInterno', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Ticket_ListarParaInterno;
 GO
 CREATE PROCEDURE dbo.sp_Ticket_ListarParaInterno
@@ -294,7 +264,7 @@ CREATE PROCEDURE dbo.sp_Ticket_ListarParaInterno
     @hasta                     DATE = NULL,
     @usuario                   NVARCHAR(150) = NULL,
     @idTicket                  INT = NULL,
-    @asignacion                NVARCHAR(20) = NULL,   -- NULL: todas; SinAsignar; Usuario (con @idUsuarioInternoAsignado)
+    @asignacion                NVARCHAR(20) = NULL,
     @idUsuarioInternoAsignado  INT = NULL,
     @soloNoLeidas              BIT = 0,
     @pagina                    INT = 1,
@@ -358,7 +328,6 @@ BEGIN
 END
 GO
 
--- Resumen del panel (y A2: total = 0 significa que no hay ninguna solicitud).
 IF OBJECT_ID('dbo.sp_Ticket_ResumenInterno', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Ticket_ResumenInterno;
 GO
 CREATE PROCEDURE dbo.sp_Ticket_ResumenInterno
@@ -378,7 +347,6 @@ BEGIN
 END
 GO
 
--- Conversación (sin la descripción inicial, que se muestra aparte).
 IF OBJECT_ID('dbo.sp_TicketMensaje_ListarPorTicket', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TicketMensaje_ListarPorTicket;
 GO
 CREATE PROCEDURE dbo.sp_TicketMensaje_ListarPorTicket
@@ -403,7 +371,6 @@ BEGIN
 END
 GO
 
--- Historial del caso: alta, cambios de estado y asignaciones.
 IF OBJECT_ID('dbo.sp_TicketActualizacion_ListarPorTicket', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TicketActualizacion_ListarPorTicket;
 GO
 CREATE PROCEDURE dbo.sp_TicketActualizacion_ListarPorTicket
@@ -429,13 +396,6 @@ BEGIN
 END
 GO
 
--- -----------------------------------------------------------------------------
--- CU-003-003 pasos 12 a 17 y A7: respuesta del equipo. Si la solicitud
--- estaba pendiente pasa a "en proceso"; con @marcarResuelta pasa a
--- "resuelta". Si nadie la tenía asignada, queda asignada a quien responde.
--- @estadoAnterior es el estado que vio el usuario interno: si cambió en el
--- medio, no se guarda nada (51031).
--- -----------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Ticket_RegistrarRespuesta', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Ticket_RegistrarRespuesta;
 GO
 CREATE PROCEDURE dbo.sp_Ticket_RegistrarRespuesta
@@ -501,9 +461,6 @@ BEGIN
 END
 GO
 
--- CU-003-003 pasos 18 a 23, A8, A10 (reapertura) y A11 (cierre). La
--- transición la valida BLL_Ticket; acá se registra con responsable, fecha,
--- hora, estado anterior y nuevo.
 IF OBJECT_ID('dbo.sp_Ticket_CambiarEstado', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Ticket_CambiarEstado;
 GO
 CREATE PROCEDURE dbo.sp_Ticket_CambiarEstado
@@ -547,8 +504,6 @@ BEGIN
 END
 GO
 
--- Ítem 12: asignación de un responsable (o quitarla). Con @tomar = 1 es
--- "Tomar solicitud": además una pendiente pasa a "en proceso".
 IF OBJECT_ID('dbo.sp_Ticket_Asignar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Ticket_Asignar;
 GO
 CREATE PROCEDURE dbo.sp_Ticket_Asignar
@@ -606,11 +561,6 @@ BEGIN
 END
 GO
 
--- -----------------------------------------------------------------------------
--- CU-003-002 A8/A9: el usuario agrega información a una solicitud que sigue
--- abierta (no hace falta registrar otra). Si estaba resuelta, vuelve a
--- "en proceso" porque el usuario indica que todavía necesita ayuda.
--- -----------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_TicketMensaje_InsertarUsuario', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TicketMensaje_InsertarUsuario;
 GO
 CREATE PROCEDURE dbo.sp_TicketMensaje_InsertarUsuario
@@ -660,13 +610,11 @@ BEGIN
 END
 GO
 
--- Ítem 12: leído / no leído. Abrir el detalle marca como leído lo que había
--- hasta ese momento, del lado del usuario o del equipo de soporte.
 IF OBJECT_ID('dbo.sp_Ticket_MarcarLeido', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Ticket_MarcarLeido;
 GO
 CREATE PROCEDURE dbo.sp_Ticket_MarcarLeido
     @idTicket  INT,
-    @lado      NVARCHAR(10)   -- Usuario / Soporte
+    @lado      NVARCHAR(10)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -680,8 +628,6 @@ BEGIN
 END
 GO
 
--- Ítem 12: actualización periódica. Las pantallas preguntan cada tanto por
--- esta "marca" y, si cambió, avisan que hay novedades.
 IF OBJECT_ID('dbo.sp_Ticket_ObtenerMarca', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Ticket_ObtenerMarca;
 GO
 CREATE PROCEDURE dbo.sp_Ticket_ObtenerMarca
@@ -708,8 +654,6 @@ BEGIN
 END
 GO
 
--- Contador del menú interno: solicitudes que requieren atención (pendientes
--- o con mensajes del usuario sin leer).
 IF OBJECT_ID('dbo.sp_Ticket_ContarAbiertos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Ticket_ContarAbiertos;
 GO
 CREATE PROCEDURE dbo.sp_Ticket_ContarAbiertos
@@ -723,7 +667,6 @@ BEGIN
 END
 GO
 
--- Contador del menú del usuario: solicitudes con novedades sin ver.
 IF OBJECT_ID('dbo.sp_Ticket_ContarNovedadesUsuario', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Ticket_ContarNovedadesUsuario;
 GO
 CREATE PROCEDURE dbo.sp_Ticket_ContarNovedadesUsuario
@@ -738,10 +681,6 @@ BEGIN
 END
 GO
 
--- -----------------------------------------------------------------------------
--- Nombre de la pantalla según el CU y permiso específico para reabrir
--- solicitudes cerradas (CU-003-003 A10).
--- -----------------------------------------------------------------------------
 UPDATE dbo.PermisoInterno
 SET nombrePermiso = N'Solicitudes de soporte',
     descripcion = N'Consultar, responder, asignar, cambiar de estado y cerrar las solicitudes de soporte de los usuarios.',
@@ -764,8 +703,7 @@ GO
 
 IF OBJECT_ID('tempdb..#RegistrarPermisoAdministracion') IS NOT NULL DROP PROCEDURE #RegistrarPermisoAdministracion;
 GO
--- Igual que en los scripts 63 y 64, con @agregarAlMenu: este permiso no es
--- una pantalla, habilita una acción dentro de "Solicitudes de soporte".
+
 CREATE PROCEDURE #RegistrarPermisoAdministracion
     @codigo         NVARCHAR(100),
     @nombre         NVARCHAR(200),

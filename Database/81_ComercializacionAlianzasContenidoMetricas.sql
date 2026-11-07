@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,14 +7,9 @@ GO
 USE StageUp;
 GO
 
--- ===========================================================================
--- Procedimientos: alianzas estratégicas (CU-004-003)
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_AlianzaEstrategica_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_AlianzaEstrategica_Listar;
 GO
--- @vista: EnGestion (en evaluación, activas y pausadas), Historicas
--- (finalizadas y dadas de baja) o Todas. Vigencia: alianzas cuyo período se
--- cruza con [@desde, @hasta] (sin fecha de fin = abierta).
+
 CREATE PROCEDURE dbo.sp_AlianzaEstrategica_Listar
     @vista            NVARCHAR(12) = N'EnGestion',
     @estado           NVARCHAR(20) = NULL,
@@ -124,8 +119,7 @@ GO
 
 IF OBJECT_ID('dbo.sp_AlianzaEstrategica_BuscarDuplicado', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_AlianzaEstrategica_BuscarDuplicado;
 GO
--- A22: misma entidad, todavía en gestión, con un período que se cruza o el
--- mismo objetivo comercial.
+
 CREATE PROCEDURE dbo.sp_AlianzaEstrategica_BuscarDuplicado
     @idAlianzaExcluida  INT = NULL,
     @nombreEntidad      NVARCHAR(200),
@@ -149,9 +143,7 @@ GO
 
 IF OBJECT_ID('dbo.sp_AlianzaEstrategica_Guardar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_AlianzaEstrategica_Guardar;
 GO
--- Alta (@idAlianzaEstrategica NULL) o modificación. Un cambio de estado
--- queda en el seguimiento con su observación (A8). THROW 51320 si la alianza
--- no existe; 51321 si el responsable no es un usuario interno activo.
+
 CREATE PROCEDURE dbo.sp_AlianzaEstrategica_Guardar
     @idAlianzaEstrategica         INT = NULL,
     @nombreEntidad                NVARCHAR(200),
@@ -243,8 +235,6 @@ BEGIN
 END
 GO
 
--- Vincula la alianza con contactos, campañas, contenido promocional y
--- orígenes (listas separadas por coma). THROW 51322 si algo no está disponible.
 IF OBJECT_ID('dbo.sp_AlianzaEstrategica_GuardarVinculos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_AlianzaEstrategica_GuardarVinculos;
 GO
 CREATE PROCEDURE dbo.sp_AlianzaEstrategica_GuardarVinculos
@@ -319,7 +309,6 @@ BEGIN
 END
 GO
 
--- A7: seguimiento (y A8 si se indica el estado resultante).
 IF OBJECT_ID('dbo.sp_SeguimientoAlianza_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SeguimientoAlianza_Insertar;
 GO
 CREATE PROCEDURE dbo.sp_SeguimientoAlianza_Insertar
@@ -394,9 +383,6 @@ BEGIN
 END
 GO
 
--- A9 (y reactivación de una finalizada o dada de baja con @reactivar = 1):
--- guarda el período anterior en AlianzaVigencia. Los datos opcionales en
--- NULL no se cambian.
 IF OBJECT_ID('dbo.sp_AlianzaEstrategica_Renovar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_AlianzaEstrategica_Renovar;
 GO
 CREATE PROCEDURE dbo.sp_AlianzaEstrategica_Renovar
@@ -491,8 +477,6 @@ BEGIN
 END
 GO
 
--- A10 (Finalizada) y A11 (DadaDeBaja). THROW 51324 si el estado actual no
--- lo permite.
 IF OBJECT_ID('dbo.sp_AlianzaEstrategica_Cerrar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_AlianzaEstrategica_Cerrar;
 GO
 CREATE PROCEDURE dbo.sp_AlianzaEstrategica_Cerrar
@@ -541,12 +525,9 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Procedimientos: contenido promocional (CU-004-005)
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_ContenidoPromocional_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ContenidoPromocional_Listar;
 GO
--- @vista: Vigentes (sin los dados de baja), Bajas o Todos.
+
 CREATE PROCEDURE dbo.sp_ContenidoPromocional_Listar
     @vista                NVARCHAR(10) = N'Vigentes',
     @estado               NVARCHAR(20) = NULL,
@@ -618,10 +599,7 @@ GO
 
 IF OBJECT_ID('dbo.sp_ContenidoPromocional_Guardar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ContenidoPromocional_Guardar;
 GO
--- Alta (@idContenidoPromocional NULL) o modificación. El archivo solo se
--- reemplaza si @rutaArchivo viene informado; @quitarArchivo = 1 lo saca.
--- THROW 51330 contenido inexistente o dado de baja; 51331 campaña o alianza
--- no disponible; 51332 sin archivo ni enlace.
+
 CREATE PROCEDURE dbo.sp_ContenidoPromocional_Guardar
     @idContenidoPromocional  INT = NULL,
     @titulo                  NVARCHAR(200),
@@ -699,13 +677,11 @@ BEGIN
         fechaUltimaModificacion = GETDATE()
     WHERE idContenidoPromocional = @idContenidoPromocional;
 
-    -- Devuelve el archivo anterior si se reemplazó o se quitó (para borrarlo).
     SELECT @idContenidoPromocional AS idContenidoPromocional,
            CASE WHEN ISNULL(@rutaFinal, N'') <> ISNULL(@rutaAnterior, N'') THEN @rutaAnterior END AS rutaArchivoAnterior;
 END
 GO
 
--- A7, A8 y reactivación de un contenido dado de baja.
 IF OBJECT_ID('dbo.sp_ContenidoPromocional_CambiarEstado', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ContenidoPromocional_CambiarEstado;
 GO
 CREATE PROCEDURE dbo.sp_ContenidoPromocional_CambiarEstado
@@ -727,12 +703,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Procedimientos: métricas comerciales y origen de usuarios (CU-004-004)
--- Filtros comunes: período (@desde/@hasta sobre la fecha de cada hecho),
--- campaña, canal de origen ('NoInformado' = usuarios sin origen) y tipo de
--- usuario ('Solicitante' o 'Gestor').
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_MetricasComerciales_Resumen', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_MetricasComerciales_Resumen;
 GO
 CREATE PROCEDURE dbo.sp_MetricasComerciales_Resumen
@@ -787,8 +757,7 @@ GO
 
 IF OBJECT_ID('dbo.sp_MetricasComerciales_PorOrigen', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_MetricasComerciales_PorOrigen;
 GO
--- Usuarios registrados por origen (fila con idOrigenUsuario NULL = origen
--- no informado), con cuántos son gestores.
+
 CREATE PROCEDURE dbo.sp_MetricasComerciales_PorOrigen
     @desde                DATE = NULL,
     @hasta                DATE = NULL,
@@ -821,9 +790,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Permisos y menú (alianzas, métricas, contenido promocional y reactivación)
--- ===========================================================================
 IF OBJECT_ID('tempdb..#RegistrarPermisoComercial') IS NOT NULL DROP PROCEDURE #RegistrarPermisoComercial;
 GO
 CREATE PROCEDURE #RegistrarPermisoComercial
@@ -946,7 +912,7 @@ BEGIN
            AND @idComponente IS NOT NULL
            AND NOT EXISTS (SELECT 1 FROM dbo.OpcionMenu WHERE idComponentePermiso = @idComponente)
         BEGIN
-            -- Se ubica justo después de la última opción de Comercialización.
+
             DECLARE @ordenMenu INT =
             (
                 SELECT MAX(orden) FROM dbo.OpcionMenu WHERE modulo = N'Comercialización'

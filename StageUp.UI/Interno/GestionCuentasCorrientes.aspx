@@ -1,4 +1,4 @@
-<%@ Page Title="Pagos y cuentas corrientes | StageUp" Language="C#" MasterPageFile="~/Interno/PanelInterno.Master" AutoEventWireup="true" CodeBehind="GestionCuentasCorrientes.aspx.cs" Inherits="StageUp.UI.Interno.GestionCuentasCorrientes" %>
+﻿<%@ Page Title="Pagos y cuentas corrientes | StageUp" Language="C#" MasterPageFile="~/Interno/PanelInterno.Master" AutoEventWireup="true" CodeBehind="GestionCuentasCorrientes.aspx.cs" Inherits="StageUp.UI.Interno.GestionCuentasCorrientes" %>
 
 <asp:Content ID="GestionCuentasCorrientesContent" ContentPlaceHolderID="MainContent" runat="server">
     <style type="text/css">
@@ -174,6 +174,9 @@
                                         <td><%#: StageUp.BLL.BLL_CuentaCorriente.EtiquetaMovimiento(Eval("TipoMovimiento") as string) %></td>
                                         <td><%#: Eval("Descripcion") %>
                                             <%# string.IsNullOrEmpty(Eval("NumeroComprobante") as string) ? "" : "<br /><span class=\"gcc-meta\">" + Server.HtmlEncode(Eval("NumeroComprobante") + " · " + Eval("EstadoComprobante")) + "</span>" %>
+                                            <asp:HyperLink runat="server" CssClass="link-muted" Text="Ver comprobante"
+                                                Visible='<%# Eval("IdComprobante") != null && (Convert.ToString(Eval("NumeroComprobante")).StartsWith("NC-") || Convert.ToString(Eval("NumeroComprobante")).StartsWith("ND-")) %>'
+                                                NavigateUrl='<%# "~/DetalleComprobante.aspx?id=" + Eval("IdComprobante") %>' />
                                         </td>
                                         <td class="num"><%#: StageUp.BLL.BLL_CuentaCorriente.FormatearImporte((decimal)Eval("Importe"), Eval("Moneda") as string) %></td>
                                         <td class="num"><%#: StageUp.BLL.BLL_CuentaCorriente.FormatearImporte((decimal)Eval("SaldoAcumulado"), Eval("Moneda") as string) %></td>

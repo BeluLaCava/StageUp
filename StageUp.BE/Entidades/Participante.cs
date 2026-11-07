@@ -1,10 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-
-
 
     public class Participante
     {
@@ -13,7 +11,6 @@ namespace StageUp.BE.Entidades
         public string Nombre { get; set; }
         public string Apellido { get; set; }
         public string Dni { get; set; }
-
 
         public string Correo { get; set; }
         public string Telefono { get; set; }
@@ -24,7 +21,6 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaUltimaModificacion { get; set; }
         public DateTime? FechaBaja { get; set; }
 
-
         public List<ParticipacionActividad> Actividades { get; set; } = new List<ParticipacionActividad>();
 
         public string NombreCompleto
@@ -32,8 +28,6 @@ namespace StageUp.BE.Entidades
             get { return (Nombre + " " + Apellido).Trim(); }
         }
     }
-
-
 
     public class ParticipacionActividad
     {

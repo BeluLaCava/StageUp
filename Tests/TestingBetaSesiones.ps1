@@ -1,10 +1,9 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
 $bin = Join-Path $repo 'StageUp.UI\bin'
 $null = [Reflection.Assembly]::LoadFrom((Join-Path $bin 'StageUp.BE.dll'))
 $null = [Reflection.Assembly]::LoadFrom((Join-Path $bin 'StageUp.Seguridad.dll'))
-# The production coordinator and session manager are exercised with a deterministic
-# BLL test double. This never reads or changes accounts in the real database.
+
 $stub = @'
 using System;
 using System.Collections.Generic;
@@ -46,7 +45,7 @@ public static class BetaSessionFixture {
 }
 '@
 $source = Get-Content (Join-Path $repo 'StageUp.UI\Infraestructura\ControlSesionBaseDatos.cs') -Raw
-# All usings must precede declarations when joining sources for the test assembly.
+
 $source = $source -replace '(?m)^using [^;]+;\r?\n', ''
 Add-Type -TypeDefinition ($stub + $source) -ReferencedAssemblies @('System.Web', (Join-Path $bin 'StageUp.BE.dll'), (Join-Path $bin 'StageUp.Seguridad.dll'))
 function Check([bool]$condition,[string]$name) { if(!$condition){throw "FAILED: $name"}; Write-Output "PASS: $name" }

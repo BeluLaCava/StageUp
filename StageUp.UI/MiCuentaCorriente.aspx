@@ -1,4 +1,4 @@
-<%@ Page Title="Mi cuenta corriente | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="MiCuentaCorriente.aspx.cs" Inherits="StageUp.UI.MiCuentaCorriente" %>
+﻿<%@ Page Title="Mi cuenta corriente | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="MiCuentaCorriente.aspx.cs" Inherits="StageUp.UI.MiCuentaCorriente" %>
 
 <asp:Content ID="MiCuentaCorrienteContent" ContentPlaceHolderID="MainContent" runat="server">
     <style type="text/css">
@@ -175,6 +175,9 @@
                                             <%#: Eval("Descripcion") %>
                                             <%# string.IsNullOrEmpty(Eval("NumeroComprobante") as string) ? "" :
                                                 "<br /><span class=\"cc-comprobante\">" + Server.HtmlEncode(Eval("NumeroComprobante") + ((Eval("EstadoComprobante") as string) == "Anulado" ? " · anulado" : "")) + "</span>" %>
+                                            <asp:HyperLink runat="server" CssClass="link-muted" Text="Ver comprobante"
+                                                Visible='<%# Eval("IdComprobante") != null && (Convert.ToString(Eval("NumeroComprobante")).StartsWith("NC-") || Convert.ToString(Eval("NumeroComprobante")).StartsWith("ND-")) %>'
+                                                NavigateUrl='<%# "~/DetalleComprobante.aspx?id=" + Eval("IdComprobante") %>' />
                                         </td>
                                         <td data-label="Importe" class="num"><%#: ImporteConSigno((decimal)Eval("Importe"), Eval("Moneda") as string) %></td>
                                         <td data-label="Saldo" class="num"><%#: ImporteConSigno((decimal)Eval("SaldoAcumulado"), Eval("Moneda") as string) %></td>

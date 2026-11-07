@@ -24,14 +24,11 @@ namespace StageUp.BLL
         private static readonly HashSet<string> EquipamientoPermitido =
             new HashSet<string> { "ESPEJOS", "SONIDO", "INSTRUMENTOS", "EQUIPAMIENTO", "ESCENARIO", "ILUMINACION" };
 
-
         private static readonly Dictionary<string, string> NombresEquipamiento = new Dictionary<string, string>
         {
             { "ESPEJOS", "espejos" }, { "SONIDO", "equipo de sonido" }, { "INSTRUMENTOS", "instrumentos" },
             { "EQUIPAMIENTO", "equipamiento técnico" }, { "ESCENARIO", "escenario" }, { "ILUMINACION", "iluminación" }
         };
-
-
 
         private const int LongitudMinimaDescripcionFicha = 30;
         private const int LongitudMinimaCondiciones = 10;
@@ -83,8 +80,6 @@ namespace StageUp.BLL
                 if (!permitidos.Contains(codigo) || !seleccionados.Add(codigo))
                     return ResultadoOperacion.Error("Hay características no válidas o repetidas.");
 
-
-
             if (ficha.Disponibilidad == null && espacio.IdEspacioArtistico != 0)
                 return ResultadoOperacion.Ok();
             if (ficha.Disponibilidad == null || ficha.Disponibilidad.Count == 0 || ficha.Disponibilidad.Count > 100)
@@ -101,13 +96,6 @@ namespace StageUp.BLL
                     (!fechaConcreta && (franja.DiaSemana < 1 || franja.DiaSemana > 7)))
                     return ResultadoOperacion.Error("Cada horario debe indicar un día de la semana o una fecha válida.");
 
-
-
-
-
-
-
-
                 if (franja.MinutoDesde < 0 || franja.MinutoHasta > 1440 || franja.MinutoHasta <= franja.MinutoDesde ||
                     franja.MinutoDesde % 30 != 0 || franja.MinutoHasta % 30 != 0)
                     return ResultadoOperacion.Error("Usá horarios en intervalos de 30 minutos, con fin posterior al inicio.");
@@ -123,9 +111,6 @@ namespace StageUp.BLL
             }
             return tieneHorario ? ResultadoOperacion.Ok() : ResultadoOperacion.Error("Agregá al menos un horario abierto.");
         }
-
-
-
 
         private static ResultadoOperacion ValidarDatosDePresentacion(EspacioArtistico espacio)
         {
@@ -171,8 +156,6 @@ namespace StageUp.BLL
                     RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         }
 
-
-
         public static string GenerarDescripcion(EspacioArtistico espacio)
         {
             if (espacio == null)
@@ -187,7 +170,6 @@ namespace StageUp.BLL
             string tipo = string.IsNullOrWhiteSpace(espacio.TipoEspacio) ? "artístico" : espacio.TipoEspacio.Trim();
             string nombre = string.IsNullOrWhiteSpace(espacio.NombreEspacio) ? null : espacio.NombreEspacio.Trim();
             string lugar = string.Join(", ", new[] { ficha.Ciudad, ficha.Provincia }.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p.Trim()));
-
 
             oraciones.Add((nombre != null ? "«" + nombre + "» es un espacio" : "Espacio") +
                 " de tipo " + tipo.ToLower(cultura) + (lugar.Length > 0 ? ", en " + lugar : string.Empty) + ".");
@@ -223,10 +205,6 @@ namespace StageUp.BLL
             string descripcion = string.Join(" ", oraciones);
             return descripcion.Length > LongitudMaximaDescripcion ? descripcion.Substring(0, LongitudMaximaDescripcion) : descripcion;
         }
-
-
-
-
 
         public ResultadoOperacion<SugerenciaPrecio> SugerirValores(EspacioArtistico borrador)
         {
@@ -283,8 +261,6 @@ namespace StageUp.BLL
                     break;
                 }
 
-
-
                 decimal minimo = precios.Count >= 4 ? Percentil(precios, 0.25m) : precios[0];
                 decimal maximo = precios.Count >= 4 ? Percentil(precios, 0.75m) : precios[precios.Count - 1];
 
@@ -325,8 +301,6 @@ namespace StageUp.BLL
             return texto.EndsWith(".") || texto.EndsWith("!") || texto.EndsWith("?") ? texto : texto + ".";
         }
 
-
-
         public EspacioArtistico ObtenerDetalleParaGestor(int idEspacioArtistico, int idUsuarioGestor)
         {
             try
@@ -339,9 +313,6 @@ namespace StageUp.BLL
                 return null;
             }
         }
-
-
-
 
         public ResultadoOperacion<EspacioArtistico> ObtenerDetalleInterno(int idEspacioArtistico)
         {
@@ -362,7 +333,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<EspacioArtistico>.Error("No pudimos obtener los datos del espacio. Intentá de nuevo más tarde.");
             }
         }
-
 
         public static string EtiquetaEstado(EspacioArtistico espacio)
         {
@@ -407,21 +377,8 @@ namespace StageUp.BLL
             if (espacio.Ficha.Fotos != null && espacio.Ficha.Fotos.Count > 0)
                 espacio.Ficha.FotoRuta = espacio.Ficha.Fotos[0];
 
-
-
-
-
-
-
-
-
-
             if (espacio.Ficha.Disponibilidad != null)
                 espacio.Ficha.Disponibilidad = ObtenerFranjasEditables(espacio.Ficha);
-
-
-
-
 
             return EjecutarProtegido(() =>
             {
@@ -504,9 +461,6 @@ namespace StageUp.BLL
             });
         }
 
-
-
-
         public static List<FranjaEspacio> ObtenerFranjasEditables(FichaEspacio ficha)
         {
             List<FranjaEspacio> editables = new List<FranjaEspacio>();
@@ -533,9 +487,9 @@ namespace StageUp.BLL
                 return _mppEspacio.ListarPorUsuarioGestor(
                     new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<EspacioArtistico>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -546,9 +500,9 @@ namespace StageUp.BLL
             {
                 publicados = _mppEspacio.ListarPublicados();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<EspacioArtistico>();
+                throw new ErrorCargaListadoException(ex);
             }
 
             string termino = string.IsNullOrWhiteSpace(textoBusqueda) ? null : textoBusqueda.Trim();
@@ -566,11 +520,6 @@ namespace StageUp.BLL
                     ContieneTexto(espacio.Descripcion, termino)) &&
                 (tipo == null || ContieneTexto(espacio.TipoEspacio, tipo)));
         }
-
-
-
-
-
 
         public const string OrdenRelevancia = "";
         public const string OrdenMejorValorados = "valoracion";
@@ -630,9 +579,9 @@ namespace StageUp.BLL
             {
                 return _mppEspacio.BuscarPublicados(filtro);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<EspacioArtistico>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 

@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -34,7 +34,7 @@ IF OBJECT_ID('dbo.sp_Actividad_ListarPorUsuarioGestorV2', 'P') IS NOT NULL DROP 
 GO
 CREATE PROCEDURE dbo.sp_Actividad_ListarPorUsuarioGestorV2
     @idUsuarioGestor    INT,
-    @estado             NVARCHAR(20) = N'Activas',   -- Activas | Inactivas | Todas
+    @estado             NVARCHAR(20) = N'Activas',
     @idEspacioArtistico INT          = NULL
 AS
 BEGIN

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Web;
@@ -10,8 +10,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
-
 
     public partial class PagosReservas : Page
     {
@@ -28,7 +26,6 @@ namespace StageUp.UI.Interno
                 Response.Redirect("~/IniciarSesion.aspx");
                 return;
             }
-
 
             if (!GestorDeSesion.TienePermisoInterno(PermisoRequerido))
             {
@@ -84,12 +81,15 @@ namespace StageUp.UI.Interno
                 return;
             }
 
+            ViewState["DetalleTrigger"] = ((Control)e.CommandSource).ClientID;
             MostrarDetalle(resultado.Valor);
         }
 
         protected void lnkCerrarDetalle_Click(object sender, EventArgs e)
         {
             pnlDetalle.Visible = false;
+            string trigger = ViewState["DetalleTrigger"] as string;
+            if (!string.IsNullOrEmpty(trigger)) Page.SetFocus(trigger);
         }
 
         protected void btnRegistrarAviso_Click(object sender, EventArgs e)
@@ -134,9 +134,6 @@ namespace StageUp.UI.Interno
 
             CargarPagos();
         }
-
-
-
 
         protected string ArgumentoDetalle(object dato)
         {

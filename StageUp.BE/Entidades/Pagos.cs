@@ -1,15 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-
-
-
-
-
-
-
 
     public class DatosTarjeta
     {
@@ -19,9 +12,6 @@ namespace StageUp.BE.Entidades
         public int AnioVencimiento { get; set; }
         public string CodigoSeguridad { get; set; }
     }
-
-
-
 
     public class TarjetaGuardada
     {
@@ -36,7 +26,6 @@ namespace StageUp.BE.Entidades
         public DateTime FechaAlta { get; set; }
         public DateTime? FechaUltimoUso { get; set; }
 
-
         public string Huella { get; set; }
         public string Iv { get; set; }
         public string ClaveCifrada { get; set; }
@@ -49,9 +38,6 @@ namespace StageUp.BE.Entidades
         }
     }
 
-
-
-
     public class TarjetaParaPagar
     {
         public DatosTarjeta Nueva { get; set; }
@@ -60,7 +46,6 @@ namespace StageUp.BE.Entidades
         public int? IdTarjetaGuardada { get; set; }
         public string CodigoSeguridad { get; set; }
     }
-
 
     public class ClaveCifrado
     {
@@ -103,7 +88,6 @@ namespace StageUp.BE.Entidades
         public string CorreoUsuario { get; set; }
         public string NombreEspacio { get; set; }
 
-
         public string Origen { get; set; }
         public string IdentificadorExterno { get; set; }
         public string MedioInformado { get; set; }
@@ -112,8 +96,6 @@ namespace StageUp.BE.Entidades
         public string Observacion { get; set; }
         public int? IdUsuarioInternoRegistro { get; set; }
     }
-
-
 
     public class DetallePagoReserva : Pago
     {
@@ -132,7 +114,6 @@ namespace StageUp.BE.Entidades
         public string EstadoFactura { get; set; }
         public string NombreInternoRegistro { get; set; }
     }
-
 
     public class ItemPagoReserva
     {
@@ -161,8 +142,6 @@ namespace StageUp.BE.Entidades
         public string Texto { get; set; }
     }
 
-
-
     public class AvisoMedioPago
     {
         public int? IdReserva { get; set; }
@@ -174,7 +153,6 @@ namespace StageUp.BE.Entidades
         public string EstadoInformado { get; set; }
         public string Motivo { get; set; }
     }
-
 
     public enum ModoPago
     {
@@ -189,7 +167,6 @@ namespace StageUp.BE.Entidades
         public decimal ImporteSaldo { get; set; }
     }
 
-
     public class ResumenPago
     {
         public string Moneda { get; set; }
@@ -201,21 +178,17 @@ namespace StageUp.BE.Entidades
         public string MedioDescripcion { get; set; }
     }
 
-
     public class DatosFacturacion
     {
         public string RazonSocial { get; set; }
         public string DatosFiscales { get; set; }
         public string Leyenda { get; set; }
 
-
         public string Cuit { get; set; }
         public string CondicionIva { get; set; }
         public string Domicilio { get; set; }
         public int PuntoVenta { get; set; }
     }
-
-
 
     public class TransaccionEconomica
     {
@@ -245,7 +218,6 @@ namespace StageUp.BE.Entidades
         public string NumeroFactura { get; set; }
         public string NumeroComprobante { get; set; }
 
-
         public DateTime? FechaSolicitada { get; set; }
         public int? MinutoDesde { get; set; }
         public int? MinutoHasta { get; set; }
@@ -263,9 +235,6 @@ namespace StageUp.BE.Entidades
         public DateTime? Hasta { get; set; }
         public string Texto { get; set; }
     }
-
-
-
 
     public class OperacionFinanciera
     {
@@ -298,7 +267,6 @@ namespace StageUp.BE.Entidades
         public string NumeroComprobante { get; set; }
         public string TipoComprobante { get; set; }
 
-
         public string CorreoSolicitante { get; set; }
         public string CorreoGestor { get; set; }
         public DateTime? FechaSolicitada { get; set; }
@@ -329,7 +297,6 @@ namespace StageUp.BE.Entidades
         public string Texto { get; set; }
     }
 
-
     public class ResumenHistorialFinanciero
     {
         public string Moneda { get; set; }
@@ -340,7 +307,6 @@ namespace StageUp.BE.Entidades
         public decimal TotalPendiente { get; set; }
         public decimal TotalLiquidado { get; set; }
     }
-
 
     public class Comprobante
     {
@@ -359,7 +325,6 @@ namespace StageUp.BE.Entidades
         public DateTime FechaEmision { get; set; }
         public DateTime? FechaAnulacion { get; set; }
         public string MotivoAnulacion { get; set; }
-
 
         public int? IdUsuarioInternoAnulacion { get; set; }
 
@@ -389,7 +354,6 @@ namespace StageUp.BE.Entidades
 
         public string NombreUsuario { get; set; }
     }
-
 
     public class SaldoCuentaCorriente
     {
@@ -427,8 +391,6 @@ namespace StageUp.BE.Entidades
         public string Texto { get; set; }
     }
 
-
-
     public class ResultadoMovimientoDinero
     {
         public string Resultado { get; set; }
@@ -440,7 +402,6 @@ namespace StageUp.BE.Entidades
         }
     }
 
-
     public class ResultadoCancelacionReserva
     {
         public bool SeCancelo { get; set; }
@@ -448,13 +409,11 @@ namespace StageUp.BE.Entidades
         public int? IdNotaDebito { get; set; }
     }
 
-
     public class ContextoPagoReserva
     {
         public Reserva Reserva { get; set; }
         public decimal Total { get; set; }
         public decimal SaldoDisponible { get; set; }
-
 
         public decimal ImporteConSaldo
         {
@@ -469,11 +428,9 @@ namespace StageUp.BE.Entidades
         public string Descripcion { get; set; }
         public DateTime FechaUltimaModificacion { get; set; }
 
-
         public string ValorProgramado { get; set; }
         public DateTime? FechaVigenciaProgramada { get; set; }
     }
-
 
     public class CambioParametroPlataforma
     {

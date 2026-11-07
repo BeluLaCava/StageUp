@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -68,9 +68,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Restauración (en master).
--- ---------------------------------------------------------------------------
 USE master;
 GO
 
@@ -88,8 +85,6 @@ BEGIN
         THROW 51022, 'La base de datos indicada no existe en esta instancia.', 1;
     END
 
-    -- Anti-pisado: solo se aceptan archivos que SQL Server tenga registrados
-    -- como backup completo de ESA base (no cualquier .bak del disco).
     IF NOT EXISTS
     (
         SELECT 1
@@ -103,7 +98,6 @@ BEGIN
         THROW 51023, 'El archivo no corresponde a un backup registrado de esta base.', 1;
     END
 
-    -- Se verifica que el archivo exista y se pueda leer antes de tocar la base.
     RESTORE VERIFYONLY FROM DISK = @rutaBackup;
 
     DECLARE @sql NVARCHAR(MAX);
@@ -131,10 +125,6 @@ GO
 USE StageUp;
 GO
 
--- ---------------------------------------------------------------------------
--- Permiso propio GESTIONAR_BACKUP (mismo patrón que GESTIONAR_SOPORTE en el
--- 38) + su opción en el menú dinámico.
--- ---------------------------------------------------------------------------
 BEGIN TRY
     BEGIN TRANSACTION;
 
@@ -282,7 +272,6 @@ BEGIN TRY
         END
     END
 
-    -- Opción del menú dinámico (script 45), al final del menú.
     IF OBJECT_ID(N'dbo.OpcionMenu', N'U') IS NOT NULL
        AND @idComponenteBackup IS NOT NULL
        AND NOT EXISTS (SELECT 1 FROM dbo.OpcionMenu WHERE idComponentePermiso = @idComponenteBackup)

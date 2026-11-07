@@ -1,4 +1,4 @@
-using StageUp.Seguridad;
+﻿using StageUp.Seguridad;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,13 +9,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
 
     public class BLL_Participante
     {
@@ -59,13 +52,11 @@ namespace StageUp.BLL
                 Normalizar(participante);
                 participante.IdUsuarioGestor = idUsuarioGestor;
 
-
                 ResultadoOperacion validacion = Validar(participante, esNuevo);
                 if (!validacion.Exitoso)
                 {
                     return ResultadoOperacion<int>.Error(validacion.Mensaje, validacion.CodigoAlternativo);
                 }
-
 
                 string coincidencia;
                 Participante duplicado = _mppParticipante.BuscarDuplicado(participante, out coincidencia);
@@ -100,8 +91,6 @@ namespace StageUp.BLL
             return participante.IdParticipante;
         }
 
-
-
         public Participante BuscarActivoPorDni(string dni, int idUsuarioGestor)
         {
             try
@@ -122,9 +111,6 @@ namespace StageUp.BLL
                 return null;
             }
         }
-
-
-
 
         public ResultadoOperacion DarDeBaja(int idParticipante, int idUsuarioGestor)
         {
@@ -152,21 +138,17 @@ namespace StageUp.BLL
             });
         }
 
-
-
-
         public List<Participante> ListarPorUsuarioGestor(int idUsuarioGestor)
         {
             try
             {
                 return _mppParticipante.ListarPorUsuarioGestor(new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Participante>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
 
         public List<Participante> Buscar(int idUsuarioGestor, string estado, string texto)
         {
@@ -179,14 +161,13 @@ namespace StageUp.BLL
                     busqueda = busqueda.Substring(0, 100);
                 }
 
-
                 busqueda = busqueda.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_").Replace("[", "\\[");
                 return _mppParticipante.Buscar(new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor }, filtro,
                     busqueda.Length == 0 ? null : busqueda);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Participante>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -195,7 +176,6 @@ namespace StageUp.BLL
             Participante participante = ObtenerDetalle(idParticipante, idUsuarioGestor);
             return participante != null && participante.Activo ? participante : null;
         }
-
 
         public Participante ObtenerDetalle(int idParticipante, int idUsuarioGestor)
         {
@@ -215,12 +195,6 @@ namespace StageUp.BLL
                 return null;
             }
         }
-
-
-
-
-
-
 
         public static string NormalizarDni(string dni)
         {
@@ -268,7 +242,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error("El nombre y el apellido pueden tener hasta " + LongitudMaximaNombre + " caracteres.", codigoDatos);
             }
-
 
             if (!Regex.IsMatch(participante.Dni, @"^[0-9]{7,8}$"))
             {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
@@ -13,10 +13,6 @@ namespace StageUp.BE.Entidades
         public string Estado { get; set; }
         public DateTime FechaAlta { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
-
-
-
-
 
         public bool EstaVencida
         {

@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,9 +7,6 @@ GO
 USE StageUp;
 GO
 
--- ---------------------------------------------------------------------------
--- Reserva: estado del pago
--- ---------------------------------------------------------------------------
 IF COL_LENGTH(N'dbo.Reserva', N'estadoPago') IS NULL
 BEGIN
     ALTER TABLE dbo.Reserva
@@ -37,9 +34,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Parámetros de la plataforma (los edita el administrador)
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.ParametroPlataforma', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.ParametroPlataforma
@@ -64,11 +58,6 @@ WHEN NOT MATCHED THEN
     INSERT (clave, valor, descripcion) VALUES (origen.clave, origen.valor, origen.descripcion);
 GO
 
--- ---------------------------------------------------------------------------
--- Pagos (intentos aprobados y rechazados). Nunca se guarda el número
--- completo de la tarjeta, el código de seguridad ni el titular: solo marca,
--- últimos 4 dígitos y código de autorización.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.Pago', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Pago
@@ -102,9 +91,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Comprobantes: notas de crédito (NC) y de débito (ND)
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.Comprobante', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Comprobante
@@ -139,10 +125,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Movimientos de cuenta corriente. importe con signo: + a favor del usuario,
--- - en contra.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.MovimientoCuentaCorriente', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.MovimientoCuentaCorriente
@@ -176,9 +158,6 @@ BEGIN
 END
 GO
 
--- =============================================================================
--- Parámetros
--- =============================================================================
 IF OBJECT_ID('dbo.sp_ParametroPlataforma_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ParametroPlataforma_Listar;
 GO
 CREATE PROCEDURE dbo.sp_ParametroPlataforma_Listar
@@ -207,10 +186,6 @@ BEGIN
 END
 GO
 
--- =============================================================================
--- Reservas: se agregan los datos del pago a los listados y se ajustan
--- aceptación, finalización, recordatorio y cancelación.
--- =============================================================================
 IF OBJECT_ID(N'dbo.sp_Reserva_ListarPorSolicitante', N'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_ListarPorSolicitante;
 GO
 CREATE PROCEDURE dbo.sp_Reserva_ListarPorSolicitante
@@ -315,9 +290,6 @@ BEGIN
 END
 GO
 
--- Al aceptar, si la reserva tiene importe, queda esperando el pago hasta
--- @fechaLimitePago (lo calcula BLL_Reserva con el parámetro HorasLimitePago:
--- ese plazo desde ahora, o el inicio de la reserva si es antes).
 IF OBJECT_ID(N'dbo.sp_Reserva_AceptarSiDisponible', N'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_AceptarSiDisponible;
 GO
 CREATE PROCEDURE dbo.sp_Reserva_AceptarSiDisponible
@@ -364,8 +336,6 @@ BEGIN
 END
 GO
 
--- Solo finalizan las reservas pagadas (o anteriores al módulo de pagos). Las
--- que siguen esperando el pago las cancela sp_Reserva_VencerPagosPendientes.
 IF OBJECT_ID(N'dbo.sp_Reserva_FinalizarVencidas', N'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_FinalizarVencidas;
 GO
 CREATE PROCEDURE dbo.sp_Reserva_FinalizarVencidas
@@ -383,8 +353,6 @@ BEGIN
 END
 GO
 
--- Cancela (sin cargo) las reservas aceptadas cuyo plazo de pago venció y las
--- devuelve, para avisarle al cliente y al gestor.
 IF OBJECT_ID(N'dbo.sp_Reserva_VencerPagosPendientes', N'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_VencerPagosPendientes;
 GO
 CREATE PROCEDURE dbo.sp_Reserva_VencerPagosPendientes
@@ -421,8 +389,6 @@ BEGIN
 END
 GO
 
--- El recordatorio de 24 hs es para reservas confirmadas: no se manda si la
--- reserva todavía está esperando el pago.
 IF OBJECT_ID(N'dbo.sp_Reserva_ListarPendientesDeRecordatorio', N'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_ListarPendientesDeRecordatorio;
 GO
 CREATE PROCEDURE dbo.sp_Reserva_ListarPendientesDeRecordatorio
@@ -450,8 +416,6 @@ BEGIN
 END
 GO
 
--- Calificar una reserva la finaliza si ya pasó su horario (script 21). Con el
--- módulo de pagos, solo si está pagada: una reserva impaga nunca se finaliza.
 IF OBJECT_ID(N'dbo.sp_Calificacion_Insertar', N'P') IS NOT NULL DROP PROCEDURE dbo.sp_Calificacion_Insertar;
 GO
 CREATE PROCEDURE dbo.sp_Calificacion_Insertar
@@ -539,12 +503,6 @@ BEGIN
 END
 GO
 
--- Cancelación por el cliente. Si la reserva estaba pagada, en la misma
--- transacción:
---   * cliente: NC por el total (saldo a favor) y, si corresponde, ND por la
---     penalidad;
---   * gestor: se anula el ingreso y la comisión de StageUp de ese pago.
--- Devuelve si se canceló y los comprobantes emitidos.
 IF OBJECT_ID(N'dbo.sp_Reserva_Cancelar', N'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_Cancelar;
 GO
 CREATE PROCEDURE dbo.sp_Reserva_Cancelar
@@ -579,8 +537,6 @@ BEGIN
             RETURN;
         END
 
-        -- Una reserva que espera el pago se cancela sin cargo, aunque llegue
-        -- una comisión: nunca se cobró nada.
         IF @estadoPago NOT IN (N'Pagado', N'NoRequerido')
         BEGIN
             SET @comisionAplicada = 0;
@@ -621,7 +577,6 @@ BEGIN
                         N'Nota de débito por cancelación tardía de la ' + @textoReserva, @idReserva, @idNotaDebito);
             END
 
-            -- Gestor: se revierte lo que se le acreditó con el pago.
             DECLARE @idPago INT, @comisionPlataforma DECIMAL(18,2);
             SELECT TOP 1 @idPago = idPago, @comisionPlataforma = ISNULL(importeComisionPlataforma, 0)
             FROM dbo.Pago
@@ -650,15 +605,6 @@ BEGIN
 END
 GO
 
--- =============================================================================
--- Pagos
--- =============================================================================
-
--- Pago aprobado de una reserva (tarjeta, saldo a favor o ambos). La
--- autorización de la tarjeta ya la hizo la pasarela (simulada) antes de
--- llamar a este SP. Todo en una transacción, con un bloqueo por cuenta para
--- que dos pagos simultáneos no usen el mismo saldo.
--- resultado: OK | NO_ENCONTRADA | NO_PENDIENTE | VENCIDA | IMPORTE_INVALIDO | SALDO_INSUFICIENTE
 IF OBJECT_ID('dbo.sp_Pago_RegistrarReserva', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Pago_RegistrarReserva;
 GO
 CREATE PROCEDURE dbo.sp_Pago_RegistrarReserva
@@ -730,9 +676,6 @@ BEGIN
 
         DECLARE @idPago INT = CAST(SCOPE_IDENTITY() AS INT);
 
-        -- Cliente: el cargo de la reserva y lo que pagó con tarjeta. Lo que se
-        -- cubrió con saldo a favor no necesita otro movimiento: el cargo lo
-        -- descuenta del saldo.
         INSERT INTO dbo.MovimientoCuentaCorriente (idUsuarioExterno, rolCuenta, tipoMovimiento, importe, moneda, descripcion, idReserva, idPago)
         VALUES (@idUsuarioExterno, N'Cliente', N'CargoReserva', -@total, @moneda,
                 N'Cargo por la ' + @textoReserva +
@@ -747,7 +690,6 @@ BEGIN
                     @idReserva, @idPago);
         END
 
-        -- Gestor: el importe de la reserva menos la comisión de StageUp.
         INSERT INTO dbo.MovimientoCuentaCorriente (idUsuarioExterno, rolCuenta, tipoMovimiento, importe, moneda, descripcion, idReserva, idPago)
         VALUES (@idGestor, N'Gestor', N'IngresoReserva', @total, @moneda, N'Ingreso por la ' + @textoReserva, @idReserva, @idPago);
 
@@ -773,7 +715,6 @@ BEGIN
 END
 GO
 
--- Intento rechazado por la pasarela: queda registrado, sin movimientos.
 IF OBJECT_ID('dbo.sp_Pago_RegistrarRechazado', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Pago_RegistrarRechazado;
 GO
 CREATE PROCEDURE dbo.sp_Pago_RegistrarRechazado
@@ -800,8 +741,6 @@ BEGIN
 END
 GO
 
--- Pago con tarjeta de un saldo deudor (por ejemplo, una nota de débito).
--- resultado: OK | SIN_DEUDA | IMPORTE_INVALIDO
 IF OBJECT_ID('dbo.sp_CuentaCorriente_PagarDeuda', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CuentaCorriente_PagarDeuda;
 GO
 CREATE PROCEDURE dbo.sp_CuentaCorriente_PagarDeuda
@@ -891,9 +830,6 @@ BEGIN
 END
 GO
 
--- =============================================================================
--- Cuenta corriente
--- =============================================================================
 IF OBJECT_ID('dbo.sp_CuentaCorriente_ObtenerSaldos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CuentaCorriente_ObtenerSaldos;
 GO
 CREATE PROCEDURE dbo.sp_CuentaCorriente_ObtenerSaldos
@@ -910,9 +846,6 @@ BEGIN
 END
 GO
 
--- Movimientos con saldo acumulado (calculado sobre toda la historia de la
--- cuenta, antes de aplicar los filtros, para que el saldo de cada fila sea
--- el real).
 IF OBJECT_ID('dbo.sp_CuentaCorriente_ListarMovimientos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CuentaCorriente_ListarMovimientos;
 GO
 CREATE PROCEDURE dbo.sp_CuentaCorriente_ListarMovimientos
@@ -948,8 +881,6 @@ BEGIN
 END
 GO
 
--- Administración: usuarios y sus cuentas. Sin texto, solo los que tienen
--- movimientos; con texto, busca por nombre o correo (aunque no tengan).
 IF OBJECT_ID('dbo.sp_CuentaCorriente_ListarCuentas', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CuentaCorriente_ListarCuentas;
 GO
 CREATE PROCEDURE dbo.sp_CuentaCorriente_ListarCuentas
@@ -978,9 +909,6 @@ BEGIN
 END
 GO
 
--- Liquidación al gestor: StageUp le transfiere (fuera del sistema) parte o
--- todo su saldo a favor y se registra acá.
--- resultado: OK | SALDO_INSUFICIENTE | IMPORTE_INVALIDO
 IF OBJECT_ID('dbo.sp_CuentaCorriente_RegistrarLiquidacion', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CuentaCorriente_RegistrarLiquidacion;
 GO
 CREATE PROCEDURE dbo.sp_CuentaCorriente_RegistrarLiquidacion
@@ -1036,10 +964,6 @@ BEGIN
 END
 GO
 
--- =============================================================================
--- Comprobantes manuales (NC/ND emitidas por el administrador)
--- =============================================================================
--- resultado: OK | RESERVA_INVALIDA
 IF OBJECT_ID('dbo.sp_Comprobante_EmitirManual', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Comprobante_EmitirManual;
 GO
 CREATE PROCEDURE dbo.sp_Comprobante_EmitirManual
@@ -1056,8 +980,6 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
-    -- Si se indica una reserva, tiene que ser del usuario (como cliente o
-    -- como gestor del espacio, según la cuenta).
     IF @idReserva IS NOT NULL AND NOT EXISTS
     (
         SELECT 1
@@ -1100,9 +1022,6 @@ BEGIN
 END
 GO
 
--- Un comprobante no se borra: se anula con un movimiento inverso. Solo los
--- manuales (los de una cancelación forman parte de la reserva).
--- resultado: OK | NO_ENCONTRADO | NO_ANULABLE
 IF OBJECT_ID('dbo.sp_Comprobante_Anular', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Comprobante_Anular;
 GO
 CREATE PROCEDURE dbo.sp_Comprobante_Anular
@@ -1173,11 +1092,6 @@ BEGIN
 END
 GO
 
--- =============================================================================
--- Reportes (script 48): con el módulo de pagos, una reserva cuenta como
--- ingreso cuando está pagada (o es anterior al módulo, estadoPago =
--- 'NoRequerido'). Una aceptada que todavía espera el pago no es ingreso.
--- =============================================================================
 IF OBJECT_ID('dbo.sp_Reporte_Indicadores', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reporte_Indicadores;
 GO
 CREATE PROCEDURE dbo.sp_Reporte_Indicadores
@@ -1217,7 +1131,7 @@ GO
 CREATE PROCEDURE dbo.sp_Reporte_Ingresos
     @desde        DATE,
     @hasta        DATE,
-    @agrupacion   NVARCHAR(10) = N'Mes',   -- Dia | Semana | Mes | Anio
+    @agrupacion   NVARCHAR(10) = N'Mes',
     @moneda       NVARCHAR(3) = N'ARS',
     @provincia    NVARCHAR(100) = NULL,
     @tipoEspacio  NVARCHAR(200) = NULL
@@ -1300,13 +1214,6 @@ BEGIN
 END
 GO
 
-
--- =============================================================================
--- Permisos y menú. Mismo patrón que los scripts 46 y 48, armado como
--- procedimiento temporal porque se registran dos permisos:
---   * GESTIONAR_PAGOS: Interno/GestionCuentasCorrientes.aspx
---   * CONFIGURAR_PARAMETROS: Interno/ParametrosPlataforma.aspx
--- =============================================================================
 IF OBJECT_ID('tempdb..#RegistrarPermisoAdministracion') IS NOT NULL DROP PROCEDURE #RegistrarPermisoAdministracion;
 GO
 CREATE PROCEDURE #RegistrarPermisoAdministracion
@@ -1467,7 +1374,6 @@ BEGIN
             END
         END
 
-        -- Opción del menú dinámico (script 45), al final del menú.
         IF OBJECT_ID(N'dbo.OpcionMenu', N'U') IS NOT NULL
            AND @idComponente IS NOT NULL
            AND NOT EXISTS (SELECT 1 FROM dbo.OpcionMenu WHERE idComponentePermiso = @idComponente)

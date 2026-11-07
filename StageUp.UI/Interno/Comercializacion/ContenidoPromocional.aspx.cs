@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -10,11 +10,6 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Interno.Comercializacion
 {
-
-
-
-
-
 
     public partial class ContenidoPromocionalPagina : PaginaComercial
     {
@@ -46,10 +41,6 @@ namespace StageUp.UI.Interno.Comercializacion
             else if (LeerEntero("ver").HasValue) CargarDetalle(LeerEntero("ver").Value);
             else CargarListado();
         }
-
-
-
-
 
         private void CargarListado()
         {
@@ -94,7 +85,6 @@ namespace StageUp.UI.Interno.Comercializacion
             litDesactualizados.Text = resumen.Valor.Desactualizados.ToString(CultureInfo.InvariantCulture);
             litBajas.Text = resumen.Valor.Bajas.ToString(CultureInfo.InvariantCulture);
 
-
             if (resumen.Valor.Total == 0)
             {
                 pnlSinContenidos.Visible = true;
@@ -110,7 +100,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 rptContenidos.Visible = false;
                 return;
             }
-
 
             pnlSinResultados.Visible = resultado.Valor.Count == 0;
             rptContenidos.Visible = resultado.Valor.Count > 0;
@@ -141,10 +130,6 @@ namespace StageUp.UI.Interno.Comercializacion
             Agregar(partes, "q", txtFiltroTexto.Text);
             Redirigir(ArmarUrl(Pagina, partes), null);
         }
-
-
-
-
 
         private void CargarDetalle(int id)
         {
@@ -192,7 +177,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 lnkEnlace.NavigateUrl = BLL_ContenidoPromocional.EsUrlValida(c.UrlContenido) ? c.UrlContenido : null;
             }
 
-
             if (c.EstadoContenido == ContenidoPromocional.EstadoDadoDeBaja)
             {
                 pnlAviso.Visible = true;
@@ -210,8 +194,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 pnlAviso.Visible = true;
                 litAviso.Text = "Este contenido está en revisión: todavía no se considera vigente para uso comercial.";
             }
-
-
 
             bool dadoDeBaja = !c.Activo;
             pnlCambioEstado.Visible = !dadoDeBaja || PuedeReactivar;
@@ -254,10 +236,6 @@ namespace StageUp.UI.Interno.Comercializacion
             ResultadoOperacion resultado = _bll.CambiarEstado(id.Value, ContenidoPromocional.EstadoDadoDeBaja, IdUsuarioInterno, PuedeReactivar);
             Redirigir(Pagina + "?ver=" + id.Value, resultado.Mensaje, !resultado.Exitoso);
         }
-
-
-
-
 
         private void CargarFormulario(int? id)
         {
@@ -346,7 +324,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 QuitarArchivo = idEditar.HasValue && pnlArchivoActual.Visible && chkQuitarArchivo.Checked
             };
 
-
             string archivoGuardado = null;
             if (fuArchivo.HasFile)
             {
@@ -402,10 +379,6 @@ namespace StageUp.UI.Interno.Comercializacion
 
             Redirigir(idEditar.HasValue ? Pagina + "?ver=" + resultado.Valor : Pagina, resultado.Mensaje);
         }
-
-
-
-
 
         private static void MostrarVinculo(HyperLink enlace, Literal vacio, int? id, string nombre, string url, string permiso)
         {

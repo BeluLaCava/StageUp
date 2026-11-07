@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.UI;
@@ -49,7 +49,6 @@ namespace StageUp.UI
             rptNovedades.DataSource = resto;
             rptNovedades.DataBind();
         }
-
 
         protected static string ObtenerEtiquetaCategoria(string categoria)
         {

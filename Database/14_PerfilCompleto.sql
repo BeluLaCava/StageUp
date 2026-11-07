@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -6,7 +6,6 @@ GO
 
 USE StageUp;
 GO
-
 
 IF COL_LENGTH('dbo.UsuarioExterno', 'fotoPerfilRuta') IS NULL
 BEGIN
@@ -19,7 +18,6 @@ BEGIN
     ALTER TABLE dbo.UsuarioExterno ADD descripcionPerfil NVARCHAR(1200) NULL;
 END
 GO
-
 
 IF OBJECT_ID('dbo.sp_UsuarioExterno_ObtenerPerfilPorIdV2', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_ObtenerPerfilPorIdV2;
 GO

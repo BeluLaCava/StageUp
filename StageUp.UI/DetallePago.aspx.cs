@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Web.UI;
 using StageUp.BE.Entidades;
@@ -7,7 +7,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-
 
     public partial class DetallePago : Page
     {

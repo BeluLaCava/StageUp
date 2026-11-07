@@ -16,8 +16,6 @@ namespace StageUp.DAL
             NombreStoredProcedure = nombreStoredProcedure;
         }
 
-
-
         public int NumeroErrorSql
         {
             get
@@ -197,12 +195,6 @@ namespace StageUp.DAL
             }
         }
 
-
-
-
-
-
-
         private const int SegundosTimeoutOperacionLarga = 600;
 
         public string ObtenerNombreBaseDeDatos()
@@ -278,8 +270,6 @@ namespace StageUp.DAL
             }
         }
 
-
-
         public object LeerEscalarEnMaster(string nombreSp, Hashtable parametros = null)
         {
             try
@@ -312,8 +302,6 @@ namespace StageUp.DAL
                     nombreSp, "Ocurrió un error en la operación. Probá nuevamente en unos minutos.", ex);
             }
         }
-
-
 
         public void LimpiarConexionesAbiertas()
         {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,16 +9,9 @@ using StageUp.MPP;
 namespace StageUp.BLL
 {
 
-
-
-
-
-
-
     public class BLL_HistorialFinanciero
     {
         public const string MensajeDetalleNoDisponible = "No es posible acceder al detalle de la operación seleccionada en este momento.";
-
 
         private static readonly Dictionary<string, string> Tipos = new Dictionary<string, string>
         {
@@ -31,7 +24,6 @@ namespace StageUp.BLL
             { "NotaCreditoManual", "Nota de crédito manual" },
             { "NotaDebitoManual", "Nota de débito manual" }
         };
-
 
         private static readonly Dictionary<string, string> Estados = new Dictionary<string, string>
         {
@@ -61,8 +53,6 @@ namespace StageUp.BLL
         {
             return Estados.Keys.ToDictionary(e => e, DescribirEstado);
         }
-
-
 
         private static readonly Dictionary<string, string> EstadosConfigurables = new Dictionary<string, string>
         {
@@ -97,8 +87,6 @@ namespace StageUp.BLL
             return BLL_ParametroPlataforma.TextoEstado(BLL_ParametroPlataforma.EstadoFacturaPendiente);
         }
 
-
-
         public static bool IntentarLeerCodigo(string codigo, out string origen, out int idOrigen)
         {
             origen = null;
@@ -118,7 +106,6 @@ namespace StageUp.BLL
             origen = prefijo == "NC" || prefijo == "ND" ? "CP" : prefijo;
             return Origenes.Contains(origen);
         }
-
 
         public ResultadoOperacion<List<OperacionFinanciera>> Listar(FiltroHistorialFinanciero filtro)
         {
@@ -158,7 +145,6 @@ namespace StageUp.BLL
             }
         }
 
-
         public bool NoHayOperaciones()
         {
             try
@@ -177,19 +163,16 @@ namespace StageUp.BLL
             {
                 return _mpp.ListarGestores();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<UsuarioExterno>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
 
         public List<SaldoCuentaCorriente> ObtenerSaldosGestor(int idUsuarioGestor)
         {
             return _cuentaCorriente.ObtenerSaldos(idUsuarioGestor, BLL_CuentaCorriente.RolGestor);
         }
-
-
 
         public static List<ResumenHistorialFinanciero> Resumir(IEnumerable<OperacionFinanciera> operaciones)
         {
@@ -212,7 +195,6 @@ namespace StageUp.BLL
                 })
                 .ToList();
         }
-
 
         public ResultadoOperacion<OperacionFinanciera> ObtenerDetalle(string codigo)
         {
@@ -249,8 +231,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<OperacionFinanciera>.Error(MensajeDetalleNoDisponible, "A7");
             }
         }
-
-
 
         public static List<string> EstadosParticulares(OperacionFinanciera o)
         {

@@ -1,8 +1,7 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
-
 
     public class SolicitudHabilitacionGestor
     {
@@ -14,19 +13,15 @@ namespace StageUp.BE.Entidades
         public int IdUsuarioExterno { get; set; }
         public string Estado { get; set; }
 
-
         public string NombreResponsable { get; set; }
         public string DocumentoResponsable { get; set; }
-
 
         public string TelefonoContacto { get; set; }
         public string CorreoContacto { get; set; }
 
-
         public string CondicionFiscal { get; set; }
         public string RazonSocial { get; set; }
         public string Cuit { get; set; }
-
 
         public string NombreEspacio { get; set; }
         public string TipoEspacio { get; set; }
@@ -34,12 +29,10 @@ namespace StageUp.BE.Entidades
         public string Ciudad { get; set; }
         public string DescripcionPropuesta { get; set; }
 
-
         public DateTime FechaSolicitud { get; set; }
         public DateTime? FechaRevision { get; set; }
         public int? IdUsuarioInternoRevisor { get; set; }
         public string MotivoRechazo { get; set; }
-
 
         public string NombreUsuario { get; set; }
         public string CorreoUsuario { get; set; }

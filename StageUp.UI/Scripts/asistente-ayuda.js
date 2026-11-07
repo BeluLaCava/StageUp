@@ -1,17 +1,5 @@
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 (function () {
     "use strict";
 
@@ -28,7 +16,6 @@
     const nombreUsuario = (modal.getAttribute("data-usuario-nombre") || "").trim();
     const conSesion = urlSoporte.indexOf("Soporte.aspx") >= 0;
     const demoraEscritura = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 120 : 450;
-
 
     const ICONOS = {
         reservas: "\u{1F4C5}", reservar: "\u{1F4DD}", cancelar: "❌", estado: "\u{1F50E}",
@@ -47,10 +34,6 @@
     let recorridoActual = "";
     let ultimaPregunta = "";
     let cola = Promise.resolve();
-
-
-
-
 
     let turno = 0;
     let pedidoEnCurso = null;
@@ -72,8 +55,6 @@
     function vigente(numeroTurno) {
         return numeroTurno === turno;
     }
-
-
 
     function hora() {
         const ahora = new Date();
@@ -98,8 +79,6 @@
     function icono(clave) {
         return clave && ICONOS[clave] ? ICONOS[clave] : "";
     }
-
-
 
     function enCola(tarea) {
         const turnoDelMensaje = turno;
@@ -128,8 +107,6 @@
         return cola;
     }
 
-
-
     function pie(burbuja, deUsuario) {
         const meta = elemento("span", "asistente-hora", hora());
         if (deUsuario) {
@@ -139,7 +116,6 @@
         }
         burbuja.appendChild(meta);
     }
-
 
     function crearMensajeBot(partes) {
         const burbuja = elemento("div", "asistente-burbuja asistente-burbuja-bot");
@@ -173,7 +149,6 @@
         });
     }
 
-
     function mensajeUsuario(texto, descripcion, cita) {
         const burbuja = elemento("div", "asistente-burbuja asistente-burbuja-usuario");
         if (cita) {
@@ -190,8 +165,6 @@
         chat.appendChild(burbuja);
         bajar();
     }
-
-
 
     function desactivarOpcionesAnteriores() {
         chat.querySelectorAll(".asistente-respuestas button, .asistente-boton-lista").forEach(function (boton) {
@@ -222,7 +195,6 @@
         opcion.accion();
     }
 
-
     function agregarRespuestasRapidas(burbuja, lista) {
         const contenedor = elemento("div", "asistente-respuestas");
         lista.forEach(function (opcion, indice) {
@@ -249,7 +221,6 @@
         registrarOpciones(lista);
     }
 
-
     function agregarBotonLista(burbuja, texto, lista) {
         const boton = elemento("button", "asistente-boton-lista");
         boton.type = "button";
@@ -262,8 +233,6 @@
         burbuja.classList.add("asistente-burbuja-con-botones");
         registrarOpciones(lista);
     }
-
-
 
     const hoja = elemento("div", "asistente-hoja");
     hoja.hidden = true;
@@ -359,11 +328,6 @@
         }
     });
 
-
-
-
-
-
     function pedir(parametros, metodo) {
         const numeroTurno = turno;
         const controlador = typeof AbortController === "function" ? new AbortController() : null;
@@ -395,8 +359,6 @@
         });
     }
 
-
-
     function enlaceSoporte(motivo) {
         if (!motivo || !conSesion) {
             return urlSoporte;
@@ -407,7 +369,6 @@
 
     const opcionMenuPrincipal = { texto: "Menú principal", descripcion: "Volver al inicio", icono: "menu", accion: function () { irANodo(""); } };
     const opcionSalir = { texto: "Salir", descripcion: "Finalizar esta conversación", icono: "salir", accion: salir };
-
 
     function noDisponible(mensaje) {
         disponible = false;
@@ -463,7 +424,6 @@
             return;
         }
 
-
         const acciones = [];
         let tieneSoporte = false;
         nodo.acciones.forEach(function (accion) {
@@ -476,7 +436,6 @@
                 acciones.push({ texto: accion.texto, destacada: true, accion: function () { confirmarSoporte(recorridoActual); } });
             }
         });
-
 
         if (!tieneSoporte) {
             acciones.push({ texto: "Necesito más ayuda", accion: necesitoMasAyuda });
@@ -494,8 +453,6 @@
                 opcionMenuPrincipal
             ], "botones");
     }
-
-
 
     function confirmarSoporte(motivo) {
         const lineas = ["Tema: " + (motivo || "Consulta general"), "Origen: Asistente de StageUp"];
@@ -527,10 +484,6 @@
             [{ texto: "Empezar de nuevo", accion: function () { irANodo(""); } }], "botones");
     }
 
-
-
-
-
     entrada.addEventListener("keydown", function (evento) {
         if (evento.key === "Enter") {
             evento.preventDefault();
@@ -551,8 +504,6 @@
 
         entrada.value = "";
         cerrarHoja();
-
-
 
         const opcionesDelTurno = opcionesActuales.slice();
         nuevoTurno();
@@ -584,8 +535,6 @@
         desactivarOpcionesAnteriores();
         mensajeUsuario(texto);
 
-
-
         const esperando = elemento("div", "asistente-escribiendo");
         esperando.setAttribute("aria-hidden", "true");
         esperando.appendChild(elemento("span"));
@@ -607,9 +556,6 @@
                 return;
             }
 
-
-
-
             if (datos.conDatosPrivados) {
                 mensajeBot({
                     titulo: "\u{1F512} Cuidá tus datos",
@@ -628,7 +574,6 @@
                 return;
             }
 
-
             if (datos.respuestaAutomatica) {
                 recorridoActual = texto;
                 mensajeBot({
@@ -640,8 +585,6 @@
                     .concat([opcionMenuPrincipal]), "botones");
                 return;
             }
-
-
 
             recorridoActual = texto;
             const lista = [{ texto: "Registrar solicitud de soporte", destacada: true, accion: function () { confirmarSoporte(texto); } }]
@@ -659,8 +602,6 @@
             noDisponible();
         });
     }
-
-
 
     document.querySelectorAll("[data-assistant-open]").forEach(function (boton) {
         boton.addEventListener("click", function () {

@@ -1,15 +1,7 @@
-
-
-
-
-
-
-
-
+﻿
 
 namespace StageUp.UI
 {
-
 
     public partial class SiteMaster
     {

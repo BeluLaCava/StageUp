@@ -1,30 +1,10 @@
-using System;
+﻿using System;
 
 namespace StageUp.Seguridad
 {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public static class ProtectorDeDatosSensibles
     {
-
-
 
         public static object PrepararTelefonoParaGuardar(string telefonoEnClaro)
         {
@@ -32,10 +12,6 @@ namespace StageUp.Seguridad
                 ? (object)DBNull.Value
                 : EncriptadorSimetrico.Encriptar(telefonoEnClaro);
         }
-
-
-
-
 
         public static string RecuperarTelefono(object valorAlmacenado)
         {

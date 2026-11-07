@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,20 +7,6 @@ GO
 USE StageUp;
 GO
 
--- =============================================================================
--- 26_ActividadesYNotificaciones.sql
--- ADVERTENCIA: SCRIPT INICIAL DESTRUCTIVO (contiene DROP TABLE).
---
--- Sirve para armar la base desde cero. NO debe ejecutarse a mano sobre una base
--- con datos: borraría estas tablas y todo su contenido: Notificacion, ActividadParticipante, Participante, ActividadDiaSemana, Actividad.
--- El flujo normal de instalación y actualización es Database/EjecutarTodosLosScripts.ps1,
--- que usa dbo._ScriptsEjecutados y nunca vuelve a correr un script ya aplicado.
--- Ver Database/LEEME_Scripts.md.
---
--- Protección: si alguna de esas tablas ya tiene filas, el script se detiene acá
--- con un error y no ejecuta nada más (SET NOEXEC ON). En una base nueva las tablas
--- no existen o están vacías, así que sigue normalmente.
--- =============================================================================
 IF EXISTS
 (
     SELECT 1
@@ -102,14 +88,6 @@ GO
 IF OBJECT_ID('dbo.ActividadDiaSemana', 'U') IS NOT NULL DROP TABLE dbo.ActividadDiaSemana;
 GO
 
--- Si esta segunda ejecución encuentra columnas ya agregadas en FranjaEspacio
--- (origen / idActividad) y la tabla Actividad, las saca antes de recrear todo.
--- Todo el cuerpo de este bloque va como SQL dinámico (EXEC) a propósito: si
--- es la primera vez que se corre el script, las columnas origen/idActividad
--- todavía no existen, y SQL Server valida los nombres de columna de TODO el
--- batch al compilarlo (no solo lo que efectivamente se ejecuta), aunque el
--- IF de más arriba nunca vaya a entrar acá. Con EXEC(), ese texto es apenas
--- una cadena hasta que se ejecuta, así que no se valida antes de tiempo.
 IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.FranjaEspacio') AND name = 'idActividad')
 BEGIN
     EXEC(N'
@@ -130,10 +108,6 @@ GO
 
 IF OBJECT_ID('dbo.Actividad', 'U') IS NOT NULL DROP TABLE dbo.Actividad;
 GO
-
--- ============================================================================
--- Tablas
--- ============================================================================
 
 CREATE TABLE dbo.Actividad
 (
@@ -169,8 +143,6 @@ CREATE TABLE dbo.Actividad
 );
 GO
 
--- Una actividad "Semanal" puede repetirse en más de un día (ej: lunes y
--- miércoles), tal como ya permite el checklist de días de la pantalla.
 CREATE TABLE dbo.ActividadDiaSemana
 (
     idActividad     INT     NOT NULL,
@@ -182,9 +154,6 @@ CREATE TABLE dbo.ActividadDiaSemana
 );
 GO
 
--- Los participantes son un directorio propio de cada gestor (no son usuarios
--- de StageUp), tal como se ve en la pantalla: se cargan con nombre/apellido/
--- DNI y después se asocian a una o más actividades.
 CREATE TABLE dbo.Participante
 (
     idParticipante  INT IDENTITY(1,1)  NOT NULL,
@@ -230,9 +199,6 @@ CREATE TABLE dbo.Notificacion
 );
 GO
 
--- FranjaEspacio: distinguir franjas cargadas a mano (Mis espacios) de las
--- generadas automáticamente por una actividad, para no perderlas cuando se
--- vuelve a guardar la ficha del espacio (ver comentario al inicio del script).
 ALTER TABLE dbo.FranjaEspacio ADD
     origen      NVARCHAR(20) NOT NULL CONSTRAINT DF_FranjaEspacio_origen DEFAULT (N'Manual'),
     idActividad INT NULL;
@@ -247,10 +213,6 @@ GO
 ALTER TABLE dbo.FranjaEspacio ADD CONSTRAINT FK_FranjaEspacio_Actividad FOREIGN KEY (idActividad)
     REFERENCES dbo.Actividad (idActividad);
 GO
-
--- ============================================================================
--- Actividad
--- ============================================================================
 
 CREATE PROCEDURE dbo.sp_Actividad_Insertar
     @idEspacioArtistico     INT,
@@ -382,10 +344,6 @@ BEGIN
 END
 GO
 
--- ============================================================================
--- ActividadDiaSemana
--- ============================================================================
-
 CREATE PROCEDURE dbo.sp_ActividadDiaSemana_Insertar
     @idActividad INT,
     @diaSemana   TINYINT
@@ -424,10 +382,6 @@ BEGIN
     SELECT idActividad, diaSemana FROM dbo.ActividadDiaSemana WHERE idActividad = @idActividad;
 END
 GO
-
--- ============================================================================
--- Participante
--- ============================================================================
 
 CREATE PROCEDURE dbo.sp_Participante_Insertar
     @idUsuarioGestor INT,
@@ -510,10 +464,6 @@ BEGIN
 END
 GO
 
--- ============================================================================
--- ActividadParticipante
--- ============================================================================
-
 CREATE PROCEDURE dbo.sp_ActividadParticipante_Insertar
     @idActividad    INT,
     @idParticipante INT
@@ -575,10 +525,6 @@ BEGIN
 END
 GO
 
--- ============================================================================
--- FranjaEspacio generadas por actividades
--- ============================================================================
-
 CREATE PROCEDURE dbo.sp_FranjaEspacio_InsertarDesdeActividad
     @idEspacioArtistico INT,
     @idActividad        INT,
@@ -612,10 +558,6 @@ BEGIN
     END CATCH
 END
 GO
-
--- ============================================================================
--- Notificacion
--- ============================================================================
 
 CREATE PROCEDURE dbo.sp_Notificacion_Insertar
     @idUsuarioExterno INT,
@@ -685,6 +627,5 @@ BEGIN
 END
 GO
 
--- Deja la sesión como estaba si la protección de arriba frenó el script.
 SET NOEXEC OFF;
 GO

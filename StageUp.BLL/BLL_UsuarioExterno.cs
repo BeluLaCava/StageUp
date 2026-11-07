@@ -103,8 +103,6 @@ namespace StageUp.BLL
                     FechaAceptacionTerminos = DateTime.Now
                 };
 
-
-
                 ProtectorDeCredenciales.ProtegerPassword(nuevoUsuario, password);
 
                 int idUsuarioExterno = _mppUsuario.Insertar(nuevoUsuario);
@@ -213,11 +211,6 @@ namespace StageUp.BLL
             });
         }
 
-
-
-
-
-
         internal ResultadoOperacion<UsuarioExterno> IniciarSesionSinCaptcha(
             string correoElectronico, string password)
         {
@@ -292,7 +285,6 @@ namespace StageUp.BLL
                 if (usuario == null || usuario.EstadoCuenta == EstadoCuentaExterno.Inactiva.ToString())
                 {
 
-
                     return ResultadoOperacion.Ok(
                         "Si el correo ingresado corresponde a una cuenta registrada, vas a recibir un código de recuperación.");
                 }
@@ -322,7 +314,8 @@ namespace StageUp.BLL
         public ResultadoOperacion ValidarCodigoYActualizarPassword(
             string correoElectronico, string codigoIngresado, string nuevaPassword, string confirmacionNuevaPassword)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(
+                "StageUp:Recuperacion:" + (correoElectronico ?? string.Empty).Trim().ToLowerInvariant(), () =>
             {
                 if (string.IsNullOrWhiteSpace(correoElectronico) || string.IsNullOrWhiteSpace(codigoIngresado))
                 {
@@ -373,10 +366,11 @@ namespace StageUp.BLL
                     usuario.IdUsuarioExterno, "MODIFICACION", "UsuarioExterno", usuario.IdUsuarioExterno,
                     "Actualización de contraseña por recuperación de cuenta.");
 
-                _servicioCorreo.EnviarNotificacionCambioPassword(usuario.CorreoElectronico, usuario.Nombre);
+                Conexion.Instance.DespuesDeConfirmar(() =>
+                    _servicioCorreo.EnviarNotificacionCambioPassword(usuario.CorreoElectronico, usuario.Nombre));
 
                 return ResultadoOperacion.Ok("Tu contraseña fue actualizada correctamente. Ya podés iniciar sesión con tus nuevas credenciales.");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         public ResultadoOperacion CambiarPassword(int idUsuarioExterno, string passwordActual, string nuevaPassword, string confirmacionNuevaPassword)
@@ -426,8 +420,6 @@ namespace StageUp.BLL
             });
         }
 
-
-
         public ResultadoOperacion<EvaluacionBajaCuenta> EvaluarBajaCuenta(int idUsuarioExterno)
         {
             return EjecutarProtegido(() =>
@@ -450,10 +442,6 @@ namespace StageUp.BLL
             });
         }
 
-
-
-
-
         public ResultadoOperacion<EvaluacionBajaCuenta> DarDeBajaCuenta(int idUsuarioExterno)
         {
             return EjecutarProtegido(() =>
@@ -474,7 +462,6 @@ namespace StageUp.BLL
 
                 if (evaluacion.Resultado != "OK")
                 {
-
 
                     return ResultadoOperacion<EvaluacionBajaCuenta>.Error(
                         "No es posible dar de baja tu cuenta hasta resolver las condiciones pendientes. Tu cuenta sigue activa.");
@@ -601,9 +588,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         public int? ObtenerIdPorCorreo(string correoElectronico)
         {
             if (string.IsNullOrWhiteSpace(correoElectronico))
@@ -625,25 +609,16 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         public bool CuentaSigueActiva(int idUsuarioExterno)
         {
             string perfil;
             return CuentaSigueActiva(idUsuarioExterno, out perfil);
         }
 
-
-
-
         public bool CuentaSigueActiva(int idUsuarioExterno, out string perfilActual)
         {
             return CuentaSigueActiva(idUsuarioExterno, null, out perfilActual);
         }
-
-
-
 
         public bool CuentaSigueActiva(int idUsuarioExterno, DateTime? fechaAltaEnSesion, out string perfilActual)
         {
@@ -691,19 +666,15 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
-
         public List<UsuarioExterno> ListarParaNewsletter(string criterio)
         {
             try
             {
                 return _mppUsuario.ListarParaNewsletter(criterio);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<UsuarioExterno>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 

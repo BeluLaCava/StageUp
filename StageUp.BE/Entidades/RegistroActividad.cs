@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
@@ -15,7 +15,6 @@ namespace StageUp.BE.Entidades
         public string OrigenOperacion { get; set; }
         public string NombreResponsable { get; set; }
         public string CorreoResponsable { get; set; }
-
 
         public string TipoResponsable
         {

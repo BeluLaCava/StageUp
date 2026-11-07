@@ -1,4 +1,4 @@
-<%@ Page Title="Mis reservas | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="MisReservas.aspx.cs" Inherits="StageUp.UI.MisReservas" %>
+﻿<%@ Page Title="Mis reservas | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="MisReservas.aspx.cs" Inherits="StageUp.UI.MisReservas" %>
 
 <asp:Content ID="MisReservasContent" ContentPlaceHolderID="MainContent" runat="server">
     <style type="text/css">
@@ -49,7 +49,7 @@
                         <div class="space-row reservation-history-row">
                             <div class="reservation-history-summary">
                                 <div class="space-row-info">
-                                    <h3><%# Eval("NombreEspacio") %></h3>
+                                    <h3><%#: Eval("NombreEspacio") %></h3>
                                     <p>Fecha del alquiler: <%# Eval("FechaSolicitada", "{0:dd/MM/yyyy}") %> · Estado: <%# Eval("EstadoReserva") %></p>
                                     <p class="reserva-historial-meta">
                                         N° <%# Eval("IdReserva") %> · Solicitada el <%# Eval("FechaCreacion", "{0:dd/MM/yyyy HH:mm}") %>
@@ -74,7 +74,7 @@
                                         <asp:Literal ID="litHorarioImporte" runat="server"
                                             Visible='<%# ((StageUp.BE.Entidades.Reserva)Container.DataItem).MinutoDesde.HasValue %>' />
                                     </p>
-                                    <p class="space-row-descripcion"><%# Eval("ComentarioSolicitante") %></p>
+                                    <p class="space-row-descripcion"><%#: Eval("ComentarioSolicitante") %></p>
                                     <asp:Literal ID="litComentarioResolucion" runat="server" Visible='<%# !string.IsNullOrEmpty(Eval("ComentarioResolucion") as string) %>' />
                                     <asp:Panel ID="pnlEstadoPago" runat="server" CssClass="reserva-pago" Visible="false">
                                         <asp:Literal ID="litEstadoPago" runat="server" />

@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -22,8 +22,7 @@ BEGIN
 
         IF @confirmar = 1
         BEGIN
-            -- Mismo recurso que usan los pagos y las liquidaciones: mientras se
-            -- da de baja la cuenta no puede entrar un pago ni un movimiento.
+
             DECLARE @recurso NVARCHAR(100) = N'StageUp_CuentaCorriente_' + CAST(@idUsuarioExterno AS NVARCHAR(10));
             DECLARE @bloqueo INT;
             EXEC @bloqueo = sp_getapplock @Resource = @recurso, @LockMode = N'Exclusive', @LockOwner = N'Transaction', @LockTimeout = 10000;

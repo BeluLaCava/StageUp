@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -6,17 +6,6 @@ GO
 
 USE StageUp;
 GO
-
--- -----------------------------------------------------------------------------
--- Encuestas dirigidas a "Todos" sin iniciar sesión.
--- Un visitante sin cuenta puede responder una encuesta con público "Todos".
--- Para que no la responda dos veces, el navegador guarda una cookie con un
--- identificador aleatorio; en la base se guarda solo su hash SHA-256
--- (identificadorAnonimo), nunca la cookie.
--- Cada respuesta es de un usuario (idUsuarioExterno) o anónima
--- (identificadorAnonimo), nunca de los dos. Las encuestas dirigidas a un
--- perfil siguen pidiendo sesión.
--- -----------------------------------------------------------------------------
 
 IF OBJECT_ID(N'dbo.RespuestaEncuesta', N'U') IS NULL
 BEGIN
@@ -28,9 +17,6 @@ IF COL_LENGTH(N'dbo.RespuestaEncuesta', N'identificadorAnonimo') IS NULL
     ALTER TABLE dbo.RespuestaEncuesta ADD identificadorAnonimo CHAR(64) NULL;
 GO
 
--- La restricción única (idEncuesta, idUsuarioExterno) no admite más de una
--- respuesta anónima por encuesta (un solo NULL): se reemplaza por dos
--- índices únicos filtrados, uno para usuarios y otro para anónimos.
 IF EXISTS (SELECT 1 FROM sys.key_constraints WHERE name = N'UQ_RespuestaEncuesta_EncuestaUsuario' AND parent_object_id = OBJECT_ID(N'dbo.RespuestaEncuesta'))
     ALTER TABLE dbo.RespuestaEncuesta DROP CONSTRAINT UQ_RespuestaEncuesta_EncuestaUsuario;
 GO
@@ -52,12 +38,6 @@ IF NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_RespuestaEn
         ((idUsuarioExterno IS NOT NULL AND identificadorAnonimo IS NULL) OR (idUsuarioExterno IS NULL AND identificadorAnonimo IS NOT NULL));
 GO
 
--- ---------------------------------------------------------------------------
--- Listados: @idUsuarioExterno NULL = visitante sin sesión (solo encuestas
--- para "Todos"). @identificadorAnonimo es el hash de la cookie del
--- navegador, si la hay: también cuenta como "ya respondida" para un usuario
--- con sesión que antes respondió desde ese navegador sin iniciar sesión.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Encuesta_ListarPendientesParaUsuario', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Encuesta_ListarPendientesParaUsuario;
 GO
 CREATE PROCEDURE dbo.sp_Encuesta_ListarPendientesParaUsuario
@@ -96,7 +76,7 @@ BEGIN
 
     SELECT e.idEncuesta, e.titulo, e.descripcion, e.fechaInicio, e.fechaVencimiento, e.publicoObjetivo, e.estado, e.fechaAlta, e.fechaUltimaModificacion
     FROM dbo.Encuesta e
-    WHERE e.estado IN (N'Activa', N'Cerrada') -- un Borrador nunca se publicó: no tiene resultados, aunque esté vencido
+    WHERE e.estado IN (N'Activa', N'Cerrada')
       AND e.fechaInicio <= GETDATE()
       AND (e.publicoObjetivo = N'Todos' OR (@idUsuarioExterno IS NOT NULL AND e.publicoObjetivo = @perfilUsuario))
       AND
@@ -133,10 +113,6 @@ BEGIN
 END
 GO
 
--- Alta: con sesión se guarda el usuario; sin sesión, el hash de la cookie.
--- La encuesta tiene que estar activa y vigente, y una respuesta anónima solo
--- se acepta si está dirigida a "Todos" (segunda barrera; la primera es
--- BLL_Encuesta).
 IF OBJECT_ID('dbo.sp_RespuestaEncuesta_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_RespuestaEncuesta_Insertar;
 GO
 CREATE PROCEDURE dbo.sp_RespuestaEncuesta_Insertar

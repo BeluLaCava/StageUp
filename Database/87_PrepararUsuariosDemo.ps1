@@ -1,4 +1,4 @@
-param(
+﻿param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Debug",
 
@@ -38,8 +38,6 @@ if ($null -eq $conexionNodo -or [string]::IsNullOrWhiteSpace([string]$conexionNo
     throw "No se pudo leer StageUpConnectionString desde StageUp.UI\Web.config."
 }
 
-# ConfigurationManager lee la configuración de powershell.exe. Se incorpora
-# en memoria la misma cadena del proyecto para que MPP y BLL usen la DAL real.
 $cadenas = [System.Configuration.ConfigurationManager]::ConnectionStrings
 $campoSoloLectura = [System.Configuration.ConfigurationElement].GetField(
     "_bReadOnly", [Reflection.BindingFlags]"NonPublic,Instance")
@@ -93,11 +91,6 @@ if ($null -eq $admin -or -not $admin.Activo) {
     throw "No se encontró la cuenta interna activa admin@stageup.test para auditar la preparación."
 }
 
-# ---------------------------------------------------------------------------
-# Usuarios externos: se tocan solamente las cuentas de demostración conocidas.
-# Cada contraseña obtiene su propia sal aleatoria mediante Seguridad; nunca se
-# escribe PasswordDemo directamente en la base de datos.
-# ---------------------------------------------------------------------------
 $correosExternos = @(
     "ana.solicitante@stageup.test",
     "jibam91306@airhemp.com",
@@ -139,7 +132,6 @@ foreach ($correo in $correosExternos) {
     }
 }
 
-# Lucía queda activa como solicitante y con una solicitud de gestora pendiente.
 $consultaLucia = New-Object StageUp.BE.Entidades.UsuarioExterno
 $consultaLucia.CorreoElectronico = "lucia.pendiente@stageup.test"
 $lucia = $mppExterno.ObtenerPorCorreo($consultaLucia)
@@ -179,10 +171,6 @@ else {
     Write-Host "Lucía ya tenía una solicitud de gestora pendiente."
 }
 
-# ---------------------------------------------------------------------------
-# Roles internos: permisos de hoja explícitos. No se asignan los grupos
-# Administración o Comercialización completos para evitar accesos heredados.
-# ---------------------------------------------------------------------------
 $arbol = $bllPermiso.ListarArbolCompleto()
 $hojas = @($arbol.Listar())
 $permisosPorCodigo = @{}
@@ -297,10 +285,6 @@ foreach ($definicion in $rolesDemo) {
     }
 }
 
-# ---------------------------------------------------------------------------
-# Usuarios internos: altas y modificaciones pasan por BLL_UsuarioInterno para
-# conservar validaciones, bitácora y protección de administradores.
-# ---------------------------------------------------------------------------
 foreach ($definicion in $rolesDemo) {
     $consulta = New-Object StageUp.BE.Entidades.UsuarioInterno
     $consulta.CorreoElectronico = $definicion.Correo
@@ -341,8 +325,6 @@ foreach ($definicion in $rolesDemo) {
     }
 }
 
-# El administrador se conserva con sus datos y rol; solamente se unifica su
-# contraseña si todavía no usa la clave de demostración solicitada.
 $admin = $mppInterno.ObtenerPorCorreo($adminConsulta)
 if (-not [StageUp.Seguridad.ProtectorDeCredenciales]::VerificarPassword($admin, $PasswordDemo)) {
     $resultadoAdmin = $bllInterno.Modificar(
@@ -354,9 +336,6 @@ if (-not [StageUp.Seguridad.ProtectorDeCredenciales]::VerificarPassword($admin, 
     }
 }
 
-# ---------------------------------------------------------------------------
-# Verificación funcional: contraseña, permisos efectivos y menú dinámico.
-# ---------------------------------------------------------------------------
 foreach ($correo in $correosExternos) {
     $consulta = New-Object StageUp.BE.Entidades.UsuarioExterno
     $consulta.CorreoElectronico = $correo

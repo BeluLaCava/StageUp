@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -94,16 +94,10 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-
-
-
-
             IdBackupARestaurar = null;
             txtConfirmacion.Text = string.Empty;
             ResultadoRevalidacionSesion sesion = ControlSesionBaseDatos.VerificarSinExcepciones();
             GestorDeSesion.TomarAvisoRestauracion();
-
-
 
             if (sesion == ResultadoRevalidacionSesion.NoVerificada)
             {

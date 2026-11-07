@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -17,7 +17,6 @@ namespace StageUp.UI
         private readonly BLL_EspacioArtistico _bllEspacio = new BLL_EspacioArtistico();
         private readonly BLL_Actividad _bllActividad = new BLL_Actividad();
         private readonly BLL_Participante _bllParticipante = new BLL_Participante();
-
 
         private static readonly Dictionary<string, int> DiaCodigoANumero = new Dictionary<string, int>
         {
@@ -47,8 +46,6 @@ namespace StageUp.UI
 
             string perfil = GestorDeSesion.ObtenerPerfilActual();
 
-
-
             if (perfil != PerfilUsuarioExterno.GestorEspacios.ToString())
             {
                 Response.Redirect("~/OfrecerEspacio.aspx", false);
@@ -62,7 +59,6 @@ namespace StageUp.UI
             if (pnlPanelGestor.Visible && !IsPostBack)
             {
                 CargarFiltroEspacios();
-
 
                 int idEspacio;
                 if (int.TryParse(Request.QueryString["espacio"], NumberStyles.Integer, CultureInfo.InvariantCulture, out idEspacio) &&
@@ -135,7 +131,6 @@ namespace StageUp.UI
         protected void lnkCerrarActividad_Click(object sender, EventArgs e)
         {
             pnlFormularioActividad.Visible = false;
-
 
             if (IdActividadEnEdicion.HasValue)
             {
@@ -221,7 +216,6 @@ namespace StageUp.UI
             CargarPantallaGestor();
             MostrarMensaje(resultado.Mensaje, esError: false);
 
-
             if (eraEdicion)
             {
                 MostrarDetalle(resultado.Valor);
@@ -251,9 +245,6 @@ namespace StageUp.UI
                 }
             }
         }
-
-
-
 
         private bool MostrarDetalle(int idActividad)
         {
@@ -310,7 +301,6 @@ namespace StageUp.UI
             pnlConfirmarDesvincularActividad.Visible = false;
             pnlDetalleParticipante.Visible = false;
 
-
             pnlParticipantesActividad.Visible = actividad.Activa;
             if (actividad.Activa)
             {
@@ -356,7 +346,6 @@ namespace StageUp.UI
             }
         }
 
-
         protected void lnkCancelarBajaActividad_Click(object sender, EventArgs e)
         {
             if (IdActividadEnDetalle.HasValue)
@@ -383,15 +372,11 @@ namespace StageUp.UI
                 return;
             }
 
-
             pnlDetalleActividad.Visible = false;
             IdActividadEnDetalle = null;
             CargarPantallaGestor();
             MostrarMensaje(resultado.Mensaje, esError: false);
         }
-
-
-
 
         private void AbrirEdicion(int idActividad)
         {
@@ -453,9 +438,6 @@ namespace StageUp.UI
             pnlFormularioActividad.Visible = true;
         }
 
-
-
-
         private int? IdParticipanteEnEdicion
         {
             get { return ViewState["IdParticipanteEnEdicion"] as int?; }
@@ -468,21 +450,17 @@ namespace StageUp.UI
             set { ViewState["IdParticipanteEnDetalle"] = value; }
         }
 
-
-
         private int? IdActividadOrigenParticipante
         {
             get { return ViewState["IdActividadOrigenParticipante"] as int?; }
             set { ViewState["IdActividadOrigenParticipante"] = value; }
         }
 
-
         private int? IdParticipanteExistente
         {
             get { return ViewState["IdParticipanteExistente"] as int?; }
             set { ViewState["IdParticipanteExistente"] = value; }
         }
-
 
         private int? IdActividadDesvincular
         {
@@ -517,7 +495,6 @@ namespace StageUp.UI
             hdnTabActividades.Value = "participantes";
             AbrirFormularioParticipante(null);
         }
-
 
         protected void btnAgregarParticipanteActividad_Click(object sender, EventArgs e)
         {
@@ -580,8 +557,6 @@ namespace StageUp.UI
         protected void lnkCerrarParticipante_Click(object sender, EventArgs e)
         {
             pnlFormularioParticipante.Visible = false;
-
-
 
             if (IdParticipanteEnEdicion.HasValue)
             {
@@ -653,7 +628,6 @@ namespace StageUp.UI
             if (idActividad > 0)
             {
 
-
                 ResultadoOperacion asociacion = _bllActividad.AsociarParticipante(idActividad, resultado.Valor, idUsuarioGestor);
                 mensaje = asociacion.Exitoso
                     ? "El participante fue registrado y asociado correctamente a la actividad."
@@ -693,7 +667,6 @@ namespace StageUp.UI
             pnlParticipanteExistente.Visible = true;
         }
 
-
         protected void btnAsociarExistenteFormulario_Click(object sender, EventArgs e)
         {
             int idActividad = ConvertirEntero(ddlActividadParticipante.SelectedValue);
@@ -712,7 +685,6 @@ namespace StageUp.UI
             MostrarDetalle(idActividad);
             MostrarMensajeDetalle(resultado.Mensaje, !resultado.Exitoso);
         }
-
 
         protected void lnkNoAsociarExistente_Click(object sender, EventArgs e)
         {
@@ -747,7 +719,6 @@ namespace StageUp.UI
             pnlMensaje.Visible = false;
             CargarPantallaGestor();
         }
-
 
         private bool MostrarDetalleParticipante(int idParticipante)
         {
@@ -844,7 +815,6 @@ namespace StageUp.UI
             }
         }
 
-
         protected void btnConfirmarBajaParticipante_Click(object sender, EventArgs e)
         {
             if (!IdParticipanteEnDetalle.HasValue)
@@ -859,7 +829,6 @@ namespace StageUp.UI
             MostrarDetalleParticipante(idParticipante);
             MostrarMensajeParticipante(resultado.Mensaje, !resultado.Exitoso);
         }
-
 
         protected void btnAsociarExistente_Click(object sender, EventArgs e)
         {
@@ -910,7 +879,6 @@ namespace StageUp.UI
             }
         }
 
-
         private void PedirConfirmacionDesvincular(int idActividad, int idParticipante, string origen)
         {
             int idUsuarioGestor = GestorDeSesion.ObtenerIdUsuarioActual().Value;
@@ -938,7 +906,6 @@ namespace StageUp.UI
             }
         }
 
-
         protected void btnConfirmarDesvincular_Click(object sender, EventArgs e)
         {
             if (!IdActividadDesvincular.HasValue || !IdParticipanteDesvincular.HasValue)
@@ -954,7 +921,6 @@ namespace StageUp.UI
             MostrarDetalle(idActividad);
             MostrarMensajeDetalle(resultado.Mensaje, !resultado.Exitoso);
         }
-
 
         protected void lnkCancelarDesvincular_Click(object sender, EventArgs e)
         {
@@ -1007,8 +973,6 @@ namespace StageUp.UI
             pnlSinEspacios.Visible = espacios.Count == 0;
             pnlActividades.Visible = espacios.Count > 0;
             lnkNuevaActividad.Visible = espacios.Count > 0;
-
-
 
             string estado = ddlFiltroEstado.SelectedValue;
             int idEspacioFiltro;
@@ -1084,7 +1048,6 @@ namespace StageUp.UI
                 ddlActividadParticipante.Items.Add(new ListItem(
                     actividad.Nombre + " (" + actividad.NombreEspacio + ")", actividad.IdActividad.ToString(CultureInfo.InvariantCulture)));
             }
-
 
             litSinActividadesParticipante.Visible = actividades.Count == 0;
         }
@@ -1214,8 +1177,6 @@ namespace StageUp.UI
                 return null;
             }
         }
-
-
 
         private static int ConvertirHoraAMinutos(string hora, bool esFin)
         {

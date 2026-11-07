@@ -1,5 +1,11 @@
-namespace StageUp.BLL
+﻿namespace StageUp.BLL
 {
+    public sealed class ErrorCargaListadoException : System.Exception
+    {
+        public ErrorCargaListadoException(System.Exception error)
+            : base("No pudimos cargar la información. Intentá nuevamente en unos minutos.", error) { }
+    }
+
     public class ResultadoOperacion
     {
         public bool Exitoso { get; private set; }
@@ -38,8 +44,6 @@ namespace StageUp.BLL
         {
             return new ResultadoOperacion<T>(true, mensaje, null, valor);
         }
-
-
 
         public static ResultadoOperacion<T> OkAlternativo(T valor, string mensaje, string codigoAlternativo)
         {

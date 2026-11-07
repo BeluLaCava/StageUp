@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
@@ -11,11 +11,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
 
     public class BLL_ExportacionSegura
     {
@@ -35,8 +30,6 @@ namespace StageUp.BLL
                 TipoEntidadAfectada = tipoEntidadAfectada
             });
         }
-
-
 
         public ResultadoOperacion<string> ExportarBitacoraCifrada(FiltroRegistroActividad filtro)
         {

@@ -1,11 +1,7 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
-
-
-
-
 
     public class RespuestaEncuesta
     {
@@ -15,10 +11,6 @@ namespace StageUp.BE.Entidades
         public string IdentificadorAnonimo { get; set; }
         public DateTime FechaRespuesta { get; set; }
     }
-
-
-
-
 
     public class Encuestado
     {

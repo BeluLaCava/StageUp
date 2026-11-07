@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -13,11 +13,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Ayuda (CU-003-001): la búsqueda pública devuelve las mismas preguntas
--- frecuentes que se pueden consultar (publicadas y de una categoría activa).
--- Cada resultado abre su pregunta y respuesta en el centro de ayuda.
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_Busqueda_Publica', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Busqueda_Publica;
 GO
 CREATE PROCEDURE dbo.sp_Busqueda_Publica
@@ -46,8 +41,6 @@ BEGIN
         fecha DATETIME NULL, prioridad INT
     );
 
-    -- Con capacidad, precio o ubicación se buscan solo espacios (son
-    -- criterios que no tienen sentido en novedades ni en la ayuda).
     DECLARE @soloEspacios BIT = CASE WHEN @capacidadMinima IS NOT NULL OR @precioMaximo IS NOT NULL OR @ubicacion IS NOT NULL THEN 1 ELSE 0 END;
 
     IF @incluirEspacios = 1
@@ -106,12 +99,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Encuestas (ítem 3): una respuesta por navegador también al cambiar de
--- cuenta, y auditoría en la misma transacción que la respuesta.
--- ===========================================================================
--- "Ya respondida" (la misma regla para mostrar, listar y guardar): por la
--- cuenta, o desde ese navegador con cualquier cuenta o sin sesión.
 IF OBJECT_ID('dbo.sp_RespuestaEncuesta_ExisteDeUsuario', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_RespuestaEncuesta_ExisteDeUsuario;
 GO
 CREATE PROCEDURE dbo.sp_RespuestaEncuesta_ExisteDeUsuario
@@ -193,20 +180,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Registro completo de una respuesta: cabecera y todas las opciones elegidas
--- en una sola transacción (todo o nada).
---   @opciones: pares "idPregunta:idOpcion" separados por coma, uno por cada
---   pregunta de la encuesta.
---   @identificadorNavegador: hash del navegador, obligatorio con o sin sesión
---   (sin sesión se guarda como identificadorAnonimo).
---   @descripcionBitacora: la auditoría se registra dentro de la misma
---   transacción, así no puede quedar una respuesta sin su registro.
--- THROW 51060 sin identificador del navegador; 51061 la encuesta no admite
--- la respuesta; 51062 ya respondida (por la cuenta o desde ese navegador,
--- con cualquier cuenta o sin sesión); 51063 las opciones no corresponden a
--- las preguntas de la encuesta.
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_RespuestaEncuesta_Registrar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_RespuestaEncuesta_Registrar;
 GO
 CREATE PROCEDURE dbo.sp_RespuestaEncuesta_Registrar
@@ -230,7 +203,6 @@ BEGIN
     FROM STRING_SPLIT(ISNULL(@opciones, N''), N',')
     WHERE LEN(value) > 0;
 
-    -- Una opción por pregunta, todas las preguntas, y cada opción de su pregunta.
     IF (SELECT COUNT(*) FROM @elegidas) <> (SELECT COUNT(*) FROM dbo.PreguntaEncuesta WHERE idEncuesta = @idEncuesta)
        OR (SELECT COUNT(*) FROM @elegidas) = 0
        OR EXISTS (SELECT 1 FROM @elegidas WHERE idPregunta IS NULL OR idOpcion IS NULL)
@@ -258,8 +230,6 @@ BEGIN
         )
             THROW 51061, 'La encuesta no admite esta respuesta.', 1;
 
-        -- Con UPDLOCK y HOLDLOCK, dos envíos simultáneos desde la misma cuenta
-        -- o el mismo navegador no pasan los dos este control.
         IF EXISTS
         (
             SELECT 1 FROM dbo.RespuestaEncuesta r WITH (UPDLOCK, HOLDLOCK)
@@ -300,10 +270,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Comercialización (CU-004-001 y CU-004-003): la auditoría de campañas y
--- alianzas se registra dentro de la transacción del guardado.
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_CampaniaComercial_Guardar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CampaniaComercial_Guardar;
 GO
 CREATE PROCEDURE dbo.sp_CampaniaComercial_Guardar
@@ -413,8 +379,6 @@ BEGIN
         FROM dbo.OrigenUsuario o INNER JOIN @origenes l ON l.id = o.idOrigenUsuario
         WHERE ISNULL(o.idCampaniaComercial, 0) <> @idCampaniaComercial;
 
-        -- Auditoría en la misma transacción: no queda un cambio guardado sin
-        -- su registro, ni un registro de algo que no se guardó.
         IF @descripcionBitacora IS NOT NULL
             EXEC dbo.sp_RegistroActividad_Insertar
                 @idUsuarioInternoResponsable = @idUsuarioInternoBitacora,
@@ -574,7 +538,6 @@ BEGIN
         FROM dbo.OrigenUsuario o INNER JOIN @origenes l ON l.id = o.idOrigenUsuario
         WHERE ISNULL(o.idAlianzaEstrategica, 0) <> @idAlianzaEstrategica;
 
-        -- Auditoría en la misma transacción (ver campañas).
         IF @descripcionBitacora IS NOT NULL
             EXEC dbo.sp_RegistroActividad_Insertar
                 @idUsuarioInternoResponsable = @idUsuarioInterno,
@@ -595,21 +558,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Newsletter (ítem 13).
--- ===========================================================================
-
--- ---------------------------------------------------------------------------
--- Suscripciones de origen Cuenta sin evidencia de consentimiento.
--- La versión anterior de sp_Newsletter_ListarDestinatarios las creaba
--- activas sin pedido de la persona (y el aviso "Ya estás suscripto" también
--- completaba fechaUltimoEnvioConfirmacion, así que esa fecha no prueba nada).
--- La evidencia real es la confirmación con el enlace del correo o la
--- reactivación desde el enlace de preferencias, que quedan en la bitácora.
--- Las que no la tienen pasan a "sin confirmar" (no reciben envíos) sin
--- borrarlas: se conserva el registro y su historial, y queda anotado en la
--- bitácora. La administración puede reenviarles la confirmación.
--- ---------------------------------------------------------------------------
 DECLARE @sinConsentimiento TABLE (idSuscriptorNewsletter INT PRIMARY KEY);
 
 UPDATE s
@@ -641,10 +589,6 @@ DECLARE @cantidadSinConsentimiento INT = (SELECT COUNT(*) FROM @sinConsentimient
 PRINT CONCAT(N'Suscripciones sin consentimiento verificable pasadas a pendientes: ', @cantidadSinConsentimiento);
 GO
 
--- ---------------------------------------------------------------------------
--- Vinculación verificada con una cuenta (Mi perfil). La cuenta pide el
--- vínculo; el dueño del correo lo confirma con el enlace que recibe.
--- ---------------------------------------------------------------------------
 IF COL_LENGTH(N'dbo.SuscriptorNewsletter', N'idUsuarioExternoVinculoPendiente') IS NULL
     ALTER TABLE dbo.SuscriptorNewsletter ADD
         idUsuarioExternoVinculoPendiente INT NULL,
@@ -704,8 +648,6 @@ BEGIN
 END
 GO
 
--- Confirma el vínculo con el token vigente. La misma suscripción (no se
--- crea otra) queda asociada a la cuenta que lo pidió.
 IF OBJECT_ID('dbo.sp_SuscriptorNewsletter_ConfirmarVinculo', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SuscriptorNewsletter_ConfirmarVinculo;
 GO
 CREATE PROCEDURE dbo.sp_SuscriptorNewsletter_ConfirmarVinculo
@@ -730,15 +672,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Envíos: resultado incierto y reintento cuando no hubo destinatarios.
---   * Antes de mandar cada correo el destinatario queda "Enviando". Si el
---     correo salió pero no se pudo registrar el resultado, queda así: es un
---     resultado incierto. No se reintenta solo (podría duplicarse); la
---     administración decide si reenviarle.
---   * Un envío sin destinatarios no marca la novedad como enviada: se puede
---     volver a intentar más adelante y el intento queda en el historial.
--- ---------------------------------------------------------------------------
 IF COL_LENGTH(N'dbo.EnvioNewsletter', N'cantidadInciertos') IS NULL
     ALTER TABLE dbo.EnvioNewsletter ADD cantidadInciertos INT NOT NULL CONSTRAINT DF_EnvioNewsletter_inc DEFAULT (0);
 GO
@@ -757,7 +690,6 @@ ALTER TABLE dbo.EnvioNewsletterDestinatario ADD CONSTRAINT CK_EnvioNewsletterDes
     CHECK (estado IN (N'Pendiente', N'Enviando', N'Enviado', N'Fallido', N'Omitido'));
 GO
 
--- Un único envío "real" por novedad; los intentos sin destinatarios no cuentan.
 IF OBJECT_ID(N'dbo.UQ_EnvioNewsletter_Novedad', N'UQ') IS NOT NULL
     ALTER TABLE dbo.EnvioNewsletter DROP CONSTRAINT UQ_EnvioNewsletter_Novedad;
 GO
@@ -765,7 +697,6 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_EnvioNewsletter_Noved
     CREATE UNIQUE INDEX UX_EnvioNewsletter_Novedad ON dbo.EnvioNewsletter (idNovedad) WHERE estado <> N'SinDestinatarios';
 GO
 
--- Novedades marcadas como enviadas solo por un intento sin destinatarios.
 UPDATE n
 SET enviadaPorCorreo = 0,
     destinatarioNewsletter = NULL,
@@ -819,7 +750,6 @@ BEGIN
 END
 GO
 
--- Antes de mandar el correo. 0 si el destinatario ya no estaba pendiente.
 IF OBJECT_ID('dbo.sp_EnvioNewsletter_MarcarEnviando', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EnvioNewsletter_MarcarEnviando;
 GO
 CREATE PROCEDURE dbo.sp_EnvioNewsletter_MarcarEnviando
@@ -863,11 +793,6 @@ BEGIN
 END
 GO
 
--- Cierra el envío:
---   Completo: todos lo recibieron. Parcial: algunos fallaron (se reintentan
---   solo esos). Fallido: no llegó a nadie. Incierto: no quedan fallidos pero
---   hay destinatarios con resultado incierto. SinDestinatarios: no había a
---   quién enviarlo (no marca la novedad como enviada).
 IF OBJECT_ID('dbo.sp_EnvioNewsletter_Finalizar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EnvioNewsletter_Finalizar;
 GO
 CREATE PROCEDURE dbo.sp_EnvioNewsletter_Finalizar
@@ -923,9 +848,6 @@ BEGIN
 END
 GO
 
--- La administración decide reenviar a los de resultado incierto: vuelven a
--- quedar como fallidos y el envío queda listo para "Reintentar fallidos".
--- Solo con el envío cerrado (o trabado hace más de 15 minutos).
 IF OBJECT_ID('dbo.sp_EnvioNewsletter_ReabrirInciertos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EnvioNewsletter_ReabrirInciertos;
 GO
 CREATE PROCEDURE dbo.sp_EnvioNewsletter_ReabrirInciertos

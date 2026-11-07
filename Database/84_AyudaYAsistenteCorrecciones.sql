@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,25 +7,12 @@ GO
 USE StageUp;
 GO
 
--- ===========================================================================
--- Preguntas frecuentes (CU-003-001 / CU-003-004).
---   * El asistente ya no usa las preguntas frecuentes: la columna
---     usarEnAsistente queda en la tabla (historial) pero no se lee ni se
---     escribe más.
---   * esBasica: el centro de ayuda muestra solo una selección breve de
---     preguntas básicas, sin filtros. Las categorías siguen organizando el
---     contenido internamente.
--- ===========================================================================
 IF COL_LENGTH(N'dbo.Faq', N'esBasica') IS NULL
 BEGIN
     ALTER TABLE dbo.Faq ADD esBasica BIT NOT NULL CONSTRAINT DF_Faq_esBasica DEFAULT (0);
 END
 GO
 
--- Selección inicial (una sola vez, solo si todavía no hay ninguna marcada):
--- la primera pregunta publicada de cada categoría activa, según su orden.
--- No se borra ni se modifica ninguna otra pregunta; después se ajusta desde
--- "Contenido de ayuda".
 IF NOT EXISTS (SELECT 1 FROM dbo.Faq WHERE esBasica = 1)
 BEGIN
     ;WITH Primeras AS
@@ -153,15 +140,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Asistente: pagos y cancelaciones (CU-003-001). Actualiza las bases que ya
--- tienen el árbol del script 70.
---   * Distingue la reserva aceptada sin pagar (se cancela sin cargo) de la
---     pagada (se aplica la política parametrizada).
---   * El pago vence al cumplirse el plazo configurado desde la aceptación o
---     al comenzar la reserva, lo que ocurra primero; si vence, la reserva se
---     cancela sola y sin cargo.
--- ===========================================================================
 IF OBJECT_ID(N'dbo.NodoAsistente', N'U') IS NOT NULL AND EXISTS (SELECT 1 FROM dbo.NodoAsistente WHERE codigo = N'reservas.cancelar')
 BEGIN
     SET XACT_ABORT ON;
@@ -224,7 +202,6 @@ BEGIN
                   N'Entrá a "Mis reservas" y elegí "Pagar": podés usar una tarjeta, una tarjeta guardada en "Mi billetera" o tu saldo a favor.'
     WHERE codigo = N'pagos.pagar';
 
-    -- Acciones y presentación del paso nuevo.
     DECLARE @idSinPagar INT = (SELECT idNodoAsistente FROM dbo.NodoAsistente WHERE codigo = N'reservas.cancelar.sinpagar');
     IF NOT EXISTS (SELECT 1 FROM dbo.AccionNodoAsistente WHERE idNodoAsistente = @idSinPagar)
     BEGIN

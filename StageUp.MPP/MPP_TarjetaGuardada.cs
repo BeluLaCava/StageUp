@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -7,7 +7,6 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-
 
     public class MPP_TarjetaGuardada
     {
@@ -47,7 +46,6 @@ namespace StageUp.MPP
             tarjeta.IdClaveCifrado = fila["idClaveCifrado"] == DBNull.Value ? (int?)null : Convert.ToInt32(fila["idClaveCifrado"]);
             return tarjeta;
         }
-
 
         public string Insertar(TarjetaGuardada oTarjeta, int maximo, out int idTarjetaGuardada, out bool quedoPreferida)
         {
@@ -116,7 +114,6 @@ namespace StageUp.MPP
                 "sp_TarjetaGuardada_RegistrarUso",
                 new Hashtable { { "@idTarjetaGuardada", oTarjeta.IdTarjetaGuardada } });
         }
-
 
         public List<TarjetaGuardada> ListarParaReenvolver(ClaveCifrado oClaveActiva)
         {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,13 +9,6 @@ using StageUp.BLL;
 
 namespace StageUp.UI.Interno.Comercializacion
 {
-
-
-
-
-
-
-
 
     public partial class CampaniasComerciales : PaginaComercial
     {
@@ -78,10 +71,6 @@ namespace StageUp.UI.Interno.Comercializacion
             }
         }
 
-
-
-
-
         private void CargarListado()
         {
             pnlListado.Visible = true;
@@ -119,7 +108,6 @@ namespace StageUp.UI.Interno.Comercializacion
             litActivas.Text = resumen.Valor.Activas.ToString(CultureInfo.InvariantCulture);
             litBajas.Text = resumen.Valor.Bajas.ToString(CultureInfo.InvariantCulture);
 
-
             if (resumen.Valor.Total == 0)
             {
                 litEnCurso.Text = "0";
@@ -144,7 +132,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 rptCampanias.Visible = false;
                 return;
             }
-
 
             pnlSinResultados.Visible = resultado.Valor.Count == 0;
             rptCampanias.Visible = resultado.Valor.Count > 0;
@@ -177,10 +164,6 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(ArmarUrl(Pagina, partes), null);
         }
 
-
-
-
-
         private void CargarDetalle(int idCampania)
         {
             CampaniaComercial campania = _bll.Obtener(idCampania);
@@ -204,7 +187,6 @@ namespace StageUp.UI.Interno.Comercializacion
             litPeriodo.Text = DescribirPeriodo(campania);
             litResponsable.Text = TextoOGuion(campania.NombreResponsable);
             litFechas.Text = campania.FechaAlta.ToString("dd/MM/yyyy") + " / " + campania.FechaUltimaModificacion.ToString("dd/MM/yyyy HH:mm");
-
 
             if (!campania.Activa)
             {
@@ -258,10 +240,6 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(Pagina + "?ver=" + id, resultado.Mensaje, !resultado.Exitoso);
         }
 
-
-
-
-
         private void CargarFormulario(int? idCampania)
         {
             pnlFormulario.Visible = true;
@@ -293,8 +271,6 @@ namespace StageUp.UI.Interno.Comercializacion
             txtInicio.Text = FechaParaCampo(campania.FechaInicio);
             txtFin.Text = FechaParaCampo(campania.FechaFin);
             lnkCancelar.NavigateUrl = Pagina + "?ver=" + campania.IdCampaniaComercial;
-
-
 
             ResultadoOperacion<List<VinculoComercial>> cargaVinculos = _bll.ListarVinculos(campania.IdCampaniaComercial);
             if (!cargaVinculos.Exitoso)
@@ -349,7 +325,6 @@ namespace StageUp.UI.Interno.Comercializacion
             vacio.Visible = lista.Items.Count == 0;
         }
 
-
         private bool VinculosNoCargados
         {
             get { return ViewState["VinculosNoCargados"] as bool? ?? false; }
@@ -393,14 +368,9 @@ namespace StageUp.UI.Interno.Comercializacion
                 return;
             }
 
-
             Redirigir(idEditar.HasValue ? Pagina + "?ver=" + resultado.Valor : Pagina, resultado.Mensaje,
                 resultado.CodigoAlternativo != null);
         }
-
-
-
-
 
         private void CargarOrigenes()
         {
@@ -500,10 +470,6 @@ namespace StageUp.UI.Interno.Comercializacion
 
             Redirigir(Pagina + "?vista=origenes", resultado.Mensaje);
         }
-
-
-
-
 
         protected string TextoPublico(object dato)
         {

@@ -1,4 +1,4 @@
-param(
+﻿param(
     [Parameter(Mandatory=$true)][ValidatePattern('^StageUp_Beta2_QA_[A-Za-z0-9_]+$')][string]$Database,
     [string]$ServerInstance='localhost'
 )

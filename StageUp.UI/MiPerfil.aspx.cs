@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -140,8 +140,6 @@ namespace StageUp.UI
             MostrarMensaje(resultado.Mensaje, false);
         }
 
-
-
         protected void lnkDarDeBaja_Click(object sender, EventArgs e)
         {
             OcultarMensaje();
@@ -182,7 +180,6 @@ namespace StageUp.UI
             if (!resultado.Exitoso)
             {
 
-
                 MostrarMensaje(resultado.Mensaje, true);
                 ResultadoOperacion<EvaluacionBajaCuenta> evaluacion = _bllUsuario.EvaluarBajaCuenta(idUsuario);
                 if (evaluacion.Exitoso)
@@ -197,8 +194,6 @@ namespace StageUp.UI
 
                 return;
             }
-
-
 
             GestorDeSesion.CerrarSesion();
             Response.Redirect("~/Default.aspx?cuenta=baja", false);
@@ -238,8 +233,6 @@ namespace StageUp.UI
                 ? "Guardar los cambios del perfil"
                 : "Falta integrar los procedimientos de perfil en la base de datos";
         }
-
-
 
         private void CargarEstadoGestor(UsuarioExterno usuario)
         {
@@ -332,9 +325,6 @@ namespace StageUp.UI
             CargarNewsletter();
         }
 
-
-
-
         protected void btnNewsletterSuscribir_Click(object sender, EventArgs e)
         {
             ResultadoOperacion resultado = _bllNewsletter.SuscribirDesdeCuenta(
@@ -364,7 +354,6 @@ namespace StageUp.UI
             CargarNewsletter();
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
         }
-
 
         private void CargarNewsletter(List<string> elegidas = null)
         {

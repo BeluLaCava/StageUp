@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -33,8 +33,6 @@ namespace StageUp.MPP
                 }), "idPago");
         }
 
-
-
         public int RegistrarAviso(Pago oPago, int? idUsuarioInternoRegistro)
         {
             object id = Conexion.Instance.LeerEscalar(
@@ -56,8 +54,6 @@ namespace StageUp.MPP
                 });
             return Convert.ToInt32(id);
         }
-
-
 
         public List<Pago> BuscarPorIdentificador(Pago oPago)
         {
@@ -84,7 +80,6 @@ namespace StageUp.MPP
                 new Hashtable { { "@idReserva", oReserva.IdReserva } });
             return id == null || id == DBNull.Value ? (int?)null : Convert.ToInt32(id);
         }
-
 
         public List<ItemPagoReserva> ListarAdministracion(FiltroPagosReserva oFiltro)
         {
@@ -128,8 +123,6 @@ namespace StageUp.MPP
             object total = Conexion.Instance.LeerEscalar("sp_Pago_ContarAdministracion");
             return total == null || total == DBNull.Value ? 0 : Convert.ToInt32(total);
         }
-
-
 
         public DetallePagoReserva ObtenerDetalle(Pago oPago)
         {

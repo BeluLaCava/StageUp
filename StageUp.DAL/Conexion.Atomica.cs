@@ -7,8 +7,7 @@ namespace StageUp.DAL
 {
     public sealed partial class Conexion
     {
-        // Shared across workers/processes through SQL Server, not an in-process lock.
-        // All schedule writers use the same resource, including activities moved between spaces.
+
         public const string RecursoAgenda = "StageUp:Agenda";
         [ThreadStatic] private static SqlConnection _conexionAtomica;
         [ThreadStatic] private static SqlTransaction _transaccionAtomica;
@@ -82,7 +81,7 @@ namespace StageUp.DAL
             {
                 throw new ErrorAccesoDatosException("UnidadDeTrabajo", "No se pudo completar la operación. Los cambios no se guardaron; intentá nuevamente.", ex);
             }
-            // External effects never hold schedule/account locks and cannot undo committed data.
+
             if (acciones != null)
                 foreach (Action accion in acciones)
                     try { accion(); }

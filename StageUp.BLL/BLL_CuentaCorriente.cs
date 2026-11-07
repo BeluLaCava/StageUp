@@ -11,11 +11,6 @@ using StageUp.Servicios;
 namespace StageUp.BLL
 {
 
-
-
-
-
-
     public class BLL_CuentaCorriente
     {
         public const string RolCliente = "Cliente";
@@ -68,7 +63,6 @@ namespace StageUp.BLL
             return (moneda == "USD" ? "US$ " : "$ ") + importe.ToString("N2", CultureInfo.GetCultureInfo("es-AR"));
         }
 
-
         public static bool IntentarLeerImporte(string texto, out decimal importe)
         {
             importe = 0m;
@@ -92,12 +86,11 @@ namespace StageUp.BLL
             {
                 return _mpp.ObtenerSaldos(new SaldoCuentaCorriente { IdUsuarioExterno = idUsuarioExterno, RolCuenta = NormalizarRol(rolCuenta) });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<SaldoCuentaCorriente>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
 
         public decimal ObtenerSaldoDisponible(int idUsuarioExterno, string moneda)
         {
@@ -138,8 +131,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
         public List<SaldoCuentaCorriente> ListarCuentas(string texto)
         {
             try
@@ -152,9 +143,9 @@ namespace StageUp.BLL
 
                 return _mpp.ListarCuentas(new FiltroCuentasCorrientes { Texto = textoLimpio });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<SaldoCuentaCorriente>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -187,6 +178,8 @@ namespace StageUp.BLL
 
             try
             {
+                return Conexion.Instance.EjecutarAtomico("StageUp_CuentaCorriente_" + idUsuarioExterno, () =>
+                {
                 ResultadoMovimientoDinero resultado = _mppComprobante.EmitirManual(new Comprobante
                 {
                     Tipo = tipo,
@@ -215,8 +208,9 @@ namespace StageUp.BLL
                     nombreTipo + " manual por " + FormatearImporte(importe, moneda) + " a la cuenta de " + rolCuenta.ToLowerInvariant() +
                     " del usuario N° " + idUsuarioExterno + ". Motivo: " + motivoLimpio);
 
-                AvisarComprobanteEmitido(resultado.IdGenerado.Value);
+                Conexion.Instance.DespuesDeConfirmar(() => AvisarComprobanteEmitido(resultado.IdGenerado.Value));
                 return ResultadoOperacion<int>.Ok(resultado.IdGenerado.Value, nombreTipo + " emitida.");
+                }, operacion => operacion.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -235,6 +229,8 @@ namespace StageUp.BLL
 
             try
             {
+                return Conexion.Instance.EjecutarAtomico("StageUp:Comprobante:" + idComprobante, () =>
+                {
                 Comprobante comprobante = _mppComprobante.ObtenerPorId(new Comprobante { IdComprobante = idComprobante });
                 ResultadoMovimientoDinero resultado = _mppComprobante.Anular(new Comprobante
                 {
@@ -269,6 +265,7 @@ namespace StageUp.BLL
                     "~/MiCuentaCorriente.aspx");
 
                 return ResultadoOperacion.Ok("Se anuló " + comprobante.Numero + ".");
+                }, operacion => operacion.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -293,6 +290,8 @@ namespace StageUp.BLL
 
             try
             {
+                return Conexion.Instance.EjecutarAtomico("StageUp_CuentaCorriente_" + idUsuarioGestor, () =>
+                {
                 ResultadoMovimientoDinero resultado = _mpp.RegistrarLiquidacion(new MovimientoCuentaCorriente
                 {
                     IdUsuarioExterno = idUsuarioGestor,
@@ -323,14 +322,13 @@ namespace StageUp.BLL
                     "~/MiCuentaCorriente.aspx?cuenta=Gestor");
 
                 return ResultadoOperacion.Ok("Liquidación registrada.");
+                }, operacion => operacion.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {
                 return ResultadoOperacion.Error(ex.Message);
             }
         }
-
-
 
         public void AvisarComprobanteEmitido(int idComprobante)
         {

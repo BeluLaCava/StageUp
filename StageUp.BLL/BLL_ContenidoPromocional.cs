@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,13 +8,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
 
     public class BLL_ContenidoPromocional
     {
@@ -30,7 +23,6 @@ namespace StageUp.BLL
             { ContenidoPromocional.EstadoDesactualizado, "Desactualizado" },
             { ContenidoPromocional.EstadoDadoDeBaja, "Dado de baja" }
         };
-
 
         private static readonly Dictionary<string, string> TiposPermitidos = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -74,8 +66,6 @@ namespace StageUp.BLL
                 (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps) && !string.IsNullOrEmpty(uri.Host);
         }
 
-
-
         public static ResultadoOperacion<ArchivoPromocional> ValidarArchivo(string nombreOriginal, byte[] contenido)
         {
             if (contenido == null || contenido.Length == 0)
@@ -102,9 +92,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion<ArchivoPromocional>.Error("El contenido del archivo no corresponde a su extensión.", "A12");
             }
-
-
-
 
             if (!ValidadorEstructuraArchivo.EsValido(extension.ToLowerInvariant(), contenido))
             {
@@ -195,10 +182,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
-
         public ResultadoOperacion<int> Guardar(ContenidoPromocional contenido, int idUsuarioInterno, out string rutaArchivoAnterior)
         {
             rutaArchivoAnterior = null;
@@ -211,7 +194,6 @@ namespace StageUp.BLL
             contenido.Titulo = BLL_CatalogoComercial.Limpiar(contenido.Titulo);
             contenido.Descripcion = BLL_CatalogoComercial.LimpiarTextoLargo(contenido.Descripcion);
             contenido.UrlContenido = string.IsNullOrWhiteSpace(contenido.UrlContenido) ? null : contenido.UrlContenido.Trim();
-
 
             if (_catalogos.Listar(ItemCatalogoComercial.TipoContenido).Count == 0 || _catalogos.Listar(ItemCatalogoComercial.CanalUso).Count == 0)
             {
@@ -233,7 +215,6 @@ namespace StageUp.BLL
                 }
             }
 
-
             if (anterior != null && contenido.TieneArchivo && contenido.RutaArchivo == anterior.RutaArchivo)
             {
                 contenido.RutaArchivo = null;
@@ -243,7 +224,6 @@ namespace StageUp.BLL
             }
 
             bool tendraArchivo = contenido.TieneArchivo || (anterior != null && anterior.TieneArchivo && !contenido.QuitarArchivo);
-
 
             List<string> faltantes = new List<string>();
             if (contenido.Titulo == null) faltantes.Add("título");
@@ -260,7 +240,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("El título admite hasta 200 caracteres y la descripción hasta 2000.", "A14");
             }
 
-
             if (!_catalogos.EsValido(ItemCatalogoComercial.TipoContenido, contenido.TipoContenido))
             {
                 return ResultadoOperacion<int>.Error("Seleccioná el tipo de contenido para clasificar la pieza promocional.", "A15");
@@ -271,12 +250,10 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("Seleccioná el canal previsto de uso para organizar el material.", "A16");
             }
 
-
             if (!Estados.ContainsKey(contenido.EstadoContenido) || contenido.EstadoContenido == ContenidoPromocional.EstadoDadoDeBaja)
             {
                 return ResultadoOperacion<int>.Error("Seleccioná un estado válido: activo, en revisión o desactualizado.", "A17");
             }
-
 
             if (contenido.UrlContenido != null && !EsUrlValida(contenido.UrlContenido))
             {
@@ -287,7 +264,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion<int>.Error("Adjuntá el archivo o ingresá el enlace de la pieza promocional.", "A18");
             }
-
 
             string errorVinculo = ValidarVinculo(OpcionVinculoComercial.TipoCampania, contenido.IdCampaniaComercial, anterior == null ? null : anterior.IdCampaniaComercial)
                 ?? ValidarVinculo(OpcionVinculoComercial.TipoAlianza, contenido.IdAlianzaEstrategica, anterior == null ? null : anterior.IdAlianzaEstrategica);
@@ -328,7 +304,6 @@ namespace StageUp.BLL
                 ? "El contenido promocional fue guardado correctamente."
                 : "El contenido promocional fue actualizado correctamente.");
         }
-
 
         public ResultadoOperacion CambiarEstado(int idContenido, string estadoNuevo, int idUsuarioInterno, bool puedeReactivar)
         {

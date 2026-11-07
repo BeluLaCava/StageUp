@@ -10,21 +10,6 @@ using StageUp.MPP;
 namespace StageUp.BLL
 {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public class BLL_Actividad
     {
         private readonly MPP_Actividad _mppActividad = new MPP_Actividad();
@@ -42,23 +27,14 @@ namespace StageUp.BLL
         public const int LongitudMaximaNombre = 200;
         public const int CupoMaximoPermitido = 10000;
 
-
-
-
         private const int HorizonteMesesRecurrenciaMensual = 12;
 
         private static readonly string[] OrdinalesSemana = { string.Empty, "primer", "segundo", "tercer", "cuarto", "último" };
-
-
-
-
 
         public ResultadoOperacion<int> Guardar(Actividad actividad, int idUsuarioGestor)
         {
             return Guardar(actividad, idUsuarioGestor, null);
         }
-
-
 
         public ResultadoOperacion<int> Guardar(Actividad actividad, int idUsuarioGestor, List<int> idsParticipantes)
         {
@@ -92,13 +68,11 @@ namespace StageUp.BLL
 
                 Normalizar(actividad);
 
-
                 ResultadoOperacion validacion = Validar(actividad, idUsuarioGestor);
                 if (!validacion.Exitoso)
                 {
                     return ResultadoOperacion<int>.Error(validacion.Mensaje, validacion.CodigoAlternativo);
                 }
-
 
                 List<Participante> actuales = esNueva
                     ? new List<Participante>()
@@ -127,7 +101,6 @@ namespace StageUp.BLL
                         cantidadParticipantes + "). Aumentá el cupo o quitá participantes.", "A4");
                 }
 
-
                 EspacioArtistico espacioAgenda = _mppEspacio.ObtenerPorId(new EspacioArtistico { IdEspacioArtistico = actividad.IdEspacioArtistico });
                 List<FranjaEspacio> franjasActividad = GenerarFranjas(actividad, DateTime.Now.Date);
                 if ((espacioAgenda.Ficha.Disponibilidad ?? new List<FranjaEspacio>()).Exists(b =>
@@ -143,7 +116,6 @@ namespace StageUp.BLL
                         superpuesta.Nombre + "» (" + DescribirProgramacion(superpuesta) + ", " +
                         FormatearHorario(superpuesta.MinutoDesde, superpuesta.MinutoHasta) + "). Cambiá el día, el horario o la duración.", "A5");
                 }
-
 
                 Reserva reserva = BuscarReservaEnConflicto(actividad);
                 if (reserva != null)
@@ -171,8 +143,6 @@ namespace StageUp.BLL
                         _mppActividad.InsertarDiaSemana(actividad, dia);
                     }
                 }
-
-
 
                 RegenerarFranjasBloqueadas(actividad);
 
@@ -225,9 +195,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         public ResultadoOperacion DarDeBaja(int idActividad, int idUsuarioGestor)
         {
             try
@@ -247,9 +214,6 @@ namespace StageUp.BLL
                 {
                     return ResultadoOperacion.Error("La actividad ya estaba dada de baja.");
                 }
-
-
-
 
                 Reserva reserva = BuscarReservaEnConflicto(actividad);
                 if (reserva != null)
@@ -278,15 +242,10 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
-
         public List<Actividad> ListarPorUsuarioGestor(int idUsuarioGestor)
         {
             return Listar(idUsuarioGestor, FiltroActivas, null);
         }
-
 
         public List<Actividad> Listar(int idUsuarioGestor, string estado, int? idEspacioArtistico)
         {
@@ -296,9 +255,9 @@ namespace StageUp.BLL
                 return _mppActividad.ListarPorUsuarioGestor(
                     new UsuarioExterno { IdUsuarioExterno = idUsuarioGestor }, filtro, idEspacioArtistico);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Actividad>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -306,7 +265,6 @@ namespace StageUp.BLL
         {
             return ObtenerDetalle(idActividad, idUsuarioGestor);
         }
-
 
         public Actividad ObtenerDetalle(int idActividad, int idUsuarioGestor)
         {
@@ -343,7 +301,6 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("La actividad está dada de baja: no se le pueden asociar participantes.");
                 }
 
-
                 Participante participante = _mppParticipante.ObtenerPorId(new Participante { IdParticipante = idParticipante });
                 if (participante == null || participante.IdUsuarioGestor != idUsuarioGestor)
                 {
@@ -355,14 +312,12 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("El participante está dado de baja: no se puede asociar a actividades.");
                 }
 
-
                 List<Participante> participantesActuales = _mppActividad.ListarParticipantesDeActividad(actividad);
                 if (participantesActuales.Exists(p => p.IdParticipante == idParticipante))
                 {
                     return ResultadoOperacion.Error(
                         participante.NombreCompleto + " ya forma parte de la actividad \"" + actividad.Nombre + "\".", "A8");
                 }
-
 
                 if (participantesActuales.Count >= actividad.CupoMaximo)
                 {
@@ -403,8 +358,6 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error(participante.NombreCompleto + " no forma parte de la actividad \"" + actividad.Nombre + "\".");
                 }
 
-
-
                 _mppActividad.DesasociarParticipante(actividad, participante);
 
                 _bitacora.Registrar(
@@ -415,10 +368,6 @@ namespace StageUp.BLL
                     "\". Su registro se conserva y se puede volver a asociar.");
             });
         }
-
-
-
-
 
         public static string DescribirProgramacion(Actividad actividad)
         {
@@ -474,7 +423,6 @@ namespace StageUp.BLL
             return horas + (horas == 1 ? " hora" : " horas") + (resto > 0 ? " " + resto + " min" : string.Empty);
         }
 
-
         public static List<DateTime> ProximasFechas(Actividad actividad, int cantidad)
         {
             return GenerarFranjas(actividad, DateTime.Now.Date)
@@ -484,10 +432,6 @@ namespace StageUp.BLL
                 .Take(cantidad)
                 .ToList();
         }
-
-
-
-
 
         private static void Normalizar(Actividad actividad)
         {
@@ -511,7 +455,6 @@ namespace StageUp.BLL
                 actividad.Fecha = null;
             }
         }
-
 
         private ResultadoOperacion Validar(Actividad actividad, int idUsuarioGestor)
         {
@@ -571,7 +514,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("El nombre de la actividad no puede superar los " + LongitudMaximaNombre + " caracteres.", "A2");
             }
 
-
             if (actividad.MinutoHasta > 1440 || actividad.MinutoDesde >= 1440)
             {
                 return ResultadoOperacion.Error("El horario no es válido: tiene que estar dentro del mismo día.", "A3");
@@ -607,7 +549,6 @@ namespace StageUp.BLL
                 }
             }
 
-
             if (actividad.CupoMaximo < 1 || actividad.CupoMaximo > CupoMaximoPermitido)
             {
                 return ResultadoOperacion.Error("El cupo máximo tiene que ser un número entero entre 1 y " + CupoMaximoPermitido + ".", "A4");
@@ -618,7 +559,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error("Los participantes estimados tienen que ser un número entero entre 0 y " + CupoMaximoPermitido + ".", "A4");
             }
-
 
             EspacioArtistico espacio = _mppEspacio.ObtenerPorId(
                 new EspacioArtistico { IdEspacioArtistico = actividad.IdEspacioArtistico });
@@ -660,8 +600,6 @@ namespace StageUp.BLL
             return espacio != null && espacio.IdUsuarioGestor == idUsuarioGestor;
         }
 
-
-
         private Actividad BuscarActividadSuperpuesta(Actividad actividad)
         {
             DateTime hoy = DateTime.Now.Date;
@@ -684,10 +622,6 @@ namespace StageUp.BLL
 
             return null;
         }
-
-
-
-
 
         private Reserva BuscarReservaEnConflicto(Actividad actividad)
         {
@@ -716,11 +650,6 @@ namespace StageUp.BLL
                 " de " + FormatearHorario(reserva.MinutoDesde ?? 0, reserva.MinutoHasta ?? 0);
         }
 
-
-
-
-
-
         public void RegenerarFranjasBloqueadasDelEspacio(int idEspacioArtistico)
         {
             List<Actividad> actividadesActivas = _mppActividad.ListarPorEspacio(
@@ -739,8 +668,6 @@ namespace StageUp.BLL
                 _mppActividad.InsertarFranjaDesdeActividad(actividad, franja);
             }
         }
-
-
 
         internal static List<FranjaEspacio> GenerarFranjas(Actividad actividad, DateTime desde)
         {
@@ -824,12 +751,6 @@ namespace StageUp.BLL
 
             return string.Join(", ", partes.Take(partes.Count - 1)) + " y " + partes[partes.Count - 1];
         }
-
-
-
-
-
-
 
         internal static List<DateTime> CalcularFechasMensuales(
             int semanaDelMes, int diaSemanaMensual, DateTime desde, int horizonteMeses)

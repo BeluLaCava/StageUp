@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
@@ -52,8 +52,6 @@ namespace StageUp.MPP
                 new Hashtable { { "@idUsuarioExterno", oUsuarioExterno.IdUsuarioExterno } });
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
-
-
 
         public EvaluacionBajaCuenta BajaLogica(UsuarioExterno oUsuarioExterno, bool confirmar)
         {
@@ -153,11 +151,6 @@ namespace StageUp.MPP
                 });
         }
 
-
-
-
-
-
         public List<UsuarioExterno> ListarPorIds(IEnumerable<int> idsUsuarios)
         {
             List<int> ids = new List<int>(idsUsuarios);
@@ -191,10 +184,6 @@ namespace StageUp.MPP
             }
             return lista;
         }
-
-
-
-
 
         public List<UsuarioExterno> ListarParaNewsletter(string criterio)
         {

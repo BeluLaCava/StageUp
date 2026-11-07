@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using StageUp.BE.Entidades;
 using StageUp.BE.Menu;
@@ -13,9 +13,6 @@ namespace StageUp.BLL
         private static readonly object CacheLock = new object();
         private static readonly Dictionary<int, List<PermisoHoja>> CachePermisosPorRol =
             new Dictionary<int, List<PermisoHoja>>();
-
-
-
 
         private static readonly object CacheMenuLock = new object();
         private static List<OpcionMenu> _cacheOpcionesMenu;
@@ -37,15 +34,9 @@ namespace StageUp.BLL
 
         public List<string> ListarCodigosPermisosVigentesDeRol(int idRolInterno)
         {
-            // Autorizar siempre con datos actuales; la caché se reserva para el menú.
+
             return ObtenerHojasAsignadas(idRolInterno, false).Select(p => p.CodigoPermiso).ToList();
         }
-
-
-
-
-
-
 
         public GrupoMenu ConstruirMenuParaRol(int idRolInterno)
         {
@@ -154,10 +145,6 @@ namespace StageUp.BLL
             {
                 return new GrupoPermisos(0, "Permisos");
             }
-
-
-
-
 
             foreach (PermisoComponente nodo in RecorrerTodos(raiz))
             {
@@ -295,16 +282,10 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
-
-
         public List<PermisoHoja> ListarPermisosDeRol(int idRolInterno)
         {
             return ObtenerHojasAsignadas(idRolInterno);
         }
-
 
         public List<int> ListarIdsAsignados(int idRolInterno)
         {
@@ -312,14 +293,11 @@ namespace StageUp.BLL
             {
                 return _mppRolComponente.ListarIdsPorRol(new RolInterno { IdRolInterno = idRolInterno });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<int>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
-
-
 
         internal static List<PermisoHoja> HojasDeSeleccion(GrupoPermisos raiz, IEnumerable<int> idsComponentes)
         {
@@ -377,11 +355,6 @@ namespace StageUp.BLL
                 return hojasAsignadas;
             }
 
-
-
-
-
-
             HashSet<int> idsYaAgregados = new HashSet<int>();
             foreach (PermisoComponente nodo in RecorrerTodos(raiz))
             {
@@ -415,9 +388,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         private static void InvalidarCacheCompleta()
         {
             lock (CacheLock)
@@ -425,9 +395,6 @@ namespace StageUp.BLL
                 CachePermisosPorRol.Clear();
             }
         }
-
-
-
 
         private static IEnumerable<PermisoComponente> RecorrerTodos(PermisoComponente nodo)
         {

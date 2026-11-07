@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -41,7 +41,34 @@ namespace StageUp.UI
             {
                 CargarFiltros();
                 CargarSolicitudesRecibidas();
+                if (Request.QueryString["calificar"] != null)
+                {
+                    int idReserva;
+                    if (int.TryParse(Request.QueryString["calificar"], out idReserva) && idReserva > 0)
+                        AbrirCalificacion(idReserva);
+                    else
+                        MostrarMensaje("La reserva indicada no es válida.", true);
+                }
             }
+        }
+
+        private void AbrirCalificacion(int idReserva)
+        {
+            int idUsuario = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            ResultadoOperacion<Reserva> resultado = _bllReserva.ObtenerDetalle(idReserva, idUsuario);
+            Reserva reserva = resultado.Exitoso ? resultado.Valor : null;
+            if (reserva == null || reserva.IdUsuarioGestor != idUsuario ||
+                reserva.EstadoReserva != "Finalizada" || reserva.CalificacionSolicitanteRealizada)
+            {
+                MostrarMensaje("Esta reserva no está disponible para calificar desde tu cuenta.", true);
+                return;
+            }
+
+            IdReservaCalificando = idReserva;
+            ddlPuntajeSolicitante.SelectedIndex = 0;
+            txtComentarioCalificacionSolicitante.Text = string.Empty;
+            pnlCalificarSolicitante.Visible = true;
+            ddlPuntajeSolicitante.Focus();
         }
 
         protected void rptSolicitudes_ItemCommand(object source, RepeaterCommandEventArgs e)
@@ -59,10 +86,7 @@ namespace StageUp.UI
             switch (e.CommandName)
             {
                 case "CalificarSolicitante":
-                    IdReservaCalificando = idReserva;
-                    ddlPuntajeSolicitante.SelectedIndex = 0;
-                    txtComentarioCalificacionSolicitante.Text = string.Empty;
-                    pnlCalificarSolicitante.Visible = true;
+                    AbrirCalificacion(idReserva);
                     return;
 
                 case "Aceptar":
@@ -138,6 +162,14 @@ namespace StageUp.UI
             {
                 CerrarCalificacion();
                 CargarSolicitudesRecibidas();
+                if (Request.QueryString["calificar"] != null)
+                {
+                    int idReserva;
+                    if (int.TryParse(Request.QueryString["calificar"], out idReserva) && idReserva > 0)
+                        AbrirCalificacion(idReserva);
+                    else
+                        MostrarMensaje("La reserva indicada no es válida.", true);
+                }
             }
         }
 
@@ -148,7 +180,6 @@ namespace StageUp.UI
             ddlPuntajeSolicitante.SelectedIndex = 0;
             txtComentarioCalificacionSolicitante.Text = string.Empty;
         }
-
 
         private void CargarFiltros()
         {
@@ -195,7 +226,6 @@ namespace StageUp.UI
             rptSolicitudes.DataSource = filtradas;
             rptSolicitudes.DataBind();
         }
-
 
         private Dictionary<int, int> _mensajesNoLeidos = new Dictionary<int, int>();
 

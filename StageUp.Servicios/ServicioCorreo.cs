@@ -16,9 +16,6 @@ namespace StageUp.Servicios
         private const string LogoContentId = "stageup-logo";
         private const string NewsletterImageContentId = "stageup-newsletter-image";
 
-
-
-
         public ConfiguracionCorreoAdministrativo Administrativo { get; set; }
         public IHistorialCorreoAdministrativo HistorialAdministrativo { get; set; }
 
@@ -94,7 +91,6 @@ namespace StageUp.Servicios
             return Enviar(destinatario, "Tu contraseña de StageUp fue actualizada", cuerpo);
         }
 
-
         public bool EnviarConfirmacionBajaCuenta(string destinatario, string nombreDestinatario)
         {
             string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
@@ -112,9 +108,6 @@ namespace StageUp.Servicios
 
             return Enviar(destinatario, "Tu cuenta de StageUp fue dada de baja", cuerpo);
         }
-
-
-
 
         public bool EnviarNewsletter(
             string destinatario,
@@ -156,7 +149,6 @@ namespace StageUp.Servicios
             return Enviar(destinatario, titulo + " | StageUp", cuerpo, usarImagenEmbebida ? rutaImagenNewsletter : null, null, urlBaja);
         }
 
-
         public bool EnviarConfirmacionNewsletter(string destinatario, string nombreDestinatario, string urlConfirmar, int horasValidez)
         {
             string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
@@ -177,8 +169,6 @@ namespace StageUp.Servicios
             return Enviar(destinatario, "Confirmá tu suscripción a las novedades de StageUp", cuerpo);
         }
 
-
-
         public bool EnviarVinculoNewsletter(string destinatario, string nombreDestinatario, string urlVincular, int horasValidez)
         {
             string cuerpo = ConstruirPlantillaStageUp(new ContenidoCorreo
@@ -198,9 +188,6 @@ namespace StageUp.Servicios
 
             return Enviar(destinatario, "Vinculá tu suscripción al newsletter con tu cuenta de StageUp", cuerpo);
         }
-
-
-
 
         public bool EnviarAvisoYaSuscriptoNewsletter(string destinatario, string nombreDestinatario, string urlPreferencias)
         {
@@ -239,12 +226,6 @@ namespace StageUp.Servicios
 
             return Enviar(destinatario, "Respuesta de soporte StageUp: " + asuntoTicket, cuerpo);
         }
-
-
-
-
-
-
 
         public bool EnviarSolicitudReservaEnviada(string destinatario, string nombreDestinatario, Reserva reserva)
         {
@@ -379,10 +360,6 @@ namespace StageUp.Servicios
                 null,
                 "Contanos cómo te fue en " + reserva.NombreEspacio);
         }
-
-
-
-
 
         public bool EnviarPagoAprobado(string destinatario, string nombreDestinatario, Reserva reserva, Pago pago)
         {
@@ -550,7 +527,7 @@ namespace StageUp.Servicios
             catch (Exception ex)
             {
                 System.Diagnostics.Trace.TraceError("No se pudo registrar el intento de correo: " + ex.GetType().Name);
-                return false; // No untraceable send; the business operation remains confirmed.
+                return false;
             }
             bool enviado = Enviar(destinatario, asunto, cuerpo, null, configuracion);
             try
@@ -559,7 +536,7 @@ namespace StageUp.Servicios
             }
             catch (Exception ex)
             {
-                // Keep EnProceso (uncertain outcome) rather than misreporting or sending a duplicate.
+
                 System.Diagnostics.Trace.TraceError("No se pudo actualizar el resultado del correo " + id + ": " + ex.GetType().Name);
             }
             return enviado;
@@ -747,8 +724,6 @@ namespace StageUp.Servicios
 
             return html;
         }
-
-
 
         private static string ConstruirDetalles(List<KeyValuePair<string, string>> detalles)
         {
@@ -970,7 +945,6 @@ namespace StageUp.Servicios
             public List<KeyValuePair<string, string>> EnlacesPie { get; set; }
         }
     }
-
 
     public class ConfiguracionCorreoAdministrativo
     {

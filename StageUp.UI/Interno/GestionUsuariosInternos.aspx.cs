@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -15,7 +15,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
 
     public partial class GestionUsuariosInternos : Page
     {
@@ -46,7 +45,6 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-
             if (!GestorDeSesion.TienePermisoInterno(PermisoRequerido))
             {
                 Response.Redirect("~/Interno/PanelAdministrador.aspx?acceso=denegado");
@@ -70,9 +68,6 @@ namespace StageUp.UI.Interno
                 }
             }
         }
-
-
-
 
         protected void btnBuscar_Click(object sender, EventArgs e)
         {
@@ -104,9 +99,6 @@ namespace StageUp.UI.Interno
                 AbrirEdicion(idUsuarioInterno);
             }
         }
-
-
-
 
         protected void btnAgregarUsuario_Click(object sender, EventArgs e)
         {
@@ -186,7 +178,6 @@ namespace StageUp.UI.Interno
         protected void lnkCancelarEdicion_Click(object sender, EventArgs e)
         {
 
-
             int? idEditado = IdUsuarioEnEdicion;
             CerrarFormulario();
             if (idEditado.HasValue)
@@ -194,9 +185,6 @@ namespace StageUp.UI.Interno
                 MostrarDetalle(idEditado.Value, null, false);
             }
         }
-
-
-
 
         protected void lnkCerrarDetalle_Click(object sender, EventArgs e)
         {
@@ -242,9 +230,6 @@ namespace StageUp.UI.Interno
             MostrarDetalle(IdUsuarioEnDetalle.Value, resultado.Mensaje, true);
         }
 
-
-
-
         protected string ObtenerClaseEstado(object activo)
         {
             return Convert.ToBoolean(activo) ? string.Empty : "internal-user-row-inactive";
@@ -254,9 +239,6 @@ namespace StageUp.UI.Interno
         {
             return Convert.ToBoolean(activo) ? "admin-status-badge-active" : "admin-status-badge-inactive";
         }
-
-
-
 
         private void CargarCatalogos()
         {
@@ -279,7 +261,6 @@ namespace StageUp.UI.Interno
             ddlEstadoCuenta.Items.Clear();
             ddlEstadoCuenta.Items.Add(new ListItem("Activa", EstadoCuentaInterno.Activa.ToString()));
             ddlEstadoCuenta.Items.Add(new ListItem("Inactiva", EstadoCuentaInterno.Inactiva.ToString()));
-
 
             Dictionary<string, List<string>> permisosPorRol = new Dictionary<string, List<string>>();
             foreach (RolInterno rol in roles)
@@ -366,7 +347,6 @@ namespace StageUp.UI.Interno
             pnlMensajeFormulario.Visible = false;
             pnlFormularioUsuario.Visible = false;
         }
-
 
         private void MostrarDetalle(int idUsuarioInterno, string mensaje, bool mensajeEsError, bool confirmarBaja = false)
         {

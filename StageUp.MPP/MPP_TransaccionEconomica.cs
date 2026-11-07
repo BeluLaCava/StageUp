@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -10,7 +10,6 @@ namespace StageUp.MPP
 
     public class MPP_TransaccionEconomica
     {
-
 
         public int Registrar(TransaccionEconomica oTransaccion, out bool esNueva)
         {

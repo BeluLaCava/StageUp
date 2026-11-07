@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using StageUp.BE.Entidades;
 using StageUp.BE.Enumerados;
@@ -8,30 +8,10 @@ using StageUp.Seguridad;
 namespace StageUp.UI.Infraestructura
 {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public static class ControlSesionBaseDatos
     {
         public const string MotivoCierre = "base_restaurada";
         public const string PaginaVerificacion = "~/SesionNoVerificada.aspx";
-
-
 
         public static ResultadoRevalidacionSesion VerificarSinExcepciones()
         {
@@ -59,8 +39,7 @@ namespace StageUp.UI.Infraestructura
             bool marcaConfiable;
             string marcaActual = bll.ObtenerMarcaActual(out marcaConfiable);
             string marcaSesion = GestorDeSesion.ObtenerMarcaBaseDatos();
-            // La marca detecta restauraciones, no cambios de permisos ni bajas.
-            // Revalidar la identidad antes de ejecutar cualquier operación de la sesión.
+
             bool huboRestauracion = marcaConfiable && marcaSesion != null && marcaActual != marcaSesion;
 
             UsuarioExterno usuarioExterno = null;
@@ -101,7 +80,6 @@ namespace StageUp.UI.Infraestructura
             if (!marcaConfiable)
             {
 
-
                 return ResultadoRevalidacionSesion.Valida;
             }
 
@@ -116,7 +94,6 @@ namespace StageUp.UI.Infraestructura
 
         private static ResultadoRevalidacionSesion Cerrar(ResultadoRevalidacionSesion resultado)
         {
-
 
             if (resultado == ResultadoRevalidacionSesion.Invalida)
             {

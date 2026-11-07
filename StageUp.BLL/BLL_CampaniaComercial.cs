@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using StageUp.BE.Entidades;
@@ -7,11 +7,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
 
     public class BLL_CampaniaComercial
     {
@@ -60,7 +55,6 @@ namespace StageUp.BLL
                 default: return "comercial-badge-cancelada";
             }
         }
-
 
         public static bool PuedeDarseDeBaja(CampaniaComercial campania)
         {
@@ -127,9 +121,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         public ResultadoOperacion<List<VinculoComercial>> ListarVinculos(int idCampaniaComercial)
         {
             try
@@ -145,7 +136,6 @@ namespace StageUp.BLL
         public const string MensajeVinculosNoDisponibles =
             "No se pudieron consultar los vínculos de la campaña. Para no perder las asociaciones existentes, no se puede guardar hasta que se puedan consultar: recargá la página en unos minutos.";
 
-
         public ResultadoOperacion<int> Guardar(CampaniaComercial campania, string fechaInicioTexto, string fechaFinTexto, int idUsuarioInternoResponsable)
         {
             if (campania == null)
@@ -157,7 +147,6 @@ namespace StageUp.BLL
             campania.Nombre = BLL_CatalogoComercial.Limpiar(campania.Nombre);
             campania.Descripcion = BLL_CatalogoComercial.LimpiarTextoLargo(campania.Descripcion);
             campania.PublicoObjetivo = (campania.PublicoObjetivo ?? new List<string>()).Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToList();
-
 
             List<string> faltantes = new List<string>();
             if (campania.Nombre == null) faltantes.Add("nombre identificatorio");
@@ -182,7 +171,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("La descripción no puede superar los 2000 caracteres.", "A10");
             }
 
-
             DateTime? inicio, fin;
             if (!BLL_CatalogoComercial.LeerFecha(fechaInicioTexto, out inicio) || !BLL_CatalogoComercial.LeerFecha(fechaFinTexto, out fin))
             {
@@ -197,18 +185,15 @@ namespace StageUp.BLL
             campania.FechaInicio = inicio.Value;
             campania.FechaFin = fin.Value;
 
-
             if (campania.PublicoObjetivo.Any(s => !_catalogos.EsValido(ItemCatalogoComercial.PublicoObjetivo, s)))
             {
                 return ResultadoOperacion<int>.Error("Seleccioná al menos un público objetivo de la lista.", "A13");
             }
 
-
             if (!_catalogos.EsValido(ItemCatalogoComercial.CanalDifusion, campania.CanalDifusion))
             {
                 return ResultadoOperacion<int>.Error("Seleccioná un canal de difusión válido.", "A14");
             }
-
 
             if (!Estados.ContainsKey(campania.EstadoCampania))
             {
@@ -224,8 +209,6 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error("La campaña ya no existe o fue dada de baja, por eso no se puede editar.");
                 }
             }
-
-
 
             List<VinculoComercial> actuales = new List<VinculoComercial>();
             if (!esAlta)
@@ -244,8 +227,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion<int>.Error(errorVinculos, "A16");
             }
-
-
 
             string resumenVinculos = campania.IdsContactos.Count + " contactos, " + campania.IdsAlianzas.Count + " alianzas, " +
                 campania.IdsContenidos.Count + " contenidos y " + campania.IdsOrigenes.Count + " orígenes";
@@ -274,7 +255,6 @@ namespace StageUp.BLL
                     EstadoCampania = campania.EstadoCampania,
                     PublicoObjetivo = campania.PublicoObjetivo,
                     IdUsuarioInternoResponsable = esAlta ? idUsuarioInternoResponsable : (int?)null,
-
 
                     IdsContactos = campania.IdsContactos,
                     IdsAlianzas = campania.IdsAlianzas,
@@ -331,7 +311,6 @@ namespace StageUp.BLL
 
             return null;
         }
-
 
         public ResultadoOperacion DarDeBaja(int idCampaniaComercial, int idUsuarioInternoResponsable)
         {

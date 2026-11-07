@@ -1,47 +1,4 @@
-# RepararTildes.ps1
-#
-# Repara datos que ya quedaron guardados con acentos/enies corrompidos
-# (por ejemplo "LÃ³pez" en vez de "López", "AcÃºstica" en vez de "Acústica")
-# a causa de un bug en EjecutarTodosLosScripts.ps1: le faltaba indicarle a
-# sqlcmd que lea los archivos .sql como UTF-8, entonces los interpretaba con
-# la codificacion por defecto de Windows (Windows-1252) y guardaba en la base
-# una version corrompida de cualquier texto con tildes o enies.
-#
-# Ese bug de raiz YA esta corregido en este mismo paquete (se le agrego el
-# flag "-f 65001" a la linea de sqlcmd en EjecutarTodosLosScripts.ps1), asi
-# que los PROXIMOS scripts que corras van a guardar el texto bien. Pero ese
-# arreglo no repara solo los datos que ya quedaron mal guardados en tu base
-# actual — para eso esta este script separado.
-#
-# QUE HACE: recorre todas las columnas de texto (NVARCHAR/NTEXT) de las
-# tablas que tienen una clave primaria de una sola columna (para poder
-# corregir fila por fila con seguridad, sin tocar tablas con clave compuesta
-# o sin clave). Para cada valor de texto, prueba si "tiene cara" de estar
-# corrompido: agarra el texto tal como esta guardado, lo reinterpreta como si
-# fueran bytes Windows-1252, y despues intenta decodificar esos bytes como
-# UTF-8 en modo estricto (sin tolerar errores). Si esa decodificacion anda
-# bien Y da un texto DISTINTO al original, es casi seguro que el original
-# estaba corrompido y el resultado es el texto real (por ejemplo "López").
-# Si la decodificacion falla, quiere decir que ese texto nunca tuvo este
-# problema, y se deja completamente intacto.
-#
-# Este chequeo es seguro incluso para columnas que guardan datos encriptados
-# en Base64 (como el telefono): un texto Base64 es puro ASCII, y un ASCII
-# puro da exactamente el mismo resultado en la ida y vuelta, asi que nunca se
-# marca como "distinto" y nunca se toca.
-#
-# USO RECOMENDADO — primero en modo simulacion, sin escribir nada en la base:
-#   .\RepararTildes.ps1 -WhatIf
-#
-# Repasa la lista de cambios que te muestra. Si tiene sentido (deberias ver
-# cosas como "LÃ³pez" -> "López"), corré el arreglo real:
-#   .\RepararTildes.ps1
-#
-# Si tu instancia de SQL Server no es ".\SQLEXPRESS":
-#   .\RepararTildes.ps1 -ServerInstance "BELUENVY\SQLEXPRESS01" -WhatIf
-#
-# Requiere PowerShell con acceso a System.Data.SqlClient (viene incluido en
-# Windows / .NET Framework, no hace falta instalar nada aparte).
+﻿
 
 param(
     [string]$ServerInstance = ".\SQLEXPRESS",
@@ -62,8 +19,6 @@ if ($WhatIf) {
     Write-Host "Modo -WhatIf: solo se va a MOSTRAR lo que se repararia, no se escribe nada." -ForegroundColor Cyan
 }
 
-# 1) Tablas con exactamente una columna de clave primaria (las unicas que este
-#    script puede reparar fila por fila con seguridad).
 $consultaTablas = @"
 SELECT
     t.name AS TableName,
@@ -147,8 +102,7 @@ WHERE c.object_id = OBJECT_ID(N'dbo.$tabla')
                     $cambios[$columna] = $reparado
                 }
             } catch {
-                # No decodifico como UTF-8 valido -> este texto no estaba
-                # corrompido de esta forma, se deja exactamente como esta.
+
             }
         }
 

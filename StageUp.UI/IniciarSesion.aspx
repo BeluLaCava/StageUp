@@ -6,7 +6,7 @@
             <div class="auth-intro">
                 <span class="section-label">Bienvenido a StageUp</span>
                 <h1>Volvé a conectar con tu espacio artístico.</h1>
-                <p>Ingresá para acceder, más adelante, a tus reservas, espacios y actividades.</p>
+                <p>Ingresá para acceder a tus reservas, espacios y actividades.</p>
             </div>
 
             <asp:Panel ID="pnlLogin" runat="server" CssClass="auth-card" role="form" aria-labelledby="login-title">

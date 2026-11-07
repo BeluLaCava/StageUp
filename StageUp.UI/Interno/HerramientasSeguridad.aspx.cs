@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -11,8 +11,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
-
 
     public partial class HerramientasSeguridad : Page
     {

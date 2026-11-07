@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -15,9 +15,6 @@ namespace StageUp.UI.Interno
         private const string FormatoFechaHoraLocal = "yyyy-MM-ddTHH:mm";
 
         private readonly BLL_Encuesta _bllEncuesta = new BLL_Encuesta();
-
-
-
 
         private bool _esBorrador;
         protected bool EsBorrador

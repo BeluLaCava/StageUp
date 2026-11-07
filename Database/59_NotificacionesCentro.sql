@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -13,18 +13,12 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-001-011: cada notificación tiene título además de la descripción.
--- Las que ya existían toman el título según su tipo.
--- ---------------------------------------------------------------------------
 IF COL_LENGTH(N'dbo.Notificacion', N'titulo') IS NULL
 BEGIN
     ALTER TABLE dbo.Notificacion ADD titulo NVARCHAR(150) NULL;
 END
 GO
 
--- Títulos de las notificaciones que ya existían, según su tipo. Va como SQL
--- dinámico para que se compile recién cuando la columna ya existe.
 IF COL_LENGTH(N'dbo.Notificacion', N'titulo') IS NOT NULL
 BEGIN
     EXEC sp_executesql N'
@@ -80,7 +74,7 @@ GO
 CREATE PROCEDURE dbo.sp_Notificacion_ListarPorUsuario
     @idUsuarioExterno INT,
     @cantidad         INT = 20,
-    @estado           NVARCHAR(20) = N'Todas'   -- Todas | NoLeidas | Leidas
+    @estado           NVARCHAR(20) = N'Todas'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -94,7 +88,6 @@ BEGIN
 END
 GO
 
--- Solo devuelve la notificación si es del usuario indicado.
 IF OBJECT_ID('dbo.sp_Notificacion_ObtenerPorId', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Notificacion_ObtenerPorId;
 GO
 CREATE PROCEDURE dbo.sp_Notificacion_ObtenerPorId

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
@@ -9,9 +9,6 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaHasta { get; set; }
         public string TipoOperacion { get; set; }
         public string TipoEntidadAfectada { get; set; }
-
-
-
 
         public int? IdUsuarioInternoResponsable { get; set; }
         public string TextoResponsable { get; set; }

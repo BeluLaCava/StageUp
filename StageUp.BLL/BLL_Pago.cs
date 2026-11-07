@@ -10,12 +10,6 @@ using StageUp.Servicios;
 namespace StageUp.BLL
 {
 
-
-
-
-
-
-
     public class BLL_Pago
     {
         public const string EstadoNoRequerido = "NoRequerido";
@@ -41,8 +35,6 @@ namespace StageUp.BLL
                 && reserva.EstadoReserva == EstadoReserva.Aceptada.ToString()
                 && reserva.EstadoPago == EstadoPendiente;
         }
-
-
 
         public static string DescribirEstadoPago(Reserva reserva, bool paraGestor)
         {
@@ -103,9 +95,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<ContextoPagoReserva>.Error(ex.Message);
             }
         }
-
-
-
 
         public ResultadoOperacion<ResumenPago> CalcularResumen(ContextoPagoReserva contexto, EleccionPago eleccion)
         {
@@ -173,10 +162,6 @@ namespace StageUp.BLL
             });
         }
 
-
-
-
-
         public ResultadoOperacion<Pago> PagarReserva(int idReserva, int idUsuarioExterno, TarjetaParaPagar medio, EleccionPago eleccion)
         {
             DatosTarjeta tarjeta;
@@ -243,7 +228,6 @@ namespace StageUp.BLL
                 (guardada.Exitoso ? guardada.Mensaje : "El pago se hizo, pero no pudimos guardar la tarjeta: " + guardada.Mensaje));
         }
 
-
         public ResultadoOperacion<Pago> PagarReserva(int idReserva, int idUsuarioExterno, DatosTarjeta tarjeta, EleccionPago eleccion)
         {
             try
@@ -283,8 +267,6 @@ namespace StageUp.BLL
                     }
                 }
 
-
-
                 ResultadoMovimientoDinero resultado = RegistrarPagoYTransaccion(pago, () =>
                 {
                 _bitacora.Registrar(
@@ -306,8 +288,6 @@ namespace StageUp.BLL
                 pago.FechaPago = DateTime.Now;
                 pago.ImporteComisionPlataforma = decimal.Round(pago.ImporteTotal * pago.PorcentajeComisionPlataforma.Value / 100m, 2);
 
-
-
                 AvisarPagoAprobado(reserva, pago);
 
                 return ResultadoOperacion<Pago>.Ok(pago, "¡Listo! Recibimos el pago y tu reserva quedó confirmada. Ya tenés la factura del pago.");
@@ -317,8 +297,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<Pago>.Error(ex.Message);
             }
         }
-
-
 
         public ResultadoOperacion<Pago> PagarDeuda(int idUsuarioExterno, string moneda, DatosTarjeta tarjeta)
         {
@@ -397,9 +375,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         public const string GrupoTodos = "Todos";
         public const string GrupoPendiente = "Pendiente";
         public const string GrupoConfirmado = "Confirmado";
@@ -408,8 +383,6 @@ namespace StageUp.BLL
         public const string GrupoEnRevision = "EnRevision";
 
         private static readonly string[] Grupos = { GrupoTodos, GrupoPendiente, GrupoConfirmado, GrupoFallido, GrupoCancelado, GrupoEnRevision };
-
-
 
         public static string DescribirEstado(string estado)
         {
@@ -460,7 +433,6 @@ namespace StageUp.BLL
             }
         }
 
-
         public bool NoHayPagos()
         {
             try
@@ -472,7 +444,6 @@ namespace StageUp.BLL
                 return false;
             }
         }
-
 
         public ResultadoOperacion<DetallePagoReserva> ObtenerDetalleAdministracion(int? idPago, int? idReserva)
         {
@@ -488,8 +459,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<DetallePagoReserva>.Error("No es posible acceder al detalle del pago seleccionado en este momento.", "A10");
             }
         }
-
-
 
         public ResultadoOperacion<DetallePagoReserva> ObtenerDetalleParaUsuario(int? idPago, int? idReserva, int idUsuarioExterno)
         {
@@ -515,11 +484,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<DetallePagoReserva>.Error(ex.Message);
             }
         }
-
-
-
-
-
 
         public static readonly string[] EstadosInformables = { "Aprobado", "Pendiente", "Rechazado", "Cancelado" };
 
@@ -559,7 +523,6 @@ namespace StageUp.BLL
                     MotivoRechazo = motivo
                 };
 
-
                 List<string> faltantes = new List<string>();
                 if (!aviso.IdReserva.HasValue) faltantes.Add("la reserva asociada");
                 if (identificador == null) faltantes.Add("el identificador del pago");
@@ -591,8 +554,6 @@ namespace StageUp.BLL
                         registro.IdPago = pendiente.IdPago;
                     }
                 }
-
-
 
                 Reserva reserva = _mppReserva.ObtenerPorId(new Reserva { IdReserva = aviso.IdReserva.Value });
                 if (reserva == null || !EsperaPago(reserva) || !reserva.ImporteEstimado.HasValue)
@@ -638,7 +599,6 @@ namespace StageUp.BLL
                         return GuardarAviso(registro, idUsuarioInternoResponsable,
                             "Se registró el pago como cancelado. La reserva N° " + reserva.IdReserva + " no se modificó.", "A5");
                 }
-
 
                 if (registro.ImporteTotal != reserva.ImporteEstimado.Value || registro.Moneda != moneda)
                 {
@@ -687,8 +647,6 @@ namespace StageUp.BLL
                 pago.FechaPago = DateTime.Now;
                 pago.ImporteComisionPlataforma = decimal.Round(pago.ImporteTotal * pago.PorcentajeComisionPlataforma.Value / 100m, 2);
 
-
-
                 AvisarPagoAprobado(reserva, pago);
 
                 return ResultadoOperacion<int>.Ok(pago.IdPago,
@@ -724,7 +682,6 @@ namespace StageUp.BLL
         {
             return texto.Length <= maximo ? texto : texto.Substring(0, maximo - 3) + "...";
         }
-
 
         public static string DescribirMedioPago(Pago pago)
         {
@@ -779,10 +736,6 @@ namespace StageUp.BLL
                 : (minutos / 60).ToString("00", CultureInfo.InvariantCulture) + ":" + (minutos % 60).ToString("00", CultureInfo.InvariantCulture);
         }
 
-
-
-
-
         public static DatosFacturacion ObtenerDatosFacturacion(DateTime? fechaFactura = null)
         {
             return new BLL_ParametroPlataforma().ObtenerDatosFacturacion(fechaFactura);
@@ -804,11 +757,6 @@ namespace StageUp.BLL
             return medios.Count == 0 ? string.Empty : " con " + string.Join(" y ", medios);
         }
 
-
-
-
-
-
         private ResultadoOperacion AutorizarTarjeta(DatosTarjeta tarjeta, Pago pago)
         {
             ResultadoOperacion<string> validacion = ValidadorTarjeta.Validar(tarjeta);
@@ -816,9 +764,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error(validacion.Mensaje);
             }
-
-
-
 
             pago.MarcaTarjeta = validacion.Valor;
             pago.UltimosDigitos = ValidadorTarjeta.ObtenerUltimosDigitos(tarjeta.Numero);
@@ -861,9 +806,6 @@ namespace StageUp.BLL
             {
             }
         }
-
-
-
 
         private ResultadoMovimientoDinero RegistrarPagoYTransaccion(Pago pago, Action auditar)
         {

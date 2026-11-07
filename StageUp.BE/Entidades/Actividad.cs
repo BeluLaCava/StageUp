@@ -1,10 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-
-
 
     public class Actividad
     {
@@ -13,20 +11,13 @@ namespace StageUp.BE.Entidades
         public string Nombre { get; set; }
         public string Tipo { get; set; }
 
-
         public string ModoRecurrencia { get; set; }
 
-
-
         public string Fecha { get; set; }
-
-
 
         public int? SemanaDelMes { get; set; }
 
         public int? DiaSemanaMensual { get; set; }
-
-
 
         public List<int> DiasSemana { get; set; } = new List<int>();
 
@@ -39,9 +30,7 @@ namespace StageUp.BE.Entidades
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
 
-
         public string NombreEspacio { get; set; }
-
 
         public bool EspacioActivo { get; set; } = true;
 
@@ -49,7 +38,6 @@ namespace StageUp.BE.Entidades
         {
             get { return MinutoHasta - MinutoDesde; }
         }
-
 
         public List<Participante> Participantes { get; set; } = new List<Participante>();
     }

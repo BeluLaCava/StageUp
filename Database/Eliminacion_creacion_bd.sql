@@ -1,46 +1,8 @@
--- ############################################################################
--- ##  NO ES UN SCRIPT DE INSTALACIÓN. NO FORMA PARTE DE LA ENTREGA NORMAL.  ##
--- ##  Borra TODAS las tablas de StageUp y recrea la base desde cero.        ##
--- ##  Uso exclusivo: recuperación manual de una base rota.                  ##
--- ##  Instalación / actualización normal: EjecutarTodosLosScripts.ps1       ##
--- ##  (ver Database/LEEME_Scripts.md).                                      ##
--- ############################################################################
---
--- Protección: la primera instrucción de abajo frena el script (SET NOEXEC ON)
--- para que no se pueda ejecutar entero por accidente con F5. Si realmente
--- necesitás recuperar la base, leé las notas de más abajo, ajustá las rutas
--- de .mdf/.ldf a tu instancia y recién ahí comentá esas dos líneas.
+﻿
+
 RAISERROR(N'Eliminacion_creacion_bd.sql es un script de recuperación manual destructivo. No se ejecutó nada: leé el encabezado antes de usarlo.', 16, 1);
 SET NOEXEC ON;
 GO
-
--- ============================================================================
--- Eliminacion_creacion_bd.sql
---
--- Script de RECUPERACION MANUAL (se usó para resolver el incidente de la
--- base huérfana del 09/09). A propósito NO forma parte de la secuencia
--- automática de Database/: EjecutarTodosLosScripts.ps1 solo toma archivos
--- cuyo nombre matchea "^\d+_" (los "NN_..."), así que este nunca se ejecuta
--- solo ni por accidente — hay que correrlo a mano, y únicamente si sabés por
--- qué lo estás corriendo.
---
--- Antes de correrlo:
---   1) Los tres bloques de más abajo apuntan a "USE [StageUp]" (antes decía
---      "USE master", y por eso los DROP TABLE y la consulta de FKs corrían
---      silenciosamente contra la base master, sin tocar StageUp — no
---      rompían nada, pero tampoco limpiaban lo que debían: quedaba la falsa
---      sensación de que el script había hecho su trabajo). Si tu instancia
---      de SQL Server usa otro nombre de base, cambialo acá.
---   2) Si tu base StageUp ya no existe (se borró por completo, por ejemplo
---      desde SSMS), el primer bloque va a fallar con "no se pudo abrir la
---      base de datos StageUp" — es lo esperado, no hay nada que limpiar
---      todavía: saltealo y andá directo a la sección CREATE DATABASE del
---      final.
---   3) La sección CREATE DATABASE del final tiene rutas de archivo
---      (.mdf/.ldf) hardcodeadas a la instalación original de SQL Server
---      donde se armó este script. Si tu instancia usa otra carpeta de
---      datos, ajustá esas rutas antes de correrlo.
--- ============================================================================
 
 USE [StageUp];
 GO
@@ -86,11 +48,6 @@ SELECT
 FROM sys.foreign_keys fk
 WHERE fk.referenced_object_id = OBJECT_ID('dbo.UsuarioExterno');
 
--- Solo hace falta si la base StageUp fue borrada por completo (por ejemplo
--- desde SSMS) y hay que recrearla vacía antes de volver a correr
--- EjecutarTodosLosScripts.ps1. Si la base ya existe, este IF no hace nada
--- (no borra ni recrea lo que ya está) — mismo patrón de guarda que usa el
--- propio EjecutarTodosLosScripts.ps1 para crear la base la primera vez.
 IF DB_ID(N'StageUp') IS NULL
     CREATE DATABASE StageUp
     ON PRIMARY (NAME = N'StageUp', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL17.SQLEXPRESS\MSSQL\DATA\StageUp_v2.mdf')

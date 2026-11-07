@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -9,11 +9,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
 
     public class BLL_Notificacion
     {
@@ -50,7 +45,6 @@ namespace StageUp.BLL
             { TipoNotificacion.MensajeReserva.ToString(), "Nuevo mensaje sobre una reserva" }
         };
 
-
         private static readonly Dictionary<string, string> CategoriasPorTipo = new Dictionary<string, string>
         {
             { TipoNotificacion.SolicitudReserva.ToString(), "Reservas" },
@@ -75,8 +69,6 @@ namespace StageUp.BLL
             { TipoNotificacion.MensajeReserva.ToString(), "Mensajes" }
         };
 
-
-
         private static readonly Regex FormatoUrlInterna = new Regex(
             @"^~/([A-Za-z0-9_\-]+/)*[A-Za-z0-9_\-]+\.aspx(\?[A-Za-z0-9_\-=&%\.]*)?$", RegexOptions.Compiled);
 
@@ -91,10 +83,6 @@ namespace StageUp.BLL
             string categoria;
             return tipo != null && CategoriasPorTipo.TryGetValue(tipo, out categoria) ? categoria : "General";
         }
-
-
-
-
 
         public void Notificar(int idUsuarioExterno, TipoNotificacion tipo, string mensaje, string urlDestino)
         {
@@ -112,7 +100,6 @@ namespace StageUp.BLL
             catch (ErrorAccesoDatosException)
             {
 
-
             }
         }
 
@@ -120,7 +107,6 @@ namespace StageUp.BLL
         {
             return Listar(idUsuarioExterno, FiltroTodas, cantidad);
         }
-
 
         public List<Notificacion> Listar(int idUsuarioExterno, string estado, int cantidad)
         {
@@ -141,9 +127,9 @@ namespace StageUp.BLL
 
                 return notificaciones;
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Notificacion>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -158,8 +144,6 @@ namespace StageUp.BLL
                 return 0;
             }
         }
-
-
 
         public void MarcarLeida(int idNotificacion, int idUsuarioExterno)
         {
@@ -176,7 +160,6 @@ namespace StageUp.BLL
             }
         }
 
-
         public void MarcarTodasLeidas(int idUsuarioExterno)
         {
             try
@@ -187,10 +170,6 @@ namespace StageUp.BLL
             {
             }
         }
-
-
-
-
 
         public ResultadoOperacion<string> ResolverDestino(int idNotificacion, int idUsuarioExterno)
         {
@@ -241,7 +220,6 @@ namespace StageUp.BLL
         {
             return !string.IsNullOrEmpty(url) && url.Length <= 300 && FormatoUrlInterna.IsMatch(url) && url.IndexOf("..", StringComparison.Ordinal) < 0;
         }
-
 
         private static ResultadoOperacion VerificarElemento(string url, int idUsuarioExterno)
         {

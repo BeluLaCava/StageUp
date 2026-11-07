@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -49,8 +49,6 @@ namespace StageUp.MPP
             return lista;
         }
 
-
-
         public void Restaurar(BackupBaseDatos oBackup)
         {
             Conexion.Instance.EjecutarEnMaster(
@@ -63,7 +61,6 @@ namespace StageUp.MPP
 
             Conexion.Instance.LimpiarConexionesAbiertas();
         }
-
 
         public string ObtenerMarcaUltimaRestauracion()
         {

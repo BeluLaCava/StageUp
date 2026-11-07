@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -13,9 +13,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-003-004: categorías temáticas del contenido de ayuda.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.CategoriaAyuda', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.CategoriaAyuda
@@ -48,12 +45,6 @@ WHEN NOT MATCHED THEN
     INSERT (codigo, nombre, descripcion, orden) VALUES (origen.codigo, origen.nombre, origen.descripcion, origen.orden);
 GO
 
--- ---------------------------------------------------------------------------
--- Faq pasa a ser "contenido de ayuda": categoría, estado (Borrador, Activo,
--- Inactivo), si se usa en el asistente y palabras clave para reconocer
--- consultas escritas. activo se mantiene sincronizado con estado = Activo
--- (lo usan la búsqueda global y el listado público).
--- ---------------------------------------------------------------------------
 IF COL_LENGTH(N'dbo.Faq', N'idCategoriaAyuda') IS NULL
     ALTER TABLE dbo.Faq ADD idCategoriaAyuda INT NULL
         CONSTRAINT FK_Faq_CategoriaAyuda FOREIGN KEY REFERENCES dbo.CategoriaAyuda (idCategoriaAyuda);
@@ -97,7 +88,6 @@ BEGIN
 END
 GO
 
--- Contenido inicial por categoría (solo si la pregunta no existe).
 INSERT INTO dbo.Faq (pregunta, respuesta, orden, activo, estado, idCategoriaAyuda, usarEnAsistente, palabrasClave)
 SELECT v.pregunta, v.respuesta, v.orden, 1, N'Activo', c.idCategoriaAyuda, 1, v.palabras
 FROM (VALUES
@@ -115,10 +105,6 @@ INNER JOIN dbo.CategoriaAyuda c ON c.codigo = v.codigoCategoria
 WHERE NOT EXISTS (SELECT 1 FROM dbo.Faq f WHERE f.pregunta = v.pregunta);
 GO
 
--- ---------------------------------------------------------------------------
--- CU-003-001 A5 / CU-003-004 A15: consultas escritas en el asistente, para
--- detectar las que no tuvieron respuesta y convertirlas en contenido.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.ConsultaAsistente', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.ConsultaAsistente
@@ -139,9 +125,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- SP
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_CategoriaAyuda_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CategoriaAyuda_Listar;
 GO
 CREATE PROCEDURE dbo.sp_CategoriaAyuda_Listar
@@ -156,7 +139,6 @@ BEGIN
 END
 GO
 
--- Público (CU-003-001): solo contenido activo de categorías activas.
 IF OBJECT_ID('dbo.sp_Faq_ListarActivas', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Faq_ListarActivas;
 GO
 CREATE PROCEDURE dbo.sp_Faq_ListarActivas
@@ -172,7 +154,6 @@ BEGIN
 END
 GO
 
--- Administración (CU-003-004 pasos 4 y 5), con filtros opcionales.
 IF OBJECT_ID('dbo.sp_Faq_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Faq_Listar;
 GO
 CREATE PROCEDURE dbo.sp_Faq_Listar
@@ -210,7 +191,6 @@ BEGIN
 END
 GO
 
--- Preguntas para detectar duplicados (A12): la BLL compara normalizado.
 IF OBJECT_ID('dbo.sp_Faq_ListarPreguntas', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Faq_ListarPreguntas;
 GO
 CREATE PROCEDURE dbo.sp_Faq_ListarPreguntas
@@ -280,7 +260,6 @@ BEGIN
 END
 GO
 
--- Compatibilidad: los SP de baja/reactivación anteriores usan el estado.
 IF OBJECT_ID('dbo.sp_Faq_DarDeBaja', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Faq_DarDeBaja;
 GO
 CREATE PROCEDURE dbo.sp_Faq_DarDeBaja
@@ -303,7 +282,6 @@ BEGIN
 END
 GO
 
--- Asistente
 IF OBJECT_ID('dbo.sp_ConsultaAsistente_Registrar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ConsultaAsistente_Registrar;
 GO
 CREATE PROCEDURE dbo.sp_ConsultaAsistente_Registrar
@@ -320,7 +298,6 @@ BEGIN
 END
 GO
 
--- A15: consultas sin respuesta, agrupadas, para crear contenido.
 IF OBJECT_ID('dbo.sp_ConsultaAsistente_ListarSinRespuesta', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ConsultaAsistente_ListarSinRespuesta;
 GO
 CREATE PROCEDURE dbo.sp_ConsultaAsistente_ListarSinRespuesta
@@ -347,7 +324,6 @@ BEGIN
 END
 GO
 
--- Nombre de la pantalla según el CU.
 UPDATE dbo.ComponentePermiso
 SET nombre = N'Contenido de ayuda',
     descripcion = N'Crear, editar, publicar y desactivar el contenido de ayuda (preguntas frecuentes por categoría) que usan el centro de ayuda y el asistente.',

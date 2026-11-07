@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using StageUp.BE.Entidades;
 using StageUp.MPP;
@@ -72,8 +72,6 @@ namespace StageUp.BLL
                 TipoEntidadAfectada = tipoEntidadAfectada
             });
         }
-
-
 
         public const int MaximoRegistrosPorBusqueda = 500;
 

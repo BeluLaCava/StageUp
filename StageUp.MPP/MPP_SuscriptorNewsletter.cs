@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -25,8 +25,6 @@ namespace StageUp.MPP
         {
             return Obtener(new Hashtable { { "@hashTokenVinculo", hashTokenVinculo } });
         }
-
-
 
         public bool SolicitarVinculo(SuscriptorNewsletter oSuscriptor, UsuarioExterno oCuenta, string hashTokenVinculo, DateTime vencimiento)
         {
@@ -93,8 +91,6 @@ namespace StageUp.MPP
                 "sp_SuscriptorNewsletter_MarcarAvisoEnviado",
                 new Hashtable { { "@idSuscriptorNewsletter", oSuscriptor.IdSuscriptorNewsletter } });
         }
-
-
 
         public void AnularEnvioConfirmacion(SuscriptorNewsletter oSuscriptor)
         {
@@ -187,7 +183,6 @@ namespace StageUp.MPP
                 new Hashtable { { "@idSuscriptorNewsletter", oSuscriptor.IdSuscriptorNewsletter } });
             return tabla.Rows.Count == 0 ? null : Mapear(tabla.Rows[0]);
         }
-
 
         public List<SuscriptorNewsletter> Listar(FiltroSuscriptoresNewsletter oFiltro, out int totalFiltrado)
         {

@@ -1,8 +1,7 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
-
 
     public class MensajeReserva
     {
@@ -13,7 +12,6 @@ namespace StageUp.BE.Entidades
         public string ApellidoEmisor { get; set; }
         public string Texto { get; set; }
         public DateTime FechaEnvio { get; set; }
-
 
         public DateTime? FechaLectura { get; set; }
 
@@ -27,7 +25,6 @@ namespace StageUp.BE.Entidades
             get { return ((NombreEmisor ?? string.Empty) + " " + (ApellidoEmisor ?? string.Empty)).Trim(); }
         }
     }
-
 
     public class MensajesNoLeidosReserva
     {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -9,16 +9,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
-
-
-
 
     public class BLL_PreguntaEspacio
     {
@@ -42,10 +32,6 @@ namespace StageUp.BLL
         private readonly BLL_EspacioArtistico _bllEspacio = new BLL_EspacioArtistico();
         private readonly BLL_Notificacion _bllNotificacion = new BLL_Notificacion();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
-
-
-
-
 
         public ResultadoOperacion<PreguntasDeEspacio> ListarPublicas(int idEspacioArtistico, bool todas)
         {
@@ -125,7 +111,6 @@ namespace StageUp.BLL
             }
         }
 
-
         public ResultadoOperacion Retirar(int idPreguntaEspacio, int idUsuarioExterno)
         {
             try
@@ -157,10 +142,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error(MensajeError);
             }
         }
-
-
-
-
 
         public ResultadoOperacion Responder(int idPreguntaEspacio, int idUsuarioGestor, string texto)
         {
@@ -206,7 +187,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error(MensajeError);
             }
         }
-
 
         public ResultadoOperacion Ocultar(int idPreguntaEspacio, int idUsuarioGestor, string motivo)
         {
@@ -284,10 +264,6 @@ namespace StageUp.BLL
                 return 0;
             }
         }
-
-
-
-
 
         private static ResultadoOperacion ValidarTexto(string texto, int minimo, int maximo, string nombre)
         {

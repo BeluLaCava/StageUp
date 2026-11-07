@@ -14,7 +14,7 @@ namespace StageUp.BE.Entidades
         public string Estado { get; set; }
         public string Detalle { get; set; }
     }
-    // Implemented by the business layer; Servicios does not depend on persistence.
+
     public interface IHistorialCorreoAdministrativo
     {
         int Iniciar(CorreoAdministrativo correo);

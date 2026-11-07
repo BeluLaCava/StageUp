@@ -1,12 +1,9 @@
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
 using System.Web;
 
 namespace StageUp.UI.Infraestructura
 {
-
-
-
 
     public static class OrigenDeDifusion
     {
@@ -31,7 +28,6 @@ namespace StageUp.UI.Infraestructura
             };
             contexto.Response.Cookies.Set(cookie);
         }
-
 
         public static string Leer(HttpContext contexto)
         {

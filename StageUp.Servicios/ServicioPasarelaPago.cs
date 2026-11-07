@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Security.Cryptography;
 using StageUp.BE.Entidades;
 
@@ -10,17 +10,6 @@ namespace StageUp.Servicios
         public string CodigoAutorizacion { get; set; }
         public string MotivoRechazo { get; set; }
     }
-
-
-
-
-
-
-
-
-
-
-
 
     public class ServicioPasarelaPago
     {

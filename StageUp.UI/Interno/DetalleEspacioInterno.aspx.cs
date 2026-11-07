@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,9 +11,6 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Interno
 {
-
-
-
 
     public partial class DetalleEspacioInterno : Page
     {
@@ -122,8 +119,6 @@ namespace StageUp.UI.Interno
             pnlNoEncontrado.Visible = true;
             litNoEncontrado.Text = mensaje;
         }
-
-
 
         private string UrlParaVolver()
         {

@@ -1,11 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-
-
-
 
     public class FiltroReporte
     {
@@ -16,7 +13,6 @@ namespace StageUp.BE.Entidades
         public string Provincia { get; set; }
         public string TipoEspacio { get; set; }
     }
-
 
     public class IndicadoresTablero
     {
@@ -31,14 +27,12 @@ namespace StageUp.BE.Entidades
         public int TicketsPendientes { get; set; }
     }
 
-
     public class FilaReportePeriodo
     {
         public DateTime InicioPeriodo { get; set; }
         public int CantidadReservas { get; set; }
         public decimal ImporteReservas { get; set; }
         public decimal ImporteComisiones { get; set; }
-
 
         public string Etiqueta { get; set; }
         public decimal PorcentajeBarra { get; set; }
@@ -74,11 +68,9 @@ namespace StageUp.BE.Entidades
         public int CantidadRespuestas { get; set; }
         public int CantidadDestinatarios { get; set; }
 
-
         public decimal? TasaParticipacion { get; set; }
         public decimal PorcentajeBarra { get; set; }
     }
-
 
     public class ReporteCompleto
     {
@@ -86,9 +78,7 @@ namespace StageUp.BE.Entidades
         public IndicadoresTablero Indicadores { get; set; }
         public List<FilaReportePeriodo> Ingresos { get; set; } = new List<FilaReportePeriodo>();
 
-
         public List<FilaReporteZona> Zonas { get; set; } = new List<FilaReporteZona>();
-
 
         public List<FilaReporteZona> ZonasDetalle { get; set; } = new List<FilaReporteZona>();
         public List<FilaReporteEstado> Estados { get; set; } = new List<FilaReporteEstado>();
@@ -97,7 +87,6 @@ namespace StageUp.BE.Entidades
         public decimal TotalImporteReservas { get; set; }
         public decimal TotalImporteComisiones { get; set; }
         public int TotalReservasPeriodo { get; set; }
-
 
         public string Aviso { get; set; }
     }

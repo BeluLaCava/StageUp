@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -110,7 +110,6 @@ namespace StageUp.MPP
 
             return Convert.ToInt32(resultado);
         }
-
 
         public string RegistrarSeguimiento(SeguimientoContacto oSeguimiento)
         {

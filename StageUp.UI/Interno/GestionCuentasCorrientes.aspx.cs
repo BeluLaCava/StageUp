@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -10,8 +10,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
-
 
     public partial class GestionCuentasCorrientes : Page
     {
@@ -37,7 +35,6 @@ namespace StageUp.UI.Interno
             get { return ViewState["IdComprobanteAAnular"] as int?; }
             set { ViewState["IdComprobanteAAnular"] = value; }
         }
-
 
         private Dictionary<int, string> NombresUsuarios
         {
@@ -216,8 +213,6 @@ namespace StageUp.UI.Interno
                 CargarPagos();
             }
         }
-
-
 
         protected static bool EsAnulable(object item)
         {

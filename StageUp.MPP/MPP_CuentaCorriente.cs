@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -75,8 +75,6 @@ namespace StageUp.MPP
             return movimientos;
         }
 
-
-
         public List<SaldoCuentaCorriente> ListarCuentas(FiltroCuentasCorrientes oFiltro)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -100,8 +98,6 @@ namespace StageUp.MPP
             }
             return cuentas;
         }
-
-
 
         public ResultadoMovimientoDinero RegistrarLiquidacion(MovimientoCuentaCorriente oMovimiento)
         {

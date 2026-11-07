@@ -192,10 +192,6 @@
         rows = [];
     }
 
-
-
-
-
     let occupiedRows = [];
     const occupiedField = document.getElementById("hdnReservasOcupadasDetalle");
     if (occupiedField) {
@@ -243,16 +239,6 @@
         return libres;
     }
 
-
-
-
-
-
-
-
-
-
-
     function franjasParaFecha(candidatas, dateValue, weekday) {
         const exactas = candidatas.filter(function (row) {
             return row.Fecha === dateValue;
@@ -275,7 +261,6 @@
         String(now.getDate()).padStart(2, "0");
     dateInput.min = minimumDate;
 
-
     function time(minutes) {
         if (minutes === 1440) {
             return "24:00";
@@ -289,11 +274,6 @@
         const date = new Date(dateValue + "T12:00:00");
         const weekday = date.getDay() === 0 ? 7 : date.getDay();
 
-
-
-
-
-
         const disponibilidadRows = rows.filter(function (row) {
             return !row.Bloqueado;
         });
@@ -302,8 +282,6 @@
         });
 
         const disponibles = franjasParaFecha(disponibilidadRows, dateValue, weekday);
-
-
 
         const bloqueadosDelDia = bloqueadoRows.filter(function (row) {
             return row.Fecha === dateValue || (!row.Fecha && row.DiaSemana === weekday);

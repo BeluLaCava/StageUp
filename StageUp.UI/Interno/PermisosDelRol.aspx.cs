@@ -1,11 +1,9 @@
-using System;
+﻿using System;
 using System.Web.UI;
 using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
-
 
     public partial class PermisosDelRol : Page
     {

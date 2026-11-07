@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -98,8 +98,6 @@ namespace StageUp.MPP
             }
             return lista;
         }
-
-
 
         public void RegistrarConsultaAsistente(string texto, string textoNormalizado, int? idNodoAsistente, int? idFaqRespuesta, int? idUsuarioExterno, string resultadoApi = null)
         {

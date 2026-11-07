@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,13 +11,6 @@ using StageUp.Seguridad;
 namespace StageUp.BLL
 {
 
-
-
-
-
-
-
-
     public class BLL_ClaveCifrado
     {
         public const int LongitudMinimaMotivo = 10;
@@ -26,8 +19,6 @@ namespace StageUp.BLL
         private readonly MPP_ClaveCifrado _mpp = new MPP_ClaveCifrado();
         private readonly MPP_TarjetaGuardada _mppTarjeta = new MPP_TarjetaGuardada();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
-
-
 
         public static bool HayClaveMaestra()
         {
@@ -48,14 +39,11 @@ namespace StageUp.BLL
             {
                 return _mpp.Listar();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<ClaveCifrado>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
-
-
 
         public ClaveCifrado ObtenerActiva(string motivoSiSeCrea)
         {
@@ -92,7 +80,6 @@ namespace StageUp.BLL
             return _mpp.ObtenerPorId(new ClaveCifrado { Version = version });
         }
 
-
         public string ObtenerClavePrivada(int idClaveCifrado)
         {
             ClaveCifrado clave = _mpp.ObtenerPorId(new ClaveCifrado { IdClaveCifrado = idClaveCifrado });
@@ -116,8 +103,6 @@ namespace StageUp.BLL
                 return 0;
             }
         }
-
-
 
         public ResultadoOperacion<string> Rotar(int idUsuarioInterno, string motivo, bool confirmado)
         {
@@ -180,7 +165,6 @@ namespace StageUp.BLL
                 ? ResultadoOperacion<string>.OkAlternativo(mensaje, mensaje, "REENVOLVER_PENDIENTE")
                 : ResultadoOperacion<string>.Ok(mensaje, mensaje);
         }
-
 
         public ResultadoOperacion<string> ReintentarPendientes(int idUsuarioInterno)
         {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -10,13 +10,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-
-
-
-
-
-
-
 
     public partial class Soporte : Page
     {
@@ -59,10 +52,6 @@ namespace StageUp.UI
             }
         }
 
-
-
-
-
         protected void btnEnviar_Click(object sender, EventArgs e)
         {
             int idReserva;
@@ -85,7 +74,6 @@ namespace StageUp.UI
                 AjustarTitulo("Nueva solicitud de soporte", "Completá los datos para que el equipo pueda analizar el caso.");
                 return;
             }
-
 
             Session["SoporteRegistroExitoso"] = resultado.Mensaje;
             Response.Redirect("~/Soporte.aspx?ver=" + resultado.Valor.ToString(CultureInfo.InvariantCulture), false);
@@ -112,8 +100,6 @@ namespace StageUp.UI
                     "#" + reserva.IdReserva + " · " + DescribirReserva(reserva.NombreEspacio, reserva.FechaSolicitada, reserva.MinutoDesde, reserva.MinutoHasta, reserva.EstadoReserva),
                     reserva.IdReserva.ToString(CultureInfo.InvariantCulture)));
             }
-
-
 
             string origen = Request.QueryString["origen"];
             string idReservaTexto = Request.QueryString["reserva"];
@@ -144,7 +130,6 @@ namespace StageUp.UI
                 pnlOrigenAsistente.Visible = true;
             }
 
-
             ResultadoOperacion<List<Ticket>> propias = _bll.ListarDelUsuario(IdUsuario);
             List<Ticket> enCurso = propias.Exitoso
                 ? propias.Valor.Where(t => t.Estado == BLL_Ticket.EstadoPendiente || t.Estado == BLL_Ticket.EstadoEnProceso).Take(3).ToList()
@@ -153,10 +138,6 @@ namespace StageUp.UI
             rptEnCurso.DataSource = enCurso;
             rptEnCurso.DataBind();
         }
-
-
-
-
 
         private void CargarListado()
         {
@@ -176,10 +157,6 @@ namespace StageUp.UI
 
             ActivarNovedadesPeriodicas("usuario-listado", null, _bll.ObtenerMarcaListado(IdUsuario));
         }
-
-
-
-
 
         protected void btnEnviarMensaje_Click(object sender, EventArgs e)
         {
@@ -269,10 +246,6 @@ namespace StageUp.UI
             }
         }
 
-
-
-
-
         private void ActivarNovedadesPeriodicas(string vista, int? idTicket, string marca)
         {
             if (marca == null)
@@ -312,8 +285,6 @@ namespace StageUp.UI
             int n = Convert.ToInt32(cantidad);
             return n == 1 ? "1 novedad" : n + " novedades";
         }
-
-
 
         protected static string DescribirActualizacion(TicketActualizacion actualizacion)
         {

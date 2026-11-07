@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -11,8 +11,6 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-
-
 
     public class BLL_Encuesta
     {
@@ -29,13 +27,8 @@ namespace StageUp.BLL
 
         private const string TipoEntidadBitacora = "Encuesta";
 
-
-
         public const string MensajeSinCookie =
             "No pudimos comprobar este navegador: para responder encuestas tu navegador tiene que aceptar cookies de StageUp. Habilitalas y volvé a intentarlo.";
-
-
-
 
         public List<Encuesta> Listar()
         {
@@ -43,9 +36,9 @@ namespace StageUp.BLL
             {
                 return _mpp.Listar();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Encuesta>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -72,9 +65,9 @@ namespace StageUp.BLL
                 }
                 return preguntas;
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<PreguntaEncuesta>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -329,9 +322,6 @@ namespace StageUp.BLL
             });
         }
 
-
-
-
         public ResultadoOperacion EliminarBorrador(int idEncuesta, int idUsuarioInternoResponsable)
         {
             return EjecutarProtegido(() =>
@@ -366,18 +356,11 @@ namespace StageUp.BLL
             {
                 return AgruparResultados(_mpp.ConsultarResultadosFilas(EncuestaConId(idEncuesta)));
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<ResultadoPreguntaEncuesta>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
-
-
-
-
-
-
 
         public const string PublicoTodos = "Todos";
         private static readonly Regex FormatoIdentificadorNavegador = new Regex("^[A-Za-z0-9_-]{43}$", RegexOptions.Compiled);
@@ -409,8 +392,6 @@ namespace StageUp.BLL
             return new Encuestado { IdentificadorAnonimo = HashIdentificador(identificadorNavegador) };
         }
 
-
-
         private static string HashIdentificador(string identificadorNavegador)
         {
             if (string.IsNullOrEmpty(identificadorNavegador) || !FormatoIdentificadorNavegador.IsMatch(identificadorNavegador))
@@ -431,9 +412,9 @@ namespace StageUp.BLL
             {
                 return _mpp.ListarPendientesParaUsuario(encuestado);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Encuesta>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -443,9 +424,9 @@ namespace StageUp.BLL
             {
                 return _mpp.ListarConResultadosParaUsuario(encuestado);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Encuesta>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -470,12 +451,9 @@ namespace StageUp.BLL
             });
         }
 
-
-
         public ResultadoOperacion RegistrarRespuesta(
             int idEncuesta, Encuestado encuestado, Dictionary<int, int> respuestasPorPregunta, string respuestaCaptcha)
         {
-
 
             if (string.IsNullOrEmpty(encuestado.IdentificadorAnonimo))
             {
@@ -520,9 +498,6 @@ namespace StageUp.BLL
                     }
                 }
 
-
-
-
                 string descripcionBitacora = encuestado.EsAnonimo
                     ? "Un visitante sin sesión respondió la encuesta \"" + encuesta.Titulo + "\"."
                     : "El usuario respondió la encuesta \"" + encuesta.Titulo + "\".";
@@ -544,7 +519,6 @@ namespace StageUp.BLL
                 }
                 catch (ErrorAccesoDatosException ex)
                 {
-
 
                     switch (ex.NumeroErrorSql)
                     {
@@ -577,9 +551,6 @@ namespace StageUp.BLL
                     return ResultadoOperacion<List<ResultadoPreguntaEncuesta>>.Error("No se encontró la encuesta seleccionada.");
                 }
 
-
-
-
                 if (encuesta.Estado != "Activa" && encuesta.Estado != "Cerrada")
                 {
                     return ResultadoOperacion<List<ResultadoPreguntaEncuesta>>.Error("Esta encuesta no está disponible.");
@@ -605,9 +576,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<List<ResultadoPreguntaEncuesta>>.Ok(resultados);
             });
         }
-
-
-
 
         private static bool EstaDirigidaA(Encuesta encuesta, Encuestado encuestado)
         {

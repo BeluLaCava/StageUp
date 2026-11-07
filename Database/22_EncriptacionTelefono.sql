@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,15 +7,11 @@ GO
 USE StageUp;
 GO
 
-
--- El teléfono ahora se guarda encriptado (AES-256 + Base64), así que necesita más lugar
--- que un NVARCHAR(60). Se ensancha la columna sin tocar los datos existentes.
 IF COL_LENGTH('dbo.UsuarioExterno', 'telefono') IS NOT NULL AND COL_LENGTH('dbo.UsuarioExterno', 'telefono') < 200
 BEGIN
     ALTER TABLE dbo.UsuarioExterno ALTER COLUMN telefono NVARCHAR(200) NULL;
 END
 GO
-
 
 IF OBJECT_ID('dbo.sp_UsuarioExterno_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_Insertar;
 GO
@@ -47,8 +43,6 @@ BEGIN
 END
 GO
 
-
--- Se agrega @telefono para que "Mi perfil" también pueda actualizarlo (encriptado desde la BLL/MPP).
 IF OBJECT_ID('dbo.sp_UsuarioExterno_ActualizarDatosPerfilV2', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_ActualizarDatosPerfilV2;
 GO
 CREATE PROCEDURE dbo.sp_UsuarioExterno_ActualizarDatosPerfilV2

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -26,8 +26,6 @@ namespace StageUp.UI
                 CargarOrigenes();
             }
         }
-
-
 
         private void CargarOrigenes()
         {

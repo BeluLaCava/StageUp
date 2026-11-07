@@ -1,4 +1,4 @@
-namespace StageUp.BE.Entidades
+﻿namespace StageUp.BE.Entidades
 {
     public class ResultadoOpcionEncuesta
     {
@@ -6,9 +6,6 @@ namespace StageUp.BE.Entidades
         public string TextoOpcion { get; set; }
         public int Orden { get; set; }
         public int CantidadRespuestas { get; set; }
-
-
-
 
         public double Porcentaje { get; set; }
     }

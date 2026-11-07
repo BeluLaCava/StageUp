@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -13,17 +13,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-002-003: historial financiero. Una fila por operación económica, venga
--- de donde venga:
---   TX  transacción económica (reserva abonada o cargo por cancelación)
---   PG  pago de una reserva que no se confirmó (pendiente, fallido, en
---       revisión o anulado) y pagos de deuda de la cuenta corriente
---   RS  reserva aceptada que todavía espera el pago o cuyo plazo venció
---   LQ  liquidación transferida a un gestor
---   CP  nota de crédito o de débito manual
--- La consulta no modifica nada: es una vista sobre las tablas existentes.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.vw_HistorialFinanciero', N'V') IS NOT NULL DROP VIEW dbo.vw_HistorialFinanciero;
 GO
 CREATE VIEW dbo.vw_HistorialFinanciero
@@ -172,11 +161,6 @@ LEFT JOIN dbo.EspacioArtistico e ON e.idEspacioArtistico = r.idEspacioArtistico
 WHERE c.origen = N'AjusteManual' AND c.tipo IN (N'NC', N'ND');
 GO
 
--- ---------------------------------------------------------------------------
--- Pasos 4 a 9 y A4: listado general o filtrado por período, estado de pago,
--- tipo de operación, gestor del espacio y texto (usuario, espacio, código o
--- número de reserva). Sin filtros devuelve el listado general (A3).
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_HistorialFinanciero_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_HistorialFinanciero_Listar;
 GO
 CREATE PROCEDURE dbo.sp_HistorialFinanciero_Listar
@@ -221,7 +205,6 @@ BEGIN
 END
 GO
 
--- A2: distingue "no hay operaciones" de "no hay resultados para el filtro".
 IF OBJECT_ID('dbo.sp_HistorialFinanciero_Contar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_HistorialFinanciero_Contar;
 GO
 CREATE PROCEDURE dbo.sp_HistorialFinanciero_Contar
@@ -232,7 +215,6 @@ BEGIN
 END
 GO
 
--- Paso 6: gestores con operaciones, para el filtro "Gestor del espacio".
 IF OBJECT_ID('dbo.sp_HistorialFinanciero_ListarGestores', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_HistorialFinanciero_ListarGestores;
 GO
 CREATE PROCEDURE dbo.sp_HistorialFinanciero_ListarGestores
@@ -248,9 +230,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Pasos 11 a 13: detalle de una operación. Sin fila = A7.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_HistorialFinanciero_ObtenerDetalle', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_HistorialFinanciero_ObtenerDetalle;
 GO
 CREATE PROCEDURE dbo.sp_HistorialFinanciero_ObtenerDetalle
@@ -284,8 +263,6 @@ BEGIN
 END
 GO
 
--- Comprobantes de la operación: factura del pago y notas de crédito o débito
--- de la misma reserva.
 IF OBJECT_ID('dbo.sp_HistorialFinanciero_ListarComprobantes', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_HistorialFinanciero_ListarComprobantes;
 GO
 CREATE PROCEDURE dbo.sp_HistorialFinanciero_ListarComprobantes
@@ -308,7 +285,6 @@ BEGIN
 END
 GO
 
--- Impacto en saldo: movimientos de cuenta corriente de la operación.
 IF OBJECT_ID('dbo.sp_HistorialFinanciero_ListarMovimientos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_HistorialFinanciero_ListarMovimientos;
 GO
 CREATE PROCEDURE dbo.sp_HistorialFinanciero_ListarMovimientos
@@ -333,9 +309,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Permiso y opción de menú "Historial financiero" (paso 2 y A1).
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('tempdb..#RegistrarPermisoAdministracion') IS NOT NULL DROP PROCEDURE #RegistrarPermisoAdministracion;
 GO
 CREATE PROCEDURE #RegistrarPermisoAdministracion
@@ -496,7 +469,6 @@ BEGIN
             END
         END
 
-        -- Opción del menú dinámico (script 45), al final del menú.
         IF OBJECT_ID(N'dbo.OpcionMenu', N'U') IS NOT NULL
            AND @idComponente IS NOT NULL
            AND NOT EXISTS (SELECT 1 FROM dbo.OpcionMenu WHERE idComponentePermiso = @idComponente)

@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,9 +7,6 @@ GO
 USE StageUp;
 GO
 
--- ---------------------------------------------------------------------------
--- Parámetros de la política de cancelación
--- ---------------------------------------------------------------------------
 MERGE dbo.ParametroPlataforma AS destino
 USING (VALUES
     (N'DiasCancelacionSinCargo', N'14', N'Con al menos estos días de anticipación, el cliente cancela una reserva aceptada sin cargo.'),
@@ -26,9 +23,6 @@ DELETE FROM dbo.ParametroPlataforma
 WHERE clave IN (N'HorasCancelacionSinCargo', N'PenalidadCancelacionPorcentaje');
 GO
 
--- ---------------------------------------------------------------------------
--- Cancelación con reparto del cargo entre gestor y StageUp
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Reserva_Cancelar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_Cancelar;
 GO
 CREATE PROCEDURE dbo.sp_Reserva_Cancelar
@@ -63,15 +57,12 @@ BEGIN
             RETURN;
         END
 
-        -- Una reserva que espera el pago se cancela sin cargo, aunque llegue
-        -- un cargo: nunca se cobró nada.
         IF @estadoPago NOT IN (N'Pagado', N'NoRequerido')
         BEGIN
             SET @comisionAplicada = 0;
             SET @importeComision = NULL;
         END
 
-        -- El cargo nunca supera el valor de la reserva.
         IF @comisionAplicada = 1 AND @total IS NOT NULL AND @importeComision > @total
             SET @importeComision = @total;
 
@@ -96,7 +87,6 @@ BEGIN
             WHERE idReserva = @idReserva AND estado = N'Aprobado'
             ORDER BY idPago DESC;
 
-            -- Cliente: vuelve todo lo pagado como saldo a favor...
             INSERT INTO dbo.Comprobante (tipo, idUsuarioExterno, rolCuenta, idReserva, importe, moneda, origen, motivo)
             VALUES (N'NC', @idCliente, N'Cliente', @idReserva, @total, @moneda, N'Cancelacion',
                     N'Cancelación de la ' + @textoReserva + N'. El importe pagado queda como saldo a favor.');
@@ -106,7 +96,6 @@ BEGIN
             VALUES (@idCliente, N'Cliente', N'NotaCredito', @total, @moneda,
                     N'Nota de crédito por cancelación de la ' + @textoReserva, @idReserva, @idNotaCredito);
 
-            -- ...y se le debita el cargo por cancelación, si corresponde.
             IF @comisionAplicada = 1 AND ISNULL(@importeComision, 0) > 0
             BEGIN
                 INSERT INTO dbo.Comprobante (tipo, idUsuarioExterno, rolCuenta, idReserva, importe, moneda, origen, motivo)
@@ -119,7 +108,6 @@ BEGIN
                         N'Nota de débito por el cargo de cancelación de la ' + @textoReserva, @idReserva, @idNotaDebito);
             END
 
-            -- Gestor: se revierte lo que se le acreditó con el pago...
             INSERT INTO dbo.MovimientoCuentaCorriente (idUsuarioExterno, rolCuenta, tipoMovimiento, importe, moneda, descripcion, idReserva, idPago)
             VALUES (@idGestor, N'Gestor', N'AnulacionIngreso', -@total, @moneda,
                     N'El cliente canceló la ' + @textoReserva, @idReserva, @idPago);
@@ -131,8 +119,6 @@ BEGIN
                         N'Se devuelve la comisión de StageUp de la ' + @textoReserva, @idReserva, @idPago);
             END
 
-            -- ...y se le acredita el cargo por cancelación, menos la comisión
-            -- de StageUp (mismo porcentaje que se aplicó al pago).
             IF @comisionAplicada = 1 AND ISNULL(@importeComision, 0) > 0
             BEGIN
                 DECLARE @comisionSobreCargo DECIMAL(18,2) = ROUND(@importeComision * ISNULL(@porcentajePlataforma, 0) / 100, 2);
@@ -161,9 +147,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Detalle de una reserva (A8 / A9)
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Reserva_ObtenerDetalle', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_ObtenerDetalle;
 GO
 CREATE PROCEDURE dbo.sp_Reserva_ObtenerDetalle
@@ -200,9 +183,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Rechazo (A10 / A11)
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Reserva_Rechazar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_Rechazar;
 GO
 CREATE PROCEDURE dbo.sp_Reserva_Rechazar
@@ -224,10 +204,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Términos y condiciones: texto de cancelaciones (si se cargó en el
--- diccionario de traducciones, se actualiza también ahí).
--- ---------------------------------------------------------------------------
 DECLARE @textoEs NVARCHAR(2000) = N'El valor estimado se calcula a partir del precio por hora publicado y la duración solicitada. Una solicitud pendiente se puede cancelar sin cargo. Una reserva aceptada se cancela sin cargo con al menos 14 días de anticipación; con menos de 14 y al menos 7 días se cobra el 50 % de su valor, y con menos de 7 días, el 100 %. Lo pagado vuelve como saldo a favor, descontando el cargo que corresponda.';
 DECLARE @textoEn NVARCHAR(2000) = N'The estimated price is calculated from the published hourly rate and the requested duration. A pending request can be cancelled free of charge. An accepted booking can be cancelled free of charge at least 14 days in advance; with less than 14 and at least 7 days, 50% of its value is charged, and with less than 7 days, 100%. Payments are returned as account credit, minus any applicable charge.';
 

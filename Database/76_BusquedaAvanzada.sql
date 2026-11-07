@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -41,8 +41,6 @@ BEGIN
         fecha DATETIME NULL, prioridad INT
     );
 
-    -- Con capacidad, precio o ubicación se buscan solo espacios (son
-    -- criterios que no tienen sentido en novedades ni en la ayuda).
     DECLARE @soloEspacios BIT = CASE WHEN @capacidadMinima IS NOT NULL OR @precioMaximo IS NOT NULL OR @ubicacion IS NOT NULL THEN 1 ELSE 0 END;
 
     IF @incluirEspacios = 1
@@ -178,7 +176,6 @@ BEGIN
           AND (@fechaDesde IS NULL OR e.fechaAlta >= @fechaDesde)
           AND (@hasta IS NULL OR e.fechaAlta < @hasta);
 
-    -- Reservas: la fecha es la del día reservado.
     IF @incluirReservas = 1 AND @categoriaNovedad IS NULL
         INSERT INTO #resultados
         SELECT N'Reserva', r.idReserva,

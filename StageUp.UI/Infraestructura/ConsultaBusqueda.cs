@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
@@ -9,10 +9,6 @@ using StageUp.BLL;
 
 namespace StageUp.UI.Infraestructura
 {
-
-
-
-
 
     public static class ConsultaBusqueda
     {
@@ -134,7 +130,6 @@ namespace StageUp.UI.Infraestructura
             Agregar(partes, "max", filtro.Maximo == 25 ? null : filtro.Maximo.ToString(CultureInfo.InvariantCulture));
             return partes.Count == 0 ? pagina : pagina + "?" + string.Join("&", partes);
         }
-
 
         public static string Describir(FiltroBusquedaGlobal filtro, IDictionary<string, string> etiquetasTipos, IDictionary<string, string> etiquetasEstados)
         {

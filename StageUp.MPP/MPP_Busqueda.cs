@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -7,7 +7,6 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-
 
     public class MPP_Busqueda
     {

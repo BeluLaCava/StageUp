@@ -1,17 +1,8 @@
-using System;
+﻿using System;
 using StageUp.BE.Entidades;
 
 namespace StageUp.Seguridad
 {
-
-
-
-
-
-
-
-
-
 
     public static class ProtectorDeCredenciales
     {

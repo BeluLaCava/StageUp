@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -19,10 +19,6 @@ BEGIN
 END
 GO
 
--- ============================================================================
--- 1) Notificacion: marcar leída validando pertenencia en la misma consulta
--- ============================================================================
-
 IF OBJECT_ID('dbo.sp_Notificacion_MarcarLeida', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Notificacion_MarcarLeida;
 GO
 CREATE PROCEDURE dbo.sp_Notificacion_MarcarLeida
@@ -32,11 +28,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
-        -- Antes se validaba "es del usuario" trayendo todas sus
-        -- notificaciones a memoria (ListarPorUsuario con cantidad =
-        -- int.MaxValue) y buscando el id ahí. Si la notificación no es del
-        -- usuario, este UPDATE simplemente no afecta filas (mismo
-        -- comportamiento silencioso que tenía antes el código de la BLL).
+
         UPDATE dbo.Notificacion
         SET leida = 1
         WHERE idNotificacion = @idNotificacion
@@ -47,10 +39,6 @@ BEGIN
     END CATCH
 END
 GO
-
--- ============================================================================
--- 2) Reputación de solicitantes: versiones "por lista de ids"
--- ============================================================================
 
 IF OBJECT_ID('dbo.sp_UsuarioExterno_ListarPorIds', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_ListarPorIds;
 GO
@@ -72,9 +60,7 @@ CREATE PROCEDURE dbo.sp_Reserva_ContarAceptadasPorSolicitantes
 AS
 BEGIN
     SET NOCOUNT ON;
-    -- Mismo criterio que antes hacía BLL_Reserva en memoria: cuenta, sobre
-    -- todo el historial del solicitante (no solo el de un espacio puntual),
-    -- las reservas en estado Aceptada o Finalizada.
+
     SELECT r.idUsuarioExternoSolicitante, COUNT(*) AS cantidadAceptadas
     FROM dbo.Reserva r
     INNER JOIN STRING_SPLIT(@idsUsuarios, ',') s ON TRY_CONVERT(INT, s.value) = r.idUsuarioExternoSolicitante
@@ -90,12 +76,7 @@ CREATE PROCEDURE dbo.sp_Calificacion_ListarRecibidasTop3PorUsuarios
 AS
 BEGIN
     SET NOCOUNT ON;
-    -- Mismo filtro/orden que sp_Calificacion_ListarRecibidasPorUsuario
-    -- (tipoCalificacion = 'UsuarioSolicitante', activo = 1, más recientes
-    -- primero), pero resuelto para todos los solicitantes pedidos de una
-    -- sola vez y recortado a las 3 más recientes por usuario con
-    -- ROW_NUMBER() en vez de traer todo el historial de calificaciones de
-    -- cada uno y recortarlo en memoria.
+
     ;WITH Numeradas AS (
         SELECT
             v.*,

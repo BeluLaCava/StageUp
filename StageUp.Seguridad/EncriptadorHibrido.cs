@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -8,13 +8,11 @@ namespace StageUp.Seguridad
          public static class EncriptadorHibrido
     {
 
-
         public static void Encriptar(
             string textoPlano, out string ivBase64, out string claveCifradaBase64, out string datosCifradosBase64)
         {
             Encriptar(textoPlano, null, out ivBase64, out claveCifradaBase64, out datosCifradosBase64);
         }
-
 
         public static void Encriptar(
             string textoPlano, string clavePublicaBase64, out string ivBase64, out string claveCifradaBase64, out string datosCifradosBase64)
@@ -76,9 +74,6 @@ namespace StageUp.Seguridad
                 }
             }
         }
-
-
-
 
         public static string ReenvolverClave(string claveCifradaBase64, string clavePrivadaAnteriorBase64, string clavePublicaNuevaBase64)
         {

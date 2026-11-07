@@ -1,4 +1,4 @@
-.offer-space-page .static-page-body {
+﻿.offer-space-page .static-page-body {
     display: grid;
     gap: 1.45rem;
 }
@@ -416,8 +416,6 @@
     border-color: #d7c8bf;
 }
 
-
-
 .ticket-badge-pendiente {
     color: #825100;
     background: #fff2cf;
@@ -624,7 +622,6 @@
     font-weight: 800;
     text-align: center;
 }
-
 
 .space-questions-intro {
     margin: 0 0 0.9rem;
@@ -2289,8 +2286,6 @@ a.text-link:focus-visible {
         radial-gradient(circle at 88% 5%, rgba(109, 16, 33, 0.10), transparent 24rem),
         linear-gradient(135deg, var(--color-nude-light), var(--color-nude));
 }
-
-
 
 .explore-header {
     padding-block: clamp(1.6rem, 3.2vw, 2.6rem);
@@ -4686,7 +4681,6 @@ body.overlay-open {
     }
 }
 
-
 .form-message {
     margin-bottom: 1.15rem;
     padding: 0.85rem 1rem;
@@ -4707,7 +4701,6 @@ body.overlay-open {
     border: 1px solid #E7B8B8;
 }
 
-
 .aviso-restauracion-base {
     margin: 1rem clamp(1rem, 2.2vw, 1.75rem) 0;
 }
@@ -4718,7 +4711,6 @@ body.overlay-open {
     color: #B23A3A;
     font-size: 0.82rem;
 }
-
 
 .static-page {
     padding: 3rem 0 4.5rem;
@@ -4806,7 +4798,6 @@ body.overlay-open {
     padding: 3rem 28px 4.5rem;
     background: transparent;
 }
-
 
 +.institutional-page {
     position: relative;
@@ -5366,12 +5357,6 @@ body.overlay-open {
     }
 }
 
-
-
-
-
-
-
 .form-actions {
     display: flex;
     align-items: center;
@@ -5628,6 +5613,13 @@ body.overlay-open {
 }
 
 .booking-progress-date:empty::after {
+    content: "Sin fecha registrada";
+}
+.booking-progress-step-completado .booking-progress-date:empty::after {
+    content: "Completado";
+}
+.booking-progress-step-pendiente .booking-progress-date:empty::after,
+.booking-progress-step-actual .booking-progress-date:empty::after {
     content: "Pendiente";
 }
 
@@ -5764,6 +5756,13 @@ body.overlay-open {
 }
 
 .booking-progress-detail time:empty::after {
+    content: "Sin fecha registrada";
+}
+.booking-progress-detail-completado time:empty::after {
+    content: "Completado";
+}
+.booking-progress-detail-pendiente time:empty::after,
+.booking-progress-detail-actual time:empty::after {
     content: "Pendiente";
 }
 
@@ -5939,7 +5938,6 @@ body.overlay-open {
     font-size: 0.75rem;
     font-weight: 700;
 }
-
 
 .space-card {
     position: relative;
@@ -8703,8 +8701,6 @@ body.internal-body {
     gap: 1.5rem;
 }
 
-
-
 .internal-shell {
     display: flex;
     flex: 1;
@@ -9980,7 +9976,6 @@ body.internal-body {
     align-items: start;
     gap: 1.3rem;
 }
-
 
 .public-news-newsletter {
     grid-column: 1 / -1;
@@ -12007,9 +12002,6 @@ table tbody tr:hover {
     }
 }
 
-
-
-
 .comercial-tabs {
     display: flex;
     flex-wrap: wrap;
@@ -12440,7 +12432,6 @@ table tbody tr:hover {
     }
 }
 
-/* Testing Beta: orientation and navigation without covering the page. */
 .sidebar-toggle { display: none; }
 .sidebar-link.is-active {
     opacity: 1;
@@ -12460,8 +12451,11 @@ table tbody tr:hover {
     color: #fff;
     border-color: var(--color-primary);
 }
-.filter-drawer-footer { flex-wrap: wrap; }
-.filter-apply-help { flex-basis: 100%; margin: 0; font-size: .85rem; color: var(--color-text-muted); }
+
+@media (min-width: 45.001rem) {
+    .filter-drawer-footer { flex-wrap: wrap; }
+}
+.filter-apply-help { width: 100%; margin: 0; font-size: .85rem; color: var(--color-text-muted); }
 @media (max-width: 62rem) {
     .app-shell { flex-direction: column; }
     .app-sidebar {
@@ -12492,4 +12486,19 @@ table tbody tr:hover {
     .app-sidebar.is-collapsible:not(.is-open) .sidebar-navigation { display: none; }
     .app-sidebar .sidebar-navigation { padding-top: .5rem; }
     .app-sidebar .sidebar-toggle:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+}
+
+#internal-menu-content { display: flex; flex-direction: column; gap: 0.7rem; min-height: 0; }
+.internal-menu-toggle {
+    width: 100%; border: 0; border-radius: 0.75rem; padding: 0.8rem 1rem;
+    background: var(--color-primary); color: #fffaf7; font: inherit;
+    font-weight: 600; text-align: left; cursor: pointer;
+}
+.internal-menu-toggle::after { content: " +"; float: right; }
+.internal-menu-toggle[aria-expanded="true"]::after { content: " −"; }
+.internal-menu-toggle[hidden], #internal-menu-content[hidden] { display: none; }
+.internal-menu-toggle:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+@media (max-width: 60rem) {
+    .internal-menu-toggle:not([hidden]) + #internal-menu-content:not([hidden]) { margin-top: 0.8rem; }
+    .internal-nav-list { max-height: 55vh; }
 }

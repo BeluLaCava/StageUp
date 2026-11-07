@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Web;
@@ -11,19 +11,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     public partial class Encuestas : Page
     {
@@ -112,9 +99,6 @@ namespace StageUp.UI
                 return;
             }
 
-
-
-
             string identificadorNavegador = EsIdentificadorValido(IdentificadorNavegador) ? IdentificadorNavegador : null;
             if (identificadorNavegador == null)
             {
@@ -187,8 +171,6 @@ namespace StageUp.UI
             return BLL_Encuesta.EncuestadoSinSesion(identificadorNavegador).IdentificadorAnonimo != null;
         }
 
-
-
         private string AsegurarIdentificadorNavegador()
         {
             string actual = IdentificadorNavegador;
@@ -201,9 +183,6 @@ namespace StageUp.UI
             GuardarCookieEncuestado(nuevo);
             return nuevo;
         }
-
-
-
 
         private void GuardarCookieEncuestado(string identificadorNavegador)
         {

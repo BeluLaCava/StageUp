@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -10,15 +10,12 @@ namespace StageUp.MPP
     public class MPP_Novedad
     {
 
-
         public List<Novedad> Listar(string estado = null)
         {
             return Mapear(Conexion.Instance.Leer(
                 "sp_Novedad_Listar",
                 new Hashtable { { "@estado", (object)estado ?? DBNull.Value } }));
         }
-
-
 
         public List<Novedad> ListarPublicadas()
         {

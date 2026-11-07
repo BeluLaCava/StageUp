@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
@@ -11,9 +11,7 @@ namespace StageUp.BE.Entidades
         public const string EstadoSinDestinatarios = "SinDestinatarios";
         public const string EstadoFallido = "Fallido";
 
-
         public const string EstadoIncierto = "Incierto";
-
 
         public const int MinutosEnvioTrabado = 15;
 
@@ -33,7 +31,6 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaFin { get; set; }
         public string Responsable { get; set; }
 
-
         public bool PuedeReintentar
         {
             get
@@ -47,20 +44,16 @@ namespace StageUp.BE.Entidades
             get { return Estado == EstadoEnCurso && FechaUltimaActividad < DateTime.Now.AddMinutes(-MinutosEnvioTrabado); }
         }
 
-
-
         public bool PuedeReenviarInciertos
         {
             get { return CantidadInciertos > 0 && (Estado != EstadoEnCurso || EstaTrabado); }
         }
-
 
         public bool PermiteNuevoEnvio
         {
             get { return Estado == EstadoSinDestinatarios; }
         }
     }
-
 
     public class EnvioNewsletterDestinatario
     {
@@ -80,7 +73,6 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaEnvio { get; set; }
     }
 
-
     public class ResultadoEnvioNewsletter
     {
         public string Estado { get; set; }
@@ -89,7 +81,6 @@ namespace StageUp.BE.Entidades
         public int CantidadFallidos { get; set; }
         public int CantidadOmitidos { get; set; }
         public int CantidadInciertos { get; set; }
-
 
         public int EnviadosEnEsteIntento { get; set; }
     }

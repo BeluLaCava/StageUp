@@ -1,4 +1,4 @@
-// Isolated JavaScript regression checks. No browser, HTTP, database or payment actions.
+
 const fs=require('fs'), vm=require('vm'), assert=require('assert'), path=require('path');
 const root=path.resolve(process.argv[2] || path.join(__dirname, '../StageUp.UI'));
 let checks=0;
@@ -10,7 +10,7 @@ function environment(url='http://localhost/StageUp/Explorar/ResultadosBusqueda.a
         constructor(tag='div',attrs={}) {this.tagName=tag;this.attrs=attrs;this.value='';this.children=[];this.handlers={};this.hidden=false;this.disabled=false;this.checked=false;this.isConnected=true;this.parent=null;this._text='';this.offsetTop=0;this.offsetHeight=20;this.clientHeight=200;this.tabIndex=['button','a','input','select','textarea'].includes(tag)?0:-1;const classes=new Set();this.classList={add:v=>classes.add(v),remove:v=>classes.delete(v),contains:v=>classes.has(v),toggle:(v,state)=>{const next=state===undefined?!classes.has(v):state;if(next)classes.add(v);else classes.delete(v);return next;}};all.push(this);if(attrs.id)ids[attrs.id]=this;}
         get href(){return new URL(this.attrs.href||'',url).href;} set href(v){this.attrs.href=v;}
         set textContent(v){this._text=v;this.children=[];} get textContent(){return this._text;}
-        set innerHTML(v){ // Only the fixed confirmation template needs HTML parsing here.
+        set innerHTML(v){
             this.children=[];
             const section=new Element('section',{'class':'stageup-confirm-dialog'});this.appendChild(section);
             section.appendChild(new Element('h2',{id:'stageup-confirm-title'}));section.appendChild(new Element('p',{id:'stageup-confirm-message'}));
@@ -107,4 +107,66 @@ function navigationChecks(){
         input.value='gestion';input.fire('input');ok(!link.hidden&&empty.hidden,'menu search remains accent insensitive');
     }
 }
-(async()=>{filterChecks();focusChecks();await confirmChecks();navigationChecks();console.log('PASSED '+checks+' checks');})().catch(e=>{console.error(e);process.exitCode=1;});
+function correctedUiChecks() {
+    const e = environment('http://localhost/Interno/PagosReservas.aspx');
+    const originalMatches = e.Element.prototype.matches;
+    e.Element.prototype.matches = function (selector) {
+        return selector.split(',').some(part => part.trim() === 'a[href]'
+            ? this.tagName === 'a' && this.hasAttribute('href')
+            : originalMatches.call(this, part));
+    };
+    const outside = e.add('button');
+    const dialog = e.add('dialog', {open:'', 'data-server-modal':''});
+    const close = e.add('a', {href:'#', class:'review-dialog-close'}, dialog);
+    const last = e.add('a', {href:'#'}, dialog);
+    let modalCalls = 0, closeCalls = 0;
+    dialog.showModal = () => { modalCalls++; dialog.setAttribute('open',''); };
+    close.addEventListener('click', () => closeCalls++);
+    const originalAll = e.document.querySelectorAll;
+    e.document.querySelectorAll = selector => selector === 'dialog[data-server-modal][open]' ? [dialog] : originalAll(selector);
+    e.load('modal-focus.js');
+    e.emit('DOMContentLoaded', {});
+    ok(modalCalls === 1 && e.document.activeElement === close, 'payment detail becomes modal and focuses its close control');
+    last.focus(); e.emit('keydown', {key:'Tab'});
+    ok(e.document.activeElement === close, 'payment detail wraps Tab to close instead of the page behind');
+    close.focus(); e.emit('keydown', {key:'Tab', shiftKey:true});
+    ok(e.document.activeElement === last, 'payment detail wraps Shift+Tab');
+    outside.focus();
+    ok(e.document.activeElement === close, 'payment detail prevents focus entering background');
+    dialog.fire('keydown', {key:'Escape'});
+    ok(closeCalls === 1, 'Escape invokes existing payment close action exactly once');
+    const nested = e.add('section'); e.window.StageUpModalFocus.activate(nested);
+    dialog.fire('keydown', {key:'Escape'});
+    ok(closeCalls === 1, 'Escape does not close payment detail behind a nested confirmation');
+    e.window.StageUpModalFocus.deactivate(nested);
+    dialog.fire('cancel');
+    ok(closeCalls === 2, 'native cancel invokes existing server close action');
+
+    const m = environment('http://localhost/Interno/GestionMenu.aspx');
+    const toggle = m.add('button', {'data-internal-menu-toggle':''});
+    const content = m.add('div', {id:'internal-menu-content'});
+    const input = m.add('input', {'data-internal-menu-search':''}, content);
+    const list = m.add('div', {'data-internal-menu-list':''}, content);
+    const empty = m.add('p', {'data-internal-menu-empty':''}, content);
+    const link = m.add('a', {class:'internal-nav-link', href:'GestionMenu.aspx', 'data-menu-name':'Gestión del menú'}, list);
+    let changed;
+    const media = {matches:true, addEventListener:(name, callback) => changed = callback};
+    m.window.matchMedia = () => media;
+    m.load('internal-menu.js');
+    ok(content.hidden && toggle.getAttribute('aria-expanded') === 'false', 'narrow admin navigation starts collapsed');
+    ok(toggle.textContent.includes('Gestión del menú'), 'collapsed navigation identifies the current section');
+    toggle.click();
+    ok(!content.hidden && toggle.getAttribute('aria-expanded') === 'true', 'admin toggle expands navigation');
+    input.value = 'gestion'; input.fire('input');
+    ok(!link.hidden && empty.hidden, 'expanded navigation retains accent-insensitive filtering');
+    input.fire('keydown', {key:'Escape'});
+    ok(input.value === '' && !content.hidden, 'first Escape clears search without closing navigation');
+    content.fire('keydown', {key:'Escape'});
+    ok(content.hidden && m.document.activeElement === toggle, 'Escape closes navigation and returns focus');
+    media.matches = false; changed();
+    ok(!content.hidden && toggle.hidden, 'desktop always exposes full menu');
+    input.focus(); media.matches = true; changed();
+    ok(content.hidden && m.document.activeElement === toggle, 'narrow resize never leaves focus in hidden navigation');
+}
+
+(async()=>{correctedUiChecks();filterChecks();focusChecks();await confirmChecks();navigationChecks();console.log('PASSED '+checks+' checks');})().catch(e=>{console.error(e);process.exitCode=1;});

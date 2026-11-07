@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -13,15 +13,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-002-002: transacción económica generada por un hecho de negocio real:
--- una reserva aceptada y abonada (ReservaAbonada) o una cancelación de una
--- reserva aceptada con cargo (CargoCancelacion). Guarda el monto, la
--- comisión de StageUp, el importe del gestor y, para los cargos, el
--- porcentaje aplicado (50 % o 100 %). Si falta información queda
--- "PendienteControl" (A3) y si no hay referencia al medio de pago queda sin
--- informar (A4).
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.TransaccionEconomica', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.TransaccionEconomica
@@ -69,7 +60,6 @@ BEGIN
 END
 GO
 
--- Transacciones de los pagos y cargos registrados antes de este script.
 INSERT INTO dbo.TransaccionEconomica
     (tipoOperacion, idReserva, idUsuarioSolicitante, idUsuarioGestor, idEspacioArtistico, idPago, moneda, montoTotal,
      porcentajeComision, importeComision, importeGestor, estadoPago, referenciaPago, fechaGeneracion, observacion)
@@ -106,11 +96,6 @@ WHERE r.estadoReserva = N'Cancelada' AND r.comisionAplicada = 1 AND ISNULL(r.imp
   AND NOT EXISTS (SELECT 1 FROM dbo.TransaccionEconomica t WHERE t.idReserva = r.idReserva AND t.tipoOperacion = N'CargoCancelacion');
 GO
 
--- ---------------------------------------------------------------------------
--- Pasos 5 a 20 y A1 paso 13: registra la transacción. Solicitante, gestor,
--- espacio y moneda salen de la reserva. Si ya existe la misma transacción
--- (mismo pago o mismo cargo), devuelve la existente sin duplicarla.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_TransaccionEconomica_Registrar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TransaccionEconomica_Registrar;
 GO
 CREATE PROCEDURE dbo.sp_TransaccionEconomica_Registrar
@@ -160,7 +145,6 @@ BEGIN
 END
 GO
 
--- A2: la cancelación de una reserva abonada actualiza su transacción.
 IF OBJECT_ID('dbo.sp_TransaccionEconomica_ActualizarEstadoPorReserva', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TransaccionEconomica_ActualizarEstadoPorReserva;
 GO
 CREATE PROCEDURE dbo.sp_TransaccionEconomica_ActualizarEstadoPorReserva
@@ -180,10 +164,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- A5 pasos 3 a 6: listado de "Transacciones económicas" con filtros por tipo
--- de operación y estado de pago (y período y texto).
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_TransaccionEconomica_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TransaccionEconomica_Listar;
 GO
 CREATE PROCEDURE dbo.sp_TransaccionEconomica_Listar
@@ -236,7 +216,6 @@ BEGIN
 END
 GO
 
--- A5 pasos 9 y 10: detalle de la transacción.
 IF OBJECT_ID('dbo.sp_TransaccionEconomica_ObtenerDetalle', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TransaccionEconomica_ObtenerDetalle;
 GO
 CREATE PROCEDURE dbo.sp_TransaccionEconomica_ObtenerDetalle
@@ -267,9 +246,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Permiso y opción de menú "Transacciones económicas" (A5 y A6).
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('tempdb..#RegistrarPermisoAdministracion') IS NOT NULL DROP PROCEDURE #RegistrarPermisoAdministracion;
 GO
 CREATE PROCEDURE #RegistrarPermisoAdministracion
@@ -430,7 +406,6 @@ BEGIN
             END
         END
 
-        -- Opción del menú dinámico (script 45), al final del menú.
         IF OBJECT_ID(N'dbo.OpcionMenu', N'U') IS NOT NULL
            AND @idComponente IS NOT NULL
            AND NOT EXISTS (SELECT 1 FROM dbo.OpcionMenu WHERE idComponentePermiso = @idComponente)

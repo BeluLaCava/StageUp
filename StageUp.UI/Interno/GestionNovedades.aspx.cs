@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -12,14 +12,12 @@ using StageUp.UI.Infraestructura;
 namespace StageUp.UI.Interno
 {
 
-
     public partial class GestionNovedades : Page
     {
         private const string FormatoFechaHora = "yyyy-MM-ddTHH:mm";
 
         private readonly BLL_Novedad _bllNovedad = new BLL_Novedad();
         private readonly BLL_UsuarioInterno _bllUsuarioInterno = new BLL_UsuarioInterno();
-
 
         private Dictionary<int, EnvioNewsletter> _envios = new Dictionary<int, EnvioNewsletter>();
 
@@ -28,9 +26,6 @@ namespace StageUp.UI.Interno
             get { return ViewState["IdNovedadEnEdicion"] as int?; }
             set { ViewState["IdNovedadEnEdicion"] = value; }
         }
-
-
-
 
         private string ImagenActual
         {
@@ -350,9 +345,6 @@ namespace StageUp.UI.Interno
                 : Server.HtmlEncode(ObtenerEtiquetaCategoria(categoria));
         }
 
-
-
-
         private string ResolverImagenFormulario(out string error)
         {
             error = null;
@@ -398,8 +390,6 @@ namespace StageUp.UI.Interno
             return BLL_CategoriaNovedad.ObtenerEtiqueta(categoria);
         }
 
-
-
         private void CargarCategorias(string categoriaActual)
         {
             ddlCategoria.Items.Clear();
@@ -430,7 +420,6 @@ namespace StageUp.UI.Interno
             EnvioNewsletter envio;
             return novedad != null && _envios.TryGetValue(novedad.IdNovedad, out envio) ? envio : null;
         }
-
 
         protected bool PuedeEnviarNewsletter(object dato)
         {
@@ -546,7 +535,6 @@ namespace StageUp.UI.Interno
                     return "Borrador · Sin publicar";
             }
         }
-
 
         private static bool TryParsearFechaHora(string texto, out DateTime? valor)
         {

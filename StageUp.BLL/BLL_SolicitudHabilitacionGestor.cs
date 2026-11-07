@@ -1,4 +1,4 @@
-using StageUp.Seguridad;
+﻿using StageUp.Seguridad;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +10,9 @@ using StageUp.MPP;
 namespace StageUp.BLL
 {
 
-
-
     public class BLL_SolicitudHabilitacionGestor
     {
         public const string CondicionNoInformada = "NoInformado";
-
 
         public static readonly Dictionary<string, string> CondicionesFiscales = new Dictionary<string, string>
         {
@@ -55,7 +52,6 @@ namespace StageUp.BLL
             return CondicionesFiscales.TryGetValue(condicion ?? string.Empty, out nombre) ? nombre : condicion;
         }
 
-
         public SolicitudHabilitacionGestor ObtenerUltima(int idUsuarioExterno)
         {
             try
@@ -74,13 +70,11 @@ namespace StageUp.BLL
             {
                 return _mpp.Listar(new SolicitudHabilitacionGestor { Estado = string.IsNullOrWhiteSpace(estado) ? null : estado });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<SolicitudHabilitacionGestor>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
-
 
         public ResultadoOperacion<int> Registrar(int idUsuarioExterno, SolicitudHabilitacionGestor datos)
         {
@@ -302,7 +296,6 @@ namespace StageUp.BLL
                 ? "Esta solicitud ya fue resuelta anteriormente. No se hicieron cambios."
                 : "No se encontró la solicitud indicada.";
         }
-
 
         public static bool EsCuitValido(string cuit)
         {

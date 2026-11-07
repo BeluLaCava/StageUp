@@ -4,19 +4,6 @@ using StageUp.Servicios;
 namespace StageUp.BLL
 {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     public class BLL_Autenticacion
     {
         private readonly BLL_UsuarioExterno _bllUsuarioExterno = new BLL_UsuarioExterno();
@@ -55,12 +42,6 @@ namespace StageUp.BLL
             return ResultadoInicioSesion.Error(ElegirMensajeDeError(resultadoExterno.Mensaje, resultadoInterno.Mensaje));
             }, mensaje => ResultadoInicioSesion.Error(mensaje));
         }
-
-
-
-
-
-
 
         private static string ElegirMensajeDeError(string mensajeExterno, string mensajeInterno)
         {

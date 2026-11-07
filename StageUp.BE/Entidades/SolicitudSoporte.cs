@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
@@ -14,13 +14,10 @@ namespace StageUp.BE.Entidades
         public string Origen { get; set; }
     }
 
-
-
     public class TicketActualizacion
     {
         public int IdTicketActualizacion { get; set; }
         public int IdTicket { get; set; }
-
 
         public string TipoActualizacion { get; set; }
         public string EstadoAnterior { get; set; }
@@ -32,8 +29,8 @@ namespace StageUp.BE.Entidades
         public string Detalle { get; set; }
         public DateTime Fecha { get; set; }
         public bool EsNuevo { get; set; }
+        public bool LeidaPorLaOtraParte { get; set; }
     }
-
 
     public class FiltroTicket
     {
@@ -62,7 +59,6 @@ namespace StageUp.BE.Entidades
         }
     }
 
-
     public class ResumenSoporte
     {
         public int Total { get; set; }
@@ -73,7 +69,6 @@ namespace StageUp.BE.Entidades
         public int SinLeer { get; set; }
         public int SinAsignar { get; set; }
     }
-
 
     public class PaginaTickets
     {

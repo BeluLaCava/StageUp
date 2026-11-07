@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,8 +9,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
 
     public class BLL_CatalogoComercial
     {
@@ -30,7 +28,6 @@ namespace StageUp.BLL
         {
             return !string.IsNullOrWhiteSpace(codigo) && Listar(tipoCatalogo).Any(i => i.Codigo == codigo);
         }
-
 
         public string Nombre(string tipoCatalogo, string codigo)
         {
@@ -54,9 +51,9 @@ namespace StageUp.BLL
             {
                 return _mpp.ListarParaVincular(new OpcionVinculoComercial { Tipo = tipo });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<OpcionVinculoComercial>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -75,11 +72,9 @@ namespace StageUp.BLL
             {
                 items = _mpp.Listar();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-
-
-                return new List<ItemCatalogoComercial>();
+                throw new ErrorCargaListadoException(ex);
             }
 
             lock (Bloqueo)
@@ -89,10 +84,6 @@ namespace StageUp.BLL
             }
             return items;
         }
-
-
-
-
 
         internal static string Limpiar(string valor)
         {
@@ -108,7 +99,6 @@ namespace StageUp.BLL
         {
             return string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
         }
-
 
         internal static bool LeerFecha(string texto, out DateTime? fecha)
         {
@@ -128,7 +118,6 @@ namespace StageUp.BLL
 
             return false;
         }
-
 
         internal static string Recortar(string descripcion)
         {
@@ -151,7 +140,6 @@ namespace StageUp.BLL
 
             }
         }
-
 
         public static string GenerarCodigo(string texto)
         {

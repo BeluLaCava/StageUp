@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -13,12 +13,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-001-012 A14: no puede haber dos roles ACTIVOS con el mismo nombre. Un rol
--- dado de baja no bloquea su nombre. El índice solo se crea si los datos
--- actuales ya lo cumplen (si hubiera repetidos, la validación queda en la BLL
--- y en sp_RolInterno_GuardarConPermisos).
--- ---------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_RolInterno_NombreActivo' AND object_id = OBJECT_ID(N'dbo.RolInterno'))
    AND NOT EXISTS (
         SELECT 1 FROM dbo.RolInterno WHERE activo = 1
@@ -29,10 +23,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- A11 paso 4: listado de roles con área, estado y cantidades (usuarios
--- activos que lo tienen y elementos de permisos asignados).
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_RolInterno_ListarResumen', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_RolInterno_ListarResumen;
 GO
 CREATE PROCEDURE dbo.sp_RolInterno_ListarResumen
@@ -57,8 +47,6 @@ BEGIN
 END
 GO
 
--- A14: otro rol activo con el mismo nombre (sin distinguir mayúsculas ni
--- espacios en los extremos).
 IF OBJECT_ID('dbo.sp_RolInterno_ExisteNombreActivo', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_RolInterno_ExisteNombreActivo;
 GO
 CREATE PROCEDURE dbo.sp_RolInterno_ExisteNombreActivo
@@ -76,13 +64,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- A11 pasos 10 a 12 y A12 pasos 7 a 9: alta o modificación del rol junto con
--- sus permisos, todo en una sola transacción (si algo falla no queda un rol
--- sin permisos). @idsComponentes es la lista de ids separados por coma de los
--- grupos o permisos sueltos tildados. Solo se guardan componentes que existen
--- y están activos; si no queda ninguno, no se guarda nada (A13).
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_RolInterno_GuardarConPermisos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_RolInterno_GuardarConPermisos;
 GO
 CREATE PROCEDURE dbo.sp_RolInterno_GuardarConPermisos

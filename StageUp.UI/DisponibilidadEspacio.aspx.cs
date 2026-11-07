@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -13,12 +13,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-
-
-
-
-
-
 
     public partial class DisponibilidadEspacio : Page
     {
@@ -67,7 +61,6 @@ namespace StageUp.UI
                 return;
             }
 
-
             if (GestorDeSesion.ObtenerPerfilActual() != PerfilUsuarioExterno.GestorEspacios.ToString())
             {
                 Response.Redirect("~/OfrecerEspacio.aspx", false);
@@ -82,13 +75,9 @@ namespace StageUp.UI
             }
         }
 
-
-
-
         private void Inicializar()
         {
             List<EspacioArtistico> espacios = _bllEspacio.ListarMisEspacios(IdUsuario);
-
 
             if (espacios.Count == 0)
             {
@@ -140,7 +129,6 @@ namespace StageUp.UI
             _espacio = resultado.Valor;
             return true;
         }
-
 
         private void Cargar()
         {
@@ -235,9 +223,6 @@ namespace StageUp.UI
             litCalendario.Text = html.ToString();
         }
 
-
-
-
         protected void ddlEspacio_SelectedIndexChanged(object sender, EventArgs e)
         {
             int id;
@@ -274,9 +259,6 @@ namespace StageUp.UI
 
             Cargar();
         }
-
-
-
 
         protected void btnAgregar_Click(object sender, EventArgs e)
         {
@@ -343,7 +325,6 @@ namespace StageUp.UI
                 return;
             }
 
-
             int? editada = IdFranjaEnEdicion;
             OcultarFormularios();
             MostrarMensaje(resultado.Mensaje, false);
@@ -357,9 +338,6 @@ namespace StageUp.UI
             pnlMensaje.Visible = false;
             Cargar();
         }
-
-
-
 
         protected void rptDisponibilidad_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
@@ -404,7 +382,6 @@ namespace StageUp.UI
                 Cargar();
                 return;
             }
-
 
             OcultarFormularios();
             pnlMensaje.Visible = false;
@@ -452,7 +429,6 @@ namespace StageUp.UI
                 CerrarDetalle();
             }
 
-
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
             Cargar();
         }
@@ -469,9 +445,6 @@ namespace StageUp.UI
             pnlDetalle.Visible = false;
             pnlConfirmarEliminar.Visible = false;
         }
-
-
-
 
         protected void btnBloquear_Click(object sender, EventArgs e)
         {
@@ -560,9 +533,6 @@ namespace StageUp.UI
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
             Cargar();
         }
-
-
-
 
         protected string Cuando(object dato)
         {

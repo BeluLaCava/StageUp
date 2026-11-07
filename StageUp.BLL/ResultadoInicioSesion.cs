@@ -1,9 +1,5 @@
-namespace StageUp.BLL
+﻿namespace StageUp.BLL
 {
-
-
-
-
 
     public class ResultadoInicioSesion : ResultadoOperacion
     {

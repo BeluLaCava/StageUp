@@ -1,6 +1,5 @@
-namespace StageUp.BE.Entidades
+﻿namespace StageUp.BE.Entidades
 {
-
 
     public class ItemCatalogoComercial
     {
@@ -20,8 +19,6 @@ namespace StageUp.BE.Entidades
         public int Orden { get; set; }
     }
 
-
-
     public class OpcionVinculoComercial
     {
         public const string TipoCampania = "Campania";
@@ -30,7 +27,6 @@ namespace StageUp.BE.Entidades
         public const string TipoContenido = "Contenido";
         public const string TipoOrigen = "Origen";
 
-
         public string Tipo { get; set; }
         public int Id { get; set; }
         public string Nombre { get; set; }
@@ -38,7 +34,6 @@ namespace StageUp.BE.Entidades
         public string Detalle { get; set; }
         public int? IdCampaniaActual { get; set; }
     }
-
 
     public class VinculoComercial
     {

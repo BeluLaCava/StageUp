@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -6,7 +6,6 @@ GO
 
 USE StageUp;
 GO
-
 
 IF COL_LENGTH('dbo.Reserva', 'minutoDesde') IS NULL
 BEGIN
@@ -166,7 +165,6 @@ BEGIN
 END
 GO
 
-
 IF OBJECT_ID('dbo.sp_Reserva_Cancelar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_Cancelar;
 GO
 CREATE PROCEDURE dbo.sp_Reserva_Cancelar
@@ -191,7 +189,6 @@ BEGIN
     END CATCH
 END
 GO
-
 
 IF OBJECT_ID('dbo.sp_Reserva_ExisteSolapamiento', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_ExisteSolapamiento;
 GO
@@ -221,7 +218,6 @@ BEGIN
     AS BIT) AS existeSolapamiento;
 END
 GO
-
 
 IF OBJECT_ID('dbo.sp_Reserva_AceptarSiDisponible', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_AceptarSiDisponible;
 GO

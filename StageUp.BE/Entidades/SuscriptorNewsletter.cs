@@ -1,9 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-
 
     public class SuscriptorNewsletter
     {
@@ -26,14 +25,10 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaConfirmacion { get; set; }
         public DateTime? FechaBaja { get; set; }
 
-
-
         public int? IdUsuarioExternoVinculoPendiente { get; set; }
         public DateTime? VencimientoVinculo { get; set; }
 
-
         public List<string> Categorias { get; set; } = new List<string>();
-
 
         public int? IdCuenta { get; set; }
         public string PerfilCuenta { get; set; }
@@ -42,7 +37,6 @@ namespace StageUp.BE.Entidades
         {
             get { return IdCuenta.HasValue; }
         }
-
 
         public string CorreoEnmascarado
         {
@@ -61,7 +55,6 @@ namespace StageUp.BE.Entidades
         }
     }
 
-
     public class DestinatarioNewsletter
     {
         public int IdSuscriptorNewsletter { get; set; }
@@ -70,15 +63,11 @@ namespace StageUp.BE.Entidades
         public string TokenPreferencias { get; set; }
     }
 
-
     public class SuscripcionDeCuenta
     {
         public string CorreoElectronico { get; set; }
 
-
         public SuscriptorNewsletter Suscripcion { get; set; }
-
-
 
         public bool Vinculada { get; set; }
 
@@ -87,7 +76,6 @@ namespace StageUp.BE.Entidades
             get { return Suscripcion == null ? null : Suscripcion.Estado; }
         }
     }
-
 
     public class FiltroSuscriptoresNewsletter
     {

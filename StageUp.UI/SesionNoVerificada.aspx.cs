@@ -1,12 +1,9 @@
-using System;
+﻿using System;
 using System.Web.UI;
 using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-
-
-
 
     public partial class SesionNoVerificada : Page
     {

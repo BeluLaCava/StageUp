@@ -1,9 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-
 
     public class ResultadoBusqueda
     {
@@ -13,16 +12,11 @@ namespace StageUp.BE.Entidades
         public string Detalle { get; set; }
         public DateTime? Fecha { get; set; }
 
-
         public int Posicion { get; set; }
-
 
         public string Url { get; set; }
         public string EtiquetaTipo { get; set; }
     }
-
-
-
 
     public class FiltroBusquedaGlobal
     {
@@ -37,7 +31,6 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaDesde { get; set; }
         public DateTime? FechaHasta { get; set; }
 
-
         public string Ubicacion { get; set; }
 
         public string TipoEspacio { get; set; }
@@ -45,7 +38,6 @@ namespace StageUp.BE.Entidades
         public string Ciudad { get; set; }
         public string Zona { get; set; }
         public decimal? PrecioMinimo { get; set; }
-
 
         public int? CapacidadMinima { get; set; }
         public decimal? PrecioMaximo { get; set; }
@@ -56,10 +48,7 @@ namespace StageUp.BE.Entidades
         public string Caracteristicas { get; set; }
         public decimal? CalificacionMinima { get; set; }
 
-
         public string CategoriaNovedad { get; set; }
-
-
 
         public string Estado { get; set; }
 
@@ -73,7 +62,6 @@ namespace StageUp.BE.Entidades
         public int? IdRegistro { get; set; }
 
         public string Orden { get; set; } = OrdenRelevancia;
-
 
         public int Maximo { get; set; } = 25;
 
@@ -97,7 +85,6 @@ namespace StageUp.BE.Entidades
             return Tipos != null && Tipos.Contains(tipo);
         }
     }
-
 
     public class GrupoResultadosBusqueda
     {

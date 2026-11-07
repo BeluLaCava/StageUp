@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -56,7 +56,6 @@ namespace StageUp.UI
             MostrarSegunTarjetaElegida();
         }
 
-
         private void CargarBilletera()
         {
             ddlTarjetaGuardada.Items.Clear();
@@ -94,7 +93,6 @@ namespace StageUp.UI
             pnlMensaje.Visible = false;
             CargarContexto(false);
         }
-
 
         private EleccionPago LeerEleccion(out bool eligio)
         {
@@ -154,7 +152,6 @@ namespace StageUp.UI
             }
 
             ResultadoOperacion<Pago> resultado = _bllPago.PagarReserva(IdReserva, idUsuario, tarjeta, eleccion);
-
 
             txtNumero.Text = string.Empty;
             txtCodigo.Text = string.Empty;

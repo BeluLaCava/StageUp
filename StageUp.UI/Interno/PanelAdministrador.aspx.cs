@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Web.UI;
 using StageUp.BE.Menu;
@@ -23,7 +23,6 @@ namespace StageUp.UI.Interno
 
             if (!IsPostBack)
             {
-
 
                 pnlAccesoDenegado.Visible = Request.QueryString["acceso"] == "denegado";
 

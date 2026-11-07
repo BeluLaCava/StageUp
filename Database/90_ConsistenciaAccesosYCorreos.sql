@@ -1,4 +1,4 @@
-﻿-- Incremental: no elimina datos ni modifica políticas comerciales.
+﻿
 SET XACT_ABORT ON;
 GO
 IF OBJECT_ID(N'dbo.IntentoAcceso', N'U') IS NULL
@@ -109,7 +109,6 @@ BEGIN
 END
 GO
 
--- Recuperación de registros económicos faltantes de versiones anteriores.
 BEGIN TRANSACTION;
 INSERT INTO dbo.TransaccionEconomica
     (tipoOperacion, idReserva, idUsuarioSolicitante, idUsuarioGestor, idEspacioArtistico, idPago, moneda, montoTotal,
@@ -144,7 +143,6 @@ OUTER APPLY (SELECT TOP 1 idComprobante FROM dbo.Comprobante
 WHERE r.estadoReserva = N'Cancelada' AND r.comisionAplicada = 1 AND ISNULL(r.importeComision, 0) > 0
   AND r.estadoPago = N'Devuelto'
   AND NOT EXISTS (SELECT 1 FROM dbo.TransaccionEconomica t WHERE t.idReserva = r.idReserva AND t.tipoOperacion = N'CargoCancelacion');
-
 
 UPDATE t SET estadoPago = N'Devuelto', fechaUltimaModificacion = GETDATE()
 FROM dbo.TransaccionEconomica t JOIN dbo.Reserva r ON r.idReserva = t.idReserva

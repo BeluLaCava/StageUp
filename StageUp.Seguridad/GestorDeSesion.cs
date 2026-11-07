@@ -21,17 +21,10 @@ namespace StageUp.Seguridad
         private const string ClaveIdRolInterno = "StageUp.Sesion.IdRolInterno";
         private const string ClavePermisosInterno = "StageUp.Sesion.PermisosInterno";
 
-
-
-
-
         private const string ClaveAltaCuenta = "StageUp.Sesion.FechaAltaCuenta";
         private const string ClaveAltaCuentaInterna = "StageUp.Sesion.FechaAltaCuentaInterna";
         private const string ClaveMarcaBaseDatos = "StageUp.Sesion.MarcaBaseDatos";
         private const string ClaveAvisoRestauracion = "StageUp.Sesion.AvisoRestauracion";
-
-
-
 
         private const string ClaveSesionSuspendida = "StageUp.Pedido.SesionSuspendida";
 
@@ -61,10 +54,6 @@ namespace StageUp.Seguridad
             HttpContext.Current.Session[ClaveUltimaVerificacionCuenta] = DateTime.Now;
             GuardarFechaAlta(ClaveAltaCuenta, usuario.FechaAlta);
         }
-
-
-
-
 
         public static bool CorrespondeVerificarCuenta()
         {
@@ -156,11 +145,6 @@ namespace StageUp.Seguridad
                 : string.Join(",", codigosPermisos);
             GuardarFechaAlta(ClaveAltaCuentaInterna, usuario.FechaAlta);
         }
-
-
-
-
-
 
         public static bool ActualizarSesionInterna(UsuarioInterno usuario, List<string> codigosPermisos)
         {
@@ -269,7 +253,6 @@ namespace StageUp.Seguridad
         {
             HttpContext.Current.Session[ClaveAvisoRestauracion] = true;
         }
-
 
         public static bool TomarAvisoRestauracion()
         {

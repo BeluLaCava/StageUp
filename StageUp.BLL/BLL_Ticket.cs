@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using StageUp.BE.Entidades;
@@ -9,17 +9,6 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
-
-
-
-
 
     public class BLL_Ticket
     {
@@ -38,7 +27,6 @@ namespace StageUp.BLL
 
         public static readonly string[] Estados = { EstadoPendiente, EstadoEnProceso, EstadoResuelta, EstadoCerrada };
 
-
         public static readonly string[] Funcionalidades = { "Reserva", "Pago", "Espacio", "Cuenta", "Gestor", "Otra" };
 
         public const int LongitudMinimaMotivo = 5;
@@ -49,8 +37,6 @@ namespace StageUp.BLL
         public const int LongitudMaximaMensaje = 2000;
         public const int LongitudMinimaRespuesta = 10;
         private const int PalabrasMinimasDescripcion = 5;
-
-
 
         private static readonly Dictionary<string, string[]> Transiciones = new Dictionary<string, string[]>
         {
@@ -69,10 +55,6 @@ namespace StageUp.BLL
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly BLL_Notificacion _bllNotificacion = new BLL_Notificacion();
         private readonly ServicioCorreo _servicioCorreo = new ServicioCorreo();
-
-
-
-
 
         public static string TextoEstado(string estado)
         {
@@ -123,7 +105,6 @@ namespace StageUp.BLL
             }
         }
 
-
         public static string MensajeSegunEstado(string estado)
         {
             switch (estado)
@@ -141,10 +122,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
-
         public ResultadoOperacion<int> RegistrarSolicitud(SolicitudSoporteNueva datos)
         {
             string motivo = Limpiar(datos.Motivo);
@@ -156,7 +133,6 @@ namespace StageUp.BLL
             {
                 origen = OrigenSoporte;
             }
-
 
             List<string> faltantes = new List<string>();
             if (motivo == null) faltantes.Add("motivo de la consulta");
@@ -187,7 +163,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("La información adicional no puede superar los " + LongitudMaximaInformacion + " caracteres.", "A2");
             }
 
-
             string insuficiente = EvaluarInformacionSuficiente(motivo, funcionalidad, descripcion, informacion, datos.IdReservaAsociada);
             if (insuficiente != null)
             {
@@ -206,8 +181,6 @@ namespace StageUp.BLL
                     }
                 }
 
-
-
                 int idTicket = _mpp.Registrar(new Ticket
                 {
                     IdUsuarioExterno = datos.IdUsuarioExterno,
@@ -224,7 +197,6 @@ namespace StageUp.BLL
                     "Registro de la solicitud de soporte " + codigo + " \"" + motivo + "\" (funcionalidad: " + TextoFuncionalidad(funcionalidad) +
                     ", origen: " + TextoOrigen(origen) + (reserva != null ? ", reserva #" + reserva.IdReserva : string.Empty) + ").");
 
-
                 _bllNotificacion.Notificar(datos.IdUsuarioExterno, TipoNotificacion.SolicitudSoporteRegistrada,
                     "Registramos tu solicitud " + codigo + " (\"" + motivo + "\"). Estado: " + TextoEstado(EstadoPendiente) + ".",
                     UrlSeguimiento(idTicket));
@@ -238,7 +210,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error(MensajeErrorRegistro, "A4");
             }
         }
-
 
         private static string EvaluarInformacionSuficiente(string motivo, string funcionalidad, string descripcion, string informacion, int? idReserva)
         {
@@ -271,10 +242,6 @@ namespace StageUp.BLL
             return null;
         }
 
-
-
-
-
         public ResultadoOperacion<List<Ticket>> ListarDelUsuario(int idUsuarioExterno)
         {
             try
@@ -287,7 +254,6 @@ namespace StageUp.BLL
             }
         }
 
-
         public ResultadoOperacion<TicketCompleto> ObtenerSeguimiento(int idTicket, int idUsuarioExterno)
         {
             try
@@ -299,9 +265,9 @@ namespace StageUp.BLL
                 }
 
                 TicketCompleto completo = ArmarDetalle(ticket, false);
-                if (completo.Novedades > 0 || !ticket.FechaUltimaLecturaUsuario.HasValue)
+                if (completo.Mensajes.Any(m => m.EsNuevo) || completo.Actualizaciones.Any(a => a.EsNuevo) || !ticket.FechaUltimaLecturaUsuario.HasValue)
                 {
-                    MarcarLeidoSinFallar(ticket, "Usuario");
+                    MarcarLeidoSinFallar(completo, "Usuario");
                 }
 
                 return ResultadoOperacion<TicketCompleto>.Ok(completo);
@@ -311,8 +277,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<TicketCompleto>.Error("No pudimos cargar la solicitud en este momento. Intentá nuevamente.");
             }
         }
-
-
 
         public ResultadoOperacion<TicketCompleto> ObtenerDetalleParaUsuario(int idTicket, int idUsuarioExterno)
         {
@@ -328,8 +292,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<TicketCompleto>.Error(ex.Message);
             }
         }
-
-
 
         public ResultadoOperacion AgregarMensajeUsuario(int idTicket, int idUsuarioExterno, string mensaje)
         {
@@ -377,19 +339,17 @@ namespace StageUp.BLL
             }
         }
 
-
         public List<Reserva> ListarReservasParaAsociar(int idUsuarioExterno)
         {
             try
             {
                 return _mppReserva.ListarPorSolicitante(new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Reserva>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
 
         public int ContarNovedadesUsuario(int idUsuarioExterno)
         {
@@ -403,10 +363,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
-
         public ResultadoOperacion<ResumenSoporte> ObtenerResumen()
         {
             try
@@ -418,7 +374,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<ResumenSoporte>.Error("No pudimos cargar las solicitudes de soporte en este momento. Intentá nuevamente.");
             }
         }
-
 
         public ResultadoOperacion<PaginaTickets> ListarInterno(FiltroTicket filtro)
         {
@@ -465,8 +420,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
         public ResultadoOperacion<TicketCompleto> ObtenerDetalleInterno(int idTicket, bool puedeReabrir)
         {
             try
@@ -479,9 +432,9 @@ namespace StageUp.BLL
 
                 TicketCompleto completo = ArmarDetalle(ticket, true);
                 completo.EstadosPermitidos = EstadosPermitidos(ticket, puedeReabrir);
-                if (completo.Novedades > 0 || !ticket.FechaUltimaLecturaSoporte.HasValue)
+                if (completo.Mensajes.Any(m => m.EsNuevo) || completo.Actualizaciones.Any(a => a.EsNuevo) || !ticket.FechaUltimaLecturaSoporte.HasValue)
                 {
-                    MarcarLeidoSinFallar(ticket, "Soporte");
+                    MarcarLeidoSinFallar(completo, "Soporte");
                 }
 
                 return ResultadoOperacion<TicketCompleto>.Ok(completo);
@@ -491,8 +444,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<TicketCompleto>.Error("No pudimos cargar la solicitud en este momento. Intentá nuevamente.");
             }
         }
-
-
 
         public ResultadoOperacion RegistrarRespuesta(int idTicket, int idUsuarioInterno, string respuesta, bool marcarResuelta, string estadoVisto)
         {
@@ -533,7 +484,6 @@ namespace StageUp.BLL
                     "Respuesta de soporte en la solicitud " + ticket.Codigo + " \"" + ticket.Motivo + "\"" +
                     (cambioEstado ? "; estado: " + TextoEstado(ticket.Estado) + " -> " + TextoEstado(estadoNuevo) + "." : "."));
 
-
                 _bllNotificacion.Notificar(ticket.IdUsuarioExterno, TipoNotificacion.RespuestaTicket,
                     "Soporte respondió tu solicitud " + ticket.Codigo + " (\"" + ticket.Motivo + "\")" +
                     (estadoNuevo == EstadoResuelta && cambioEstado ? " y la marcó como resuelta." :
@@ -550,8 +500,6 @@ namespace StageUp.BLL
                 return ErrorDeActualizacion(ex);
             }
         }
-
-
 
         public static ResultadoOperacion ValidarCambioEstado(Ticket ticket, string estadoNuevo, bool puedeReabrir)
         {
@@ -592,7 +540,6 @@ namespace StageUp.BLL
         {
             return Estados.Where(e => ValidarCambioEstado(ticket, e, puedeReabrir).Exitoso).ToList();
         }
-
 
         public ResultadoOperacion CambiarEstado(int idTicket, string estadoNuevo, int idUsuarioInterno, bool puedeReabrir, string estadoVisto)
         {
@@ -648,7 +595,6 @@ namespace StageUp.BLL
             }
         }
 
-
         public ResultadoOperacion Asignar(int idTicket, int? idUsuarioInternoAsignado, int idUsuarioInternoResponsable)
         {
             try
@@ -698,8 +644,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
         public ResultadoOperacion Tomar(int idTicket, int idUsuarioInterno)
         {
             try
@@ -742,7 +686,6 @@ namespace StageUp.BLL
             }
         }
 
-
         public List<UsuarioInterno> ListarResponsables()
         {
             BLL_PermisoInterno bllPermiso = new BLL_PermisoInterno();
@@ -779,8 +722,6 @@ namespace StageUp.BLL
             return resultado.OrderBy(u => u.Apellido).ThenBy(u => u.Nombre).ToList();
         }
 
-
-
         public int ContarTicketsAbiertos()
         {
             try
@@ -792,12 +733,6 @@ namespace StageUp.BLL
                 return 0;
             }
         }
-
-
-
-
-
-
 
         public string ObtenerMarcaSolicitud(int idTicket, int? idUsuarioExterno)
         {
@@ -831,30 +766,22 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
-
-
-
         private TicketCompleto ArmarDetalle(Ticket ticket, bool paraSoporte)
         {
-            DateTime miLectura = (paraSoporte ? ticket.FechaUltimaLecturaSoporte : ticket.FechaUltimaLecturaUsuario) ?? DateTime.MinValue;
-            DateTime suLectura = (paraSoporte ? ticket.FechaUltimaLecturaUsuario : ticket.FechaUltimaLecturaSoporte) ?? DateTime.MinValue;
 
             List<TicketMensaje> mensajes = _mpp.ListarMensajesPorTicket(ticket);
             foreach (TicketMensaje mensaje in mensajes)
             {
                 bool deLaOtraParte = paraSoporte ? !mensaje.EsInterno : mensaje.EsInterno;
-                mensaje.EsNuevo = deLaOtraParte && mensaje.FechaEnvio > miLectura;
-                mensaje.LeidoPorLaOtraParte = !deLaOtraParte && mensaje.FechaEnvio <= suLectura;
+                mensaje.EsNuevo = deLaOtraParte && !mensaje.LeidoPorLaOtraParte;
+                mensaje.LeidoPorLaOtraParte = !deLaOtraParte && mensaje.LeidoPorLaOtraParte;
             }
 
             List<TicketActualizacion> actualizaciones = _mpp.ListarActualizacionesPorTicket(ticket);
             foreach (TicketActualizacion actualizacion in actualizaciones)
             {
                 bool deLaOtraParte = paraSoporte ? !actualizacion.EsInterno : actualizacion.EsInterno;
-                actualizacion.EsNuevo = deLaOtraParte && actualizacion.TipoActualizacion == "CambioEstado" && actualizacion.Fecha > miLectura;
+                actualizacion.EsNuevo = deLaOtraParte && actualizacion.TipoActualizacion == "CambioEstado" && !actualizacion.LeidaPorLaOtraParte;
             }
 
             return new TicketCompleto
@@ -866,11 +793,12 @@ namespace StageUp.BLL
             };
         }
 
-        private void MarcarLeidoSinFallar(Ticket ticket, string lado)
+        private void MarcarLeidoSinFallar(TicketCompleto completo, string lado)
         {
             try
             {
-                _mpp.MarcarLeido(ticket, lado);
+                _mpp.MarcarLeido(completo.Ticket, lado, completo.Mensajes.Select(m => m.IdTicketMensaje),
+                    completo.Actualizaciones.Select(a => a.IdTicketActualizacion));
             }
             catch (ErrorAccesoDatosException)
             {
@@ -893,7 +821,6 @@ namespace StageUp.BLL
             return "La solicitud cambió mientras la estabas viendo (ahora está \"" + TextoEstado(estadoActual) +
                 "\"). Revisá la información actualizada e intentá nuevamente.";
         }
-
 
         private static ResultadoOperacion ErrorDeActualizacion(ErrorAccesoDatosException ex)
         {

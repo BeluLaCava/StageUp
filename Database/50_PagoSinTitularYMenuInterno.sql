@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -84,9 +84,6 @@ BEGIN
 
         DECLARE @idPago INT = CAST(SCOPE_IDENTITY() AS INT);
 
-        -- Cliente: el cargo de la reserva y lo que pagó con tarjeta. Lo que se
-        -- cubrió con saldo a favor no necesita otro movimiento: el cargo lo
-        -- descuenta del saldo.
         INSERT INTO dbo.MovimientoCuentaCorriente (idUsuarioExterno, rolCuenta, tipoMovimiento, importe, moneda, descripcion, idReserva, idPago)
         VALUES (@idUsuarioExterno, N'Cliente', N'CargoReserva', -@total, @moneda,
                 N'Cargo por la ' + @textoReserva +
@@ -101,7 +98,6 @@ BEGIN
                     @idReserva, @idPago);
         END
 
-        -- Gestor: el importe de la reserva menos la comisión de StageUp.
         INSERT INTO dbo.MovimientoCuentaCorriente (idUsuarioExterno, rolCuenta, tipoMovimiento, importe, moneda, descripcion, idReserva, idPago)
         VALUES (@idGestor, N'Gestor', N'IngresoReserva', @total, @moneda, N'Ingreso por la ' + @textoReserva, @idReserva, @idPago);
 
@@ -242,9 +238,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Menú dinámico: solo páginas internas
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.OpcionMenu', N'U') IS NOT NULL
 BEGIN
     IF EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_OpcionMenu_url')

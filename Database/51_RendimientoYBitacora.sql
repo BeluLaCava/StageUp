@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,9 +7,6 @@ GO
 USE StageUp;
 GO
 
--- ---------------------------------------------------------------------------
--- Bitácora
--- ---------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'dbo.RegistroActividad') AND name = N'IX_RegistroActividad_Fecha')
     CREATE INDEX IX_RegistroActividad_Fecha ON dbo.RegistroActividad (fechaOperacion DESC)
         INCLUDE (tipoOperacion, tipoEntidadAfectada, idUsuarioExternoResponsable, idUsuarioInternoResponsable);
@@ -32,8 +29,8 @@ CREATE PROCEDURE dbo.sp_RegistroActividad_Buscar
     @tipoOperacion                  NVARCHAR(200)   = NULL,
     @tipoEntidadAfectada            NVARCHAR(200)   = NULL,
     @idUsuarioInternoResponsable    INT             = NULL,
-    @textoResponsable               NVARCHAR(150)   = NULL,   -- nombre o correo (externo o interno)
-    @tipoResponsable                NVARCHAR(10)    = NULL,   -- Externo | Interno | Sistema | NULL
+    @textoResponsable               NVARCHAR(150)   = NULL,
+    @tipoResponsable                NVARCHAR(10)    = NULL,
     @maximo                         INT             = 500
 AS
 BEGIN
@@ -41,7 +38,6 @@ BEGIN
 
     IF @maximo IS NULL OR @maximo < 1 OR @maximo > 500 SET @maximo = 500;
 
-    -- Los comodines de LIKE que escriba el usuario se buscan como texto.
     DECLARE @patron NVARCHAR(160) = CASE WHEN @textoResponsable IS NULL THEN NULL
         ELSE N'%' + REPLACE(REPLACE(REPLACE(@textoResponsable, N'[', N'[[]'), N'%', N'[%]'), N'_', N'[_]') + N'%' END;
 
@@ -98,9 +94,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Solicitudes recibidas
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.sp_Reserva_ListarPorGestor', N'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reserva_ListarPorGestor;
 GO
 CREATE PROCEDURE dbo.sp_Reserva_ListarPorGestor
@@ -159,9 +152,7 @@ CREATE PROCEDURE dbo.sp_Calificacion_ListarResumenesPorUsuarios
 AS
 BEGIN
     SET NOCOUNT ON;
-    -- Mismo cálculo que sp_Calificacion_ListarResumenesUsuarios, pero solo
-    -- para los usuarios pedidos y yendo por sus reservas (índice
-    -- IX_Reserva_Solicitante) en lugar de recorrer toda la vista.
+
     SELECT
         r.idUsuarioExternoSolicitante AS idUsuarioExterno,
         CONVERT(DECIMAL(4,2), AVG(CONVERT(DECIMAL(10,2), c.puntaje))) AS promedio,
@@ -182,10 +173,7 @@ CREATE PROCEDURE dbo.sp_Calificacion_ListarRecibidasTop3PorUsuarios
 AS
 BEGIN
     SET NOCOUNT ON;
-    -- Mismo resultado que la versión del script 34 (las 3 calificaciones más
-    -- recientes recibidas por cada solicitante), pero filtrando primero por
-    -- las reservas de esos usuarios en vez de comparar contra la columna
-    -- calculada idUsuarioEvaluado de la vista (que obligaba a recorrerla).
+
     ;WITH Numeradas AS (
         SELECT
             v.*,
@@ -208,9 +196,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Índices para los procesos periódicos de reservas y las notificaciones
--- ---------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID(N'dbo.Reserva') AND name = N'IX_Reserva_AceptadaPago')
     CREATE INDEX IX_Reserva_AceptadaPago ON dbo.Reserva (estadoReserva, estadoPago, fechaLimitePago)
         INCLUDE (fechaSolicitada, minutoDesde, minutoHasta, recordatorioEnviado);

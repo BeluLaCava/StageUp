@@ -1,8 +1,7 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
-
 
     public class ContactoComercial
     {
@@ -39,7 +38,6 @@ namespace StageUp.BE.Entidades
         public bool Activo { get; set; }
         public int CantidadSeguimientos { get; set; }
 
-
         public string ObservacionCambioEstado { get; set; }
 
         public string NombreCompleto
@@ -47,7 +45,6 @@ namespace StageUp.BE.Entidades
             get { return string.IsNullOrWhiteSpace(ApellidoContacto) ? NombreContacto : NombreContacto + " " + ApellidoContacto; }
         }
     }
-
 
     public class SeguimientoContacto
     {
@@ -93,14 +90,12 @@ namespace StageUp.BE.Entidades
         public int Incorporados { get; set; }
     }
 
-
     public class PosibleContactoDuplicado
     {
         public int IdContactoComercial { get; set; }
         public string Nombre { get; set; }
         public string Coincidencia { get; set; }
     }
-
 
     public class CuentaParaVincular
     {

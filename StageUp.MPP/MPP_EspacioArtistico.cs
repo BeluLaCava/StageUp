@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Configuration;
 using System.Globalization;
@@ -28,10 +28,6 @@ namespace StageUp.MPP
 
             FichaEspacio ficha = oEspacioArtistico.Ficha ?? new FichaEspacio();
 
-
-
-
-
             Conexion.Instance.Guardar(
                 "sp_FichaEspacio_Guardar",
                 new Hashtable
@@ -51,11 +47,6 @@ namespace StageUp.MPP
                     { "@condicionesUso", (object)ficha.CondicionesUso ?? DBNull.Value },
                     { "@reglasUso", (object)ficha.ReglasUso ?? DBNull.Value }
                 });
-
-
-
-
-
 
             bool reemplazarFranjas = ficha.Disponibilidad != null;
             Conexion.Instance.Guardar(
@@ -244,14 +235,6 @@ namespace StageUp.MPP
                     { "@reqIluminacion", equipamiento.Contains("ILUMINACION") }
                 }));
 
-
-
-
-
-
-
-
-
             if (lista.Count > 0)
             {
                 string idsEspacios = string.Join(",", lista.Select(e => e.IdEspacioArtistico));
@@ -359,8 +342,6 @@ namespace StageUp.MPP
             };
         }
 
-
-
         private static decimal? LeerDecimal(DataRow fila, string columna)
         {
             return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value ? Convert.ToDecimal(fila[columna]) : (decimal?)null;
@@ -377,7 +358,6 @@ namespace StageUp.MPP
         {
             return fila.Table.Columns.Contains(columna) && fila[columna] != DBNull.Value ? fila[columna].ToString() : null;
         }
-
 
         public List<EspacioArtistico> ListarPreciosReferencia(EspacioArtistico oEspacio)
         {
@@ -451,7 +431,6 @@ namespace StageUp.MPP
                         Origen = fila.Table.Columns.Contains("origen") && fila["origen"] != DBNull.Value
                             ? fila["origen"].ToString()
                             : "Manual",
-
 
                         IdFranjaEspacio = LeerEnteroOpcional(fila, "idFranjaEspacio"),
                         MotivoBloqueo = LeerTexto(fila, "motivoBloqueo"),

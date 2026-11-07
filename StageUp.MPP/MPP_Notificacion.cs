@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -27,7 +27,6 @@ namespace StageUp.MPP
         {
             return ListarPorUsuario(usuarioExterno, cantidad, "Todas");
         }
-
 
         public List<Notificacion> ListarPorUsuario(UsuarioExterno usuarioExterno, int cantidad, string estado)
         {
@@ -76,13 +75,6 @@ namespace StageUp.MPP
                 FechaCreacion = Convert.ToDateTime(fila["fechaCreacion"])
             };
         }
-
-
-
-
-
-
-
 
         public void MarcarLeida(Notificacion notificacion)
         {

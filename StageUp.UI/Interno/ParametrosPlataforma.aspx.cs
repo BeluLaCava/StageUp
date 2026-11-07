@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,9 +11,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
-
-
 
     public partial class ParametrosPlataforma : Page
     {
@@ -62,7 +59,6 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-
             Editando = false;
             CargarParametros();
             MostrarMensaje("Se descartaron los cambios sin guardar. Sigue vigente la configuración anterior.", false);
@@ -109,7 +105,6 @@ namespace StageUp.UI.Interno
                 MostrarMensaje(resultado.Mensaje, true);
                 return;
             }
-
 
             Editando = false;
             rblVigencia.SelectedValue = "Ahora";
@@ -248,7 +243,6 @@ namespace StageUp.UI.Interno
             pnlMensaje.CssClass = esError ? "form-message form-message-error" : "form-message form-message-success";
             pnlMensaje.Visible = !string.IsNullOrEmpty(mensaje);
         }
-
 
         private bool TieneAcceso()
         {

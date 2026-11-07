@@ -1,26 +1,5 @@
--- =============================================================================
--- Volumen_LimpiarDatos.sql
---
--- Borra todo lo que cargó Volumen_CargarDatos.sql (ítem 36 de la revisión).
--- NO es un script numerado: EjecutarTodosLosScripts.ps1 no lo ejecuta nunca.
---
--- Cómo correrlo (desde la carpeta Database):
---   sqlcmd -S .\SQLEXPRESS -d StageUp -E -f 65001 -b -i Volumen_LimpiarDatos.sql
--- o abrirlo en SSMS sobre la base StageUp y ejecutarlo (F5).
---
--- Qué borra:
---   - los usuarios con correo volumen.<algo>@stageup.test, sus espacios y
---     todo lo que cuelga de ellos (reservas, pagos, comprobantes, movimientos
---     de cuenta corriente, calificaciones, actividades, participantes,
---     tickets, notificaciones, respuestas de encuestas, códigos);
---   - las reservas de cualquier usuario hechas sobre un espacio de volumen
---     (por si se probó reservar uno de esos espacios con un usuario real);
---   - los registros de bitácora de usuarios de volumen y los que tienen
---     origenOperacion = 'CargaVolumen'.
--- Si un ticket de un usuario real quedó asociado a una reserva de volumen,
--- el ticket se conserva y solo se le quita la reserva asociada.
--- Se puede correr las veces que haga falta (si no hay nada, no hace nada).
--- =============================================================================
+﻿
+
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
@@ -56,7 +35,6 @@ PRINT @mensaje;
 
 BEGIN TRANSACTION;
 
--- Cuenta corriente, comprobantes y pagos.
 DELETE m FROM dbo.MovimientoCuentaCorriente m
 WHERE m.idUsuarioExterno IN (SELECT id FROM #U)
    OR m.idReserva IN (SELECT id FROM #R)
@@ -70,7 +48,6 @@ PRINT CONCAT(N'Comprobantes: ', @@ROWCOUNT);
 DELETE FROM dbo.Pago WHERE idUsuarioExterno IN (SELECT id FROM #U) OR idReserva IN (SELECT id FROM #R);
 PRINT CONCAT(N'Pagos: ', @@ROWCOUNT);
 
--- Soporte.
 UPDATE dbo.Ticket SET idReservaAsociada = NULL
 WHERE idReservaAsociada IN (SELECT id FROM #R) AND idUsuarioExterno NOT IN (SELECT id FROM #U);
 
@@ -87,7 +64,6 @@ PRINT CONCAT(N'Mensajes de tickets: ', @@ROWCOUNT);
 DELETE FROM dbo.Ticket WHERE idUsuarioExterno IN (SELECT id FROM #U);
 PRINT CONCAT(N'Tickets: ', @@ROWCOUNT);
 
--- Calificaciones y reservas.
 DELETE FROM dbo.Calificacion WHERE idReserva IN (SELECT id FROM #R) OR idUsuarioAutor IN (SELECT id FROM #U);
 PRINT CONCAT(N'Calificaciones: ', @@ROWCOUNT);
 
@@ -98,13 +74,11 @@ IF OBJECT_ID(N'dbo.MensajeReserva', N'U') IS NOT NULL
 DELETE FROM dbo.Reserva WHERE idReserva IN (SELECT id FROM #R);
 PRINT CONCAT(N'Reservas: ', @@ROWCOUNT);
 
--- Respuestas de encuestas (el detalle se borra en cascada).
 DELETE FROM dbo.RespuestaEncuesta WHERE idUsuarioExterno IN (SELECT id FROM #U);
 PRINT CONCAT(N'Respuestas de encuestas: ', @@ROWCOUNT);
 
 COMMIT TRANSACTION;
 
--- Notificaciones y bitácora: en tandas, para no inflar el log de la base.
 SET @filas = 1;
 WHILE @filas > 0
 BEGIN
@@ -125,8 +99,6 @@ PRINT N'Registros de bitácora borrados.';
 
 BEGIN TRANSACTION;
 
--- Actividades: primero sus bloqueos (FranjaEspacio apunta a Actividad sin
--- cascada); los días y los participantes asociados se borran en cascada.
 DELETE FROM dbo.FranjaEspacio
 WHERE idEspacioArtistico IN (SELECT id FROM #E)
    OR idActividad IN (SELECT idActividad FROM dbo.Actividad WHERE idEspacioArtistico IN (SELECT id FROM #E));
@@ -140,7 +112,6 @@ WHERE idParticipante IN (SELECT idParticipante FROM dbo.Participante WHERE idUsu
 DELETE FROM dbo.Participante WHERE idUsuarioGestor IN (SELECT id FROM #U);
 PRINT CONCAT(N'Participantes: ', @@ROWCOUNT);
 
--- Espacios (equipamiento, fotos y franjas se borran en cascada con la ficha).
 IF OBJECT_ID(N'dbo.PreguntaEspacio', N'U') IS NOT NULL
     DELETE FROM dbo.PreguntaEspacio
     WHERE idEspacioArtistico IN (SELECT id FROM #E) OR idUsuarioExterno IN (SELECT id FROM #U);
@@ -149,7 +120,6 @@ DELETE FROM dbo.FichaEspacio WHERE idEspacioArtistico IN (SELECT id FROM #E);
 DELETE FROM dbo.EspacioArtistico WHERE idEspacioArtistico IN (SELECT id FROM #E);
 PRINT CONCAT(N'Espacios: ', @@ROWCOUNT);
 
--- Usuarios.
 IF OBJECT_ID(N'dbo.ContactoComercial', N'U') IS NOT NULL
     UPDATE dbo.ContactoComercial SET idUsuarioExterno = NULL WHERE idUsuarioExterno IN (SELECT id FROM #U);
 

@@ -1,8 +1,7 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
-
 
     public class BackupBaseDatos
     {

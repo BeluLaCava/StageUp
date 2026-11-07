@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
@@ -12,29 +12,6 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     public class BLL_Newsletter
     {
@@ -57,7 +34,6 @@ namespace StageUp.BLL
         private readonly ServicioRecaptcha _servicioRecaptcha = new ServicioRecaptcha();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
         private readonly MPP_UsuarioExterno _mppUsuario = new MPP_UsuarioExterno();
-
 
         public ResultadoOperacion Suscribir(string correo, string nombre, IEnumerable<string> categorias, bool aceptaRecibir,
             string respuestaCaptcha, string urlBase)
@@ -95,9 +71,6 @@ namespace StageUp.BLL
             return PedirConfirmacion(correoNormalizado, nombreNormalizado, elegidas, null, urlBase, false);
         }
 
-
-
-
         private ResultadoOperacion PedirConfirmacion(string correoNormalizado, string nombreNormalizado, List<string> elegidas,
             int? idUsuarioExterno, string urlBase, bool desdeCuenta)
         {
@@ -110,8 +83,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error("No pudimos registrar la suscripción en este momento. Intentá nuevamente.");
             }
-
-
 
             if (existente != null && existente.FechaUltimoEnvioConfirmacion.HasValue &&
                 DateTime.Now - existente.FechaUltimoEnvioConfirmacion.Value < EsperaEntreCorreos)
@@ -201,8 +172,6 @@ namespace StageUp.BLL
                 ? "Te enviamos un correo a " + suscriptor.CorreoElectronico + " para confirmar la suscripción. El enlace vence en " + HorasValidezConfirmacion + " horas."
                 : MensajeSuscripcion);
         }
-
-
 
         public ResultadoOperacion<SuscriptorNewsletter> Confirmar(string tokenConfirmacion)
         {
@@ -298,17 +267,12 @@ namespace StageUp.BLL
                 "Baja del newsletter desde el enlace de preferencias.");
         }
 
-
-
         public ResultadoOperacion Reactivar(string tokenPreferencias)
         {
             return CambiarEstado(tokenPreferencias, SuscriptorNewsletter.EstadoBaja, SuscriptorNewsletter.EstadoActivo,
                 "¡Bienvenido de nuevo! Vas a volver a recibir el newsletter de StageUp.",
                 "Nueva suscripción al newsletter desde el enlace de preferencias.");
         }
-
-
-
 
         public ResultadoOperacion<SuscripcionDeCuenta> ObtenerDeCuenta(int idUsuarioExterno)
         {
@@ -335,7 +299,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<SuscripcionDeCuenta>.Error("No pudimos consultar tu suscripción al newsletter en este momento.");
             }
         }
-
 
         public ResultadoOperacion SuscribirDesdeCuenta(int idUsuarioExterno, IEnumerable<string> categorias, string urlBase)
         {
@@ -422,12 +385,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
-
-
-
         public ResultadoOperacion SolicitarVinculoDesdeCuenta(int idUsuarioExterno, string urlBase)
         {
             ResultadoOperacion<SuscripcionDeCuenta> actual = ObtenerDeCuenta(idUsuarioExterno);
@@ -484,7 +441,6 @@ namespace StageUp.BLL
                 HorasValidezConfirmacion + " horas.");
         }
 
-
         public ResultadoOperacion ConfirmarVinculo(string tokenVinculo)
         {
             const string invalido = "El enlace para vincular la suscripción no es válido o ya venció. Pedí uno nuevo desde Mi perfil.";
@@ -502,7 +458,6 @@ namespace StageUp.BLL
                 {
                     return ResultadoOperacion.Error(invalido);
                 }
-
 
                 UsuarioExterno cuenta = _mppUsuario.ObtenerPorId(new UsuarioExterno { IdUsuarioExterno = suscriptor.IdUsuarioExternoVinculoPendiente.Value });
                 if (cuenta == null || !cuenta.Activo ||
@@ -525,9 +480,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         public List<SuscriptorNewsletter> Listar(FiltroSuscriptoresNewsletter filtro, out int totalFiltrado)
         {
             totalFiltrado = 0;
@@ -549,13 +501,11 @@ namespace StageUp.BLL
             {
                 return _mpp.Listar(limpio, out totalFiltrado);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<SuscriptorNewsletter>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
-
 
         public ResultadoOperacion DarDeBajaAdministrativa(int idSuscriptorNewsletter, int idUsuarioInternoResponsable)
         {
@@ -586,7 +536,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("No se pudo dar de baja al suscriptor. Intentá nuevamente.");
             }
         }
-
 
         public ResultadoOperacion ReenviarConfirmacion(int idSuscriptorNewsletter, int idUsuarioInternoResponsable, string urlBase)
         {
@@ -651,8 +600,6 @@ namespace StageUp.BLL
                 return new ResumenSuscriptoresNewsletter();
             }
         }
-
-
 
         public List<DestinatarioNewsletter> ListarDestinatarios(string criterio, Novedad novedad)
         {
@@ -734,7 +681,6 @@ namespace StageUp.BLL
             return !string.IsNullOrEmpty(token) && FormatoToken.IsMatch(token.ToUpperInvariant());
         }
 
-
         private static string GenerarToken()
         {
             byte[] bytes = new byte[32];
@@ -779,7 +725,6 @@ namespace StageUp.BLL
 
             return ResultadoOperacion.Ok();
         }
-
 
         private ResultadoOperacion ObtenerVinculadaActiva(int idUsuarioExterno, out SuscriptorNewsletter suscriptor)
         {

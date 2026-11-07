@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -80,7 +80,6 @@ namespace StageUp.MPP
                 new Hashtable { { "@idUsuarioGestor", oGestor.IdUsuarioExterno } }));
         }
 
-
         public bool Responder(PreguntaEspacio oPregunta, int idUsuarioGestor)
         {
             return Entero(Conexion.Instance.LeerEscalar(
@@ -92,7 +91,6 @@ namespace StageUp.MPP
                     { "@respuesta", oPregunta.Respuesta }
                 })) > 0;
         }
-
 
         public bool DarDeBaja(PreguntaEspacio oPregunta, string estadoAnterior, int idUsuarioBaja)
         {

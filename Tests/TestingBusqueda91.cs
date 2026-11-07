@@ -1,12 +1,10 @@
-using System;
+﻿using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 
-// Solo lectura, exclusivamente sobre una copia QA que tenga los procedimientos
-// originales renombrados con el sufijo _QA_Antes91 y la migración 91 aplicada.
 class TestingBusqueda91
 {
     static string Connection;
@@ -44,9 +42,7 @@ class TestingBusqueda91
             catch(SqlException e)
             {
                 if(!search || (e.Number!=2628 && e.Number!=8152))throw;
-                // La consulta anterior falla al almacenar textos válidos largos en
-                // su tabla temporal. La referencia solo amplía esas dos columnas;
-                // conserva la consulta original sin optimizar.
+
                 PreviousTruncations++;
                 old=Run(name+"_QA_DetalleCompleto",args);
             }
@@ -58,8 +54,7 @@ class TestingBusqueda91
                 var a=old.Rows[i];var b=current.Rows[i];
                 bool same=a.ItemArray.SequenceEqual(b.ItemArray);
                 if(same)continue;
-                // El orden previo no desempata IDs cuando coinciden título y fecha.
-                // La migración los desempata por ID, sin cambiar la prioridad ni el cupo.
+
                 bool tie=search && Eq(a["tipo"],b["tipo"]) && Eq(a["titulo"],b["titulo"]) && Eq(a["fecha"],b["fecha"]) && Eq(a["posicion"],b["posicion"]) && !Eq(a["idReferencia"],b["idReferencia"]);
                 if(!tie)throw new Exception("Difiere el resultado en fila "+i);
                 Ties++;

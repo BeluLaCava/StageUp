@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
@@ -36,9 +36,7 @@ namespace StageUp.BE.Entidades
         public int CantidadContenidos { get; set; }
         public int CantidadOrigenes { get; set; }
 
-
         public string ObservacionCambioEstado { get; set; }
-
 
         public List<int> IdsContactos { get; set; } = new List<int>();
         public List<int> IdsCampanias { get; set; } = new List<int>();
@@ -49,7 +47,6 @@ namespace StageUp.BE.Entidades
         {
             get { return EstadoAlianza == EstadoEnEvaluacion || EstadoAlianza == EstadoActiva || EstadoAlianza == EstadoPausada; }
         }
-
 
         public bool Vencida
         {
@@ -65,8 +62,6 @@ namespace StageUp.BE.Entidades
             get { return CantidadContactos + CantidadCampanias + CantidadContenidos + CantidadOrigenes; }
         }
     }
-
-
 
     public class SeguimientoAlianza
     {
@@ -94,7 +89,6 @@ namespace StageUp.BE.Entidades
         public DateTime FechaRegistro { get; set; }
     }
 
-
     public class VigenciaAlianza
     {
         public int IdAlianzaVigencia { get; set; }
@@ -106,7 +100,6 @@ namespace StageUp.BE.Entidades
         public string NombreUsuario { get; set; }
         public DateTime FechaRegistro { get; set; }
     }
-
 
     public class RenovacionAlianza
     {

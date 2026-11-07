@@ -1,3 +1,4 @@
+﻿using System.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,8 +8,6 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-
-
 
     public class MPP_Ticket
     {
@@ -81,7 +80,6 @@ namespace StageUp.MPP
             };
         }
 
-
         public string RegistrarRespuesta(TicketMensaje oMensaje, string estadoAnterior, bool marcarResuelta)
         {
             object resultado = Conexion.Instance.LeerEscalar(
@@ -113,7 +111,6 @@ namespace StageUp.MPP
                 });
         }
 
-
         public string Asignar(Ticket oTicket, int idUsuarioInternoResponsable, bool tomar)
         {
             object resultado = Conexion.Instance.LeerEscalar(
@@ -129,7 +126,6 @@ namespace StageUp.MPP
             return Convert.ToString(resultado);
         }
 
-
         public string InsertarMensajeUsuario(TicketMensaje oMensaje)
         {
             object resultado = Conexion.Instance.LeerEscalar(
@@ -144,17 +140,23 @@ namespace StageUp.MPP
             return Convert.ToString(resultado);
         }
 
-        public void MarcarLeido(Ticket oTicket, string lado)
+        private static string SerializarIds(IEnumerable<int> ids)
+        {
+            return "<ids>" + string.Join("", ids.Select(id => "<id>" + id.ToString(System.Globalization.CultureInfo.InvariantCulture) + "</id>")) + "</ids>";
+        }
+
+        public void MarcarLeido(Ticket oTicket, string lado, IEnumerable<int> mensajes, IEnumerable<int> actualizaciones)
         {
             Conexion.Instance.LeerEscalar(
                 "sp_Ticket_MarcarLeido",
                 new Hashtable
                 {
                     { "@idTicket", oTicket.IdTicket },
-                    { "@lado", lado }
+                    { "@lado", lado },
+                    { "@mensajes", SerializarIds(mensajes) },
+                    { "@actualizaciones", SerializarIds(actualizaciones) }
                 });
         }
-
 
         public Ticket ObtenerMarca(Ticket oTicket)
         {
@@ -176,7 +178,6 @@ namespace StageUp.MPP
                 FechaUltimaActividad = Convert.ToDateTime(fila["fechaUltimaActividad"])
             };
         }
-
 
         public KeyValuePair<int, DateTime?> ObtenerMarcaListado(UsuarioExterno oUsuario)
         {
@@ -227,7 +228,8 @@ namespace StageUp.MPP
                     Mensaje = fila["mensaje"].ToString(),
                     FechaEnvio = Convert.ToDateTime(fila["fechaEnvio"]),
                     NombreAutor = fila["nombreAutor"].ToString(),
-                    EsInterno = Convert.ToBoolean(fila["esInterno"])
+                    EsInterno = Convert.ToBoolean(fila["esInterno"]),
+                    LeidoPorLaOtraParte = fila["fechaLecturaDestinatario"] != DBNull.Value
                 });
             }
             return lista;
@@ -254,7 +256,8 @@ namespace StageUp.MPP
                     Detalle = LeerTexto(fila, "detalle"),
                     Fecha = Convert.ToDateTime(fila["fecha"]),
                     NombreResponsable = LeerTexto(fila, "nombreResponsable"),
-                    EsInterno = Convert.ToBoolean(fila["esInterno"])
+                    EsInterno = Convert.ToBoolean(fila["esInterno"]),
+                    LeidaPorLaOtraParte = fila["fechaLecturaDestinatario"] != DBNull.Value
                 });
             }
             return lista;

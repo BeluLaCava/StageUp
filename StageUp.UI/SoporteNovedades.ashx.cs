@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Web;
 using System.Web.Script.Serialization;
 using System.Web.SessionState;
@@ -7,13 +7,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-
-
-
-
-
-
-
 
     public class SoporteNovedades : IHttpHandler, IReadOnlySessionState
     {

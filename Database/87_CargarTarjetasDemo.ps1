@@ -1,4 +1,4 @@
-param(
+﻿param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Debug"
 )
@@ -89,9 +89,6 @@ try {
         throw "No se pudo leer StageUpConnectionString desde StageUp.UI\Web.config."
     }
 
-    # ConfigurationManager lee la configuración del proceso anfitrión
-    # (powershell.exe), no la del proyecto web. Se incorpora en memoria la
-    # misma cadena del Web.config para que DAL y BLL trabajen sin duplicarla.
     $cadenas = [System.Configuration.ConfigurationManager]::ConnectionStrings
     $campoSoloLectura = [System.Configuration.ConfigurationElement].GetField(
         "_bReadOnly", [Reflection.BindingFlags]"NonPublic,Instance")

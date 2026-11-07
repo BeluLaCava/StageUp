@@ -1,4 +1,4 @@
-<%@ Page Title="Detalle de operación financiera | StageUp" Language="C#" MasterPageFile="~/Interno/PanelInterno.Master" AutoEventWireup="true" CodeBehind="DetalleOperacionFinanciera.aspx.cs" Inherits="StageUp.UI.Interno.DetalleOperacionFinanciera" %>
+﻿<%@ Page Title="Detalle de operación financiera | StageUp" Language="C#" MasterPageFile="~/Interno/PanelInterno.Master" AutoEventWireup="true" CodeBehind="DetalleOperacionFinanciera.aspx.cs" Inherits="StageUp.UI.Interno.DetalleOperacionFinanciera" %>
 
 <asp:Content ID="DetalleOperacionFinancieraContent" ContentPlaceHolderID="MainContent" runat="server">
     <section class="static-page internal-page internal-management-page">
@@ -66,7 +66,9 @@
                         </HeaderTemplate>
                         <ItemTemplate>
                             <tr>
-                                <td data-label="Comprobante"><strong><%# Server.HtmlEncode(Convert.ToString(Eval("Numero"))) %></strong></td>
+                                <td data-label="Comprobante"><strong><%# Server.HtmlEncode(Convert.ToString(Eval("Numero"))) %></strong>
+                                    <asp:HyperLink runat="server" Text="Ver comprobante" CssClass="link-muted" Visible='<%# StageUp.BLL.BLL_Comprobante.EsNota(Convert.ToString(Eval("Tipo"))) %>' NavigateUrl='<%# "~/DetalleComprobante.aspx?id=" + Eval("IdComprobante") %>' />
+                                </td>
                                 <td data-label="Tipo"><%# Server.HtmlEncode(TipoComprobante(Convert.ToString(Eval("Tipo")))) %></td>
                                 <td data-label="Cuenta"><%# Server.HtmlEncode(Convert.ToString(Eval("NombreUsuario"))) %><br /><small><%# Server.HtmlEncode(Convert.ToString(Eval("RolCuenta"))) %></small></td>
                                 <td data-label="Importe" class="pagos-num"><%# Server.HtmlEncode(Importe(Eval("Importe"), Eval("Moneda"))) %></td>

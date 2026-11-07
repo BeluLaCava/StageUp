@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
@@ -30,7 +30,6 @@ namespace StageUp.BE.Entidades
         public int CantidadAlianzas { get; set; }
         public int CantidadContenidos { get; set; }
         public int CantidadOrigenes { get; set; }
-
 
         public List<int> IdsContactos { get; set; } = new List<int>();
         public List<int> IdsAlianzas { get; set; } = new List<int>();

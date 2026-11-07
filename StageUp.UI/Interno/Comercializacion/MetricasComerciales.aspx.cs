@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -8,9 +8,6 @@ using StageUp.BLL;
 
 namespace StageUp.UI.Interno.Comercializacion
 {
-
-
-
 
     public partial class MetricasComerciales : PaginaComercial
     {
@@ -82,13 +79,11 @@ namespace StageUp.UI.Interno.Comercializacion
             ResumenMetricasComerciales r = resumen.Valor;
             litCriterios.Text = DescribirFiltro(filtro);
 
-
             if (r.SinInformacion)
             {
                 pnlSinInformacion.Visible = true;
                 return;
             }
-
 
             if (filtro.TieneCriterios && r.SinResultados)
             {
@@ -103,7 +98,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 : r.UsuariosConOrigen + " con origen informado · " + r.UsuariosSinOrigen + " sin informar";
             litEspacios.Text = r.EspaciosIncorporados.ToString("N0", CultureInfo.GetCultureInfo("es-AR"));
             litCampanias.Text = r.CampaniasActivas.ToString("N0", CultureInfo.GetCultureInfo("es-AR"));
-
 
             bool conPeriodo = filtro.Desde.HasValue || filtro.Hasta.HasValue;
             litCampaniasTitulo.Text = conPeriodo ? "Campañas con vigencia en el período" : "Campañas comerciales activas";
@@ -124,7 +118,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 MostrarMensaje(pnlMensaje, litMensaje, canales.Mensaje, true);
                 return;
             }
-
 
             pnlSinOrigen.Visible = r.NuevosUsuarios > 0 && r.UsuariosConOrigen == 0;
             _maximoBarra = canales.Valor.Count == 0 ? 0 : canales.Valor.Max(c => c.CantidadUsuarios);
@@ -161,8 +154,6 @@ namespace StageUp.UI.Interno.Comercializacion
             Agregar(partes, "tipo", ddlTipoUsuario.SelectedValue);
             Redirigir(ArmarUrl(Pagina, partes) + "#origen", null);
         }
-
-
 
         private void MostrarFiltrosPorIndicador(FiltroMetricasComerciales filtro)
         {
@@ -209,8 +200,6 @@ namespace StageUp.UI.Interno.Comercializacion
 
             return texto;
         }
-
-
 
         protected string AnchoBarra(object cantidad)
         {

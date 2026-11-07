@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -7,7 +7,6 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-
 
     public class MPP_Reporte
     {
@@ -142,7 +141,6 @@ namespace StageUp.MPP
             }
             return lista;
         }
-
 
         public Dictionary<string, List<string>> ListarValoresFiltros()
         {

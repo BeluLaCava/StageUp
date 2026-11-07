@@ -1,8 +1,5 @@
-namespace StageUp.BE.Entidades
+﻿namespace StageUp.BE.Entidades
 {
-
-
-
 
     public class FilaResultadoEncuesta
     {

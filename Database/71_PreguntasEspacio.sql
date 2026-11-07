@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -6,7 +6,6 @@ GO
 
 USE StageUp;
 GO
-
 
 IF OBJECT_ID(N'dbo.PreguntaEspacio', N'U') IS NULL
 BEGIN
@@ -36,7 +35,6 @@ BEGIN
 END
 GO
 
--- Columnas comunes de los listados.
 IF OBJECT_ID(N'dbo.vw_PreguntaEspacio', N'V') IS NOT NULL DROP VIEW dbo.vw_PreguntaEspacio;
 GO
 CREATE VIEW dbo.vw_PreguntaEspacio
@@ -51,8 +49,6 @@ INNER JOIN dbo.EspacioArtistico e ON e.idEspacioArtistico = p.idEspacioArtistico
 INNER JOIN dbo.UsuarioExterno u ON u.idUsuarioExterno = p.idUsuarioExterno;
 GO
 
--- Alta. Segunda barrera (la primera es BLL_PreguntaEspacio): el espacio
--- tiene que estar publicado y activo, y el gestor no pregunta en el suyo.
 IF OBJECT_ID('dbo.sp_PreguntaEspacio_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_PreguntaEspacio_Insertar;
 GO
 CREATE PROCEDURE dbo.sp_PreguntaEspacio_Insertar
@@ -86,7 +82,6 @@ BEGIN
 END
 GO
 
--- Detalle público del espacio: pendientes y respondidas, las más nuevas primero.
 IF OBJECT_ID('dbo.sp_PreguntaEspacio_ListarPublicas', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_PreguntaEspacio_ListarPublicas;
 GO
 CREATE PROCEDURE dbo.sp_PreguntaEspacio_ListarPublicas
@@ -117,7 +112,6 @@ BEGIN
 END
 GO
 
--- Preguntas sin responder de un usuario en un espacio (límite anti-abuso).
 IF OBJECT_ID('dbo.sp_PreguntaEspacio_ListarPendientesDeUsuario', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_PreguntaEspacio_ListarPendientesDeUsuario;
 GO
 CREATE PROCEDURE dbo.sp_PreguntaEspacio_ListarPendientesDeUsuario
@@ -134,8 +128,6 @@ BEGIN
 END
 GO
 
--- Pantalla del gestor: preguntas de sus espacios (no se muestran las que
--- retiró quien preguntó).
 IF OBJECT_ID('dbo.sp_PreguntaEspacio_ListarPorGestor', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_PreguntaEspacio_ListarPorGestor;
 GO
 CREATE PROCEDURE dbo.sp_PreguntaEspacio_ListarPorGestor
@@ -170,7 +162,6 @@ BEGIN
 END
 GO
 
--- Respuesta: solo el gestor dueño del espacio y solo si sigue pendiente.
 IF OBJECT_ID('dbo.sp_PreguntaEspacio_Responder', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_PreguntaEspacio_Responder;
 GO
 CREATE PROCEDURE dbo.sp_PreguntaEspacio_Responder
@@ -196,9 +187,6 @@ BEGIN
 END
 GO
 
--- Baja lógica: "Oculta" (moderación del gestor, con motivo) o "Eliminada"
--- (quien preguntó la retira). Se cambia solo si el estado sigue siendo el
--- que vio el usuario.
 IF OBJECT_ID('dbo.sp_PreguntaEspacio_DarDeBaja', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_PreguntaEspacio_DarDeBaja;
 GO
 CREATE PROCEDURE dbo.sp_PreguntaEspacio_DarDeBaja

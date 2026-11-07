@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -53,7 +53,6 @@ namespace StageUp.MPP
 
             return tabla.Rows.Count == 0 ? null : Mapear(tabla.Rows[0]);
         }
-
 
         public int Guardar(ContenidoPromocional oContenido, UsuarioInterno oUsuario, out string rutaArchivoAnterior)
         {

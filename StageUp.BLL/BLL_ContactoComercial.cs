@@ -1,4 +1,4 @@
-using StageUp.Seguridad;
+﻿using StageUp.Seguridad;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,15 +8,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
-
-
 
     public class BLL_ContactoComercial
     {
@@ -53,7 +44,6 @@ namespace StageUp.BLL
                 default: return "comercial-badge-cancelada";
             }
         }
-
 
         public static int? IdDuplicado(ResultadoOperacion resultado)
         {
@@ -114,12 +104,11 @@ namespace StageUp.BLL
             {
                 return _mpp.ListarSeguimientos(new ContactoComercial { IdContactoComercial = idContactoComercial });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<SeguimientoContacto>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
 
         public ResultadoOperacion<CuentaParaVincular> BuscarCuenta(string correo)
         {
@@ -142,7 +131,6 @@ namespace StageUp.BLL
             }
         }
 
-
         public ResultadoOperacion<int> Guardar(ContactoComercial contacto, int idUsuarioInternoResponsable)
         {
             if (contacto == null)
@@ -152,7 +140,6 @@ namespace StageUp.BLL
 
             bool esAlta = contacto.IdContactoComercial <= 0;
             Normalizar(contacto);
-
 
             List<string> faltantes = new List<string>();
             if (contacto.NombreContacto == null) faltantes.Add("nombre del contacto");
@@ -173,7 +160,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("Algún dato supera el largo permitido (nombre y apellido 150, entidad 200, otro dato 300, observaciones 2000 caracteres).", "A14");
             }
 
-
             if (!_catalogos.EsValido(ItemCatalogoComercial.TipoEntidad, contacto.TipoEntidad))
             {
                 return ResultadoOperacion<int>.Error("Seleccioná el tipo de entidad para clasificar el contacto comercial.", "A15");
@@ -184,13 +170,11 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("Seleccioná un medio de contacto válido.", "A16");
             }
 
-
             string errorDatos = ValidarDatosDeContacto(contacto);
             if (errorDatos != null)
             {
                 return ResultadoOperacion<int>.Error(errorDatos, "A16");
             }
-
 
             if (!Estados.ContainsKey(contacto.EstadoContacto))
             {
@@ -211,7 +195,6 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error("El contacto ya no existe.");
                 }
             }
-
 
             try
             {
@@ -261,7 +244,6 @@ namespace StageUp.BLL
                 : "El contacto comercial fue actualizado correctamente.");
         }
 
-
         public ResultadoOperacion RegistrarSeguimiento(SeguimientoContacto seguimiento, string fechaTexto, string fechaProximaTexto, int idUsuarioInternoResponsable)
         {
             if (seguimiento == null)
@@ -283,7 +265,6 @@ namespace StageUp.BLL
             {
                 seguimiento.EstadoResultante = null;
             }
-
 
             List<string> faltantes = new List<string>();
             if (string.IsNullOrWhiteSpace(fechaTexto)) faltantes.Add("fecha de interacción");
@@ -330,7 +311,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error("La observación admite hasta 2000 caracteres y la respuesta, el interés y la acción pendiente hasta 1000.", "A14");
             }
-
 
             if (seguimiento.EstadoResultante != null && !Estados.ContainsKey(seguimiento.EstadoResultante))
             {
@@ -431,8 +411,6 @@ namespace StageUp.BLL
             string digitos = contacto.Telefono == null ? string.Empty : new string(contacto.Telefono.Where(char.IsDigit).ToArray());
             contacto.TelefonoNormalizado = digitos.Length == 0 ? null : (digitos.Length > 20 ? digitos.Substring(0, 20) : digitos);
         }
-
-
 
         private static string ValidarDatosDeContacto(ContactoComercial contacto)
         {

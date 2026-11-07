@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -22,9 +22,6 @@ IF COL_LENGTH(N'dbo.FranjaEspacio', N'fechaAlta') IS NULL
         CONSTRAINT DF_FranjaEspacio_fechaAlta DEFAULT (GETDATE());
 GO
 
--- ---------------------------------------------------------------------------
--- Lecturas
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_FranjaEspacio_ListarPorEspacio', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_FranjaEspacio_ListarPorEspacio;
 GO
 CREATE PROCEDURE dbo.sp_FranjaEspacio_ListarPorEspacio
@@ -57,10 +54,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Guardado de la ficha: la disponibilidad se reemplaza solo al crear el
--- espacio (definición inicial). Al editarlo se conserva.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_FichaEspacio_LimpiarDatosEditables', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_FichaEspacio_LimpiarDatosEditables;
 GO
 CREATE PROCEDURE dbo.sp_FichaEspacio_LimpiarDatosEditables
@@ -76,8 +69,6 @@ BEGIN
         DELETE FROM dbo.FichaEspacioEquipamiento WHERE idEspacioArtistico = @idEspacioArtistico;
         DELETE FROM dbo.EspacioFoto WHERE idEspacioArtistico = @idEspacioArtistico;
 
-        -- Solo las franjas cargadas a mano. Los bloqueos generados desde
-        -- "Mis actividades" se conservan siempre.
         IF @incluirFranjas = 1
             DELETE FROM dbo.FranjaEspacio
             WHERE idEspacioArtistico = @idEspacioArtistico
@@ -92,9 +83,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Alta, modificación y eliminación de una franja manual
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_FranjaEspacio_InsertarManual', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_FranjaEspacio_InsertarManual;
 GO
 CREATE PROCEDURE dbo.sp_FranjaEspacio_InsertarManual
@@ -177,14 +165,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Búsqueda con fecha y horario (mismo criterio que BLL_Reserva y que el
--- planificador del detalle del espacio):
---  * una franja abierta de fecha concreta reemplaza el horario semanal de
---    ese día (los bloqueos ya no cuentan como excepción);
---  * los bloqueos de esa fecha y los semanales de ese día se descuentan
---    siempre.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_EspacioArtistico_BuscarPublicados', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EspacioArtistico_BuscarPublicados;
 GO
 CREATE PROCEDURE dbo.sp_EspacioArtistico_BuscarPublicados
@@ -261,8 +241,7 @@ BEGIN
                       )
                       AND (@minutoDesde IS NULL OR @minutoHasta IS NULL
                            OR (@minutoDesde >= fr.minutoDesde AND @minutoHasta <= fr.minutoHasta))
-                      -- Una franja tapada entera por un bloqueo (por ejemplo,
-                      -- "cerrar el día completo") no cuenta como disponible.
+
                       AND NOT EXISTS (
                           SELECT 1 FROM dbo.FranjaEspacio cb
                           WHERE cb.idEspacioArtistico = e.idEspacioArtistico
@@ -286,10 +265,7 @@ BEGIN
                     )
                 )
                 AND (
-                    -- Bloqueos manuales (CU-001-008 A8) y de actividades
-                    -- internas: rigen los de esa fecha y también los
-                    -- semanales de ese día. Un bloqueo parcial de una fecha
-                    -- ya no reemplaza al horario habitual del día.
+
                     @minutoDesde IS NULL OR @minutoHasta IS NULL
                     OR NOT EXISTS (
                         SELECT 1 FROM dbo.FranjaEspacio fb

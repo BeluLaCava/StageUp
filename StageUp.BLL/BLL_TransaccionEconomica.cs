@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using StageUp.BE.Entidades;
@@ -7,14 +7,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
-
 
     public class BLL_TransaccionEconomica
     {
@@ -56,9 +48,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         public ResultadoOperacion<int> RegistrarPorPagoAprobado(int idPago)
         {
             try
@@ -69,14 +58,12 @@ namespace StageUp.BLL
                     return ResultadoOperacion<int>.Error("No hay un pago confirmado para registrar la transacción.");
                 }
 
-
                 List<string> faltantes = new List<string>();
                 if (!pago.IdReserva.HasValue) faltantes.Add("la reserva");
                 if (pago.IdUsuarioExterno <= 0) faltantes.Add("el usuario solicitante");
                 if (!pago.IdUsuarioGestor.HasValue) faltantes.Add("el gestor del espacio");
                 if (string.IsNullOrEmpty(pago.NombreEspacio)) faltantes.Add("el espacio reservado");
                 if (pago.ImporteTotal <= 0) faltantes.Add("el valor de la reserva");
-
 
                 decimal porcentaje = pago.PorcentajeComisionPlataforma ??
                     _bllParametros.ObtenerDecimal(BLL_ParametroPlataforma.ComisionPlataformaPorcentaje);
@@ -87,7 +74,6 @@ namespace StageUp.BLL
                 {
                     observaciones.Add("Información incompleta (falta " + UnirLista(faltantes) + "): pendiente de control administrativo.");
                 }
-
 
                 if (string.IsNullOrWhiteSpace(pago.IdentificadorExterno))
                 {
@@ -132,9 +118,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         public ResultadoOperacion<int> RegistrarPorCancelacion(int idReserva, int? idNotaDebito)
         {
             try
@@ -144,8 +127,6 @@ namespace StageUp.BLL
                 {
                     return ResultadoOperacion<int>.Error("No se encontró la reserva cancelada.");
                 }
-
-
 
                 if (reserva.EstadoPago != BLL_Pago.EstadoDevuelto)
                 {
@@ -229,9 +210,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         public ResultadoOperacion<List<TransaccionEconomica>> Listar(FiltroTransacciones filtro)
         {
             filtro = filtro ?? new FiltroTransacciones();
@@ -265,7 +243,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<List<TransaccionEconomica>>.Error(ex.Message);
             }
         }
-
 
         public bool NoHayTransacciones()
         {

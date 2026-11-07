@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Web.UI;
@@ -10,10 +10,6 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI
 {
-
-
-
-
 
     public partial class Notificaciones : Page
     {
@@ -89,7 +85,6 @@ namespace StageUp.UI
                     return;
                 }
 
-
                 MostrarMensaje(error, true);
                 Cargar();
                 RecargarMenu();
@@ -116,8 +111,6 @@ namespace StageUp.UI
                 ? "Se muestran las últimas " + BLL_Notificacion.CantidadCentro + " notificaciones."
                 : string.Empty;
         }
-
-
 
         private void RecargarMenu()
         {

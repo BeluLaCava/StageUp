@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -38,8 +38,6 @@ namespace StageUp.MPP
             }
             return lista;
         }
-
-
 
         public string Registrar(ClaveCifrado oClave, bool soloSiNoHayActiva, out int idClaveCifrado, out int? idClaveAnterior, out int version)
         {

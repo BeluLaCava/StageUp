@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,7 +9,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
 
     public partial class DetalleOperacionFinanciera : Page
     {
@@ -64,7 +63,6 @@ namespace StageUp.UI.Interno
         {
             return tipo == "FC" ? "Factura" : tipo == "NC" ? "Nota de crédito" : tipo == "ND" ? "Nota de débito" : tipo;
         }
-
 
         private string ConsultaParaVolver()
         {

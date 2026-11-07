@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -12,22 +12,10 @@ using StageUp.BLL;
 namespace StageUp.UI.Infraestructura
 {
 
-
-
-
-
-
-
-
-
-
-
     public static class ImagenSubida
     {
         public const int MaximoBytes = ValidadorImagen.MaximoBytes;
         private const int LadoMaximo = 1600;
-
-
 
         public static string Guardar(HttpPostedFile archivo, string carpetaVirtual, HttpServerUtility servidor, out string error)
         {
@@ -39,7 +27,6 @@ namespace StageUp.UI.Infraestructura
 
             return Guardar(archivo.InputStream, archivo.FileName, archivo.ContentLength, archivo.ContentType, carpetaVirtual, servidor.MapPath, out error);
         }
-
 
         public static string Guardar(Stream contenido, string nombreArchivo, int bytes, string tipoMime, string carpetaVirtual, Func<string, string> mapPath, out string error)
         {
@@ -75,7 +62,6 @@ namespace StageUp.UI.Infraestructura
             {
                 if (validacion.Valor.EsWebP)
                 {
-
 
                     bool faltaCodec;
                     if (!DecodificadorWebP.SePuedeDecodificar(datos, validacion.Valor.Ancho, validacion.Valor.Alto, out faltaCodec))

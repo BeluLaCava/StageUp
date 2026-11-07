@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -74,8 +74,6 @@ namespace StageUp.MPP
             return participantes;
         }
 
-
-
         public List<Participante> Buscar(UsuarioExterno usuarioGestor, string estado, string texto)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -95,8 +93,6 @@ namespace StageUp.MPP
 
             return participantes;
         }
-
-
 
         public Participante BuscarDuplicado(Participante participante, out string coincidencia)
         {

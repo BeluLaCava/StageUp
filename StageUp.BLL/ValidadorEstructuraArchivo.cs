@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -12,12 +12,6 @@ using System.Xml.Linq;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
 
     internal static class ValidadorEstructuraArchivo
     {
@@ -50,8 +44,6 @@ namespace StageUp.BLL
                 return false;
             }
         }
-
-
 
         private static bool EsPng(byte[] b)
         {
@@ -102,8 +94,6 @@ namespace StageUp.BLL
 
             return false;
         }
-
-
 
         private static bool EsJpeg(byte[] b)
         {
@@ -165,8 +155,6 @@ namespace StageUp.BLL
 
             return false;
         }
-
-
 
         private static bool EsGif(byte[] b)
         {
@@ -251,8 +239,6 @@ namespace StageUp.BLL
             return -1;
         }
 
-
-
         private static bool EsPdf(byte[] b)
         {
             if (b.Length < 64)
@@ -277,8 +263,6 @@ namespace StageUp.BLL
             return todo.IndexOf(" obj", StringComparison.Ordinal) > 0 &&
                 (todo.IndexOf("xref", StringComparison.Ordinal) > 0 || todo.IndexOf("/XRef", StringComparison.Ordinal) > 0);
         }
-
-
 
         private static bool EsMp4(byte[] b)
         {
@@ -330,9 +314,6 @@ namespace StageUp.BLL
             return pos == b.Length && hayMoov && hayMdat;
         }
 
-
-
-
         private static bool EsOffice(byte[] b, string partePrincipal, string tipoContenido)
         {
             if (b.Length < 200 || b[0] != 0x50 || b[1] != 0x4B || b[2] != 0x03 || b[3] != 0x04)
@@ -361,7 +342,6 @@ namespace StageUp.BLL
                     return false;
                 }
 
-
                 using (Stream datos = principal.Open())
                 {
                     byte[] buffer = new byte[4096];
@@ -380,12 +360,6 @@ namespace StageUp.BLL
                 }
             }
         }
-
-
-
-
-
-
 
         private const long PixelesMaximos = 40000000;
 
@@ -417,7 +391,6 @@ namespace StageUp.BLL
                 default: return false;
             }
 
-
             MemoryStream datos = new MemoryStream();
             bool hayPaleta = false;
             int pos = 8;
@@ -441,8 +414,6 @@ namespace StageUp.BLL
             {
                 return false;
             }
-
-
 
             int bitsPorPixel = canales * profundidad;
             List<long[]> pasadas = new List<long[]>();
@@ -469,7 +440,6 @@ namespace StageUp.BLL
             {
                 return false;
             }
-
 
             int cmf = datos.ReadByte();
             int flg = datos.ReadByte();
@@ -512,8 +482,6 @@ namespace StageUp.BLL
             return true;
         }
 
-
-
         private static bool SeDibuja(byte[] b, Guid formatoEsperado)
         {
             using (MemoryStream flujo = new MemoryStream(b, false))
@@ -534,13 +502,6 @@ namespace StageUp.BLL
 
             return true;
         }
-
-
-
-
-
-
-
 
         private static bool EsPdfValido(byte[] b)
         {
@@ -762,8 +723,6 @@ namespace StageUp.BLL
                 HayEnFlujoDeObjetos(texto, b, @"/Type\s*/Page\b(?!s)");
         }
 
-
-
         private static string BuscarObjeto(string texto, string numero, string generacion)
         {
             Match objeto = Regex.Match(texto, @"(?<![0-9])" + numero + @"\s+" + generacion + @"\s+obj\b");
@@ -813,12 +772,6 @@ namespace StageUp.BLL
 
             return false;
         }
-
-
-
-
-
-
 
         private static bool EsMp4Valido(byte[] b)
         {
@@ -1128,7 +1081,6 @@ namespace StageUp.BLL
             public int LargoDatos { get { return FinDatos - InicioDatos; } }
         }
 
-
         private static List<Caja> LeerCajas(byte[] b, int desde, int hasta)
         {
             List<Caja> cajas = new List<Caja>();
@@ -1175,12 +1127,6 @@ namespace StageUp.BLL
             return cajas;
         }
 
-
-
-
-
-
-
         private static bool EsOfficeValido(byte[] b, string partePrincipal, string tipoContenido, string raizEsperada, string espacioNombres)
         {
             if (!EsOffice(b, partePrincipal, tipoContenido))
@@ -1222,7 +1168,6 @@ namespace StageUp.BLL
                     principal.Root.Name.NamespaceName.IndexOf(espacioNombres, StringComparison.OrdinalIgnoreCase) >= 0;
             }
         }
-
 
         private static XDocument LeerXml(ZipArchiveEntry entrada)
         {

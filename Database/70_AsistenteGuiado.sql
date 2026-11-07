@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -53,8 +53,6 @@ IF COL_LENGTH(N'dbo.ConsultaAsistente', N'idNodoAsistente') IS NULL
         CONSTRAINT FK_ConsultaAsistente_Nodo FOREIGN KEY REFERENCES dbo.NodoAsistente (idNodoAsistente);
 GO
 
--- Las preguntas frecuentes nuevas ya no se usan en el asistente salvo que
--- se marquen a propósito.
 IF EXISTS (SELECT 1 FROM sys.default_constraints WHERE name = N'DF_Faq_usarEnAsistente' AND definition <> N'((0))')
     ALTER TABLE dbo.Faq DROP CONSTRAINT DF_Faq_usarEnAsistente;
 GO
@@ -62,17 +60,11 @@ IF NOT EXISTS (SELECT 1 FROM sys.default_constraints WHERE name = N'DF_Faq_usarE
     ALTER TABLE dbo.Faq ADD CONSTRAINT DF_Faq_usarEnAsistente DEFAULT (0) FOR usarEnAsistente;
 GO
 
--- -----------------------------------------------------------------------------
--- Contenido inicial del árbol (solo la primera vez). Los textos pueden usar
--- {PoliticaCancelacion} y {HorasLimitePago}: BLL_AsistenteAyuda los
--- reemplaza con los parámetros vigentes.
--- -----------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM dbo.NodoAsistente)
 BEGIN
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
 
-    -- Desacople de las preguntas frecuentes (una sola vez).
     UPDATE dbo.Faq SET usarEnAsistente = 0 WHERE usarEnAsistente = 1;
 
     DECLARE @nodos TABLE (codigo NVARCHAR(60), padre NVARCHAR(60), tipo NVARCHAR(10), orden INT, opcion NVARCHAR(120), mensaje NVARCHAR(1000), palabras NVARCHAR(300));
@@ -80,7 +72,6 @@ BEGIN
     (N'inicio', NULL, N'Pregunta', 0, N'Inicio',
         N'Hola, soy el asistente de StageUp. ¿Con qué necesitás ayuda?', NULL),
 
-    -- 1. Reservas
     (N'reservas', N'inicio', N'Pregunta', 10, N'Reservas',
         N'¿Qué necesitás hacer con una reserva?', N'reserva reservas reservar turno'),
     (N'reservas.hacer', N'reservas', N'Respuesta', 10, N'Quiero hacer una reserva',
@@ -107,7 +98,6 @@ BEGIN
         N'{PoliticaCancelacion} Lo que pagaste vuelve como saldo a favor en "Mi cuenta corriente", descontando el cargo que corresponda.',
         N'politica cargo cargos cuanto cancelar cancelacion devolucion reintegro anticipacion'),
 
-    -- 2. Pagos y cuenta corriente
     (N'pagos', N'inicio', N'Pregunta', 20, N'Pagos y cuenta corriente',
         N'¿Qué problema tenés con pagos?', N'pago pagos pagar cobro corriente'),
     (N'pagos.pagar', N'pagos', N'Respuesta', 10, N'Quiero pagar una reserva',
@@ -131,7 +121,6 @@ BEGIN
         N'A veces el medio de pago tarda unos minutos en confirmar. Revisá "Mis reservas" en un rato. Si pasó más de una hora y sigue sin pagar, registrá una solicitud de soporte indicando la reserva y la fecha del pago.',
         N'cobraron debitaron debito doble veces descontaron'),
 
-    -- 3. Espacios y gestores
     (N'espacios', N'inicio', N'Pregunta', 30, N'Espacios y gestores',
         N'¿Qué necesitás hacer?', N'espacio espacios gestor sala publicar'),
     (N'espacios.ofrecer', N'espacios', N'Respuesta', 10, N'Quiero ofrecer un espacio',
@@ -147,7 +136,6 @@ BEGIN
         N'En "Solicitudes recibidas" ves las reservas pendientes de tus espacios. Podés aceptarlas o rechazarlas con un comentario; el solicitante recibe el aviso.',
         N'solicitudes recibidas aceptar rechazar pedidos'),
 
-    -- 4. Soporte técnico
     (N'tecnico', N'inicio', N'Pregunta', 40, N'Soporte técnico',
         N'¿Qué problema técnico tenés?', N'error problema tecnico falla anda'),
     (N'tecnico.ingresar', N'tecnico', N'Respuesta', 10, N'No puedo iniciar sesión',
@@ -163,7 +151,6 @@ BEGIN
         N'Probá actualizar la página, cerrar sesión y volver a ingresar, o usar otro navegador. Si el error sigue, registrá una solicitud de soporte contando qué estabas haciendo y qué mensaje viste.',
         N'pagina error carga lento bloqueada'),
 
-    -- 5. No encuentro lo que necesito
     (N'noencuentro', N'inicio', N'Respuesta', 50, N'No encuentro lo que necesito',
         N'No pude encontrar una respuesta clara para tu consulta. Podés registrar una solicitud de soporte para que el equipo de StageUp la revise.',
         NULL);
@@ -222,9 +209,6 @@ BEGIN
 END
 GO
 
--- -----------------------------------------------------------------------------
--- SP
--- -----------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_NodoAsistente_ListarActivos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_NodoAsistente_ListarActivos;
 GO
 CREATE PROCEDURE dbo.sp_NodoAsistente_ListarActivos
@@ -251,8 +235,6 @@ BEGIN
 END
 GO
 
--- Consulta escrita: queda registrada con el nodo del árbol o la pregunta
--- frecuente vinculada que la respondió (reconocida) o sin respuesta (A5).
 IF OBJECT_ID('dbo.sp_ConsultaAsistente_Registrar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ConsultaAsistente_Registrar;
 GO
 CREATE PROCEDURE dbo.sp_ConsultaAsistente_Registrar

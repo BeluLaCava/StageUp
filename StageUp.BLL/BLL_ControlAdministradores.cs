@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using StageUp.BE.Entidades;
 using StageUp.BE.Permisos;
@@ -6,14 +6,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
-
 
     internal class BLL_ControlAdministradores
     {
@@ -26,7 +18,6 @@ namespace StageUp.BLL
         private readonly MPP_UsuarioInterno _mppUsuario = new MPP_UsuarioInterno();
         private readonly MPP_ComponentePermiso _mppComponente = new MPP_ComponentePermiso();
         private readonly MPP_RolInternoComponentePermiso _mppRolComponente = new MPP_RolInternoComponentePermiso();
-
 
         internal class Cambio
         {
@@ -43,14 +34,10 @@ namespace StageUp.BLL
             return lista.Contains(PermisoUsuarios) && lista.Contains(PermisoRoles);
         }
 
-
-
-
         internal bool CambioDejaSinAdministradores(Cambio cambio)
         {
             return !QuedaAlgunAdministrador(cambio) && QuedaAlgunAdministrador(new Cambio());
         }
-
 
         internal bool QuedaAlgunAdministrador(Cambio cambio)
         {

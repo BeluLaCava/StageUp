@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Web;
 using System.Web.UI;
 using StageUp.BE.Enumerados;
@@ -15,10 +15,6 @@ namespace StageUp.UI
             if (pagina != null) ProteccionFormularios.Preparar(pagina, Context);
         }
 
-
-
-
-
         protected void Application_PostAcquireRequestState(object sender, EventArgs e)
         {
             HttpContext contexto = HttpContext.Current;
@@ -26,9 +22,6 @@ namespace StageUp.UI
             {
                 return;
             }
-
-
-
 
             ResultadoRevalidacionSesion resultado = ControlSesionBaseDatos.VerificarSinExcepciones();
             if (!(contexto.Handler is Page))
@@ -73,7 +66,7 @@ namespace StageUp.UI
         {
             try
             {
-                // No registrar los valores del formulario ni tokens de la URL.
+
                 string url = Request != null ? Request.Url.AbsolutePath : "(sin request)";
                 string descripcion = excepcion.GetType().Name + " en " + url + ". La operación no pudo completarse. " + excepcion.StackTrace;
                 if (descripcion.Length > 1900)

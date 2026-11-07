@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using StageUp.BE.Entidades;
@@ -7,11 +7,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
 
     public class BLL_MetricasComerciales
     {
@@ -51,8 +46,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<ResumenMetricasComerciales>.Error("No se pudieron calcular las métricas comerciales. Probá nuevamente en unos minutos.");
             }
         }
-
-
 
         public ResultadoOperacion<List<MetricaCanalOrigen>> ListarPorCanal(FiltroMetricasComerciales filtro)
         {

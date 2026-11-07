@@ -9,19 +9,6 @@ using StageUp.MPP;
 namespace StageUp.BLL
 {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     public class BLL_DisponibilidadEspacio
     {
         public const string TipoEntidadBitacora = "Disponibilidad";
@@ -40,11 +27,6 @@ namespace StageUp.BLL
         private readonly MPP_FranjaEspacio _mppFranja = new MPP_FranjaEspacio();
         private readonly MPP_Reserva _mppReserva = new MPP_Reserva();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
-
-
-
-
-
 
         public static int DiaSemanaDe(DateTime fecha)
         {
@@ -66,8 +48,6 @@ namespace StageUp.BLL
             return franja != null && franja.Origen == OrigenActividad;
         }
 
-
-
         public static bool AbiertaRigeEnFecha(FranjaEspacio franja, List<FranjaEspacio> todas, DateTime fecha)
         {
             if (franja == null || franja.Bloqueado)
@@ -84,8 +64,6 @@ namespace StageUp.BLL
                 : !EsDeFechaConcreta(franja) && franja.DiaSemana == DiaSemanaDe(fecha);
         }
 
-
-
         public static bool BloqueoRigeEnFecha(FranjaEspacio franja, DateTime fecha)
         {
             if (franja == null || !franja.Bloqueado)
@@ -97,8 +75,6 @@ namespace StageUp.BLL
                 ? string.Equals(franja.Fecha, fecha.ToString(FormatoFecha, CultureInfo.InvariantCulture), StringComparison.Ordinal)
                 : franja.DiaSemana == DiaSemanaDe(fecha);
         }
-
-
 
         public static bool HorarioCubierto(List<FranjaEspacio> franjas, DateTime fecha, int minutoDesde, int minutoHasta)
         {
@@ -113,11 +89,6 @@ namespace StageUp.BLL
             return !franjas.Exists(f =>
                 BloqueoRigeEnFecha(f, fecha) && SeSuperponen(f.MinutoDesde, f.MinutoHasta, minutoDesde, minutoHasta));
         }
-
-
-
-
-
 
         public ResultadoOperacion<EspacioArtistico> ObtenerEspacioDelGestor(int idEspacioArtistico, int idUsuarioGestor)
         {
@@ -147,8 +118,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
         public ResultadoOperacion<List<Reserva>> ConsultarOperacionesVigentes(int idEspacioArtistico)
         {
             try
@@ -161,7 +130,6 @@ namespace StageUp.BLL
             }
         }
 
-
         private List<Reserva> ListarOperacionesVigentes(int idEspacioArtistico)
         {
             return _mppReserva.ListarActivasPorEspacio(new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico })
@@ -169,12 +137,10 @@ namespace StageUp.BLL
                 .ToList();
         }
 
-
         public static List<FranjaEspacio> ListarDisponibilidad(EspacioArtistico espacio)
         {
             return Ordenar(Franjas(espacio).Where(f => !f.Bloqueado && f.Origen != OrigenActividad && !YaPaso(f)));
         }
-
 
         public static List<FranjaEspacio> ListarBloqueos(EspacioArtistico espacio)
         {
@@ -186,7 +152,6 @@ namespace StageUp.BLL
             return Franjas(espacio).FirstOrDefault(f =>
                 f.IdFranjaEspacio == idFranjaEspacio && f.Origen != OrigenActividad);
         }
-
 
         public static OperacionesAsociadasFranja ContarOperacionesAsociadas(
             EspacioArtistico espacio, FranjaEspacio franja, List<Reserva> operaciones)
@@ -212,7 +177,6 @@ namespace StageUp.BLL
             resultado.Actividades = ActividadesAsociadas(espacio, franja).Count;
             return resultado;
         }
-
 
         public static List<DiaCalendarioDisponibilidad> ArmarCalendario(
             EspacioArtistico espacio, List<Reserva> operaciones, DateTime desde, int cantidadDias)
@@ -282,11 +246,6 @@ namespace StageUp.BLL
             return dias;
         }
 
-
-
-
-
-
         public ResultadoOperacion AgregarDisponibilidad(
             int idEspacioArtistico, int idUsuarioGestor, bool porFecha, List<int> diasSemana, string fecha, string horaDesde, string horaHasta)
         {
@@ -302,7 +261,6 @@ namespace StageUp.BLL
 
             EspacioArtistico espacio = espacioResultado.Valor;
             List<int> dias = (diasSemana ?? new List<int>()).Distinct().OrderBy(d => d).ToList();
-
 
             int minutoDesde, minutoHasta;
             ResultadoOperacion datos = ValidarDatos(porFecha, dias, fecha, horaDesde, horaHasta, null, out minutoDesde, out minutoHasta);
@@ -323,7 +281,6 @@ namespace StageUp.BLL
             try
             {
                 List<Reserva> operaciones = ListarOperacionesVigentes(idEspacioArtistico);
-
 
                 List<string> errores = new List<string>();
                 string codigo = null;
@@ -381,9 +338,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         public ResultadoOperacion ModificarDisponibilidad(
             int idEspacioArtistico, int idUsuarioGestor, int idFranjaEspacio,
             int? diaSemana, string fecha, string horaDesde, string horaHasta)
@@ -427,7 +381,6 @@ namespace StageUp.BLL
             {
                 List<Reserva> operaciones = ListarOperacionesVigentes(idEspacioArtistico);
 
-
                 List<FranjaEspacio> antes = Franjas(espacio);
                 List<FranjaEspacio> despues = antes.Where(f => f.IdFranjaEspacio != original.IdFranjaEspacio).ToList();
                 despues.Add(nueva);
@@ -439,7 +392,6 @@ namespace StageUp.BLL
                         "el cambio dejaría afuera " + DescribirOperacion(afectada) +
                         ". Elegí otra franja o resolvé antes esa operación.", "A7");
                 }
-
 
                 ResultadoOperacion conflicto = ValidarConflictosDeAbierta(espacio, nueva, original, operaciones);
                 if (!conflicto.Exitoso)
@@ -468,9 +420,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error(ex.Message);
             }
         }
-
-
-
 
         public ResultadoOperacion BloquearHorario(
             int idEspacioArtistico, int idUsuarioGestor, bool porFecha, int? diaSemana, string fecha,
@@ -529,7 +478,6 @@ namespace StageUp.BLL
             {
                 List<Reserva> operaciones = ListarOperacionesVigentes(idEspacioArtistico);
 
-
                 Reserva reserva = operaciones.FirstOrDefault(r =>
                     RigeEnFecha(bloqueo, r.FechaSolicitada) &&
                     SeSuperponen(bloqueo.MinutoDesde, bloqueo.MinutoHasta, r.MinutoDesde.Value, r.MinutoHasta.Value));
@@ -539,7 +487,6 @@ namespace StageUp.BLL
                         "No es posible bloquear el horario porque afectaría operaciones ya generadas: hay " + DescribirOperacion(reserva) +
                         ". Cambiá la franja del bloqueo o resolvé antes esa operación.", "A9");
                 }
-
 
                 FranjaEspacio actividad = Franjas(espacio).FirstOrDefault(f =>
                     EsBloqueoDeActividad(f) && !YaPaso(f) && CompartenDias(f, bloqueo) &&
@@ -575,9 +522,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error(ex.Message);
             }
         }
-
-
-
 
         public ResultadoOperacion EliminarFranja(int idEspacioArtistico, int idUsuarioGestor, int idFranjaEspacio)
         {
@@ -655,10 +599,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
-
         public static string NombreDia(int diaSemana)
         {
             return diaSemana >= 1 && diaSemana <= 7 ? NombresDias[diaSemana] : string.Empty;
@@ -673,7 +613,6 @@ namespace StageUp.BLL
 
             return (minutos / 60).ToString("00", CultureInfo.InvariantCulture) + ":" + (minutos % 60).ToString("00", CultureInfo.InvariantCulture);
         }
-
 
         public static string HoraParaFormulario(int minutos)
         {
@@ -699,11 +638,6 @@ namespace StageUp.BLL
         {
             return DescribirCuando(franja) + " de " + FormatearHora(franja.MinutoDesde) + " a " + FormatearHora(franja.MinutoHasta);
         }
-
-
-
-
-
 
         private static ResultadoOperacion ValidarDatos(
             bool porFecha, List<int> dias, string fecha, string horaDesde, string horaHasta, FranjaEspacio original,
@@ -779,7 +713,6 @@ namespace StageUp.BLL
             return ResultadoOperacion.Ok();
         }
 
-
         public static bool TryLeerHora(string texto, bool esFin, out int minutos)
         {
             minutos = 0;
@@ -800,12 +733,10 @@ namespace StageUp.BLL
             return true;
         }
 
-
         private static ResultadoOperacion ValidarConflictosDeAbierta(
             EspacioArtistico espacio, FranjaEspacio nueva, FranjaEspacio original, List<Reserva> operaciones)
         {
             List<FranjaEspacio> franjas = Franjas(espacio);
-
 
             FranjaEspacio superpuesta = franjas.FirstOrDefault(f =>
                 !f.Bloqueado && f.Origen != OrigenActividad && !YaPaso(f) &&
@@ -818,7 +749,6 @@ namespace StageUp.BLL
                     "Ya existe disponibilidad registrada para ese día y horario (" + Describir(superpuesta) + "). Cambiá el día o la franja horaria.", "A4");
             }
 
-
             FranjaEspacio bloqueo = franjas.FirstOrDefault(f =>
                 EsBloqueoManual(f) && !YaPaso(f) && BloqueoCubreTodosLosDias(f, nueva) &&
                 SeSuperponen(f.MinutoDesde, f.MinutoHasta, nueva.MinutoDesde, nueva.MinutoHasta));
@@ -829,8 +759,6 @@ namespace StageUp.BLL
                     (string.IsNullOrWhiteSpace(bloqueo.MotivoBloqueo) ? string.Empty : ", motivo: " + bloqueo.MotivoBloqueo) +
                     "). Quitá el bloqueo o elegí otra franja.", "A5");
             }
-
-
 
             FranjaEspacio actividad = franjas.FirstOrDefault(f =>
                 EsBloqueoDeActividad(f) && !YaPaso(f) && CompartenDias(f, nueva) &&
@@ -843,7 +771,6 @@ namespace StageUp.BLL
                     "El horario no puede configurarse porque afectaría la actividad interna " + DescribirActividad(actividad) +
                     ". Cambiá el día o la franja horaria.", "A5");
             }
-
 
             Reserva reserva = (operaciones ?? new List<Reserva>()).FirstOrDefault(r =>
                 RigeEnFecha(nueva, r.FechaSolicitada) &&
@@ -859,8 +786,6 @@ namespace StageUp.BLL
 
             return ResultadoOperacion.Ok();
         }
-
-
 
         private static Reserva PrimeraAfectada(List<FranjaEspacio> antes, List<FranjaEspacio> despues, List<Reserva> operaciones)
         {
@@ -886,14 +811,12 @@ namespace StageUp.BLL
                 .ToList();
         }
 
-
         private static bool RigeEnFecha(FranjaEspacio franja, DateTime fecha)
         {
             return EsDeFechaConcreta(franja)
                 ? franja.Fecha == fecha.ToString(FormatoFecha, CultureInfo.InvariantCulture)
                 : franja.DiaSemana == DiaSemanaDe(fecha);
         }
-
 
         internal static bool CompartenDias(FranjaEspacio a, FranjaEspacio b)
         {
@@ -915,8 +838,6 @@ namespace StageUp.BLL
             return DateTime.TryParseExact(deFecha.Fecha, FormatoFecha, CultureInfo.InvariantCulture, DateTimeStyles.None, out fecha) &&
                 DiaSemanaDe(fecha) == semanal.DiaSemana;
         }
-
-
 
         private static bool BloqueoCubreTodosLosDias(FranjaEspacio bloqueo, FranjaEspacio franja)
         {

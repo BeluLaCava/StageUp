@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -102,7 +102,6 @@ namespace StageUp.MPP
                 EstadoAlianza = tabla.Rows[0]["estadoAlianza"].ToString()
             };
         }
-
 
         public int Guardar(AlianzaEstrategica oAlianza, UsuarioInterno oUsuario, string descripcionBitacora = null)
         {
@@ -228,7 +227,6 @@ namespace StageUp.MPP
             }
             return lista;
         }
-
 
         public void Cerrar(AlianzaEstrategica oAlianza, SeguimientoAlianza oCierre, string operacionBitacora, string descripcionBitacora)
         {

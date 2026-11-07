@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,12 +9,6 @@ using StageUp.MPP;
 namespace StageUp.BLL
 {
 
-
-
-
-
-
-
     public class BLL_Reporte
     {
         public const string AgrupacionDia = "Dia";
@@ -23,8 +17,6 @@ namespace StageUp.BLL
         public const string AgrupacionAnio = "Anio";
 
         public static readonly string[] Monedas = { "ARS", "USD" };
-
-
 
         private const int MaximoDiasAgrupandoPorDia = 92;
         private const int MaximoDiasAgrupandoPorSemana = 730;
@@ -46,8 +38,6 @@ namespace StageUp.BLL
             };
         }
 
-
-
         public static FiltroReporte CrearFiltroPorDefecto()
         {
             DateTime hoy = DateTime.Today;
@@ -67,13 +57,9 @@ namespace StageUp.BLL
             {
                 return _mpp.ListarValoresFiltros();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new Dictionary<string, List<string>>
-                {
-                    { "Provincia", new List<string>() },
-                    { "TipoEspacio", new List<string>() }
-                };
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -186,10 +172,6 @@ namespace StageUp.BLL
                 default: return "Todos";
             }
         }
-
-
-
-
 
         public static string GenerarCsvReporteCompleto(ReporteCompleto reporte)
         {
@@ -310,7 +292,6 @@ namespace StageUp.BLL
             return null;
         }
 
-
         private static DateTime InicioDePeriodo(DateTime fecha, string agrupacion)
         {
             switch (agrupacion)
@@ -341,8 +322,6 @@ namespace StageUp.BLL
                     return inicio.AddMonths(1);
             }
         }
-
-
 
         private static List<FilaReportePeriodo> CompletarPeriodos(List<FilaReportePeriodo> filas, FiltroReporte filtro)
         {
@@ -377,8 +356,6 @@ namespace StageUp.BLL
                 fila.PorcentajeBarra = Porcentaje(fila.ImporteReservas, maximo);
             }
         }
-
-
 
         private static List<FilaReporteZona> CalcularPorcentajesZonasDetalle(List<FilaReporteZona> zonas)
         {

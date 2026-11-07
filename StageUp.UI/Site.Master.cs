@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -20,13 +20,10 @@ namespace StageUp.UI
             base.OnInit(e);
             InicializarMultidioma(ddlIdioma, hdnDiccionarioIdioma, HtmlRoot, LanguageSelector);
 
-
             if (!IsPostBack)
             {
                 OrigenDeDifusion.Capturar(Context);
             }
-
-
 
             int? idUsuario = GestorDeSesion.ObtenerIdUsuarioActual();
             if (idUsuario.HasValue && GestorDeSesion.CorrespondeVerificarCuenta())
@@ -38,8 +35,6 @@ namespace StageUp.UI
                     Response.Redirect("~/Default.aspx?cuenta=baja", true);
                     return;
                 }
-
-
 
                 if (perfilActual != null && perfilActual != GestorDeSesion.ObtenerPerfilActual())
                 {
@@ -62,19 +57,11 @@ namespace StageUp.UI
             {
                 UserSummary.InnerText = GestorDeSesion.ObtenerNombreCompletoActual();
 
-
-
                 pnlAvisoRestauracion.Visible = GestorDeSesion.TomarAvisoRestauracion();
-
-
-
-
 
                 bool esGestorEspacios = GestorDeSesion.ObtenerPerfilActual() == PerfilUsuarioExterno.GestorEspacios.ToString();
                 MisActividadesLink.Visible = esGestorEspacios;
                 PreguntasRecibidasLink.Visible = esGestorEspacios;
-
-
 
                 if (!esGestorEspacios)
                 {
@@ -82,12 +69,6 @@ namespace StageUp.UI
                     MisEspaciosLink.HRef = "~/OfrecerEspacio.aspx";
                     MisEspaciosLink.Attributes.Remove("data-i18n");
                 }
-
-
-
-
-
-
 
                 if (BLL_Reserva.CorrespondeGenerarRecordatorios())
                 {
@@ -99,7 +80,6 @@ namespace StageUp.UI
                     catch (InvalidOperationException)
                     {
 
-
                         new BLL_Reserva().GenerarRecordatorios24hsSiCorresponde();
                     }
                 }
@@ -110,15 +90,12 @@ namespace StageUp.UI
             }
         }
 
-
-
         private void CargarIndicadorSoporte()
         {
             int novedades = new BLL_Ticket().ContarNovedadesUsuario(GestorDeSesion.ObtenerIdUsuarioActual().Value);
             SoporteLink.InnerHtml = novedades > 0
                 ? "Soporte <span class=\"sidebar-badge\" title=\"Solicitudes de soporte con novedades\">" + novedades + "</span>"
                 : "Soporte";
-
 
             if (PreguntasRecibidasLink.Visible)
             {
@@ -128,10 +105,6 @@ namespace StageUp.UI
                     : "Preguntas recibidas";
             }
         }
-
-
-
-
 
         private void CargarIndicadorMensajesReserva(bool esGestorEspacios)
         {
@@ -173,9 +146,6 @@ namespace StageUp.UI
                 return;
             }
 
-
-
-
             int idNotificacion;
             if (!int.TryParse(Convert.ToString(e.CommandArgument), out idNotificacion))
             {
@@ -197,8 +167,6 @@ namespace StageUp.UI
             _bllNotificacion.MarcarTodasLeidas(idUsuarioExterno);
             CargarNotificaciones();
         }
-
-
 
         public void ActualizarNotificaciones()
         {

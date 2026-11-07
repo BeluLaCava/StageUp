@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,22 +11,14 @@ using StageUp.Seguridad;
 namespace StageUp.UI.Ayuda
 {
 
-
-
-
-
-
     public partial class CentroAyuda : Page
     {
         private readonly BLL_Faq _bllFaq = new BLL_Faq();
         protected string UrlSoporte
         {
 
-
             get { return ResolveUrl(GestorDeSesion.EstaAutenticado() ? "~/Soporte.aspx?nueva=1&origen=Asistente" : "~/IniciarSesion.aspx"); }
         }
-
-
 
         protected string NombreUsuario
         {
@@ -49,17 +41,12 @@ namespace StageUp.UI.Ayuda
                 return;
             }
 
-
-
             if (GestorDeSesion.EstaAutenticado())
             {
                 lnkContactarSoporte.NavigateUrl = "~/Soporte.aspx?nueva=1&origen=CentroAyuda";
                 lnkContactarSoporte.Text = "Registrar solicitud de soporte";
                 lnkMisSolicitudes.Visible = true;
             }
-
-
-
 
             ResultadoOperacion<List<Faq>> basicas = _bllFaq.ObtenerPreguntasBasicas();
             if (!basicas.Exitoso)
@@ -74,8 +61,6 @@ namespace StageUp.UI.Ayuda
             rptFaq.DataBind();
             MostrarPreguntaBuscada();
         }
-
-
 
         private void MostrarPreguntaBuscada()
         {

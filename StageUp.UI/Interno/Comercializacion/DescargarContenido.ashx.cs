@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Web;
 using System.Web.SessionState;
@@ -10,9 +10,6 @@ using StageUp.UI.Infraestructura;
 namespace StageUp.UI.Interno.Comercializacion
 {
 
-
-
-
     public class DescargarContenido : IHttpHandler, IRequiresSessionState
     {
         public bool IsReusable
@@ -22,7 +19,6 @@ namespace StageUp.UI.Interno.Comercializacion
 
         public void ProcessRequest(HttpContext context)
         {
-
 
             int? idUsuarioInterno = GestorDeSesion.ObtenerIdUsuarioInternoActual();
             if (!idUsuarioInterno.HasValue)

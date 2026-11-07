@@ -1,4 +1,4 @@
-param([string]$BinPath = (Join-Path $PSScriptRoot '..\StageUp.UI\bin'))
+﻿param([string]$BinPath = (Join-Path $PSScriptRoot '..\StageUp.UI\bin'))
 $ErrorActionPreference = 'Stop'
 $BinPath = (Resolve-Path -LiteralPath $BinPath).Path
 foreach ($assembly in @('BE','DAL','Seguridad','MPP','Servicios','BLL','UI')) {
@@ -10,7 +10,7 @@ function Check([bool]$condition, [string]$test) {
     $script:passed++
     Write-Output "PASS: $test"
 }
-# Pure validations: no database, email, payments or external services.
+
 foreach ($email in @('persona@example.test', "o'connor@example.test", 'ana+reservas@example.com', 'ana.apellido@sub.example.com')) {
     Check ([StageUp.Seguridad.ValidacionContacto]::EsCorreoValido($email)) "valid email: $email"
 }

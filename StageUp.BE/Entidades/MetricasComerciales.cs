@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
@@ -30,7 +30,6 @@ namespace StageUp.BE.Entidades
         public int CampaniasActivas { get; set; }
         public int ContactosConvertidos { get; set; }
 
-
         public int IncorporadosSinCuenta { get; set; }
         public int TotalUsuarios { get; set; }
         public int TotalCampanias { get; set; }
@@ -41,13 +40,10 @@ namespace StageUp.BE.Entidades
             get { return NuevosUsuarios - UsuariosConOrigen; }
         }
 
-
         public bool SinInformacion
         {
             get { return TotalUsuarios == 0 && TotalCampanias == 0 && TotalContactos == 0; }
         }
-
-
 
         public bool SinResultados
         {
@@ -58,7 +54,6 @@ namespace StageUp.BE.Entidades
             }
         }
     }
-
 
     public class MetricaOrigenUsuario
     {
@@ -72,7 +67,6 @@ namespace StageUp.BE.Entidades
         public int CantidadUsuarios { get; set; }
         public int CantidadGestores { get; set; }
     }
-
 
     public class MetricaCanalOrigen
     {

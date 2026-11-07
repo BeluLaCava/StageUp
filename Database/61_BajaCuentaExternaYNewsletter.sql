@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,11 +7,6 @@ GO
 USE StageUp;
 GO
 
--- ---------------------------------------------------------------------------
--- CU-001-003: la baja lógica del usuario externo también deja activo = 0
--- (además de estadoCuenta = Inactiva). Las cuentas dadas de baja antes de
--- este script se corrigen igual.
--- ---------------------------------------------------------------------------
 UPDATE dbo.UsuarioExterno
 SET activo = 0,
     fechaUltimaModificacion = GETDATE()
@@ -34,8 +29,7 @@ BEGIN
 
         IF @confirmar = 1
         BEGIN
-            -- Mismo recurso que usan los pagos y las liquidaciones: mientras se
-            -- da de baja la cuenta no puede entrar un pago ni un movimiento.
+
             DECLARE @recurso NVARCHAR(100) = N'StageUp_CuentaCorriente_' + CAST(@idUsuarioExterno AS NVARCHAR(10));
             DECLARE @bloqueo INT;
             EXEC @bloqueo = sp_getapplock @Resource = @recurso, @LockMode = N'Exclusive', @LockOwner = N'Transaction', @LockTimeout = 10000;
@@ -138,10 +132,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Newsletter: una cuenta dada de baja nunca recibe envíos, tampoco con el
--- criterio "Todos".
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_UsuarioExterno_ListarParaNewsletter', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_ListarParaNewsletter;
 GO
 CREATE PROCEDURE dbo.sp_UsuarioExterno_ListarParaNewsletter

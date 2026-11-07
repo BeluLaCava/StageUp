@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,9 +7,6 @@ GO
 USE StageUp;
 GO
 
--- ---------------------------------------------------------------------------
--- Tablas
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.Encuesta', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Encuesta
@@ -119,9 +116,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- ABM de Encuesta
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Encuesta_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Encuesta_Insertar;
 GO
 CREATE PROCEDURE dbo.sp_Encuesta_Insertar
@@ -194,9 +188,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Eliminación controlada: solo borra si la encuesta sigue en Borrador y
-    -- no tiene ninguna respuesta. Las preguntas y opciones caen por
-    -- ON DELETE CASCADE. Una encuesta publicada nunca se borra (se cierra).
     DELETE FROM dbo.Encuesta
     WHERE idEncuesta = @idEncuesta
       AND estado = N'Borrador'
@@ -233,9 +224,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Preguntas y opciones
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_PreguntaEncuesta_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_PreguntaEncuesta_Insertar;
 GO
 CREATE PROCEDURE dbo.sp_PreguntaEncuesta_Insertar
@@ -313,9 +301,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Listados para el usuario externo (público objetivo + vigencia)
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Encuesta_ListarPendientesParaUsuario', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Encuesta_ListarPendientesParaUsuario;
 GO
 CREATE PROCEDURE dbo.sp_Encuesta_ListarPendientesParaUsuario
@@ -325,9 +310,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Activas, ya empezadas, todavía no vencidas ("vigentes" se calcula acá,
-    -- no se persiste ningún estado "Vencida"), dirigidas a Todos o al perfil
-    -- del usuario, y que el usuario todavía no haya respondido.
     SELECT e.idEncuesta, e.titulo, e.descripcion, e.fechaInicio, e.fechaVencimiento, e.publicoObjetivo, e.estado, e.fechaAlta, e.fechaUltimaModificacion
     FROM dbo.Encuesta e
     WHERE e.estado = N'Activa'
@@ -352,13 +334,9 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Encuestas ya empezadas y dirigidas al perfil del usuario, que además
-    -- están vencidas o cerradas, o que el usuario ya respondió (para que vea
-    -- el gráfico al instante apenas responde, aunque la encuesta siga
-    -- vigente y abierta para otros usuarios).
     SELECT e.idEncuesta, e.titulo, e.descripcion, e.fechaInicio, e.fechaVencimiento, e.publicoObjetivo, e.estado, e.fechaAlta, e.fechaUltimaModificacion
     FROM dbo.Encuesta e
-    WHERE e.estado IN (N'Activa', N'Cerrada') -- un Borrador nunca se publicó: no tiene resultados, aunque esté vencido
+    WHERE e.estado IN (N'Activa', N'Cerrada')
       AND e.fechaInicio <= GETDATE()
       AND (e.publicoObjetivo = N'Todos' OR e.publicoObjetivo = @perfilUsuario)
       AND
@@ -375,9 +353,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Respuestas
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_RespuestaEncuesta_ExisteDeUsuario', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_RespuestaEncuesta_ExisteDeUsuario;
 GO
 CREATE PROCEDURE dbo.sp_RespuestaEncuesta_ExisteDeUsuario
@@ -426,12 +401,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Resultados al instante: filas planas pregunta+opción con el
--- conteo de respuestas de cada opción y el total de respuestas de la
--- pregunta, para que la BLL arme el gráfico de barras con los porcentajes
--- calculados en el momento (nada queda cacheado).
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Encuesta_ConsultarResultados', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Encuesta_ConsultarResultados;
 GO
 CREATE PROCEDURE dbo.sp_Encuesta_ConsultarResultados
@@ -456,11 +425,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Permiso propio GESTIONAR_ENCUESTAS (mismo patrón que GESTIONAR_FAQ en
--- 29_FaqAbmYPermiso.sql): se registra en el esquema clásico y en el árbol de
--- componentes, y se asigna al rol Administrador.
--- ---------------------------------------------------------------------------
 BEGIN TRY
     BEGIN TRANSACTION;
 

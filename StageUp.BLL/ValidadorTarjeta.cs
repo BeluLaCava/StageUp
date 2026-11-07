@@ -1,14 +1,10 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using StageUp.BE.Entidades;
 
 namespace StageUp.BLL
 {
-
-
-
-
 
     public static class ValidadorTarjeta
     {
@@ -20,13 +16,10 @@ namespace StageUp.BLL
         private static readonly Regex PatronTitular =
             new Regex(@"^[\p{L}][\p{L}'\.\- ]{1,98}[\p{L}\.]$", RegexOptions.Compiled);
 
-
         public static ResultadoOperacion<string> Validar(DatosTarjeta tarjeta)
         {
             return Validar(tarjeta, true);
         }
-
-
 
         public static ResultadoOperacion<string> ValidarParaGuardar(DatosTarjeta tarjeta)
         {
@@ -168,7 +161,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error("Indicá el vencimiento de la tarjeta (mes y año).");
             }
-
 
             DateTime hoy = DateTime.Today;
             DateTime finDeVigencia = new DateTime(anio, mes, 1).AddMonths(1);

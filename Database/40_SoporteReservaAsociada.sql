@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -26,8 +26,6 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
-    -- Segunda barrera (la primera es BLL_Ticket): un usuario solo puede
-    -- asociar a su ticket una reserva que él mismo solicitó.
     IF @idReservaAsociada IS NOT NULL
        AND NOT EXISTS
        (
@@ -69,8 +67,7 @@ BEGIN
         ue.nombre + N' ' + ue.apellido AS nombreUsuarioExterno,
         ue.correoElectronico AS correoUsuarioExterno,
         ui.nombre + N' ' + ui.apellido AS nombreUsuarioInternoAsignado,
-        -- Contexto de la reserva asociada (si la hay), para que soporte
-        -- responda sabiendo de qué servicio contratado se trata.
+
         ea.nombreEspacio AS nombreEspacioReserva,
         r.fechaSolicitada AS fechaReserva,
         r.minutoDesde AS minutoDesdeReserva,
@@ -145,9 +142,6 @@ BEGIN
 END
 GO
 
--- Indicador para el equipo interno: tickets en estado Abierto (recién
--- creados, o en los que el usuario volvió a escribir después de una
--- respuesta de soporte). Se muestra como contador en el menú del panel.
 IF OBJECT_ID('dbo.sp_Ticket_ContarAbiertos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Ticket_ContarAbiertos;
 GO
 CREATE PROCEDURE dbo.sp_Ticket_ContarAbiertos

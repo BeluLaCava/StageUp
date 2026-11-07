@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -14,23 +14,23 @@ BEGIN
         idSolicitud                 INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_SolicitudHabilitacionGestor PRIMARY KEY,
         idUsuarioExterno            INT               NOT NULL,
         estado                      NVARCHAR(20)      NOT NULL CONSTRAINT DF_SolicitudHabilitacion_estado DEFAULT (N'PendienteRevision'),
-        -- Datos identificatorios del responsable
+
         nombreResponsable           NVARCHAR(150)     NOT NULL,
         documentoResponsable        NVARCHAR(20)      NOT NULL,
-        -- Datos de contacto
+
         telefonoContacto            NVARCHAR(30)      NOT NULL,
         correoContacto              NVARCHAR(300)     NOT NULL,
-        -- Datos administrativos
+
         condicionFiscal             NVARCHAR(40)      NOT NULL,
         razonSocial                 NVARCHAR(150)     NULL,
         cuit                        NVARCHAR(13)      NULL,
-        -- Datos iniciales del espacio o entidad
+
         nombreEspacio               NVARCHAR(150)     NOT NULL,
         tipoEspacio                 NVARCHAR(100)     NOT NULL,
         provincia                   NVARCHAR(100)     NOT NULL,
         ciudad                      NVARCHAR(150)     NOT NULL,
         descripcionPropuesta        NVARCHAR(1000)    NOT NULL,
-        -- Revisión
+
         fechaSolicitud              DATETIME          NOT NULL CONSTRAINT DF_SolicitudHabilitacion_fecha DEFAULT (GETDATE()),
         fechaRevision               DATETIME          NULL,
         idUsuarioInternoRevisor     INT               NULL,
@@ -47,8 +47,6 @@ BEGIN
 END
 GO
 
--- Cuentas pendientes de antes de este script: se les crea la solicitud con
--- los datos que ya tiene la cuenta (el resto queda "No informado").
 INSERT INTO dbo.SolicitudHabilitacionGestor
     (idUsuarioExterno, estado, nombreResponsable, documentoResponsable, telefonoContacto, correoContacto,
      condicionFiscal, nombreEspacio, tipoEspacio, provincia, ciudad, descripcionPropuesta, fechaSolicitud)
@@ -61,9 +59,6 @@ WHERE u.perfilUsuario = N'PendienteHabilitacionGestor'
                   WHERE s.idUsuarioExterno = u.idUsuarioExterno AND s.estado = N'PendienteRevision');
 GO
 
--- ---------------------------------------------------------------------------
--- Registrar (A1 pasos 7 a 9, A3)
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_SolicitudHabilitacion_Registrar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SolicitudHabilitacion_Registrar;
 GO
 CREATE PROCEDURE dbo.sp_SolicitudHabilitacion_Registrar
@@ -134,9 +129,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Consultas (A3, A4, A6 y panel interno)
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_SolicitudHabilitacion_ObtenerUltimaPorUsuario', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SolicitudHabilitacion_ObtenerUltimaPorUsuario;
 GO
 CREATE PROCEDURE dbo.sp_SolicitudHabilitacion_ObtenerUltimaPorUsuario
@@ -174,16 +166,13 @@ BEGIN
     INNER JOIN dbo.UsuarioExterno u ON u.idUsuarioExterno = s.idUsuarioExterno
     LEFT JOIN dbo.UsuarioInterno ui ON ui.idUsuarioInterno = s.idUsuarioInternoRevisor
     WHERE @estado IS NULL OR s.estado = @estado
-    -- Las pendientes, de la más vieja a la más nueva; las resueltas, al revés.
+
     ORDER BY CASE WHEN s.estado = N'PendienteRevision' THEN 0 ELSE 1 END,
              CASE WHEN s.estado = N'PendienteRevision' THEN s.fechaSolicitud END ASC,
              ISNULL(s.fechaRevision, s.fechaSolicitud) DESC;
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Aprobar / rechazar (panel interno)
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_SolicitudHabilitacion_Resolver', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SolicitudHabilitacion_Resolver;
 GO
 CREATE PROCEDURE dbo.sp_SolicitudHabilitacion_Resolver

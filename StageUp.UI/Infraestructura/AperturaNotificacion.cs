@@ -1,13 +1,10 @@
-using System;
+﻿using System;
 using System.Web;
 using System.Web.Hosting;
 using StageUp.BLL;
 
 namespace StageUp.UI.Infraestructura
 {
-
-
-
 
     public static class AperturaNotificacion
     {

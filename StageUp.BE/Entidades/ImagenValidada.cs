@@ -1,4 +1,4 @@
-namespace StageUp.BE.Entidades
+﻿namespace StageUp.BE.Entidades
 {
 
     public class ImagenValidada
@@ -7,15 +7,10 @@ namespace StageUp.BE.Entidades
         public const string FormatoPng = "PNG";
         public const string FormatoWebP = "WEBP";
 
-
         public string Formato { get; set; }
-
-
 
         public int Ancho { get; set; }
         public int Alto { get; set; }
-
-
 
         public byte[] ContenidoLimpio { get; set; }
 

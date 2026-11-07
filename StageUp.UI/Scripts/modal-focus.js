@@ -1,7 +1,6 @@
 (function () {
     "use strict";
 
-    // A stack keeps a confirmation opened from the assistant independent of its parent.
     const stack = [];
     const selector = "a[href],button,input,select,textarea,[tabindex]";
 
@@ -40,7 +39,7 @@
         const index = stack.findIndex(function (entry) { return entry.container === container; });
         if (index < 0) return;
         const entry = stack[index];
-        // Closing a parent also releases any of its nested option sheets.
+
         const wasTop = index === stack.length - 1;
         stack.splice(index, 1);
         for (let i = stack.length - 1; i >= 0; i--) {
@@ -73,6 +72,29 @@
     document.addEventListener("focusin", function (event) {
         const entry = top();
         if (entry && !entry.container.contains(event.target)) focusFirst(entry);
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("dialog[data-server-modal][open]").forEach(function (dialog) {
+            const close = dialog.querySelector(".review-dialog-close");
+            if (!close) return;
+            if (typeof dialog.showModal === "function") {
+                dialog.removeAttribute("open");
+                dialog.showModal();
+            }
+            activate(dialog);
+            close.focus();
+            dialog.addEventListener("cancel", function (event) {
+                event.preventDefault();
+                if (top() && top().container === dialog) close.click();
+            });
+            dialog.addEventListener("keydown", function (event) {
+                if (event.key === "Escape" && top() && top().container === dialog) {
+                    event.preventDefault();
+                    close.click();
+                }
+            });
+        });
     });
 
     window.StageUpModalFocus = {

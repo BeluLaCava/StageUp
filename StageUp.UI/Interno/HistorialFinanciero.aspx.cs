@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Globalization;
@@ -12,9 +12,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
-
-
 
     public partial class HistorialFinanciero : Page
     {
@@ -30,7 +27,6 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-
             if (!GestorDeSesion.TienePermisoInterno(PermisoRequerido))
             {
                 Response.Redirect("~/Interno/PanelAdministrador.aspx?acceso=denegado");
@@ -41,7 +37,6 @@ namespace StageUp.UI.Interno
             {
                 CargarOpciones();
                 LeerFiltrosDeLaDireccion();
-
 
                 if (Request.QueryString["detalle"] == "no_disponible")
                 {
@@ -155,7 +150,6 @@ namespace StageUp.UI.Interno
             }
         }
 
-
         private string ArmarConsulta()
         {
             List<string> partes = new List<string>();
@@ -200,7 +194,6 @@ namespace StageUp.UI.Interno
             {
                 MostrarMensaje(resultado.Mensaje, true);
             }
-
 
             bool noHayNinguna = lista.Count == 0 && resultado.Exitoso && (!hayFiltros || _bll.NoHayOperaciones());
             pnlSinOperaciones.Visible = noHayNinguna;

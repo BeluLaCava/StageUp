@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -10,8 +10,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
-
 
     public partial class GestionNewsletter : Page
     {
@@ -47,9 +45,6 @@ namespace StageUp.UI.Interno
                 CargarTodo();
             }
         }
-
-
-
 
         protected void btnFiltrar_Click(object sender, EventArgs e)
         {
@@ -95,9 +90,6 @@ namespace StageUp.UI.Interno
             CargarResumen();
             CargarSuscriptores();
         }
-
-
-
 
         protected void rptCategorias_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
@@ -173,9 +165,6 @@ namespace StageUp.UI.Interno
             LimpiarFormularioCategoria();
         }
 
-
-
-
         protected void rptEnvios_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
             if (!TieneAcceso() || e.CommandName != "Ver")
@@ -236,9 +225,6 @@ namespace StageUp.UI.Interno
             IdEnvioSeleccionado = null;
             CargarEnvios();
         }
-
-
-
 
         private void CargarTodo()
         {
@@ -330,9 +316,6 @@ namespace StageUp.UI.Interno
             List<CategoriaNovedad> categorias = _bllCategoria.ListarParaAdministrar();
             return categorias.Count == 0 ? 10 : Math.Min(9999, categorias.Max(c => c.Orden) + 10);
         }
-
-
-
 
         protected static string EtiquetaEstadoSuscriptor(object estado)
         {

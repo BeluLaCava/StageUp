@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Web;
 using System.Web.Script.Serialization;
@@ -10,10 +10,6 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Ayuda
 {
-
-
-
-
 
     public class AsistenteAyuda : IHttpHandler, IReadOnlySessionState
     {
@@ -104,7 +100,6 @@ namespace StageUp.UI.Ayuda
                     .Where(a => a.tipo != AccionNodoAsistente.TipoEnlace || a.url != null)
             };
         }
-
 
         private static string UrlInterna(AccionNodoAsistente accion)
         {

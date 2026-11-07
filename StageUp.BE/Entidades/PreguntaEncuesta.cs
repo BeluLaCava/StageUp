@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
@@ -8,8 +8,6 @@ namespace StageUp.BE.Entidades
         public int IdEncuesta { get; set; }
         public string Texto { get; set; }
         public int Orden { get; set; }
-
-
 
         public List<OpcionPregunta> Opciones { get; set; }
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using StageUp.BE.Menu;
@@ -18,12 +18,6 @@ namespace StageUp.UI.Interno
             base.OnInit(e);
             InicializarMultidioma(ddlIdioma, hdnDiccionarioIdioma, HtmlRoot, LanguageSelector);
         }
-
-
-
-
-
-
 
         protected void Page_Load(object sender, EventArgs e)
         {

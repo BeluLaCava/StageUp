@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -8,8 +8,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
-
 
     public partial class AprobacionGestores : Page
     {

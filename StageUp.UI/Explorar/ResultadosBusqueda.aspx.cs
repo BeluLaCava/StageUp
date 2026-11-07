@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -43,9 +43,6 @@ namespace StageUp.UI.Explorar
                 filtro.PrecioMinimo.HasValue || filtro.PrecioMaximo.HasValue || filtro.CalificacionMinima.HasValue || filtro.CapacidadMinima.HasValue ||
                 !string.IsNullOrWhiteSpace(filtro.FechaDisponibilidad) || (filtro.Equipamiento != null && filtro.Equipamiento.Count > 0);
 
-
-
-
             List<EspacioArtistico> espaciosPublicados = hayFiltrosAplicados
                 ? _bllEspacio.Buscar(new FiltroBusquedaEspacios())
                 : espacios;
@@ -81,8 +78,6 @@ namespace StageUp.UI.Explorar
             }
         }
 
-
-
         private string CargarOpcionesOrden()
         {
             ddlOrden.Items.Clear();
@@ -103,8 +98,6 @@ namespace StageUp.UI.Explorar
             return orden;
         }
 
-
-
         private void CargarRanking(List<EspacioArtistico> espaciosPublicados, bool hayFiltrosAplicados)
         {
             if (hayFiltrosAplicados)
@@ -112,7 +105,6 @@ namespace StageUp.UI.Explorar
                 pnlRanking.Visible = false;
                 return;
             }
-
 
             List<EspacioArtistico> ranking = BLL_Calificacion.ObtenerRankingMejorValorados(espaciosPublicados, CantidadRanking);
 

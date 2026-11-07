@@ -1,7 +1,11 @@
-namespace StageUp.UI
+﻿namespace StageUp.UI
 {
     public partial class DetalleReserva
     {
+        protected global::System.Web.UI.WebControls.Panel pnlNotas;
+        protected global::System.Web.UI.WebControls.Literal litErrorNotas;
+        protected global::System.Web.UI.WebControls.Repeater rptNotas;
+
         protected global::System.Web.UI.WebControls.Panel pnlEncabezado;
         protected global::System.Web.UI.WebControls.Literal litNumero;
         protected global::System.Web.UI.WebControls.Label lblEstado;

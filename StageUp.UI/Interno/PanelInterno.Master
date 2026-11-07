@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><asp:ContentPlaceHolder ID="TitleContent" runat="server">Panel administrativo | StageUp</asp:ContentPlaceHolder></title>
     <link rel="icon" type="image/png" href="<%= ResolveUrl("~/Content/Images/favicon.png") %>" />
-    <link href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20261106-3" rel="stylesheet" />
+    <link href="<%= ResolveUrl("~/Content/Css/site.css") %>?v=20261106-5" rel="stylesheet" />
 </head>
 <body class="internal-body">
     <form id="form1" runat="server">
@@ -35,6 +35,8 @@
 
         <div class="internal-shell container-wide">
             <nav class="internal-nav" aria-label="Navegación del panel administrativo">
+                <button type="button" class="internal-menu-toggle" data-internal-menu-toggle aria-expanded="true" aria-controls="internal-menu-content" hidden>Menú administrativo</button>
+                <div id="internal-menu-content">
                 <div class="internal-nav-search">
                     <span aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="5.5"></circle><path d="M15 15l5 5"></path></svg></span>
                     <label class="sr-only" for="internal-menu-search">Buscar una opción del menú</label>
@@ -53,6 +55,7 @@
                     </asp:Repeater>
                     <p class="internal-nav-empty" data-internal-menu-empty hidden>No hay opciones con ese nombre.</p>
                 </div>
+                </div>
             </nav>
 
             <main class="internal-content">
@@ -65,11 +68,11 @@
 
         <asp:HiddenField ID="hdnDiccionarioIdioma" runat="server" ClientIDMode="Static" EnableViewState="false" />
         <script src="<%= ResolveUrl("~/Scripts/multidioma.js") %>?v=20260910-2"></script>
-        <script src="<%= ResolveUrl("~/Scripts/modal-focus.js") %>?v=20261106-1"></script>
+        <script src="<%= ResolveUrl("~/Scripts/modal-focus.js") %>?v=20261106-5"></script>
         <script src="<%= ResolveUrl("~/Scripts/stageup-confirm.js") %>?v=20261106-3"></script>
         <script src="<%= ResolveUrl("~/Scripts/charts-stageup.js") %>?v=20261008-1"></script>
         <script src="<%= ResolveUrl("~/Scripts/ui-motion.js") %>?v=20261008-1"></script>
-        <script src="<%= ResolveUrl("~/Scripts/internal-menu.js") %>?v=20261106-3"></script>
+        <script src="<%= ResolveUrl("~/Scripts/internal-menu.js") %>?v=20261106-5"></script>
         <script src="<%= ResolveUrl("~/Scripts/internal-filters.js") %>?v=20261022-2"></script>
     </form>
 </body>

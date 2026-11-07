@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -48,7 +48,6 @@ BEGIN
 END
 GO
 
--- Consultas de un suscriptor (con sus categorías separadas por coma).
 IF OBJECT_ID('dbo.sp_SuscriptorNewsletter_Obtener', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SuscriptorNewsletter_Obtener;
 GO
 CREATE PROCEDURE dbo.sp_SuscriptorNewsletter_Obtener
@@ -96,8 +95,6 @@ BEGIN
 END
 GO
 
--- Nuevo pedido de confirmación (suscriptor pendiente o dado de baja que se
--- vuelve a suscribir).
 IF OBJECT_ID('dbo.sp_SuscriptorNewsletter_RenovarConfirmacion', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SuscriptorNewsletter_RenovarConfirmacion;
 GO
 CREATE PROCEDURE dbo.sp_SuscriptorNewsletter_RenovarConfirmacion
@@ -121,8 +118,6 @@ BEGIN
 END
 GO
 
--- Aviso "ya estás suscripto" enviado (para no mandarlo más de una vez cada
--- pocos minutos).
 IF OBJECT_ID('dbo.sp_SuscriptorNewsletter_MarcarAvisoEnviado', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SuscriptorNewsletter_MarcarAvisoEnviado;
 GO
 CREATE PROCEDURE dbo.sp_SuscriptorNewsletter_MarcarAvisoEnviado
@@ -134,7 +129,6 @@ BEGIN
 END
 GO
 
--- Doble confirmación: solo con el token vigente.
 IF OBJECT_ID('dbo.sp_SuscriptorNewsletter_Confirmar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SuscriptorNewsletter_Confirmar;
 GO
 CREATE PROCEDURE dbo.sp_SuscriptorNewsletter_Confirmar
@@ -159,7 +153,6 @@ BEGIN
 END
 GO
 
--- Baja o reactivación desde el enlace de preferencias.
 IF OBJECT_ID('dbo.sp_SuscriptorNewsletter_CambiarEstado', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SuscriptorNewsletter_CambiarEstado;
 GO
 CREATE PROCEDURE dbo.sp_SuscriptorNewsletter_CambiarEstado
@@ -220,12 +213,6 @@ BEGIN
 END
 GO
 
--- Destinatarios de un newsletter.
---   @criterio: Activos, Gestores, Solicitantes, Todos (usuarios con cuenta
---   según su perfil) o Suscriptores (solo suscriptores sin cuenta).
---   Activos y Todos suman además a los suscriptores confirmados.
---   @categoria: la de la novedad; se excluye a quien eligió otras.
---   Nadie dado de baja recibe el newsletter.
 IF OBJECT_ID('dbo.sp_Newsletter_ListarDestinatarios', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Newsletter_ListarDestinatarios;
 GO
 CREATE PROCEDURE dbo.sp_Newsletter_ListarDestinatarios
@@ -247,8 +234,6 @@ BEGIN
                OR (@criterio = N'Solicitantes' AND u.perfilUsuario = N'ExternoSolicitante')
                OR @criterio NOT IN (N'Gestores', N'Solicitantes'));
 
-    -- Registro de suscriptor para los usuarios que todavía no lo tienen
-    -- (así también reciben el enlace de baja).
     INSERT INTO dbo.SuscriptorNewsletter (correoElectronico, nombre, idUsuarioExterno, estado, origen, tokenPreferencias, fechaConfirmacion)
     SELECT u.correoElectronico, u.nombre, u.idUsuarioExterno, N'Activo', N'Cuenta',
            CONVERT(VARCHAR(64), HASHBYTES('SHA2_256', CAST(NEWID() AS VARCHAR(36)) + CONVERT(VARCHAR(64), CRYPT_GEN_RANDOM(32), 2)), 2),

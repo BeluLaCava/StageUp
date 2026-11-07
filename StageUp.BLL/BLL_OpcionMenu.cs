@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using StageUp.BE.Entidades;
@@ -9,10 +9,6 @@ using StageUp.MPP;
 namespace StageUp.BLL
 {
 
-
-
-
-
     public class BLL_OpcionMenu
     {
         private const int LongitudMaximaTexto = 100;
@@ -20,9 +16,6 @@ namespace StageUp.BLL
         private const int LongitudMaximaUrl = 300;
         private const int LongitudMaximaModulo = 100;
         private const string TipoEntidadBitacora = "OpcionMenu";
-
-
-
 
         private const string CodigoPermisoGestionMenu = "GESTIONAR_MENU";
 
@@ -36,9 +29,9 @@ namespace StageUp.BLL
             {
                 return _mpp.Listar();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<OpcionMenu>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -53,7 +46,6 @@ namespace StageUp.BLL
                 return null;
             }
         }
-
 
         public List<PermisoHoja> ListarPermisosDisponibles()
         {
@@ -143,8 +135,6 @@ namespace StageUp.BLL
                     : "La opción se dio de baja y ya no se muestra en el menú.");
             });
         }
-
-
 
         public ResultadoOperacion Mover(int idOpcionMenu, bool haciaArriba, int idUsuarioInternoResponsable)
         {
@@ -270,12 +260,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion<T>.Error(ex.Message);
             }
         }
-
-
-
-
-
-
 
         private static readonly System.Text.RegularExpressions.Regex PatronUrlInterna =
             new System.Text.RegularExpressions.Regex(@"^~/Interno/([A-Za-z0-9_\-]+/)*[A-Za-z0-9_\-]+\.aspx$",

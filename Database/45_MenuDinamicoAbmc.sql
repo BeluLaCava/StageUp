@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -31,8 +31,7 @@ BEGIN
         CONSTRAINT FK_OpcionMenu_ComponentePermiso FOREIGN KEY (idComponentePermiso)
             REFERENCES dbo.ComponentePermiso (idComponentePermiso),
         CONSTRAINT CK_OpcionMenu_texto CHECK (LEN(LTRIM(RTRIM(texto))) > 0),
-        -- Solo páginas internas: ~/Interno/<pagina>.aspx, sin "..", sin
-        -- esquemas (http:, https:, javascript:) ni rutas externas.
+
         CONSTRAINT CK_OpcionMenu_url CHECK (
             url LIKE N'~/Interno/%.aspx'
             AND url NOT LIKE N'%..%'
@@ -46,9 +45,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Permiso propio GESTIONAR_MENU (mismo patrón que GESTIONAR_SOPORTE en el 38).
--- ---------------------------------------------------------------------------
 BEGIN TRY
     BEGIN TRANSACTION;
 
@@ -210,11 +206,6 @@ BEGIN CATCH
 END CATCH;
 GO
 
--- ---------------------------------------------------------------------------
--- Carga inicial: una opción por cada permiso activo con URL, en el mismo orden
--- en que hoy aparece el menú (grupo y orden del árbol de permisos). Solo si la
--- tabla está vacía, para no pisar lo que ya se haya administrado.
--- ---------------------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM dbo.OpcionMenu)
 BEGIN
     INSERT INTO dbo.OpcionMenu (texto, descripcion, url, modulo, orden, idComponentePermiso, activo)
@@ -237,9 +228,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Stored procedures del ABMC
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_OpcionMenu_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_OpcionMenu_Listar;
 GO
 CREATE PROCEDURE dbo.sp_OpcionMenu_Listar
@@ -290,7 +278,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Una opción nueva va al final del menú.
     DECLARE @orden INT = ISNULL((SELECT MAX(orden) FROM dbo.OpcionMenu), 0) + 10;
 
     INSERT INTO dbo.OpcionMenu (texto, descripcion, url, modulo, orden, idComponentePermiso, activo)

@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -19,7 +19,6 @@ IF COL_LENGTH(N'dbo.NodoAsistente', N'textoBotonLista') IS NULL
     ALTER TABLE dbo.NodoAsistente ADD textoBotonLista NVARCHAR(40) NULL;
 GO
 
--- Contenido inicial (solo completa lo que esté vacío, para no pisar cambios).
 DECLARE @estilo TABLE (codigo NVARCHAR(80) PRIMARY KEY, descripcion NVARCHAR(120) NULL, icono NVARCHAR(30) NULL, boton NVARCHAR(40) NULL);
 INSERT INTO @estilo (codigo, descripcion, icono, boton) VALUES
 (N'inicio', NULL, NULL, N'Menú principal'),
@@ -64,7 +63,6 @@ SET descripcionOpcion = COALESCE(n.descripcionOpcion, e.descripcion),
 FROM dbo.NodoAsistente n
 INNER JOIN @estilo e ON e.codigo = n.codigo;
 
--- El saludo con el nombre lo arma el asistente; el inicio solo pregunta.
 UPDATE dbo.NodoAsistente
 SET mensaje = N'¿Qué te gustaría hacer hoy?'
 WHERE codigo = N'inicio'

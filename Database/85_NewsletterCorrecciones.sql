@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,22 +7,6 @@ GO
 USE StageUp;
 GO
 
--- ===========================================================================
--- Newsletter (ítems 4, 5 y 13).
---   * Categorías de novedades en una tabla administrable (CategoriaNovedad)
---     en lugar de valores fijos en el código y en un CHECK.
---   * Los destinatarios de un envío se listan sin crear suscripciones: solo
---     reciben los suscriptores confirmados.
---   * Cada envío guarda su estado y el de cada destinatario, para reintentar
---     solo los que fallaron.
--- ===========================================================================
-
--- ---------------------------------------------------------------------------
--- Suscripciones creadas automáticamente por la versión anterior de
--- sp_Newsletter_ListarDestinatarios (origen Cuenta, sin ningún pedido de la
--- persona): no son suscripciones confirmadas y se quitan. Se hace una sola
--- vez, antes de crear las tablas de envíos.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.EnvioNewsletter', N'U') IS NULL AND OBJECT_ID(N'dbo.SuscriptorNewsletter', N'U') IS NOT NULL
 BEGIN
     DELETE FROM dbo.SuscriptorNewsletter
@@ -33,9 +17,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Categorías.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.CategoriaNovedad', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.CategoriaNovedad
@@ -61,7 +42,6 @@ FROM (VALUES (N'Institucional', N'Institucional', 10),
 WHERE NOT EXISTS (SELECT 1 FROM dbo.CategoriaNovedad c WHERE c.codigo = v.codigo);
 GO
 
--- Cualquier otra categoría que ya tengan las novedades (para poder crear la FK).
 INSERT INTO dbo.CategoriaNovedad (codigo, nombre, orden, activa)
 SELECT DISTINCT n.categoria, LEFT(n.categoria, 60), 100, 0
 FROM dbo.Novedad n
@@ -147,8 +127,6 @@ BEGIN
 END
 GO
 
--- Desactivar: deja de ofrecerse para nuevas novedades y en las preferencias
--- de los suscriptores; las novedades que ya la tienen la conservan.
 IF OBJECT_ID('dbo.sp_CategoriaNovedad_CambiarEstado', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CategoriaNovedad_CambiarEstado;
 GO
 CREATE PROCEDURE dbo.sp_CategoriaNovedad_CambiarEstado
@@ -176,11 +154,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Suscriptores.
--- ---------------------------------------------------------------------------
-
--- Categorías elegidas, separadas por coma. Solo se guardan las activas.
 IF OBJECT_ID('dbo.sp_SuscriptorNewsletter_GuardarCategorias', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SuscriptorNewsletter_GuardarCategorias;
 GO
 CREATE PROCEDURE dbo.sp_SuscriptorNewsletter_GuardarCategorias
@@ -202,8 +175,6 @@ BEGIN
 END
 GO
 
--- @idUsuarioExterno: cuenta desde la que se pidió (Mi perfil). Un pedido
--- hecho desde el formulario público no se asocia a ninguna cuenta.
 IF OBJECT_ID('dbo.sp_SuscriptorNewsletter_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SuscriptorNewsletter_Insertar;
 GO
 CREATE PROCEDURE dbo.sp_SuscriptorNewsletter_Insertar
@@ -255,8 +226,6 @@ BEGIN
 END
 GO
 
--- El correo de confirmación (o el aviso) no salió: no cuenta para la espera
--- entre envíos, así se puede volver a pedir enseguida.
 IF OBJECT_ID('dbo.sp_SuscriptorNewsletter_AnularEnvioConfirmacion', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SuscriptorNewsletter_AnularEnvioConfirmacion;
 GO
 CREATE PROCEDURE dbo.sp_SuscriptorNewsletter_AnularEnvioConfirmacion
@@ -268,7 +237,6 @@ BEGIN
 END
 GO
 
--- "Con cuenta" = existe una cuenta externa activa con el mismo correo.
 IF OBJECT_ID('dbo.sp_SuscriptorNewsletter_Resumen', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SuscriptorNewsletter_Resumen;
 GO
 CREATE PROCEDURE dbo.sp_SuscriptorNewsletter_Resumen
@@ -286,9 +254,6 @@ BEGIN
 END
 GO
 
--- Administración de suscriptores.
---   @estado: Activo, Pendiente, Baja o NULL (todos).
---   @conCuenta: 1 con cuenta activa, 0 sin cuenta, NULL todos.
 IF OBJECT_ID('dbo.sp_SuscriptorNewsletter_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SuscriptorNewsletter_Listar;
 GO
 CREATE PROCEDURE dbo.sp_SuscriptorNewsletter_Listar
@@ -347,15 +312,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Destinatarios: solo suscriptores confirmados (estado Activo). No crea
--- suscripciones.
---   @criterio: Activos o Todos (todos los confirmados), Gestores y
---   Solicitantes (confirmados cuyo correo es el de una cuenta activa con ese
---   perfil) o Suscriptores (confirmados sin cuenta).
---   @categoria: la de la novedad; se excluye a quien eligió otras.
---   Una suscripción asociada a una cuenta dada de baja no recibe envíos.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.fn_Newsletter_Destinatarios', 'IF') IS NOT NULL DROP FUNCTION dbo.fn_Newsletter_Destinatarios;
 GO
 CREATE FUNCTION dbo.fn_Newsletter_Destinatarios
@@ -399,9 +355,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Envíos y estado por destinatario.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.EnvioNewsletter', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.EnvioNewsletter
@@ -448,8 +401,6 @@ BEGIN
 END
 GO
 
--- Crea el envío de una novedad con la foto de sus destinatarios. Una novedad
--- tiene un único envío (los fallidos se reintentan sobre el mismo).
 IF OBJECT_ID('dbo.sp_EnvioNewsletter_Iniciar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EnvioNewsletter_Iniciar;
 GO
 CREATE PROCEDURE dbo.sp_EnvioNewsletter_Iniciar
@@ -492,9 +443,6 @@ BEGIN
 END
 GO
 
--- Toma un envío Parcial o Fallido para reintentar (o uno que quedó EnCurso
--- sin actividad hace más de 15 minutos). Vacío si no hay nada para
--- reintentar o si otra persona ya lo está reintentando.
 IF OBJECT_ID('dbo.sp_EnvioNewsletter_TomarParaReintento', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EnvioNewsletter_TomarParaReintento;
 GO
 CREATE PROCEDURE dbo.sp_EnvioNewsletter_TomarParaReintento
@@ -514,8 +462,6 @@ BEGIN
 END
 GO
 
--- Destinatarios que faltan (pendientes o fallidos). Antes se marcan como
--- omitidos los que se dieron de baja o ya no están confirmados.
 IF OBJECT_ID('dbo.sp_EnvioNewsletter_ListarPorEnviar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EnvioNewsletter_ListarPorEnviar;
 GO
 CREATE PROCEDURE dbo.sp_EnvioNewsletter_ListarPorEnviar
@@ -564,9 +510,6 @@ BEGIN
 END
 GO
 
--- Cierra el envío: Completo (todos recibieron), Parcial (algunos fallaron),
--- Fallido (no llegó a nadie) o SinDestinatarios. Si llegó a alguien (o no
--- había nadie), la novedad queda marcada como enviada.
 IF OBJECT_ID('dbo.sp_EnvioNewsletter_Finalizar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EnvioNewsletter_Finalizar;
 GO
 CREATE PROCEDURE dbo.sp_EnvioNewsletter_Finalizar

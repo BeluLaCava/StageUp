@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -12,10 +12,6 @@ BEGIN
     THROW 51000, 'Primero debe ejecutarse Database/16_ComponentePermiso.sql.', 1;
 END
 GO
-
-
--- Milestone B del Composite de permisos: alta, movimiento y baja de grupos,
--- para la pantalla nueva de organización de permisos.
 
 IF OBJECT_ID('dbo.sp_ComponentePermiso_InsertarGrupo', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ComponentePermiso_InsertarGrupo;
 GO

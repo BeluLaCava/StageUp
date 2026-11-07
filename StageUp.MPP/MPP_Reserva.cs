@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -81,8 +81,6 @@ namespace StageUp.MPP
             return tabla.Rows.Count == 0 ? null : MapearDesdeFila(tabla.Rows[0]);
         }
 
-
-
         public Reserva ObtenerDetalle(Reserva oReserva)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -105,7 +103,6 @@ namespace StageUp.MPP
                 ? Convert.ToInt32(fila["capacidadMaxima"]) : (int?)null;
             return reserva;
         }
-
 
         public bool Rechazar(Reserva oReserva)
         {
@@ -136,8 +133,6 @@ namespace StageUp.MPP
                 });
         }
 
-
-
         public ResultadoCancelacionReserva Cancelar(Reserva oReserva)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -163,13 +158,10 @@ namespace StageUp.MPP
             };
         }
 
-
-
         public List<Reserva> VencerPagosPendientes()
         {
             return MapearDesdeTabla(Conexion.Instance.Leer("sp_Reserva_VencerPagosPendientes"));
         }
-
 
         public int ContarPendientesPorGestor(UsuarioExterno oUsuarioGestor)
         {
@@ -184,19 +176,12 @@ namespace StageUp.MPP
             Conexion.Instance.Guardar("sp_Reserva_FinalizarVencidas");
         }
 
-
-
-
-
         public List<Reserva> ListarActivasPorEspacio(EspacioArtistico espacio)
         {
             return MapearDesdeTabla(Conexion.Instance.Leer(
                 "sp_Reserva_ListarActivasPorEspacio",
                 new Hashtable { { "@idEspacioArtistico", espacio.IdEspacioArtistico } }));
         }
-
-
-
 
         public List<Reserva> ListarPendientesDeRecordatorio()
         {
@@ -210,8 +195,6 @@ namespace StageUp.MPP
                 new Hashtable { { "@idReserva", reserva.IdReserva } });
         }
 
-
-
         public List<Reserva> ListarFinalizadasSinAviso()
         {
             return MapearDesdeTabla(Conexion.Instance.Leer("sp_Reserva_ListarFinalizadasSinAviso"));
@@ -223,12 +206,6 @@ namespace StageUp.MPP
                 "sp_Reserva_MarcarAvisoFinalizacionEnviado",
                 new Hashtable { { "@idReserva", reserva.IdReserva } });
         }
-
-
-
-
-
-
 
         public Dictionary<int, int> ContarAceptadasPorSolicitantes(IEnumerable<int> idsUsuarios)
         {

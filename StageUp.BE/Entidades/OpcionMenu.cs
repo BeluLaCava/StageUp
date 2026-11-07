@@ -1,10 +1,7 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
-
-
-
 
     public class OpcionMenu
     {
@@ -18,7 +15,6 @@ namespace StageUp.BE.Entidades
         public bool Activo { get; set; }
         public DateTime FechaAlta { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
-
 
         public string CodigoPermiso { get; set; }
         public string NombrePermiso { get; set; }

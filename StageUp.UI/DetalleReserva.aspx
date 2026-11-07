@@ -1,4 +1,4 @@
-<%@ Page Title="Detalle de reserva | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="DetalleReserva.aspx.cs" Inherits="StageUp.UI.DetalleReserva" %>
+﻿<%@ Page Title="Detalle de reserva | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="DetalleReserva.aspx.cs" Inherits="StageUp.UI.DetalleReserva" %>
 
 <asp:Content ID="DetalleReservaContent" ContentPlaceHolderID="MainContent" runat="server">
     <style type="text/css">
@@ -232,6 +232,14 @@
                     </div>
 
                     <div class="dr-aside">
+                        <asp:Panel ID="pnlNotas" runat="server" Visible="false" CssClass="auth-card dr-card">
+                            <div class="auth-card-header"><h2>Notas de tu cuenta</h2></div>
+                            <asp:Literal ID="litErrorNotas" runat="server" Mode="Encode" />
+                            <asp:Repeater ID="rptNotas" runat="server"><ItemTemplate>
+                                <p><asp:HyperLink runat="server" CssClass="link-muted" Text='<%# Server.HtmlEncode(Eval("Numero") + " · " + (Convert.ToString(Eval("Tipo")) == "NC" ? "Nota de crédito" : "Nota de débito")) %>' NavigateUrl='<%# "~/DetalleComprobante.aspx?id=" + Eval("IdComprobante") %>' /><br />
+                                <small><%#: Eval("Estado") %> · <%#: StageUp.BLL.BLL_CuentaCorriente.FormatearImporte(Convert.ToDecimal(Eval("Importe")), Convert.ToString(Eval("Moneda"))) %> <%#: Eval("Moneda") %></small></p>
+                            </ItemTemplate></asp:Repeater>
+                        </asp:Panel>
                         <div class="auth-card dr-card dr-participantes-card">
                             <div class="auth-card-header"><h2>Participantes</h2></div>
                             <div class="dr-persona"><small>Solicitante</small><strong><asp:Literal ID="litSolicitante" runat="server" Mode="Encode" /></strong><asp:Label ID="lblCorreoSolicitante" runat="server" /></div>

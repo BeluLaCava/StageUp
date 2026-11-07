@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,11 +7,6 @@ GO
 USE StageUp;
 GO
 
--- ===========================================================================
--- Vínculos históricos: también se listan los contactos y las piezas de
--- contenido dados de baja que siguen asociados, para que el formulario los
--- muestre marcados y no se pierdan al editar otros datos.
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_CampaniaComercial_ListarVinculos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CampaniaComercial_ListarVinculos;
 GO
 CREATE PROCEDURE dbo.sp_CampaniaComercial_ListarVinculos
@@ -77,12 +72,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Campaña: datos, público objetivo y vínculos en una sola transacción.
--- Se guarda todo o nada. THROW 51303 si la campaña no existe o está dada de
--- baja; 51302 si un vínculo nuevo no está disponible (lo que ya estaba
--- vinculado se puede conservar aunque haya cambiado de estado).
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_CampaniaComercial_GuardarVinculos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CampaniaComercial_GuardarVinculos;
 GO
 IF OBJECT_ID('dbo.sp_CampaniaComercial_Guardar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CampaniaComercial_Guardar;
@@ -201,11 +190,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Alianza: datos, seguimiento del cambio de estado y vínculos en una sola
--- transacción. THROW 51320 si no existe; 51321 si el responsable no es un
--- usuario interno activo; 51322 si un vínculo nuevo no está disponible.
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_AlianzaEstrategica_GuardarVinculos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_AlianzaEstrategica_GuardarVinculos;
 GO
 IF OBJECT_ID('dbo.sp_AlianzaEstrategica_Guardar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_AlianzaEstrategica_Guardar;
@@ -355,20 +339,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Métricas comerciales (CU-004-004).
---   * Contactos convertidos: solo los incorporados con una cuenta de
---     StageUp asociada; el tipo de usuario se aplica al perfil de esa
---     cuenta. Los incorporados sin cuenta se informan aparte.
---   * Campañas: sin período, las campañas en curso marcadas como activas;
---     con período, "campañas con vigencia en el período": vigencia que se
---     cruza con el período y estado actual Activa o Finalizada, sin baja
---     anterior al comienzo del período. Es un cálculo por vigencia y estado
---     actual: como no se guarda el historial de estados, una campaña hoy
---     cancelada o planificada no se cuenta aunque haya estado activa en ese
---     período. Este indicador usa el período y la campaña; no depende del
---     canal de origen ni del tipo de usuario.
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_MetricasComerciales_Resumen', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_MetricasComerciales_Resumen;
 GO
 CREATE PROCEDURE dbo.sp_MetricasComerciales_Resumen

@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -6,16 +6,6 @@ GO
 
 USE StageUp;
 GO
-
--- -----------------------------------------------------------------------------
--- Estados nuevos de las solicitudes de soporte (script 68) en los SP que ya
--- estaban creados: EjecutarTodosLosScripts.ps1 no vuelve a correr los scripts
--- 49 y 61 en una base que ya los tiene aplicados, así que se recrean acá.
---   * sp_Reporte_Indicadores: "Solicitudes de soporte pendientes" del panel de
---     reportes = Pendiente + En proceso.
---   * sp_UsuarioExterno_BajaLogica: al dar de baja la cuenta se avisa por las
---     solicitudes que siguen abiertas (Pendiente o En proceso).
--- -----------------------------------------------------------------------------
 
 IF OBJECT_ID('dbo.sp_Reporte_Indicadores', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reporte_Indicadores;
 GO
@@ -66,8 +56,7 @@ BEGIN
 
         IF @confirmar = 1
         BEGIN
-            -- Mismo recurso que usan los pagos y las liquidaciones: mientras se
-            -- da de baja la cuenta no puede entrar un pago ni un movimiento.
+
             DECLARE @recurso NVARCHAR(100) = N'StageUp_CuentaCorriente_' + CAST(@idUsuarioExterno AS NVARCHAR(10));
             DECLARE @bloqueo INT;
             EXEC @bloqueo = sp_getapplock @Resource = @recurso, @LockMode = N'Exclusive', @LockOwner = N'Transaction', @LockTimeout = 10000;

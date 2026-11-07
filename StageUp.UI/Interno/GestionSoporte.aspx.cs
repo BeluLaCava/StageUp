@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,13 +11,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
-
-
-
-
-
-
 
     public partial class GestionSoporte : Page
     {
@@ -63,10 +56,6 @@ namespace StageUp.UI.Interno
                 CargarListado();
             }
         }
-
-
-
-
 
         protected void btnAplicarFiltros_Click(object sender, EventArgs e)
         {
@@ -115,7 +104,6 @@ namespace StageUp.UI.Interno
             ActivarNovedadesPeriodicas("interno-listado", null, _bll.ObtenerMarcaListado(null));
             Session[ClaveFiltros] = Request.Url.Query;
 
-
             if (resumen.Valor.Total == 0)
             {
                 pnlSinSolicitudes.Visible = true;
@@ -131,7 +119,6 @@ namespace StageUp.UI.Interno
                 rptSolicitudes.Visible = false;
                 return;
             }
-
 
             pnlSinResultados.Visible = pagina.Valor.Total == 0;
             rptSolicitudes.Visible = pagina.Valor.Total > 0;
@@ -199,7 +186,6 @@ namespace StageUp.UI.Interno
                 SoloNoLeidas = Request.QueryString["noLeidas"] == "1"
             };
 
-
             string caso = Vacio(Request.QueryString["caso"]);
             if (caso != null)
             {
@@ -237,10 +223,6 @@ namespace StageUp.UI.Interno
             return "~/Interno/GestionSoporte.aspx?" + consulta;
         }
 
-
-
-
-
         protected void btnTomar_Click(object sender, EventArgs e)
         {
             Ejecutar(id => _bll.Tomar(id, IdUsuarioInterno));
@@ -259,24 +241,20 @@ namespace StageUp.UI.Interno
             Ejecutar(id => _bll.RegistrarRespuesta(id, IdUsuarioInterno, txtRespuesta.Text, chkMarcarResuelta.Checked, estadoVisto), true);
         }
 
-
         protected void btnCambiarEstado_Click(object sender, EventArgs e)
         {
             PedirConfirmacion(ddlNuevoEstado.SelectedValue);
         }
-
 
         protected void btnCerrar_Click(object sender, EventArgs e)
         {
             PedirConfirmacion(BLL_Ticket.EstadoCerrada);
         }
 
-
         protected void btnReabrir_Click(object sender, EventArgs e)
         {
             PedirConfirmacion(BLL_Ticket.EstadoEnProceso);
         }
-
 
         protected void btnConfirmarEstado_Click(object sender, EventArgs e)
         {
@@ -285,7 +263,6 @@ namespace StageUp.UI.Interno
             ViewState.Remove("EstadoAConfirmar");
             Ejecutar(id => _bll.CambiarEstado(id, estadoNuevo, IdUsuarioInterno, PuedeReabrir, estadoVisto));
         }
-
 
         protected void btnCancelarEstado_Click(object sender, EventArgs e)
         {
@@ -407,7 +384,6 @@ namespace StageUp.UI.Interno
             bool cerrada = ticket.Estado == BLL_Ticket.EstadoCerrada;
             bool resuelta = ticket.Estado == BLL_Ticket.EstadoResuelta;
 
-
             pnlEstadoAviso.Visible = cerrada || resuelta;
             litEstadoAviso.Text = cerrada
                 ? "Solicitud cerrada: se muestra la información histórica del caso. No admite respuestas ni cambios de estado" +
@@ -434,7 +410,6 @@ namespace StageUp.UI.Interno
                 Seleccionar(ddlAsignarA, ticket.IdUsuarioInternoAsignado.HasValue ? ticket.IdUsuarioInternoAsignado.Value.ToString(CultureInfo.InvariantCulture) : string.Empty);
                 btnTomar.Visible = ticket.IdUsuarioInternoAsignado != IdUsuarioInterno;
 
-
                 ddlNuevoEstado.Items.Clear();
                 foreach (string estado in BLL_Ticket.Estados.Where(e => e != ticket.Estado))
                 {
@@ -454,10 +429,6 @@ namespace StageUp.UI.Interno
 
             ActivarNovedadesPeriodicas("interno-detalle", ticket.IdTicket, _bll.ObtenerMarcaSolicitud(ticket.IdTicket, null));
         }
-
-
-
-
 
         private void ActivarNovedadesPeriodicas(string vista, int? idTicket, string marca)
         {
@@ -573,7 +544,6 @@ namespace StageUp.UI.Interno
                 : (DateTime?)null;
         }
 
-
         private sealed class NameValueCollectionCopia
         {
             private readonly List<KeyValuePair<string, string>> _pares = new List<KeyValuePair<string, string>>();
@@ -605,7 +575,6 @@ namespace StageUp.UI.Interno
                 Response.Redirect("~/IniciarSesion.aspx");
                 return false;
             }
-
 
             if (!GestorDeSesion.TienePermisoInterno(BLL_Ticket.PermisoGestionar))
             {

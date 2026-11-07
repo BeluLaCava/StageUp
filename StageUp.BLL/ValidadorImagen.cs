@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,17 +6,6 @@ using StageUp.BE.Entidades;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
-
-
-
-
 
     public static class ValidadorImagen
     {
@@ -104,7 +93,6 @@ namespace StageUp.BLL
             return ResultadoOperacion<ImagenValidada>.Ok(imagen);
         }
 
-
         public static string DetectarFormato(byte[] b)
         {
             if (b == null)
@@ -142,10 +130,6 @@ namespace StageUp.BLL
         {
             return formato == ImagenValidada.FormatoJpeg ? "JPG" : formato == ImagenValidada.FormatoPng ? "PNG" : "WebP";
         }
-
-
-
-
 
         private static string AnalizarWebP(byte[] b, ImagenValidada imagen)
         {
@@ -274,7 +258,6 @@ namespace StageUp.BLL
             if (flujo.Tipo == "VP8 ")
             {
 
-
                 if (flujo.Tamanio < 10 || (b[i] & 0x01) != 0 || b[i + 3] != 0x9D || b[i + 4] != 0x01 || b[i + 5] != 0x2A)
                 {
                     return false;
@@ -284,7 +267,6 @@ namespace StageUp.BLL
                 alto = (b[i + 8] | (b[i + 9] << 8)) & 0x3FFF;
                 return true;
             }
-
 
             if (flujo.Tamanio < 5 || b[i] != 0x2F)
             {
@@ -301,8 +283,6 @@ namespace StageUp.BLL
             alto = (int)((bits >> 14) & 0x3FFF) + 1;
             return true;
         }
-
-
 
         private static byte[] Rearmar(byte[] b, Bloque vp8x, Bloque alfa, Bloque flujo)
         {

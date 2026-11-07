@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,13 +7,6 @@ GO
 USE StageUp;
 GO
 
--- ---------------------------------------------------------------------------
--- Ítems 9 y 10: pares de claves RSA de StageUp, versionados. La clave
--- privada se guarda cifrada con la clave simétrica de la configuración
--- privada (nunca en claro y nunca se muestra). Siempre hay como mucho una
--- versión Activa (la que cifra lo nuevo); las Retiradas se conservan para
--- poder leer lo que se cifró con ellas (por ejemplo, exportaciones viejas).
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.ClaveCifrado', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.ClaveCifrado
@@ -39,15 +32,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Ítem 8: billetera de tarjetas. En claro solo lo que se muestra (alias,
--- marca, últimos 4 y vencimiento). Número y titular van cifrados con el
--- esquema híbrido (ítem 9): AES-256 con una clave nueva por tarjeta (iv +
--- datosCifrados) y esa clave AES envuelta con la clave pública RSA de la
--- versión idClaveCifrado (claveCifrada). El código de seguridad nunca se
--- guarda. huella = HMAC del número, para no guardar dos veces la misma
--- tarjeta sin poder recuperar el número a partir de ella.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.TarjetaGuardada', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.TarjetaGuardada
@@ -82,9 +66,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Claves de cifrado
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_ClaveCifrado_ObtenerActiva', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ClaveCifrado_ObtenerActiva;
 GO
 CREATE PROCEDURE dbo.sp_ClaveCifrado_ObtenerActiva
@@ -114,8 +95,6 @@ BEGIN
 END
 GO
 
--- Listado para Herramientas de seguridad: sin las claves, con la huella y
--- cuántas tarjetas protege cada versión.
 IF OBJECT_ID('dbo.sp_ClaveCifrado_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ClaveCifrado_Listar;
 GO
 CREATE PROCEDURE dbo.sp_ClaveCifrado_Listar
@@ -134,9 +113,6 @@ BEGIN
 END
 GO
 
--- Alta de una versión nueva: queda Activa y la anterior pasa a Retirada
--- (en la misma transacción). resultado: OK | YA_EXISTE_ACTIVA (cuando se
--- pidió crear la primera y otro proceso ya la creó).
 IF OBJECT_ID('dbo.sp_ClaveCifrado_Registrar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ClaveCifrado_Registrar;
 GO
 CREATE PROCEDURE dbo.sp_ClaveCifrado_Registrar
@@ -177,9 +153,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Billetera
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_TarjetaGuardada_ListarPorUsuario', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TarjetaGuardada_ListarPorUsuario;
 GO
 CREATE PROCEDURE dbo.sp_TarjetaGuardada_ListarPorUsuario
@@ -195,8 +168,6 @@ BEGIN
 END
 GO
 
--- Con los datos cifrados: solo para pagar (o rotar claves). Siempre filtra
--- por el dueño.
 IF OBJECT_ID('dbo.sp_TarjetaGuardada_ObtenerParaUsar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TarjetaGuardada_ObtenerParaUsar;
 GO
 CREATE PROCEDURE dbo.sp_TarjetaGuardada_ObtenerParaUsar
@@ -212,7 +183,6 @@ BEGIN
 END
 GO
 
--- resultado: OK | REPETIDA | ALIAS_REPETIDO | LIMITE
 IF OBJECT_ID('dbo.sp_TarjetaGuardada_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TarjetaGuardada_Insertar;
 GO
 CREATE PROCEDURE dbo.sp_TarjetaGuardada_Insertar
@@ -254,7 +224,6 @@ BEGIN
         RETURN;
     END
 
-    -- La primera tarjeta queda como preferida.
     IF NOT EXISTS (SELECT 1 FROM dbo.TarjetaGuardada WHERE idUsuarioExterno = @idUsuarioExterno AND activa = 1)
         SET @preferida = 1;
 
@@ -275,7 +244,6 @@ BEGIN
 END
 GO
 
--- resultado: OK | NO_ENCONTRADA | ALIAS_REPETIDO
 IF OBJECT_ID('dbo.sp_TarjetaGuardada_CambiarAlias', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TarjetaGuardada_CambiarAlias;
 GO
 CREATE PROCEDURE dbo.sp_TarjetaGuardada_CambiarAlias
@@ -304,7 +272,6 @@ BEGIN
 END
 GO
 
--- resultado: OK | NO_ENCONTRADA
 IF OBJECT_ID('dbo.sp_TarjetaGuardada_MarcarPreferida', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TarjetaGuardada_MarcarPreferida;
 GO
 CREATE PROCEDURE dbo.sp_TarjetaGuardada_MarcarPreferida
@@ -331,8 +298,6 @@ BEGIN
 END
 GO
 
--- Baja: se borran los datos cifrados (no quedan en la base) y, si era la
--- preferida, pasa a serlo la más reciente que quede. resultado: OK | NO_ENCONTRADA
 IF OBJECT_ID('dbo.sp_TarjetaGuardada_Eliminar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TarjetaGuardada_Eliminar;
 GO
 CREATE PROCEDURE dbo.sp_TarjetaGuardada_Eliminar
@@ -383,7 +348,6 @@ BEGIN
 END
 GO
 
--- Ítem 10 (rotación): tarjetas protegidas con versiones que no son la activa.
 IF OBJECT_ID('dbo.sp_TarjetaGuardada_ListarParaReenvolver', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TarjetaGuardada_ListarParaReenvolver;
 GO
 CREATE PROCEDURE dbo.sp_TarjetaGuardada_ListarParaReenvolver
@@ -397,8 +361,6 @@ BEGIN
 END
 GO
 
--- Cambia la clave AES envuelta de una tarjeta, solo si sigue con la versión
--- anterior (si otro proceso ya la cambió, no hace nada).
 IF OBJECT_ID('dbo.sp_TarjetaGuardada_Reenvolver', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_TarjetaGuardada_Reenvolver;
 GO
 CREATE PROCEDURE dbo.sp_TarjetaGuardada_Reenvolver
@@ -416,9 +378,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Herramientas de seguridad pasa a decir que gestiona las claves de cifrado.
--- ---------------------------------------------------------------------------
 UPDATE dbo.ComponentePermiso
 SET descripcion = N'Rotar las claves de cifrado (RSA + AES) que protegen la billetera de tarjetas y las exportaciones, y descifrar exportaciones de la bitácora.',
     fechaUltimaModificacion = GETDATE()

@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,11 +7,6 @@ GO
 USE StageUp;
 GO
 
--- ===========================================================================
--- Mensajes privados por reserva: se marcan como leídos solo los mensajes
--- que se le mostraron al usuario (@idsMensajes, separados por coma). Uno que
--- llega mientras tanto queda sin leer.
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_MensajeReserva_MarcarLeidos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_MensajeReserva_MarcarLeidos;
 GO
 CREATE PROCEDURE dbo.sp_MensajeReserva_MarcarLeidos
@@ -42,14 +37,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Encuestas: navegador de cada respuesta.
--- Una respuesta con sesión guarda también el hash del navegador desde el
--- que se respondió (identificadorNavegador). Así, si después se cierra la
--- sesión, ese navegador ya no puede responder la misma encuesta como
--- visitante. Las respuestas sin sesión siguen usando identificadorAnonimo
--- (único por encuesta).
--- ===========================================================================
 IF COL_LENGTH(N'dbo.RespuestaEncuesta', N'identificadorNavegador') IS NULL
     ALTER TABLE dbo.RespuestaEncuesta ADD identificadorNavegador CHAR(64) NULL;
 GO
@@ -58,9 +45,6 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_RespuestaEncuesta_Nav
     CREATE INDEX IX_RespuestaEncuesta_Navegador ON dbo.RespuestaEncuesta (idEncuesta, identificadorNavegador) WHERE identificadorNavegador IS NOT NULL;
 GO
 
--- "Ya respondida":
---   * con sesión: por la cuenta, o si desde ese navegador se respondió sin sesión;
---   * sin sesión: si desde ese navegador se respondió, con o sin sesión.
 IF OBJECT_ID('dbo.sp_RespuestaEncuesta_ExisteDeUsuario', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_RespuestaEncuesta_ExisteDeUsuario;
 GO
 CREATE PROCEDURE dbo.sp_RespuestaEncuesta_ExisteDeUsuario
@@ -142,17 +126,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Registro completo de una respuesta: cabecera y todas las opciones elegidas
--- en una sola transacción (todo o nada).
---   @opciones: pares "idPregunta:idOpcion" separados por coma, uno por cada
---   pregunta de la encuesta.
---   @identificadorNavegador: hash del navegador. Sin sesión es obligatorio
---   (se guarda como identificadorAnonimo); con sesión es opcional.
--- THROW 51060 sin usuario ni navegador; 51061 la encuesta no admite la
--- respuesta; 51062 ya respondida (por la cuenta o desde ese navegador);
--- 51063 las opciones no corresponden a las preguntas de la encuesta.
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_RespuestaEncuesta_Registrar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_RespuestaEncuesta_Registrar;
 GO
 CREATE PROCEDURE dbo.sp_RespuestaEncuesta_Registrar
@@ -175,7 +148,6 @@ BEGIN
     FROM STRING_SPLIT(ISNULL(@opciones, N''), N',')
     WHERE LEN(value) > 0;
 
-    -- Una opción por pregunta, todas las preguntas, y cada opción de su pregunta.
     IF (SELECT COUNT(*) FROM @elegidas) <> (SELECT COUNT(*) FROM dbo.PreguntaEncuesta WHERE idEncuesta = @idEncuesta)
        OR (SELECT COUNT(*) FROM @elegidas) = 0
        OR EXISTS (SELECT 1 FROM @elegidas WHERE idPregunta IS NULL OR idOpcion IS NULL)
@@ -203,8 +175,6 @@ BEGIN
         )
             THROW 51061, 'La encuesta no admite esta respuesta.', 1;
 
-        -- Con UPDLOCK y HOLDLOCK, dos envíos simultáneos desde la misma cuenta
-        -- o el mismo navegador no pasan los dos este control.
         IF EXISTS
         (
             SELECT 1 FROM dbo.RespuestaEncuesta r WITH (UPDLOCK, HOLDLOCK)

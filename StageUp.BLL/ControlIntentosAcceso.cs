@@ -24,17 +24,17 @@ namespace StageUp.BLL
                     int segundos = mpp.Registrar(cuenta, resultado.Exitoso);
                     if (!resultado.Exitoso)
                     {
-                        // Do not store passwords, CAPTCHA tokens or the supplied address in the audit.
+
                         new BLL_Bitacora().Registrar(null, segundos > 0 ? "BLOQUEO" : "ERROR", "Sistema", null,
                             segundos > 0 ? "Acceso bloqueado durante 15 minutos tras 5 intentos fallidos consecutivos. Referencia: " + cuenta
                                          : "Intento de autenticación no satisfactorio. Referencia: " + cuenta, "StageUp.BLL");
                     }
                     return segundos > 0 ? error(MensajeBloqueo) : resultado;
-                }, r => true); // Failed attempts must be committed too.
+                }, r => true);
             }
             catch (ErrorAccesoDatosException)
             {
-                // No session may survive a failure to commit the authentication control.
+
                 GestorDeSesion.CerrarSesion();
                 GestorDeSesion.CerrarSesionInterna();
                 return error("No pudimos verificar el acceso en este momento. Intentá nuevamente en unos minutos.");

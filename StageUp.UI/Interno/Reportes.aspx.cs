@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -12,8 +12,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
-
 
     public partial class Reportes : Page
     {
@@ -88,7 +86,6 @@ namespace StageUp.UI.Interno
             string nombreArchivo = "StageUp_reporte_" + filtro.Desde.ToString("yyyyMMdd", CultureInfo.InvariantCulture) +
                                    "_" + filtro.Hasta.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + ".csv";
 
-
             UTF8Encoding codificacion = new UTF8Encoding(true);
             byte[] contenido = codificacion.GetPreamble()
                 .Concat(codificacion.GetBytes(BLL_Reporte.GenerarCsvReporteCompleto(resultado.Valor)))
@@ -100,8 +97,6 @@ namespace StageUp.UI.Interno
             Response.BinaryWrite(contenido);
             Response.End();
         }
-
-
 
         private void CargarCombos()
         {
@@ -186,7 +181,6 @@ namespace StageUp.UI.Interno
             ReporteCompleto reporte = resultado.Valor;
             _filtroActual = reporte.Filtro;
 
-
             SeleccionarValor(ddlAgrupacion, reporte.Filtro.Agrupacion);
             pnlAviso.Visible = !string.IsNullOrEmpty(reporte.Aviso);
             litAviso.Text = Server.HtmlEncode(reporte.Aviso ?? string.Empty);
@@ -268,8 +262,6 @@ namespace StageUp.UI.Interno
             rptEncuestasTabla.DataBind();
         }
 
-
-
         protected string Importe(object valor)
         {
             decimal importe = Convert.ToDecimal(valor, CultureInfo.InvariantCulture);
@@ -280,7 +272,6 @@ namespace StageUp.UI.Interno
         {
             return Convert.ToDecimal(valor, CultureInfo.InvariantCulture).ToString("0.#", Cultura) + " %";
         }
-
 
         protected static string EstiloAlto(object porcentaje)
         {
@@ -302,8 +293,6 @@ namespace StageUp.UI.Interno
 
             return Math.Min(100m, Math.Max(0m, valor)).ToString("0.##", CultureInfo.InvariantCulture);
         }
-
-
 
         protected string MostrarEtiquetaEje(int indice, string etiqueta)
         {
@@ -385,8 +374,6 @@ namespace StageUp.UI.Interno
         {
             return HttpUtility.HtmlAttributeEncode(texto ?? string.Empty);
         }
-
-
 
         private static void SeleccionarValor(DropDownList lista, string valor)
         {

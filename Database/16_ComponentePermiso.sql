@@ -1,4 +1,4 @@
-USE StageUp;
+﻿USE StageUp;
 GO
 
 SET NOCOUNT ON;
@@ -9,7 +9,6 @@ BEGIN
     THROW 51000, 'Primero debe ejecutarse Database/08_RolesYPermisos.sql.', 1;
 END
 GO
-
 
 IF OBJECT_ID(N'dbo.ComponentePermiso', N'U') IS NULL
 BEGIN
@@ -56,7 +55,6 @@ BEGIN
 END
 GO
 
-
 INSERT INTO dbo.ComponentePermiso (idComponentePadre, tipoComponente, codigoPermiso, nombre, descripcion, urlAsociada, orden, activo)
 SELECT NULL, N'Grupo', NULL, modulos.modulo, NULL, NULL, modulos.ordenModulo, 1
 FROM (
@@ -93,7 +91,6 @@ WHERE rp.activo = 1
       WHERE rcp.idRolInterno = rp.idRolInterno AND rcp.idComponentePermiso = cp.idComponentePermiso
   );
 GO
-
 
 IF OBJECT_ID(N'dbo.sp_ComponentePermiso_ListarTodos', N'P') IS NOT NULL DROP PROCEDURE dbo.sp_ComponentePermiso_ListarTodos;
 GO

@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -13,13 +13,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-002-004: parámetros administrativos agrupados (comisión, política de
--- cancelación, estados administrativos de pagos y facturas, datos de
--- facturación de Artera y correos administrativos), con vigencia e
--- historial de cambios (valor anterior, valor nuevo, responsable, fecha y
--- vigencia).
--- ---------------------------------------------------------------------------
 IF COL_LENGTH(N'dbo.ParametroPlataforma', N'valor') < 1000
 BEGIN
     ALTER TABLE dbo.ParametroPlataforma ALTER COLUMN valor NVARCHAR(500) NOT NULL;
@@ -28,7 +21,7 @@ GO
 
 MERGE dbo.ParametroPlataforma AS destino
 USING (VALUES
-    -- Estados administrativos: texto con el que se muestra cada estado.
+
     (N'EstadoPagoAprobado', N'Confirmado', N'Pago aprobado por el medio de pago.'),
     (N'EstadoPagoPendiente', N'Pendiente (informado por el medio de pago)', N'El medio de pago avisó el pago pero todavía no lo confirmó.'),
     (N'EstadoPagoEsperando', N'Pendiente (esperando el pago)', N'Reserva aceptada que el solicitante todavía no pagó.'),
@@ -44,14 +37,14 @@ USING (VALUES
     (N'EstadoOperacionCobrado', N'Cobrado', N'Cargo por cancelación cobrado.'),
     (N'EstadoOperacionDevuelto', N'Devuelto al solicitante', N'Reserva abonada que se canceló y volvió como saldo a favor.'),
     (N'EstadoOperacionPendiente', N'Pendiente', N'Transacción con el pago todavía pendiente.'),
-    -- Datos generales de facturación de Artera (factura simulada).
+
     (N'FacturacionRazonSocial', N'Artera – StageUp', N'Razón social que figura como emisor de las facturas.'),
     (N'FacturacionCuit', N'30-00000000-0', N'CUIT del emisor (simulado), con el formato 00-00000000-0.'),
     (N'FacturacionCondicionIva', N'IVA Responsable Inscripto', N'Condición frente al IVA del emisor.'),
     (N'FacturacionDomicilio', N'Ciudad Autónoma de Buenos Aires', N'Domicilio comercial del emisor.'),
     (N'FacturacionPuntoVenta', N'1', N'Punto de venta de las facturas (1 a 99999).'),
     (N'FacturacionLeyenda', N'Comprobante simulado emitido por StageUp. No tiene validez fiscal.', N'Leyenda al pie de las facturas.'),
-    -- Correos administrativos (pagos, vencimientos y comprobantes).
+
     (N'CorreosAdministrativosActivos', N'Si', N'Si se envían los correos administrativos de pagos, vencimientos y comprobantes.'),
     (N'CorreosAdministrativosRemitente', N'StageUp Administración', N'Nombre con el que llegan los correos administrativos.'),
     (N'CorreosAdministrativosResponderA', N'', N'Dirección a la que se responden los correos administrativos (opcional).'),
@@ -62,9 +55,6 @@ WHEN NOT MATCHED THEN
     INSERT (clave, valor, descripcion) VALUES (origen.clave, origen.valor, origen.descripcion);
 GO
 
--- Historial de cambios. estado: Aplicado (ya rige), Programado (rige desde
--- fechaVigencia) o Reemplazado (otro cambio posterior lo dejó sin efecto
--- antes de entrar en vigencia).
 IF OBJECT_ID(N'dbo.ParametroPlataformaCambio', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.ParametroPlataformaCambio
@@ -88,7 +78,6 @@ BEGIN
 END
 GO
 
--- Aplica los cambios programados cuya vigencia ya empezó (en orden).
 IF OBJECT_ID('dbo.sp_ParametroPlataforma_AplicarProgramados', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ParametroPlataforma_AplicarProgramados;
 GO
 CREATE PROCEDURE dbo.sp_ParametroPlataforma_AplicarProgramados
@@ -132,8 +121,6 @@ BEGIN
 END
 GO
 
--- Pasos 3 a 5: parámetros vigentes, con el cambio programado de cada uno
--- (si lo hay). Antes de listar aplica los programados que ya rigen.
 IF OBJECT_ID('dbo.sp_ParametroPlataforma_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ParametroPlataforma_Listar;
 GO
 CREATE PROCEDURE dbo.sp_ParametroPlataforma_Listar
@@ -154,14 +141,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Pasos 12 y 13 (y A15): guarda todos los cambios juntos en una
--- transacción. @cambios = <c><p clave="..." valor="..."/>...</c>. Sin
--- @fechaVigencia (o con una fecha que ya pasó) el cambio rige en el momento;
--- con una fecha futura queda programado. Un cambio nuevo deja sin efecto los
--- programados anteriores del mismo parámetro. Devuelve los cambios
--- registrados (los valores iguales al vigente se ignoran).
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_ParametroPlataforma_GuardarCambios', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ParametroPlataforma_GuardarCambios;
 GO
 CREATE PROCEDURE dbo.sp_ParametroPlataforma_GuardarCambios
@@ -195,7 +174,6 @@ BEGIN
 
     BEGIN TRANSACTION;
 
-    -- Solo lo que cambia respecto del valor vigente.
     DELETE e
     FROM @entrada e
     INNER JOIN dbo.ParametroPlataforma p WITH (UPDLOCK) ON p.clave = e.clave
@@ -234,7 +212,6 @@ BEGIN
 END
 GO
 
--- Paso 13: historial de cambios (todos o de un parámetro).
 IF OBJECT_ID('dbo.sp_ParametroPlataforma_ListarCambios', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ParametroPlataforma_ListarCambios;
 GO
 CREATE PROCEDURE dbo.sp_ParametroPlataforma_ListarCambios
@@ -254,10 +231,6 @@ BEGIN
 END
 GO
 
--- Valores que regían en una fecha: si el parámetro cambió después de esa
--- fecha, vale el "valor anterior" del primer cambio posterior; si no, el
--- valor actual. Así una factura vieja se sigue mostrando con los datos de
--- facturación de su momento.
 IF OBJECT_ID('dbo.sp_ParametroPlataforma_ObtenerValoresAl', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ParametroPlataforma_ObtenerValoresAl;
 GO
 CREATE PROCEDURE dbo.sp_ParametroPlataforma_ObtenerValoresAl
@@ -278,7 +251,6 @@ BEGIN
 END
 GO
 
--- Nombre de la pantalla según el CU.
 UPDATE dbo.ComponentePermiso
 SET nombre = N'Parámetros administrativos',
     descripcion = N'Consultar y modificar los parámetros administrativos: comisión, política de cancelación, estados de pagos y facturas, datos de facturación y correos administrativos.',

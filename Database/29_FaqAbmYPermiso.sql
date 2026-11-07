@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -121,11 +121,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Permiso propio GESTIONAR_FAQ (mismo patrón que GESTIONAR_IDIOMAS en
--- 17_MultidiomaCompleto.sql): se registra en el esquema clásico y en el
--- árbol de componentes, y se asigna al rol Administrador.
--- ---------------------------------------------------------------------------
 BEGIN TRY
     BEGIN TRANSACTION;
 

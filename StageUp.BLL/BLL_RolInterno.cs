@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using StageUp.BE.Entidades;
@@ -8,10 +8,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
 
     public class BLL_RolInterno
     {
@@ -31,19 +27,17 @@ namespace StageUp.BLL
         private readonly BLL_ControlAdministradores _control = new BLL_ControlAdministradores();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
-
         public List<RolInterno> Listar()
         {
             try
             {
                 return _mppRol.Listar();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<RolInterno>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
 
         public List<RolInterno> ListarResumen(string estado)
         {
@@ -52,9 +46,9 @@ namespace StageUp.BLL
                 string filtro = estado == FiltroInactivos || estado == FiltroTodos ? estado : FiltroActivos;
                 return _mppRol.ListarResumen(filtro);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<RolInterno>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -69,8 +63,6 @@ namespace StageUp.BLL
                 return null;
             }
         }
-
-
 
         public DetalleRolInterno ObtenerDetalle(int idRolInterno)
         {
@@ -109,9 +101,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         public ResultadoOperacion<int> Guardar(RolInterno datos, List<int> idsComponentes, int idUsuarioInternoResponsable)
         {
             return EjecutarProtegido(() =>
@@ -147,7 +136,6 @@ namespace StageUp.BLL
 
                 List<int> ids = (idsComponentes ?? new List<int>()).Where(id => id > 0).Distinct().ToList();
 
-
                 if (rol.NombreRol.Length == 0)
                 {
                     return ResultadoOperacion<int>.Error(
@@ -178,21 +166,17 @@ namespace StageUp.BLL
                     rol.NombreArea = area.NombreArea;
                 }
 
-
                 if (_mppRol.ExisteNombreActivo(rol))
                 {
                     return ResultadoOperacion<int>.Error(
                         "Ya existe un rol activo llamado \"" + rol.NombreRol + "\". Elegí otro nombre para este rol.", "A14");
                 }
 
-
                 if (ids.Count == 0)
                 {
                     return ResultadoOperacion<int>.Error(
                         "El rol debe tener al menos un permiso asignado. Tildá los permisos o grupos que va a tener.", "A13");
                 }
-
-
 
                 GrupoPermisos arbol = _bllPermiso.ListarArbolCompleto();
                 if (ids.Any(id => BLL_PermisoInterno.BuscarEnArbol(arbol, id) == null))
@@ -209,7 +193,6 @@ namespace StageUp.BLL
                         "La configuración de permisos no es válida: los grupos elegidos todavía no tienen permisos adentro. Tildá al menos un permiso.",
                         esNuevo ? "A13" : "A15");
                 }
-
 
                 if (!esNuevo && !BLL_ControlAdministradores.EsRolAdministrador(hojas.Select(h => h.CodigoPermiso)) &&
                     _control.CambioDejaSinAdministradores(new BLL_ControlAdministradores.Cambio
@@ -279,9 +262,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Ok("El rol \"" + rol.NombreRol + "\" se dio de baja. Se conserva su historial.");
             });
         }
-
-
-
 
         private void RegistrarEnBitacora(
             bool esNuevo, int idRolInterno, RolInterno rol, RolInterno anterior,

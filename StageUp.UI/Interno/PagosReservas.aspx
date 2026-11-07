@@ -80,7 +80,7 @@
                                 <td><%# Convert.ToDateTime(Eval("Fecha")).ToString("dd/MM/yyyy HH:mm") %></td>
                                 <td><%# Server.HtmlEncode(Convert.ToString(Eval("Medio") ?? "—")) %></td>
                                 <td><span class="pago-estado pago-estado-<%# Eval("Grupo") %>"><%# Server.HtmlEncode(StageUp.BLL.BLL_Pago.DescribirEstado(Convert.ToString(Eval("Estado")))) %></span></td>
-                                <td><asp:LinkButton runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
+                                <td><asp:LinkButton ID="lnkVerDetalle" runat="server" CssClass="admin-action-link admin-action-link-primary" CausesValidation="false"
                                     CommandName="Ver" CommandArgument='<%# ArgumentoDetalle(Container.DataItem) %>' Text="Ver detalle" /></td>
                             </tr>
                         </ItemTemplate>
@@ -151,7 +151,7 @@
 
 
     <asp:Panel ID="pnlDetalle" runat="server" Visible="false" CssClass="review-dialog-layer">
-        <dialog class="review-dialog internal-dialog" open aria-labelledby="pago-detalle-titulo">
+        <dialog class="review-dialog internal-dialog" data-server-modal open aria-labelledby="pago-detalle-titulo">
             <asp:LinkButton ID="lnkCerrarDetalle" runat="server" CssClass="review-dialog-close" CausesValidation="false" OnClick="lnkCerrarDetalle_Click" aria-label="Cerrar">×</asp:LinkButton>
             <span class="section-label">Detalle de pago</span>
             <h2 id="pago-detalle-titulo"><asp:Literal ID="litDetalleTitulo" runat="server" Mode="Encode" /></h2>

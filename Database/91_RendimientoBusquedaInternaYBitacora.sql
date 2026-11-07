@@ -1,8 +1,5 @@
-﻿-- Optimización de lectura. Conserva filtros, permisos, columnas y límites por tipo.
--- Ejecutar en la base seleccionada por la conexión (sin USE de una base fija).
--- Los textos de resultados no se recortan: el detalle de bitácora puede superar
--- los 1000 caracteres de la tabla temporal anterior.
--- Los empates exactos de título/fecha se resuelven por ID de forma estable.
+﻿
+
 SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 SET ANSI_PADDING ON;
@@ -14,13 +11,13 @@ SET XACT_ABORT ON;
 GO
 BEGIN TRANSACTION;
 GO
--- Índice para recuperar los últimos registros sin ordenar toda la bitácora.
+
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID(N'dbo.RegistroActividad') AND name=N'IX_RegistroActividad_Fecha_Id_Consulta')
     CREATE INDEX IX_RegistroActividad_Fecha_Id_Consulta
     ON dbo.RegistroActividad(fechaOperacion DESC, idRegistroActividad DESC)
     INCLUDE(idUsuarioExternoResponsable,idUsuarioInternoResponsable,tipoOperacion,tipoEntidadAfectada,idEntidadAfectada,descripcionOperacion,origenOperacion);
 GO
--- El título conserva la misma expresión que ya muestra la búsqueda.
+
 IF COL_LENGTH(N'dbo.RegistroActividad',N'tituloBusquedaInterna') IS NULL
     ALTER TABLE dbo.RegistroActividad ADD tituloBusquedaInterna AS (tipoOperacion + N' · ' + tipoEntidadAfectada) PERSISTED;
 GO
@@ -28,7 +25,7 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID(N'dbo.Registr
     CREATE INDEX IX_RegistroActividad_Busqueda_FechaTitulo ON dbo.RegistroActividad(fechaOperacion DESC,tituloBusquedaInterna ASC,idRegistroActividad ASC)
     INCLUDE(idUsuarioExternoResponsable,idUsuarioInternoResponsable,tipoOperacion,tipoEntidadAfectada,idEntidadAfectada,descripcionOperacion);
 GO
--- Mantener ágiles también los órdenes alfabético y de registros antiguos.
+
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID(N'dbo.RegistroActividad') AND name=N'IX_RegistroActividad_Busqueda_TituloFecha')
     CREATE INDEX IX_RegistroActividad_Busqueda_TituloFecha ON dbo.RegistroActividad(tituloBusquedaInterna ASC,fechaOperacion DESC,idRegistroActividad ASC)
     INCLUDE(idUsuarioExternoResponsable,idUsuarioInternoResponsable,tipoOperacion,tipoEntidadAfectada,idEntidadAfectada,descripcionOperacion);
@@ -61,8 +58,8 @@ CREATE OR ALTER PROCEDURE dbo.sp_RegistroActividad_Buscar
     @tipoOperacion                  NVARCHAR(200)   = NULL,
     @tipoEntidadAfectada            NVARCHAR(200)   = NULL,
     @idUsuarioInternoResponsable    INT             = NULL,
-    @textoResponsable               NVARCHAR(150)   = NULL,   -- nombre o correo (externo o interno)
-    @tipoResponsable                NVARCHAR(10)    = NULL,   -- Externo | Interno | Sistema | NULL
+    @textoResponsable               NVARCHAR(150)   = NULL,
+    @tipoResponsable                NVARCHAR(10)    = NULL,
     @maximo                         INT             = 500
 AS
 BEGIN
@@ -70,7 +67,6 @@ BEGIN
 
     IF @maximo IS NULL OR @maximo < 1 OR @maximo > 500 SET @maximo = 500;
 
-    -- Los comodines de LIKE que escriba el usuario se buscan como texto.
     DECLARE @patron NVARCHAR(160) = CASE WHEN @textoResponsable IS NULL THEN NULL
         ELSE N'%' + REPLACE(REPLACE(REPLACE(@textoResponsable, N'[', N'[[]'), N'%', N'[%]'), N'_', N'[_]') + N'%' END;
 
@@ -293,10 +289,9 @@ SELECT N'Encuesta', en.idEncuesta, en.titulo, en.estado + N' · Vence ' + CONVER
         BEGIN
         IF @orden = N'Relevancia'
         BEGIN
-            -- Resolver la prioridad sobre los pocos tipos distintos, no fila por fila.
+
             SELECT TOP(0) tipoOperacion,tipoEntidadAfectada INTO #prioridadRegistro FROM dbo.RegistroActividad;
-            -- Saltar al siguiente valor del índice evita comparar todas las filas
-            -- históricas solo para obtener los tipos distintos.
+
             DECLARE @opActual NVARCHAR(200), @entidadActual NVARCHAR(200);
             IF @texto IS NOT NULL
             BEGIN

@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -6,19 +6,6 @@ GO
 
 USE StageUp;
 GO
-
--- ===========================================================================
--- Más correcciones y datos de demostración.
---
--- Este script se completará de manera incremental con los datos necesarios
--- para la presentación. Cada bloque debe poder ejecutarse más de una vez sin
--- duplicar información ni sobrescribir datos cargados posteriormente desde la
--- aplicación.
---
--- Primera etapa:
---   1. Completar campos vacíos de los perfiles de Ana y Marcos.
---   2. Ampliar las galerías de los cinco espacios del Marcos de demostración.
--- ===========================================================================
 
 IF OBJECT_ID(N'dbo.UsuarioExterno', N'U') IS NULL
    OR OBJECT_ID(N'dbo.EspacioArtistico', N'U') IS NULL
@@ -52,9 +39,6 @@ BEGIN TRY
     FROM dbo.UsuarioExterno
     WHERE correoElectronico = @correoMarcos;
 
-    -- Los valores se completan únicamente cuando el campo sigue vacío. Si la
-    -- persona luego edita su perfil desde la web, una nueva ejecución de este
-    -- script conserva esa información.
     UPDATE dbo.UsuarioExterno
     SET telefono = CASE
                        WHEN NULLIF(LTRIM(RTRIM(telefono)), N'') IS NULL
@@ -203,13 +187,6 @@ BEGIN CATCH
 END CATCH;
 GO
 
--- ===========================================================================
--- Quinta etapa:
---   9. Ordenar las novedades existentes y completar el catálogo público.
---  10. Preparar suscripciones con preferencias distintas para demostrar el
---      filtrado del newsletter, sin iniciar ningún envío de correo.
--- ===========================================================================
-
 IF OBJECT_ID(N'dbo.Novedad', N'U') IS NULL
    OR OBJECT_ID(N'dbo.CategoriaNovedad', N'U') IS NULL
    OR OBJECT_ID(N'dbo.SuscriptorNewsletter', N'U') IS NULL
@@ -238,9 +215,6 @@ BEGIN TRY
         THROW 51741, 'No están disponibles todas las categorías requeridas para los datos de demostración.', 1;
     END
 
-    -- La novedad que ya figuraba como enviada conserva el tema del catálogo.
-    -- Solo se reemplaza el contenido inicial de demostración; una edición
-    -- posterior hecha desde la aplicación no vuelve a ser sobrescrita.
     SELECT TOP (1) @idNovedadCatalogo = idNovedad
     FROM dbo.Novedad
     WHERE activo = 1
@@ -257,8 +231,6 @@ BEGIN TRY
         ORDER BY enviadaPorCorreo DESC, idNovedad DESC;
     END
 
-    -- La segunda copia, que no había sido enviada, se aprovecha para una guía
-    -- diferente. Esto elimina el duplicado sin borrar el historial.
     SELECT TOP (1) @idNovedadConsejos = idNovedad
     FROM dbo.Novedad
     WHERE activo = 1
@@ -482,26 +454,6 @@ BEGIN CATCH
     THROW;
 END CATCH;
 GO
-
--- ===========================================================================
--- Segunda etapa:
---   3. Reputaciones personales de Ana y Marcos como solicitantes.
---   4. Reservas históricas en otros espacios de Marcos y estados útiles para
---      explicar el circuito durante la demostración.
---
--- Escenarios que quedan intencionalmente distintos:
---   - Sala Principal: conserva sus cinco reseñas existentes.
---   - Estudio Fotográfico Norte y Sala Ensayo Palermo: experiencia finalizada
---     y calificada.
---   - Estudio Sonoro Colegiales: experiencia finalizada todavía sin calificar.
---   - Teatro Colón: espacio publicado todavía sin reservas ni reseñas.
---   - Estudio Fotográfico Norte: reserva futura aceptada y pagada.
---   - Marcos: una experiencia como solicitante y una calificación recibida.
---
--- El modelo vigente no califica personalmente al gestor: el solicitante
--- califica el espacio y el gestor califica al usuario solicitante. Por eso las
--- reputaciones personales de este bloque corresponden al papel Solicitante.
--- ===========================================================================
 
 IF OBJECT_ID(N'dbo.sp_Reserva_Insertar', N'P') IS NULL
    OR OBJECT_ID(N'dbo.sp_Reserva_AceptarSiDisponible', N'P') IS NULL
@@ -876,9 +828,6 @@ BEGIN TRY
         SET @numeroReservaDemo += 1;
     END
 
-    -- Las primeras cuatro reservas de Sala Principal quedan completas desde
-    -- la mirada del gestor. La quinta se conserva sin esta calificación para
-    -- poder mostrar el llamado a la acción "Calificar al solicitante".
     DECLARE @CalificacionesDemo TABLE
     (
         numero INT IDENTITY(1,1) PRIMARY KEY,
@@ -1011,19 +960,6 @@ BEGIN CATCH
     THROW;
 END CATCH;
 GO
-
--- ===========================================================================
--- Tercera etapa:
---   5. Preguntas públicas sobre los espacios de Marcos.
---   6. Conversación privada en la reserva futura de Ana.
---
--- Se conservan estados distintos para la demostración:
---   - ocho preguntas públicas distribuidas entre los cinco espacios;
---   - seis respondidas y dos pendientes en la bandeja del gestor;
---   - cinco mensajes privados en la reserva futura ya creada;
---   - los primeros cuatro mensajes están leídos y el último queda pendiente
---     de lectura para Marcos.
--- ===========================================================================
 
 IF OBJECT_ID(N'dbo.sp_PreguntaEspacio_Insertar', N'P') IS NULL
    OR OBJECT_ID(N'dbo.sp_PreguntaEspacio_Responder', N'P') IS NULL
@@ -1319,9 +1255,6 @@ BEGIN TRY
         SET @numeroPreguntaDemo += 1;
     END
 
-    -- La conversación pertenece a la reserva futura creada en la segunda
-    -- etapa. El comentario de la solicitud se conserva y no se mezcla con
-    -- estos mensajes privados.
     DECLARE @idReservaMensajesDemo INT =
     (
         SELECT idReserva
@@ -1491,21 +1424,6 @@ BEGIN CATCH
 END CATCH;
 GO
 
--- ===========================================================================
--- Cuarta etapa:
---   7. Completar el seguimiento con pocas reservas futuras útiles.
---   8. Publicar dos encuestas generales vigentes con resultados de muestra.
---
--- El seguimiento queda representado con una sola reserva en cada estado:
---   - pendiente de aceptación en Sala Ensayo Palermo;
---   - aceptada y pendiente de pago en Estudio Sonoro Colegiales;
---   - aceptada y pagada en Estudio Fotográfico Norte (segunda etapa).
---
--- Las respuestas de muestra pertenecen a otras cuentas y a visitantes
--- anónimos. Ana y Marcos quedan sin responder para permitir la demostración
--- en vivo, tanto con sesión como sin ella.
--- ===========================================================================
-
 IF OBJECT_ID(N'dbo.sp_Reserva_Insertar', N'P') IS NULL
    OR OBJECT_ID(N'dbo.sp_Reserva_AceptarSiDisponible', N'P') IS NULL
    OR OBJECT_ID(N'dbo.sp_Encuesta_Insertar', N'P') IS NULL
@@ -1579,8 +1497,6 @@ BEGIN TRY
     DECLARE @minutoDesdeEtapa4 SMALLINT = 840;
     DECLARE @minutoHastaEtapa4 SMALLINT = 960;
 
-    -- 1900-01-01 fue lunes. Esta fórmula convierte cada fecha en 1=lunes,
-    -- ..., 7=domingo sin depender de DATEFIRST ni del idioma del servidor.
     ;WITH ProximosDias AS
     (
         SELECT numero
@@ -1758,9 +1674,6 @@ BEGIN TRY
             @titulo = N'Reserva aceptada';
     END
 
-    -- -----------------------------------------------------------------------
-    -- Encuestas generales vigentes.
-    -- -----------------------------------------------------------------------
     DECLARE @EncuestasDemo TABLE
     (
         numero INT PRIMARY KEY,
@@ -2063,15 +1976,6 @@ BEGIN CATCH
 END CATCH;
 GO
 
--- ===========================================================================
--- Sexta etapa:
---  11. Preparar solicitudes de soporte realistas en distintos estados.
---
--- Las tarjetas de la billetera se cargan con 87_CargarTarjetasDemo.ps1 para
--- que pasen por BLL_Billetera y se cifren con las claves de cada instalación.
--- No se insertan números ni datos cifrados fijos desde SQL.
--- ===========================================================================
-
 IF OBJECT_ID(N'dbo.Ticket', N'U') IS NULL
    OR OBJECT_ID(N'dbo.TicketMensaje', N'U') IS NULL
    OR OBJECT_ID(N'dbo.TicketActualizacion', N'U') IS NULL
@@ -2144,7 +2048,6 @@ BEGIN TRY
     IF @idReservaComprobante IS NULL OR @idReservaEquipamiento IS NULL
         THROW 51754, 'No se encontraron las reservas necesarias para los casos de soporte de demostración.', 1;
 
-    -- Caso resuelto: conversación completa y reserva histórica relacionada.
     SELECT TOP (1) @idTicketResuelto = idTicket
     FROM dbo.Ticket
     WHERE idUsuarioExterno = @idAnaSoporte
@@ -2209,8 +2112,6 @@ BEGIN TRY
              N'~/Soporte.aspx?ver=' + CONVERT(NVARCHAR(20), @idTicketResuelto), 1, @fechaResolucionDemo);
     END
 
-    -- Caso en proceso: soporte respondió y Ana agregó una precisión que el
-    -- equipo todavía no leyó. Sirve para mostrar los indicadores de novedad.
     SELECT TOP (1) @idTicketEnProceso = idTicket
     FROM dbo.Ticket
     WHERE idUsuarioExterno = @idAnaSoporte
@@ -2269,7 +2170,6 @@ BEGIN TRY
              N'~/Soporte.aspx?ver=' + CONVERT(NVARCHAR(20), @idTicketEnProceso), 1, @fechaRespuestaEnProceso);
     END
 
-    -- Caso pendiente: Marcos lo registró y todavía no fue tomado por soporte.
     SELECT TOP (1) @idTicketPendiente = idTicket
     FROM dbo.Ticket
     WHERE idUsuarioExterno = @idMarcosSoporte
@@ -2321,16 +2221,4 @@ BEGIN CATCH
     THROW;
 END CATCH;
 GO
-
--- ===========================================================================
--- Séptima etapa:
---  12. Preparar usuarios externos e internos para la demostración.
---
--- Se ejecuta mediante 87_PrepararUsuariosDemo.ps1 porque las contraseñas
--- deben pasar por ProtectorDeCredenciales (hash PBKDF2 y sal aleatoria), y los
--- roles y usuarios internos por sus BLL para conservar validaciones y bitácora.
--- El cargador activa a Lucía como solicitante, crea su solicitud pendiente de
--- gestora, unifica las claves de las cuentas demo y configura cuatro roles de
--- negocio con permisos mínimos. No guarda contraseñas en texto plano en SQL.
--- ===========================================================================
 

@@ -2,7 +2,13 @@
 
 <asp:Content ID="DisponibilidadEspacioContent" ContentPlaceHolderID="MainContent" runat="server">
     <style type="text/css">
-        .da-barra { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; justify-content: space-between; margin-bottom: 16px; }
+        .availability-page .static-page-header { margin-bottom: 1.5rem; }
+        .availability-page .da-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.25rem; padding: 1.15rem; margin-bottom: 1.25rem; }
+        .da-barra { display: flex; flex: 1 1 24rem; flex-wrap: wrap; gap: 12px 18px; align-items: center; justify-content: space-between; min-width: 0; }
+        .availability-page .da-toolbar .da-acciones { margin: 0; }
+        .availability-page .da-barra .form-field { display: flex; align-items: center; gap: 0.75rem; flex: 1 1 18rem; max-width: 25rem; }
+        .availability-page .da-barra label { margin: 0; }
+        .availability-page .da-barra select { min-width: 0; }
         .da-barra .form-field { margin: 0; min-width: 240px; }
         .da-barra select { width: 100%; }
         .da-enlaces { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
@@ -77,7 +83,7 @@
         }
     </style>
 
-    <section class="static-page">
+    <section class="static-page user-module-page availability-page">
         <div class="static-page-header">
             <span class="section-label">Mis espacios</span>
             <h1>Disponibilidad del espacio</h1>
@@ -107,6 +113,7 @@
             </asp:Panel>
 
             <asp:Panel ID="pnlContenido" runat="server" Visible="false">
+                <div class="auth-card da-toolbar">
                 <div class="da-barra">
                     <div class="form-field">
                         <label for="<%= ddlEspacio.ClientID %>">Espacio</label>
@@ -122,7 +129,7 @@
                     <asp:Button ID="btnAgregar" runat="server" CssClass="button button-primary" Text="＋ Agregar disponibilidad" CausesValidation="false" OnClick="btnAgregar_Click" />
                     <asp:Button ID="btnBloquear" runat="server" CssClass="button button-secondary" Text="Bloquear horario" CausesValidation="false" OnClick="btnBloquear_Click" />
                 </div>
-
+                </div>
 
                 <asp:Panel ID="pnlFormulario" runat="server" Visible="false" CssClass="auth-card da-panel" DefaultButton="btnGuardarDisponibilidad">
                     <h2><asp:Literal ID="litTituloFormulario" runat="server" Text="Agregar disponibilidad" /></h2>

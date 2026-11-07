@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -44,7 +44,7 @@ GO
 CREATE PROCEDURE dbo.sp_Reporte_Ingresos
     @desde        DATE,
     @hasta        DATE,
-    @agrupacion   NVARCHAR(10) = N'Mes',   -- Dia | Semana | Mes | Anio
+    @agrupacion   NVARCHAR(10) = N'Mes',
     @moneda       NVARCHAR(3) = N'ARS',
     @provincia    NVARCHAR(100) = NULL,
     @tipoEspacio  NVARCHAR(200) = NULL
@@ -155,8 +155,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- destinatarios: usuarios externos activos del público objetivo (hoy),
-    -- para comparar encuestas por tasa de participación y no solo por votos.
     SELECT e.idEncuesta, e.titulo, e.estado, e.publicoObjetivo, e.fechaVencimiento,
            (SELECT COUNT(*) FROM dbo.RespuestaEncuesta r WHERE r.idEncuesta = e.idEncuesta) AS cantidadRespuestas,
            (SELECT COUNT(*) FROM dbo.UsuarioExterno u
@@ -168,7 +166,6 @@ BEGIN
 END
 GO
 
--- Valores para los filtros (provincias y tipos de espacio con datos).
 IF OBJECT_ID('dbo.sp_Reporte_ListarFiltros', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Reporte_ListarFiltros;
 GO
 CREATE PROCEDURE dbo.sp_Reporte_ListarFiltros
@@ -187,10 +184,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Permiso VER_REPORTES (mismo patrón que GESTIONAR_BACKUP en el 46) + su
--- opción en el menú dinámico.
--- ---------------------------------------------------------------------------
 BEGIN TRY
     BEGIN TRANSACTION;
 
@@ -338,7 +331,6 @@ BEGIN TRY
         END
     END
 
-    -- Opción del menú dinámico (script 45), al final del menú.
     IF OBJECT_ID(N'dbo.OpcionMenu', N'U') IS NOT NULL
        AND @idComponenteReportes IS NOT NULL
        AND NOT EXISTS (SELECT 1 FROM dbo.OpcionMenu WHERE idComponentePermiso = @idComponenteReportes)

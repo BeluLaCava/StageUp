@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -43,8 +43,6 @@ namespace StageUp.UI
 
             string perfil = GestorDeSesion.ObtenerPerfilActual();
 
-
-
             if (perfil != PerfilUsuarioExterno.GestorEspacios.ToString())
             {
                 Response.Redirect("~/OfrecerEspacio.aspx", false);
@@ -60,7 +58,6 @@ namespace StageUp.UI
                 if (!IsPostBack)
                 {
                     CargarMisEspacios();
-
 
                     int idEditar;
                     if (int.TryParse(Request.QueryString["editar"], out idEditar))
@@ -309,15 +306,9 @@ namespace StageUp.UI
             foreach (ListItem item in cblEquipamiento.Items)
                 item.Selected = ficha.Equipamiento != null && ficha.Equipamiento.Contains(item.Value);
 
-
             hdnDisponibilidad.Value = new JavaScriptSerializer().Serialize(BLL_EspacioArtistico.ObtenerFranjasEditables(ficha));
             ConfigurarSeccionDisponibilidad(espacio);
         }
-
-
-
-
-
 
         private void ConfigurarSeccionDisponibilidad(EspacioArtistico espacio)
         {
@@ -374,7 +365,6 @@ namespace StageUp.UI
                     return;
                 }
 
-
                 string mensaje = resultado.Mensaje;
                 bool publicar = ddlEstadoPublicacion.SelectedValue == "Publicar";
                 ResultadoOperacion cambioEstado = null;
@@ -408,7 +398,6 @@ namespace StageUp.UI
             }
         }
 
-
         protected void lnkGenerarDescripcion_Click(object sender, EventArgs e)
         {
             if (!EsGestorEspacios())
@@ -429,7 +418,6 @@ namespace StageUp.UI
             pnlFormularioMensaje.Visible = false;
             pnlFormularioEspacio.Visible = true;
         }
-
 
         protected void lnkSugerirValores_Click(object sender, EventArgs e)
         {
@@ -464,9 +452,6 @@ namespace StageUp.UI
                 " (valor medio " + simbolo + sugerencia.Mediana.ToString("N2", CultureInfo.CurrentCulture) + "), según " +
                 sugerencia.CantidadComparados + " " + sugerencia.Criterio + ". Es orientativo: el valor final lo definís vos.";
         }
-
-
-
 
         private EspacioArtistico ArmarEspacioDesdeFormulario(out string error, bool exigirNumeros = true)
         {

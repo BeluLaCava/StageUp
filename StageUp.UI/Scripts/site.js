@@ -283,7 +283,6 @@
         renderApplied();
     }
 
-
     function setupComparisonBar() {
         const bar = document.querySelector("[data-compare-bar]");
         const checkboxes = Array.from(document.querySelectorAll("[data-compare-checkbox]"));
@@ -666,7 +665,7 @@
             "detalleespacio.aspx": "resultadosbusqueda.aspx", "compararespacios.aspx": "resultadosbusqueda.aspx",
             "compararservicios.aspx": "resultadosbusqueda.aspx"
         };
-        // The server already resolves the participant's role in the return link.
+
         if (current === "detallereserva.aspx" || current === "detallepago.aspx") {
             const back = document.querySelector("a[id$='lnkVolverListado'],a[id$='lnkVolver']");
             if (back) {

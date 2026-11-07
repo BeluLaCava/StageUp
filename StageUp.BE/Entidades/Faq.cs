@@ -1,9 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-
 
     public class Faq
     {
@@ -17,7 +16,6 @@ namespace StageUp.BE.Entidades
         public string NombreCategoria { get; set; }
         public int OrdenCategoria { get; set; }
         public bool CategoriaActiva { get; set; }
-
 
         public bool EsBasica { get; set; }
         public string PalabrasClave { get; set; }
@@ -44,9 +42,6 @@ namespace StageUp.BE.Entidades
         public int CantidadBasicas { get; set; }
     }
 
-
-
-
     public class NodoAsistente
     {
         public const string TipoPregunta = "Pregunta";
@@ -61,18 +56,12 @@ namespace StageUp.BE.Entidades
         public string PalabrasClave { get; set; }
         public int Orden { get; set; }
 
-
-
-
-
         public string DescripcionOpcion { get; set; }
         public string Icono { get; set; }
         public string TextoBotonLista { get; set; }
 
         public List<NodoAsistente> Opciones { get; set; } = new List<NodoAsistente>();
         public List<AccionNodoAsistente> Acciones { get; set; } = new List<AccionNodoAsistente>();
-
-
 
         public string Recorrido { get; set; }
 
@@ -81,9 +70,6 @@ namespace StageUp.BE.Entidades
             get { return Tipo == TipoRespuesta; }
         }
     }
-
-
-
 
     public class AccionNodoAsistente
     {
@@ -99,26 +85,17 @@ namespace StageUp.BE.Entidades
         public int Orden { get; set; }
     }
 
-
-
     public class RespuestaAsistente
     {
         public bool Reconocida { get; set; }
         public NodoAsistente Nodo { get; set; }
         public List<NodoAsistente> Sugerencias { get; set; } = new List<NodoAsistente>();
 
-
-
-
         public string RespuestaAutomatica { get; set; }
         public bool AsistenteAutomaticoNoDisponible { get; set; }
 
-
-
-
         public bool ConDatosPrivados { get; set; }
     }
-
 
     public class ConsultaAsistenteSinRespuesta
     {

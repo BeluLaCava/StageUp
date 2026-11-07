@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
@@ -20,9 +20,9 @@ namespace StageUp.BLL
             {
                 return _mppTraduccion.ListarConfiguracion(new Idioma { IdIdioma = idIdioma });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Traduccion>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 

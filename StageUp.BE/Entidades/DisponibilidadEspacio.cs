@@ -1,18 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
 
-
-
-
     public class DiaCalendarioDisponibilidad
     {
         public DateTime Fecha { get; set; }
         public bool EsHoy { get; set; }
-
-
 
         public bool TieneExcepcion { get; set; }
 
@@ -33,9 +28,6 @@ namespace StageUp.BE.Entidades
         public string Detalle { get; set; }
         public int? IdReserva { get; set; }
     }
-
-
-
 
     public class OperacionesAsociadasFranja
     {

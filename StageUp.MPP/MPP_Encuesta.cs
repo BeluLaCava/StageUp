@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -7,11 +7,6 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-
-
-
-
-
 
     public class MPP_Encuesta
     {
@@ -70,9 +65,6 @@ namespace StageUp.MPP
                     { "@estado", oEncuesta.Estado }
                 });
         }
-
-
-
 
         public bool EliminarBorrador(Encuesta oEncuesta)
         {
@@ -196,10 +188,6 @@ namespace StageUp.MPP
             return resultado != null && Convert.ToBoolean(resultado);
         }
 
-
-
-
-
         public int RegistrarRespuesta(RespuestaEncuesta oRespuesta, List<RespuestaEncuestaDetalle> detalles, string descripcionBitacora)
         {
             List<string> pares = new List<string>();
@@ -222,8 +210,6 @@ namespace StageUp.MPP
 
             return Convert.ToInt32(resultado);
         }
-
-
 
         public List<FilaResultadoEncuesta> ConsultarResultadosFilas(Encuesta oEncuesta)
         {

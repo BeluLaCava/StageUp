@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -178,10 +178,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Destinatarios de newsletter: usuarios externos activos, filtrados según la
--- categoría elegida en el desplegable "Destinatarios" del panel.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_UsuarioExterno_ListarParaNewsletter', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_ListarParaNewsletter;
 GO
 CREATE PROCEDURE dbo.sp_UsuarioExterno_ListarParaNewsletter
@@ -190,10 +186,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- SELECT * (y no una lista acotada de columnas) a propósito: así se
-    -- puede reutilizar el mismo mapeo de fila que ya usa
-    -- MPP_UsuarioExterno.ListarPorPerfil (MapearDesdeFila), que espera
-    -- todas las columnas de dbo.UsuarioExterno.
     SELECT *
     FROM dbo.UsuarioExterno
     WHERE activo = 1
@@ -208,11 +200,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Permiso propio GESTIONAR_NOVEDADES (mismo patrón que GESTIONAR_FAQ en
--- 29_FaqAbmYPermiso.sql): se registra en el esquema clásico y en el árbol de
--- componentes, y se asigna al rol Administrador.
--- ---------------------------------------------------------------------------
 BEGIN TRY
     BEGIN TRANSACTION;
 

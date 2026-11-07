@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,7 +19,6 @@ namespace StageUp.BLL
         private const double PuntajeMinimo = 3;
         private const double PuntajeSugerencia = 2;
 
-
         private static readonly HashSet<string> PalabrasVacias = new HashSet<string>
         {
             "a", "al", "algo", "como", "con", "cual", "cuales", "cuando", "de", "del", "donde", "el", "en", "es", "esta", "este",
@@ -32,7 +31,6 @@ namespace StageUp.BLL
         private readonly MPP_Faq _mppFaq = new MPP_Faq();
         private readonly ServicioAsistenteExterno _asistenteExterno = new ServicioAsistenteExterno();
         private const int LongitudMaximaContexto = 6000;
-
 
         public ResultadoOperacion<NodoAsistente> ObtenerNodo(string codigo)
         {
@@ -62,7 +60,6 @@ namespace StageUp.BLL
                 ? ResultadoOperacion<NodoAsistente>.Ok(nodo)
                 : ResultadoOperacion<NodoAsistente>.Error("Esa opción ya no está disponible. Volvé al inicio para elegir otra.");
         }
-
 
         public ResultadoOperacion<RespuestaAsistente> Consultar(string texto, int? idUsuarioExterno)
         {
@@ -117,9 +114,6 @@ namespace StageUp.BLL
                 respuesta.Sugerencias = puntajes.Take(3).Select(p => p.Key).ToList();
             }
 
-
-
-
             string resultadoApi = null;
             if (!respuesta.Reconocida && !datosPrivados && _asistenteExterno.EstaHabilitado)
             {
@@ -134,9 +128,6 @@ namespace StageUp.BLL
                     respuesta.AsistenteAutomaticoNoDisponible = true;
                 }
             }
-
-
-
 
             string textoGuardado = datosPrivados
                 ? "[Consulta con datos privados: el texto no se guardó]"
@@ -163,8 +154,6 @@ namespace StageUp.BLL
             return ResultadoOperacion<RespuestaAsistente>.Ok(respuesta);
         }
 
-
-
         private static string ArmarContexto(Dictionary<string, NodoAsistente> arbol)
         {
             StringBuilder texto = new StringBuilder();
@@ -181,8 +170,6 @@ namespace StageUp.BLL
 
             return texto.ToString();
         }
-
-
 
         private Dictionary<string, NodoAsistente> CargarArbol()
         {
@@ -207,7 +194,6 @@ namespace StageUp.BLL
                     padre.Opciones.Add(nodo);
                 }
             }
-
 
             inicio.Recorrido = string.Empty;
             Queue<NodoAsistente> pendientes = new Queue<NodoAsistente>();
@@ -237,7 +223,6 @@ namespace StageUp.BLL
                     continue;
                 }
 
-
                 if (accion.TipoAccion == AccionNodoAsistente.TipoNodo && (accion.Destino == null || !arbol.ContainsKey(accion.Destino)))
                 {
                     continue;
@@ -248,7 +233,6 @@ namespace StageUp.BLL
 
             return arbol;
         }
-
 
         private static Dictionary<string, string> ValoresVariables()
         {
@@ -297,16 +281,11 @@ namespace StageUp.BLL
                 .ToList();
         }
 
-
-
         private static double PuntuarNodo(NodoAsistente nodo, List<string> palabras)
         {
             double puntaje = Puntuar(palabras, nodo.PalabrasClave, nodo.TextoOpcion, nodo.Mensaje);
             return puntaje > 0 && nodo.EsRespuesta ? puntaje + 0.25 : puntaje;
         }
-
-
-
 
         private static double Puntuar(List<string> palabras, string clave, string titulo, string cuerpo)
         {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
 using System.Windows;
@@ -7,14 +7,6 @@ using System.Windows.Media.Imaging;
 
 namespace StageUp.UI.Infraestructura
 {
-
-
-
-
-
-
-
-
 
     internal static class DecodificadorWebP
     {

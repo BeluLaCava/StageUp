@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -56,7 +56,6 @@ namespace StageUp.MPP
             return lista;
         }
 
-
         public List<RolInterno> ListarResumen(string estado)
         {
             DataTable tabla = Conexion.Instance.Leer(
@@ -73,7 +72,6 @@ namespace StageUp.MPP
             return lista;
         }
 
-
         public bool ExisteNombreActivo(RolInterno oRolInterno)
         {
             object resultado = Conexion.Instance.LeerEscalar(
@@ -85,8 +83,6 @@ namespace StageUp.MPP
                 });
             return resultado != null && resultado != DBNull.Value && Convert.ToInt32(resultado) > 0;
         }
-
-
 
         public int GuardarConPermisos(RolInterno oRolInterno, IEnumerable<int> idsComponentes)
         {

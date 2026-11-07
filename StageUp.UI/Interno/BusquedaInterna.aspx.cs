@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -12,10 +12,6 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI.Interno
 {
-
-
-
-
 
     public partial class BusquedaInterna : Page
     {
@@ -167,7 +163,6 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-
             if (!string.IsNullOrWhiteSpace(resultado.Mensaje))
             {
                 MostrarMensaje(resultado.Mensaje, false);
@@ -182,8 +177,6 @@ namespace StageUp.UI.Interno
                     ? "No encontramos resultados " + queBusco + "."
                     : total + (total == 1 ? " resultado " : " resultados ") + queBusco + ".")
                 + (filtros.Length == 0 ? string.Empty : " Filtros: " + Server.HtmlEncode(filtros) + ".");
-
-
 
             string volver = HttpUtility.UrlEncode(ConsultaBusqueda.Armar(string.Empty, filtro).TrimStart('?'));
             foreach (ResultadoBusqueda item in resultado.Valor.SelectMany(g => g.Resultados))

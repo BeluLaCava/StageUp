@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -25,10 +25,6 @@ IF NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_FichaEspaci
         CHECK ((superficieM2 IS NULL OR superficieM2 > 0) AND (alturaM IS NULL OR alturaM > 0));
 GO
 
--- ---------------------------------------------------------------------------
--- Guardado de la ficha (mismo comportamiento que el script 41, con los datos
--- nuevos)
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_FichaEspacio_Guardar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_FichaEspacio_Guardar;
 GO
 CREATE PROCEDURE dbo.sp_FichaEspacio_Guardar
@@ -87,9 +83,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Lecturas con los datos nuevos (detalle y listado del gestor)
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_EspacioArtistico_ObtenerPorIdV2', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EspacioArtistico_ObtenerPorIdV2;
 GO
 CREATE PROCEDURE dbo.sp_EspacioArtistico_ObtenerPorIdV2
@@ -133,9 +126,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Precios de referencia para "Sugerir valores" (A13)
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_EspacioArtistico_ListarPreciosReferencia', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EspacioArtistico_ListarPreciosReferencia;
 GO
 CREATE PROCEDURE dbo.sp_EspacioArtistico_ListarPreciosReferencia

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,8 +11,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno.Comercializacion
 {
-
-
 
     public abstract class PaginaComercial : Page
     {
@@ -58,7 +56,6 @@ namespace StageUp.UI.Interno.Comercializacion
             Response.Redirect(url, false);
             Context.ApplicationInstance.CompleteRequest();
         }
-
 
         protected void MostrarMensajePendiente(Panel panel, Literal literal)
         {
@@ -208,7 +205,6 @@ namespace StageUp.UI.Interno.Comercializacion
             return string.IsNullOrWhiteSpace(texto) ? "—" : texto;
         }
 
-
         protected static string Resumir(object valor, int largo)
         {
             string texto = Convert.ToString(valor) ?? string.Empty;
@@ -222,7 +218,6 @@ namespace StageUp.UI.Interno.Comercializacion
             return inicio + " al " + fin;
         }
 
-
         protected void CargarVinculoUnico(DropDownList lista, string tipo, string textoVacio)
         {
             lista.Items.Clear();
@@ -232,9 +227,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 lista.Items.Add(new ListItem(opcion.Nombre, opcion.Id.ToString(CultureInfo.InvariantCulture)));
             }
         }
-
-
-
 
         protected static void AsegurarOpcion(DropDownList lista, int? id, string nombre)
         {
@@ -296,8 +288,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 default: return TextoOGuion(vinculo.Estado);
             }
         }
-
-
 
         protected string EnlaceVinculo(object dato)
         {

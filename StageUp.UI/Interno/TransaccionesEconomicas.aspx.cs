@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Web;
@@ -24,7 +24,6 @@ namespace StageUp.UI.Interno
                 Response.Redirect("~/IniciarSesion.aspx");
                 return;
             }
-
 
             if (!GestorDeSesion.TienePermisoInterno(PermisoRequerido))
             {

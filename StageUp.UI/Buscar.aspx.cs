@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -10,9 +10,6 @@ using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI
 {
-
-
-
 
     public partial class Buscar : Page
     {
@@ -170,7 +167,6 @@ namespace StageUp.UI
                 MostrarMensaje(resultado.Mensaje, true);
                 return;
             }
-
 
             if (!string.IsNullOrWhiteSpace(resultado.Mensaje))
             {

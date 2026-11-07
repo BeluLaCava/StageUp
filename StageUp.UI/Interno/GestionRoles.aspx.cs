@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -13,7 +13,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
 
     public partial class GestionRoles : Page
     {
@@ -91,9 +90,6 @@ namespace StageUp.UI.Interno
             }
         }
 
-
-
-
         protected void btnAgregarRol_Click(object sender, EventArgs e)
         {
             pnlMensaje.Visible = false;
@@ -155,8 +151,6 @@ namespace StageUp.UI.Interno
                 return;
             }
 
-
-
             if (GestorDeSesion.ObtenerIdRolInternoActual() == resultado.Valor)
             {
                 Response.Redirect(Request.Path + "?ver=" + resultado.Valor + "&guardado=1", false);
@@ -190,9 +184,6 @@ namespace StageUp.UI.Interno
                 MostrarDetalle(idEditado.Value, null, false);
             }
         }
-
-
-
 
         protected void lnkCerrarDetalle_Click(object sender, EventArgs e)
         {
@@ -237,9 +228,6 @@ namespace StageUp.UI.Interno
 
             MostrarDetalle(IdRolEnDetalle.Value, resultado.Mensaje, true);
         }
-
-
-
 
         private void CargarAreas()
         {
@@ -396,7 +384,6 @@ namespace StageUp.UI.Interno
         protected override void OnPreRender(EventArgs e)
         {
             base.OnPreRender(e);
-
 
             if (!IsPostBack && Request.QueryString["guardado"] == "1" && IdRolEnDetalle.HasValue)
             {

@@ -23,12 +23,6 @@ namespace StageUp.BLL
         private const int LongitudMaximaComentario = 1000;
         private const string TipoEntidadBitacora = "Reserva";
 
-
-
-
-
-
-
         private static DateTime? _ultimaGeneracionRecordatorios;
         private static readonly object _lockRecordatorios = new object();
         private const int IntervaloMinutosRecordatorios = 15;
@@ -154,8 +148,6 @@ namespace StageUp.BLL
                     "Recibiste una nueva solicitud de reserva para \"" + espacio.NombreEspacio + "\".",
                     UrlDetalle(idReserva));
 
-
-
                 reserva.IdReserva = idReserva;
                 reserva.NombreEspacio = espacio.NombreEspacio;
                 UsuarioExterno solicitante = ObtenerUsuarioParaCorreo(idUsuarioExternoSolicitante);
@@ -195,11 +187,6 @@ namespace StageUp.BLL
             FichaEspacio ficha = espacio.Ficha ?? new FichaEspacio();
             List<FranjaEspacio> franjas = ficha.Disponibilidad ?? new List<FranjaEspacio>();
 
-
-
-
-
-
             bool estaDisponible = franjas.Exists(franja =>
                 BLL_DisponibilidadEspacio.AbiertaRigeEnFecha(franja, franjas, fecha) &&
                 minutoDesde >= franja.MinutoDesde &&
@@ -209,8 +196,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error("La franja elegida no está dentro de la disponibilidad informada para esa fecha.");
             }
-
-
 
             bool existeBloqueoSuperpuesto = franjas.Exists(franja =>
                 BLL_DisponibilidadEspacio.BloqueoRigeEnFecha(franja, fecha) &&
@@ -247,12 +232,6 @@ namespace StageUp.BLL
             return resto == 0 ? texto : texto + " y " + resto + " minutos";
         }
 
-
-
-
-
-
-
         public List<Reserva> ListarOcupacionVigente(int idEspacioArtistico)
         {
             try
@@ -260,9 +239,9 @@ namespace StageUp.BLL
                 return _mppReserva.ListarActivasPorEspacio(
                     new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Reserva>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -274,16 +253,11 @@ namespace StageUp.BLL
                 return _mppReserva.ListarPorSolicitante(
                     new UsuarioExterno { IdUsuarioExterno = idUsuarioExternoSolicitante });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Reserva>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
-
-
-
-
 
         public const string FiltroTodas = "Todas";
         public const string FiltroPendientes = "Pendientes";
@@ -308,8 +282,6 @@ namespace StageUp.BLL
             return filtradas;
         }
 
-
-
         public static bool CumpleFiltroHistorial(Reserva reserva, string filtro)
         {
             string estado = reserva.EstadoReserva;
@@ -333,12 +305,6 @@ namespace StageUp.BLL
                     return true;
             }
         }
-
-
-
-
-
-
 
         public static List<PasoSeguimientoReserva> ConstruirSeguimiento(Reserva reserva)
         {
@@ -465,7 +431,6 @@ namespace StageUp.BLL
                 return pasos;
             }
 
-
             pasos.Add(Paso("Día de la reserva", momentoReserva, inicioReserva, "Completado"));
             pasos.Add(Paso("Reserva finalizada", null, reserva.FechaFinalizacion, "Completado"));
             pasos.Add(paraGestor
@@ -493,13 +458,11 @@ namespace StageUp.BLL
                 CompletarReputacionSolicitantes(solicitudes);
                 return solicitudes;
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Reserva>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
-
-
 
         public ResultadoOperacion<Reserva> ObtenerDetalle(int idReserva, int idUsuarioExterno)
         {
@@ -517,8 +480,6 @@ namespace StageUp.BLL
             });
         }
 
-
-
         public int ContarSolicitudesPendientes(int idUsuarioGestor)
         {
             try
@@ -530,11 +491,6 @@ namespace StageUp.BLL
                 return 0;
             }
         }
-
-
-
-
-
 
         private const int SegundosEntreActualizacionesDeEstado = 60;
         private static DateTime _ultimaActualizacionEstados = DateTime.MinValue;
@@ -556,8 +512,6 @@ namespace StageUp.BLL
             _mppReserva.FinalizarVencidas();
         }
 
-
-
         public static bool CorrespondeGenerarRecordatorios()
         {
             lock (_lockRecordatorios)
@@ -566,13 +520,6 @@ namespace StageUp.BLL
                     (DateTime.Now - _ultimaGeneracionRecordatorios.Value).TotalMinutes >= IntervaloMinutosRecordatorios;
             }
         }
-
-
-
-
-
-
-
 
         private void CompletarReputacionSolicitantes(List<Reserva> solicitudes)
         {
@@ -692,10 +639,6 @@ namespace StageUp.BLL
                 string comentarioLimpio = string.IsNullOrWhiteSpace(comentarioResolucion) ? null : comentarioResolucion.Trim();
                 reserva.ComentarioResolucion = comentarioLimpio;
 
-
-
-
-
                 bool requierePago = reserva.ImporteEstimado.HasValue && reserva.ImporteEstimado.Value > 0;
                 if (requierePago)
                 {
@@ -722,7 +665,6 @@ namespace StageUp.BLL
 
                         return ResultadoOperacion.Error(MensajeSolicitudYaProcesada(actual));
                     }
-
 
                     return ResultadoOperacion.Error(
                         "No se puede aceptar la solicitud porque el horario ya no está disponible (hay otra reserva aceptada " +
@@ -783,8 +725,6 @@ namespace StageUp.BLL
                     ? null
                     : comentarioResolucion.Trim();
 
-
-
                 if (!_mppReserva.Rechazar(reserva))
                 {
                     Reserva actual = _mppReserva.ObtenerPorId(new Reserva { IdReserva = idReserva });
@@ -820,9 +760,6 @@ namespace StageUp.BLL
             return "~/DetalleReserva.aspx?id=" + idReserva.ToString(CultureInfo.InvariantCulture);
         }
 
-
-
-
         public PoliticaCancelacion ObtenerPoliticaCancelacion()
         {
             return new PoliticaCancelacion
@@ -843,8 +780,6 @@ namespace StageUp.BLL
                 FormatearPorcentaje(politica.PorcentajeCargoTotal) + ".";
         }
 
-
-
         public decimal ObtenerPorcentajeCargoCancelacion(Reserva reserva)
         {
             if (reserva == null || reserva.EstadoReserva != EstadoReserva.Aceptada.ToString())
@@ -864,9 +799,6 @@ namespace StageUp.BLL
             return diasRestantes >= politica.DiasCargoParcial ? politica.PorcentajeCargoParcial : politica.PorcentajeCargoTotal;
         }
 
-
-
-
         public decimal CalcularPenalidadCancelacion(Reserva reserva)
         {
             if (reserva == null
@@ -880,7 +812,6 @@ namespace StageUp.BLL
             decimal porcentaje = ObtenerPorcentajeCargoCancelacion(reserva);
             return decimal.Round(reserva.ImporteEstimado.Value * porcentaje / 100m, 2);
         }
-
 
         public string ObtenerAvisoCancelacion(Reserva reserva)
         {
@@ -1018,8 +949,6 @@ namespace StageUp.BLL
                     (comisionAplicada ? " Se aplicó " + textoCargo + "." : " Sin cargo.") +
                     (estabaPagada ? " Se emitió nota de crédito por el importe pagado." : string.Empty));
 
-
-
                 ResultadoOperacion<int> transaccionCancelacion = new BLL_TransaccionEconomica().RegistrarPorCancelacion(idReserva, resultado.IdNotaDebito);
                 if (!transaccionCancelacion.Exitoso)
                     return ResultadoOperacion.Error("No se pudo registrar la cancelación completa. No se guardaron cambios; intentá nuevamente.");
@@ -1069,9 +998,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         private void ProcesarPagosVencidos()
         {
             List<Reserva> vencidas;
@@ -1111,16 +1037,9 @@ namespace StageUp.BLL
                 catch (ErrorAccesoDatosException)
                 {
 
-
                 }
             }
         }
-
-
-
-
-
-
 
         public void GenerarRecordatorios24hsSiCorresponde()
         {
@@ -1157,8 +1076,6 @@ namespace StageUp.BLL
                                 : string.Empty) + ".",
                             UrlDetalle(reserva.IdReserva));
 
-
-
                         Reserva reservaRecordatorio = reserva;
                         EnviarCorreoSinBloquear(ObtenerUsuarioParaCorreo(reserva.IdUsuarioExternoSolicitante), u =>
                             _servicioCorreo.EnviarRecordatorioReserva(u.CorreoElectronico, u.Nombre, reservaRecordatorio));
@@ -1168,8 +1085,6 @@ namespace StageUp.BLL
                     catch (ErrorAccesoDatosException)
                     {
 
-
-
                     }
                 }
 
@@ -1178,14 +1093,8 @@ namespace StageUp.BLL
             catch (ErrorAccesoDatosException)
             {
 
-
-
             }
         }
-
-
-
-
 
         private void EnviarAvisosDeReservasFinalizadas()
         {
@@ -1207,9 +1116,6 @@ namespace StageUp.BLL
                 }
             }
         }
-
-
-
 
         private UsuarioExterno ObtenerUsuarioParaCorreo(int idUsuarioExterno)
         {

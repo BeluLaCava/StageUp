@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -10,15 +10,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno.Comercializacion
 {
-
-
-
-
-
-
-
-
-
 
     public partial class AlianzasEstrategicas : PaginaComercial
     {
@@ -66,10 +57,6 @@ namespace StageUp.UI.Interno.Comercializacion
             return alianza;
         }
 
-
-
-
-
         private void CargarListado()
         {
             pnlListado.Visible = true;
@@ -87,7 +74,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 Hasta = LeerFechaQuery("hasta"),
                 Texto = LeerTexto("q")
             };
-
 
             if (filtro.Estado == AlianzaEstrategica.EstadoFinalizada || filtro.Estado == AlianzaEstrategica.EstadoDadaDeBaja)
             {
@@ -116,7 +102,6 @@ namespace StageUp.UI.Interno.Comercializacion
             litVencidas.Text = resumen.Valor.Vencidas.ToString(CultureInfo.InvariantCulture);
             litHistoricas.Text = resumen.Valor.Historicas.ToString(CultureInfo.InvariantCulture);
 
-
             if (resumen.Valor.Total == 0)
             {
                 pnlSinAlianzas.Visible = true;
@@ -132,7 +117,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 rptAlianzas.Visible = false;
                 return;
             }
-
 
             pnlSinResultados.Visible = resultado.Valor.Count == 0;
             rptAlianzas.Visible = resultado.Valor.Count > 0;
@@ -165,10 +149,6 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(ArmarUrl(Pagina, partes), null);
         }
 
-
-
-
-
         private void CargarDetalle(int id)
         {
             AlianzaEstrategica a = ObtenerORedirigir(id);
@@ -194,7 +174,6 @@ namespace StageUp.UI.Interno.Comercializacion
             litObservaciones.Text = TextoOGuion(a.Observaciones);
             litAlta.Text = a.FechaAlta.ToString("dd/MM/yyyy HH:mm");
             litActualizacion.Text = a.FechaUltimaModificacion.ToString("dd/MM/yyyy HH:mm");
-
 
             if (!a.EnGestion)
             {
@@ -244,10 +223,6 @@ namespace StageUp.UI.Interno.Comercializacion
             lnkBaja.Visible = BLL_AlianzaEstrategica.PuedeDarseDeBaja(a);
             lnkBaja.NavigateUrl = Pagina + "?baja=" + id;
         }
-
-
-
-
 
         private void CargarFormulario(int? id)
         {
@@ -315,8 +290,6 @@ namespace StageUp.UI.Interno.Comercializacion
             txtObservaciones.Text = a.Observaciones;
             lnkCancelar.NavigateUrl = Pagina + "?ver=" + a.IdAlianzaEstrategica;
 
-
-
             ResultadoOperacion<List<VinculoComercial>> cargaVinculos = _bll.ListarVinculos(a.IdAlianzaEstrategica);
             if (!cargaVinculos.Exitoso)
             {
@@ -332,7 +305,6 @@ namespace StageUp.UI.Interno.Comercializacion
             MarcarVinculos(cblContenidos, vinculos, OpcionVinculoComercial.TipoContenido);
             MarcarVinculos(cblOrigenes, vinculos, OpcionVinculoComercial.TipoOrigen);
         }
-
 
         private bool VinculosNoCargados
         {
@@ -393,10 +365,6 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(idEditar.HasValue ? Pagina + "?ver=" + resultado.Valor : Pagina, resultado.Mensaje);
         }
 
-
-
-
-
         private void CargarSeguimiento(int id)
         {
             AlianzaEstrategica a = ObtenerORedirigir(id);
@@ -456,10 +424,6 @@ namespace StageUp.UI.Interno.Comercializacion
             Redirigir(Pagina + "?ver=" + id.Value, resultado.Mensaje);
         }
 
-
-
-
-
         private void CargarRenovacion(int id)
         {
             AlianzaEstrategica a = ObtenerORedirigir(id);
@@ -482,7 +446,6 @@ namespace StageUp.UI.Interno.Comercializacion
             litRenovacionTitulo.Text = a.NombreEntidad;
             litVigenciaActual.Text = "Vigencia actual: " + BLL_AlianzaEstrategica.TextoVigencia(a) + ". La vigencia anterior queda guardada en el historial." +
                 (a.EnGestion ? string.Empty : " Al guardar, la alianza vuelve a estar activa.");
-
 
             DateTime inicio = a.FechaFin.HasValue && a.FechaFin.Value.Date >= DateTime.Today ? a.FechaFin.Value.AddDays(1) : DateTime.Today;
             txtRenovInicio.Text = FechaParaCampo(a.EnGestion && !a.Vencida ? a.FechaInicio : inicio);
@@ -524,10 +487,6 @@ namespace StageUp.UI.Interno.Comercializacion
 
             Redirigir(Pagina + "?ver=" + id.Value, resultado.Mensaje);
         }
-
-
-
-
 
         private void CargarCierre(int id, bool esBaja)
         {
@@ -581,10 +540,6 @@ namespace StageUp.UI.Interno.Comercializacion
                 : _bll.Finalizar(id.Value, txtMotivo.Text, IdUsuarioInterno);
             Redirigir(Pagina + "?ver=" + id.Value, resultado.Mensaje, !resultado.Exitoso);
         }
-
-
-
-
 
         private void CargarResponsables(DropDownList lista, string textoVacio, int? seleccionado)
         {

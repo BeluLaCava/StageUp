@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using StageUp.BE.Entidades;
 using StageUp.BE.Enumerados;
@@ -7,26 +7,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     public class BLL_SesionBaseDatos
     {
@@ -43,15 +23,11 @@ namespace StageUp.BLL
         private readonly MPP_UsuarioExterno _mppUsuarioExterno = new MPP_UsuarioExterno();
         private readonly BLL_UsuarioInterno _bllUsuarioInterno = new BLL_UsuarioInterno();
 
-
         public string ObtenerMarcaActual()
         {
             bool confiable;
             return ObtenerMarcaActual(out confiable);
         }
-
-
-
 
         public string ObtenerMarcaActual(out bool confiable)
         {
@@ -62,7 +38,6 @@ namespace StageUp.BLL
                 consultar = _ultimaConsultaUtc > ahora || (ahora - _ultimaConsultaUtc).TotalSeconds >= SegundosEntreConsultas;
                 if (consultar)
                 {
-
 
                     _ultimaConsultaUtc = ahora;
                 }
@@ -77,10 +52,6 @@ namespace StageUp.BLL
                 }
                 catch (Exception)
                 {
-
-
-
-
 
                     marca = null;
                 }
@@ -105,8 +76,6 @@ namespace StageUp.BLL
                 return _marcaSql == null ? null : _marcaSql + "-" + _restauracionesDesdeLaAplicacion;
             }
         }
-
-
 
         internal static void RegistrarRestauracion()
         {
@@ -146,7 +115,6 @@ namespace StageUp.BLL
         {
             try
             {
-
 
                 usuario = _bllUsuarioInterno.ObtenerParaSesion(idUsuarioInterno, out codigosPermisos);
             }

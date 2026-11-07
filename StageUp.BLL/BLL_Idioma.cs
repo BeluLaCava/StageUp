@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using StageUp.BE.Entidades;
@@ -21,9 +21,9 @@ namespace StageUp.BLL
             {
                 return _mppIdioma.Listar();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Idioma>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 

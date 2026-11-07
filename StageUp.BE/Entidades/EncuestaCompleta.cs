@@ -1,9 +1,7 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
 {
-
-
 
     public class EncuestaCompleta
     {

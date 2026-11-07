@@ -1,11 +1,4 @@
--- =============================================================================
--- 32_DescontarBloqueosEnBusqueda.sql  (incremental, no destructivo)
--- Parche para bases que ya tenían aplicado el 15: recrea
--- sp_EspacioArtistico_BuscarPublicados descontando las franjas bloqueadas por
--- actividades. Desde la corrección de María (tercera tanda) el propio
--- 15_FiltrosCatalogo.sql ya trae esta misma lógica, así que en una instalación
--- nueva este script deja el procedimiento exactamente igual. Seguro de re-ejecutar.
--- =============================================================================
+﻿
 
 IF DB_ID(N'StageUp') IS NULL
 BEGIN
@@ -111,13 +104,7 @@ BEGIN
                     )
                 )
                 AND (
-                    -- Ítem 27: además de las reservas ya existentes, hay que
-                    -- descontar las franjas bloqueadas por una actividad del
-                    -- propio gestor (FranjaEspacio.bloqueado = 1). Se resuelve
-                    -- la fecha puntual vs. el día de semana recurrente de
-                    -- forma independiente de la disponibilidad publicada,
-                    -- porque un bloqueo puede tener su propia excepción de
-                    -- fecha distinta de la de la disponibilidad.
+
                     @minutoDesde IS NULL OR @minutoHasta IS NULL
                     OR NOT EXISTS (
                         SELECT 1 FROM dbo.FranjaEspacio fb

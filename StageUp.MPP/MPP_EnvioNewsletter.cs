@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -21,7 +21,6 @@ namespace StageUp.MPP
                     { "@idUsuarioInterno", idUsuarioInterno }
                 }));
         }
-
 
         public int? TomarParaReintento(Novedad oNovedad)
         {
@@ -51,7 +50,6 @@ namespace StageUp.MPP
             return lista;
         }
 
-
         public bool MarcarEnviando(int idEnvioNewsletter, DestinatarioNewsletter oDestinatario)
         {
             object filas = Conexion.Instance.LeerEscalar(
@@ -63,8 +61,6 @@ namespace StageUp.MPP
                 });
             return filas != null && filas != DBNull.Value && Convert.ToInt32(filas) > 0;
         }
-
-
 
         public int ReabrirInciertos(int idEnvioNewsletter)
         {

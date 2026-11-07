@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Web;
@@ -11,11 +11,9 @@ using StageUp.Seguridad;
 namespace StageUp.UI
 {
 
-
     public partial class MiBilletera : Page
     {
         private readonly BLL_Billetera _bll = new BLL_Billetera();
-
 
         private int IdEnEdicion
         {
@@ -57,7 +55,6 @@ namespace StageUp.UI
                 MesVencimiento = mes,
                 AnioVencimiento = anio
             }, txtAliasNueva.Text, chkPreferida.Checked);
-
 
             txtNumero.Text = string.Empty;
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);

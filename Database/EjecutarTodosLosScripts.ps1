@@ -1,94 +1,71 @@
-# EjecutarTodosLosScripts.ps1
-#
-# Corre los scripts numerados de la carpeta Database/ contra tu instancia local de
-# SQL Server, pero solo los que TODAVIA NO se aplicaron. Para saber cuales ya corrieron,
-# usa una tabla de control (dbo._ScriptsEjecutados) que crea sola la primera vez.
-#
-# PRIMER USO en una base que ya tenias armada de antes (con los scripts corridos a mano):
-#   .\EjecutarTodosLosScripts.ps1 -MarcarComoAplicados
-#   Esto NO ejecuta nada: solo anota en la tabla de control que esos scripts ya estan
-#   aplicados, para que despues no se intenten volver a correr (y rompan cosas por los
-#   DROP TABLE de scripts como el 01).
-#
-# USO NORMAL, de ahi en adelante (por ejemplo despues de un git pull con scripts nuevos):
-#   .\EjecutarTodosLosScripts.ps1
-#   Esto corre SOLO los scripts que todavia no figuran en la tabla de control, en orden.
-#
-# Si tu instancia de SQL Server no es ".\SQLEXPRESS", pasala como parametro:
-#   .\EjecutarTodosLosScripts.ps1 -ServerInstance "BELUENVY\SQLEXPRESS01"
-#
-# Requiere tener "sqlcmd" disponible (viene con SQL Server / con las herramientas de
-# linea de comandos de SSMS). Para comprobarlo: abri PowerShell y escribi "sqlcmd -?".
-
-param(
-    [string]$ServerInstance = ".\SQLEXPRESS",
-    [string]$Database = "StageUp",
-    [switch]$MarcarComoAplicados
+﻿param(
+    [string]$ServerInstance = '.\SQLEXPRESS',
+    [ValidatePattern('^[A-Za-z0-9_][A-Za-z0-9_ -]{0,127}$')][string]$Database = 'StageUp',
+    [switch]$MarcarComoAplicados,
+    [switch]$IncluirDatosDemo87
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
+$null = Get-Command sqlcmd -ErrorAction Stop
+$nombreSql = $Database.Replace("'", "''")
+$identificadorSql = '[' + $Database.Replace(']', ']]') + ']'
 
 function Invoke-Sql {
-    param([string]$Consulta, [string]$Db = $Database)
-    sqlcmd -S $ServerInstance -d $Db -E -I -Q $Consulta -b
+    param([string]$Consulta, [string]$Db = $Database, [switch]$Escalar)
+    $salida = & sqlcmd -S $ServerInstance -d $Db -E -I -b -h -1 -W -Q $Consulta 2>&1
     if ($LASTEXITCODE -ne 0) {
-        throw "Fallo ejecutando una consulta de control contra '$Db'. Revisa el mensaje de sqlcmd de arriba."
+        throw "Falló la consulta contra '$Db': $($salida -join [Environment]::NewLine)"
     }
+    if ($Escalar) { return (($salida | Where-Object { ![string]::IsNullOrWhiteSpace([string]$_) }) -join "`n").Trim() }
 }
 
-Write-Host "Verificando que la base de datos '$Database' exista en '$ServerInstance'..." -ForegroundColor Cyan
-Invoke-Sql -Db "master" -Consulta "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'$Database') CREATE DATABASE [$Database];"
-
-Write-Host "Verificando tabla de control de scripts (dbo._ScriptsEjecutados)..." -ForegroundColor Cyan
-Invoke-Sql "IF OBJECT_ID('dbo._ScriptsEjecutados', 'U') IS NULL BEGIN CREATE TABLE dbo._ScriptsEjecutados (nombreScript NVARCHAR(255) NOT NULL PRIMARY KEY, fechaEjecucion DATETIME NOT NULL DEFAULT (GETDATE())); END"
-
-$scripts = Get-ChildItem -Path $PSScriptRoot -Filter "*.sql" |
-    Where-Object { $_.Name -match '^\d+_' } |
-    Sort-Object { [int]($_.Name -replace '^(\d+)_.*', '$1') }
-
-if ($scripts.Count -eq 0) {
-    Write-Host "No se encontraron scripts numerados (01_..., 02_..., etc.) en esta carpeta." -ForegroundColor Red
-    exit 1
+function Adaptar-Destino {
+    param([string]$Contenido)
+    $contenidoFinal = [regex]::Replace($Contenido, '(?im)^(\s*USE\s+)(?:\[StageUp\]|StageUp)(\s*;?\s*)$', [Text.RegularExpressions.MatchEvaluator]{ param($m) $m.Groups[1].Value + $identificadorSql + $m.Groups[2].Value })
+    $contenidoFinal = [regex]::Replace($contenidoFinal, '(?i)\bDB_ID\(\s*N?''StageUp''\s*\)', [Text.RegularExpressions.MatchEvaluator]{ param($m) "DB_ID(N'$nombreSql')" })
+    $contenidoFinal = [regex]::Replace($contenidoFinal, '(?im)^(\s*CREATE\s+DATABASE\s+)(?:\[StageUp\]|StageUp)(\s*;?\s*)$', [Text.RegularExpressions.MatchEvaluator]{ param($m) $m.Groups[1].Value + $identificadorSql + $m.Groups[2].Value })
+    return $contenidoFinal
 }
 
-if ($MarcarComoAplicados) {
-    Write-Host "`nMarcando los $($scripts.Count) scripts como ya aplicados, SIN ejecutarlos:" -ForegroundColor Magenta
-    foreach ($script in $scripts) {
-        Invoke-Sql "IF NOT EXISTS (SELECT 1 FROM dbo._ScriptsEjecutados WHERE nombreScript = N'$($script.Name)') INSERT INTO dbo._ScriptsEjecutados (nombreScript) VALUES (N'$($script.Name)');"
-        Write-Host "  marcado: $($script.Name)"
-    }
-    Write-Host "`nListo. La proxima vez que corras este script SIN -MarcarComoAplicados, va a saltear todos estos y solo va a correr los que sean realmente nuevos." -ForegroundColor Green
-    exit 0
+Invoke-Sql -Db master -Consulta "IF DB_ID(N'$nombreSql') IS NULL CREATE DATABASE $identificadorSql;"
+$control = Invoke-Sql -Escalar -Consulta "SET NOCOUNT ON; SELECT CASE WHEN OBJECT_ID(N'dbo._ScriptsEjecutados',N'U') IS NOT NULL THEN 1 WHEN EXISTS(SELECT 1 FROM sys.tables WHERE is_ms_shipped=0) THEN 2 ELSE 0 END;"
+if ($control -eq '2' -and !$MarcarComoAplicados) {
+    throw "La base '$Database' ya tiene tablas pero no tiene registro de scripts. Revisá cuáles fueron aplicados antes de inicializar el registro; no se ejecutó ningún script."
+}
+Invoke-Sql "IF OBJECT_ID(N'dbo._ScriptsEjecutados',N'U') IS NULL CREATE TABLE dbo._ScriptsEjecutados(nombreScript NVARCHAR(255) NOT NULL PRIMARY KEY,fechaEjecucion DATETIME NOT NULL DEFAULT(GETDATE()));"
+
+$scripts = @(Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.sql' |
+    Where-Object { $_.Name -match '^\d+_' -and ($IncluirDatosDemo87 -or $_.Name -ne '87_MasCorreccionesYDatosDemo.sql') } |
+    Sort-Object @{ Expression = { [int]($_.Name -replace '^(\d+)_.*','$1') } }, Name)
+if ($scripts.Count -eq 0) { throw 'No se encontraron scripts numerados.' }
+if (!$IncluirDatosDemo87 -and (Test-Path -LiteralPath (Join-Path $PSScriptRoot '87_MasCorreccionesYDatosDemo.sql'))) {
+    Write-Host 'El script 87 contiene datos de demostración opcionales. No se ejecuta ni se marca como aplicado sin -IncluirDatosDemo87.'
 }
 
 $pendientes = @()
 foreach ($script in $scripts) {
-    $resultado = sqlcmd -S $ServerInstance -d $Database -E -h -1 -W -Q "SET NOCOUNT ON; SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo._ScriptsEjecutados WHERE nombreScript = N'$($script.Name)') THEN 1 ELSE 0 END;"
-    $yaAplicado = ($resultado | Select-Object -First 1).Trim() -eq "1"
-    if (-not $yaAplicado) {
-        $pendientes += $script
-    }
+    $nombre = $script.Name.Replace("'", "''")
+    $aplicado = Invoke-Sql -Escalar -Consulta "SET NOCOUNT ON; SELECT COUNT(*) FROM dbo._ScriptsEjecutados WHERE nombreScript=N'$nombre';"
+    if ($aplicado -notin @('0','1')) { throw "No se pudo verificar el estado de $($script.Name)." }
+    if ($aplicado -eq '0') { $pendientes += $script }
 }
-
-if ($pendientes.Count -eq 0) {
-    Write-Host "`nNo hay scripts nuevos: tu base ya tiene aplicados los $($scripts.Count) scripts que hay en esta carpeta." -ForegroundColor Green
-    exit 0
-}
-
-Write-Host "`nScripts pendientes de aplicar ($($pendientes.Count) de $($scripts.Count)):" -ForegroundColor Cyan
-$pendientes | ForEach-Object { Write-Host "  - $($_.Name)" }
-Write-Host ""
 
 foreach ($script in $pendientes) {
-    Write-Host "--- Ejecutando $($script.Name) ---" -ForegroundColor Yellow
-    # -I activa QUOTED_IDENTIFIER: sin eso falla cualquier INSERT/UPDATE sobre una
-    # tabla con indice filtrado (por ejemplo UQ_ComponentePermiso_Codigo del script 16).
-    sqlcmd -S $ServerInstance -d $Database -E -I -i $script.FullName -f 65001 -b
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "`nERROR ejecutando $($script.Name). Revisa el mensaje de arriba y solucionalo antes de continuar. Los scripts anteriores ya quedaron marcados como aplicados, asi que al volver a correr este archivo va a arrancar justo desde el que fallo." -ForegroundColor Red
-        exit 1
+    $nombre = $script.Name.Replace("'", "''")
+    if (!$MarcarComoAplicados) {
+        Write-Host "Ejecutando $($script.Name) en $Database..."
+        $temporal = Join-Path ([IO.Path]::GetTempPath()) ('StageUp-script-' + [Guid]::NewGuid().ToString('N') + '.sql')
+        try {
+            $contenido = Adaptar-Destino ([IO.File]::ReadAllText($script.FullName, [Text.Encoding]::UTF8))
+            [IO.File]::WriteAllText($temporal, $contenido, [Text.UTF8Encoding]::new($true))
+            & sqlcmd -S $ServerInstance -d $Database -E -I -i $temporal -f 65001 -b
+            if ($LASTEXITCODE -ne 0) { throw "Falló $($script.Name). No se registró como aplicado. Revisá el error antes de reintentar." }
+        }
+        finally {
+            if (Test-Path -LiteralPath $temporal) { Remove-Item -LiteralPath $temporal -Force }
+        }
     }
-    Invoke-Sql "INSERT INTO dbo._ScriptsEjecutados (nombreScript) VALUES (N'$($script.Name)');"
+    Invoke-Sql "IF NOT EXISTS(SELECT 1 FROM dbo._ScriptsEjecutados WHERE nombreScript=N'$nombre') INSERT dbo._ScriptsEjecutados(nombreScript) VALUES(N'$nombre');"
+    Write-Host "Registrado: $($script.Name) en $Database."
 }
-
-Write-Host "`nListo: se aplicaron $($pendientes.Count) scripts nuevos sobre '$Database'." -ForegroundColor Green
+Write-Host "Finalizado: $($pendientes.Count) scripts registrados en '$Database'."

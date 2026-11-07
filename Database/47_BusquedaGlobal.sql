@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -192,10 +192,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Permiso BUSCAR_EN_PLATAFORMA (mismo patrón que GESTIONAR_BACKUP en el 46)
--- + su opción en el menú dinámico.
--- ---------------------------------------------------------------------------
 BEGIN TRY
     BEGIN TRANSACTION;
 
@@ -343,7 +339,6 @@ BEGIN TRY
         END
     END
 
-    -- Opción del menú dinámico (script 45), al final del menú.
     IF OBJECT_ID(N'dbo.OpcionMenu', N'U') IS NOT NULL
        AND @idComponenteBusqueda IS NOT NULL
        AND NOT EXISTS (SELECT 1 FROM dbo.OpcionMenu WHERE idComponentePermiso = @idComponenteBusqueda)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -89,10 +89,6 @@ namespace StageUp.MPP
         {
             return ListarPorUsuarioGestor(usuarioGestor, "Activas", null);
         }
-
-
-
-
 
         public List<Actividad> ListarPorUsuarioGestor(UsuarioExterno usuarioGestor, string estado, int? idEspacioArtistico)
         {
@@ -190,8 +186,6 @@ namespace StageUp.MPP
                 : DateTime.ParseExact(fecha, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
         }
 
-
-
         public void InsertarDiaSemana(Actividad actividad, int diaSemana)
         {
             Conexion.Instance.Guardar(
@@ -221,8 +215,6 @@ namespace StageUp.MPP
             return dias;
         }
 
-
-
         public void InsertarFranjaDesdeActividad(Actividad actividad, FranjaEspacio franja)
         {
             Conexion.Instance.Guardar(
@@ -244,8 +236,6 @@ namespace StageUp.MPP
                 "sp_FranjaEspacio_EliminarPorActividad",
                 new Hashtable { { "@idActividad", actividad.IdActividad } });
         }
-
-
 
         public void AsociarParticipante(Actividad actividad, Participante participante)
         {

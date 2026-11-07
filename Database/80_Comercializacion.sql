@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -118,11 +118,6 @@ WHEN NOT MATCHED THEN
     VALUES (origen.tipoCatalogo, origen.codigo, origen.nombre, origen.orden, 1);
 GO
 
--- ---------------------------------------------------------------------------
--- CU-004-001 Campañas comerciales. Estados: Planificada, Activa, Finalizada,
--- Cancelada. La baja lógica (activa = 0) retira la campaña del listado activo
--- y conserva el estado que tenía.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.CampaniaComercial', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.CampaniaComercial
@@ -149,7 +144,6 @@ BEGIN
 END
 GO
 
--- Público objetivo de cada campaña (uno o más segmentos).
 IF OBJECT_ID(N'dbo.CampaniaPublicoObjetivo', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.CampaniaPublicoObjetivo
@@ -163,10 +157,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-004-003 Alianzas estratégicas. Estados: EnEvaluacion, Activa, Pausada,
--- Finalizada, DadaDeBaja. Sin fecha de fin = vigencia abierta.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.AlianzaEstrategica', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.AlianzaEstrategica
@@ -198,8 +188,6 @@ BEGIN
 END
 GO
 
--- Seguimiento de cada alianza (interacciones, cambios de estado,
--- renovaciones, finalización y baja).
 IF OBJECT_ID(N'dbo.SeguimientoAlianza', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.SeguimientoAlianza
@@ -232,7 +220,6 @@ BEGIN
 END
 GO
 
--- Historial de vigencias (cada renovación guarda el período anterior).
 IF OBJECT_ID(N'dbo.AlianzaVigencia', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.AlianzaVigencia
@@ -255,7 +242,6 @@ BEGIN
 END
 GO
 
--- Una campaña puede involucrar varias alianzas y una alianza varias campañas.
 IF OBJECT_ID(N'dbo.CampaniaAlianza', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.CampaniaAlianza
@@ -272,11 +258,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Orígenes de usuario (canales de captación definidos por Artera). Un origen
--- puede apuntar a una campaña o a una alianza. El código se usa en los
--- enlaces de difusión (?origen=codigo).
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.OrigenUsuario', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.OrigenUsuario
@@ -317,7 +298,6 @@ WHEN NOT MATCHED THEN
     VALUES (origen.nombreOrigen, origen.codigo, origen.canalOrigen, origen.descripcion, 1, 1);
 GO
 
--- Origen de incorporación de cada usuario externo (CU-004-004).
 IF COL_LENGTH(N'dbo.UsuarioExterno', N'idOrigenUsuario') IS NULL
 BEGIN
     ALTER TABLE dbo.UsuarioExterno ADD idOrigenUsuario INT NULL;
@@ -332,11 +312,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-004-002 Contactos comerciales. Estados: Pendiente, Contactado,
--- Interesado, Rechazado, Incorporado. Un contacto no es un usuario de
--- StageUp; al incorporarse se lo puede asociar con su cuenta.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.ContactoComercial', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.ContactoComercial
@@ -384,7 +359,6 @@ BEGIN
 END
 GO
 
--- Seguimiento de cada contacto (interacciones y cambios de estado).
 IF OBJECT_ID(N'dbo.SeguimientoContacto', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.SeguimientoContacto
@@ -417,11 +391,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-004-005 Contenido promocional. Estados: Activo, EnRevision,
--- Desactualizado, DadoDeBaja. Lleva un archivo (guardado fuera del sitio
--- público) o un enlace.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID(N'dbo.ContenidoPromocional', N'U') IS NULL
 BEGIN
     CREATE TABLE dbo.ContenidoPromocional
@@ -458,9 +427,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Procedimientos: catálogos
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_CatalogoComercial_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CatalogoComercial_Listar;
 GO
 CREATE PROCEDURE dbo.sp_CatalogoComercial_Listar
@@ -475,9 +441,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Procedimientos: orígenes de usuario
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_OrigenUsuario_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_OrigenUsuario_Listar;
 GO
 CREATE PROCEDURE dbo.sp_OrigenUsuario_Listar
@@ -525,8 +488,7 @@ GO
 
 IF OBJECT_ID('dbo.sp_OrigenUsuario_Guardar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_OrigenUsuario_Guardar;
 GO
--- Alta (@idOrigenUsuario NULL) o modificación. THROW 51300 si el código ya
--- lo usa otro origen; 51301 si la campaña o la alianza no existen.
+
 CREATE PROCEDURE dbo.sp_OrigenUsuario_Guardar
     @idOrigenUsuario       INT = NULL,
     @nombreOrigen          NVARCHAR(150),
@@ -596,8 +558,6 @@ BEGIN
 END
 GO
 
--- Asigna el origen a un usuario externo. Con @soloSiVacio = 1 no pisa un
--- origen ya registrado (el primero que se informa es el de incorporación).
 IF OBJECT_ID('dbo.sp_UsuarioExterno_AsignarOrigen', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_AsignarOrigen;
 GO
 CREATE PROCEDURE dbo.sp_UsuarioExterno_AsignarOrigen
@@ -619,14 +579,9 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Procedimientos: opciones para vincular (formularios de campañas,
--- contactos, alianzas y contenido promocional)
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_Comercial_ListarParaVincular', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Comercial_ListarParaVincular;
 GO
--- @tipo: Campania, Alianza, Contacto, Contenido, Origen. Devuelve solo lo
--- que está disponible para asociar.
+
 CREATE PROCEDURE dbo.sp_Comercial_ListarParaVincular
     @tipo NVARCHAR(20)
 AS
@@ -670,13 +625,9 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Procedimientos: campañas comerciales (CU-004-001)
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_CampaniaComercial_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CampaniaComercial_Listar;
 GO
--- @vista: Activas (sin las dadas de baja), Bajas o Todas.
--- Vigencia: campañas cuyo período se cruza con [@desde, @hasta].
+
 CREATE PROCEDURE dbo.sp_CampaniaComercial_Listar
     @vista          NVARCHAR(10) = N'Activas',
     @estado         NVARCHAR(20) = NULL,
@@ -761,8 +712,7 @@ GO
 
 IF OBJECT_ID('dbo.sp_CampaniaComercial_ListarVinculos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CampaniaComercial_ListarVinculos;
 GO
--- Contactos, alianzas, contenido promocional y orígenes de una campaña, con
--- la cantidad de usuarios que llegaron por cada origen.
+
 CREATE PROCEDURE dbo.sp_CampaniaComercial_ListarVinculos
     @idCampaniaComercial INT
 AS
@@ -792,9 +742,6 @@ BEGIN
 END
 GO
 
--- Vincula la campaña con los ids indicados (listas separadas por coma) y
--- desvincula los que ya no están. THROW 51302 si algún vínculo no está
--- disponible (A16).
 IF OBJECT_ID('dbo.sp_CampaniaComercial_GuardarVinculos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CampaniaComercial_GuardarVinculos;
 GO
 CREATE PROCEDURE dbo.sp_CampaniaComercial_GuardarVinculos
@@ -817,8 +764,6 @@ BEGIN
     INSERT INTO @contenidos SELECT DISTINCT TRY_CAST(value AS INT) FROM STRING_SPLIT(ISNULL(@idsContenidos, N''), N',') WHERE TRY_CAST(value AS INT) IS NOT NULL;
     INSERT INTO @origenes SELECT DISTINCT TRY_CAST(value AS INT) FROM STRING_SPLIT(ISNULL(@idsOrigenes, N''), N',') WHERE TRY_CAST(value AS INT) IS NOT NULL;
 
-    -- Lo nuevo tiene que estar disponible; lo que ya estaba vinculado se
-    -- puede conservar aunque haya cambiado de estado.
     IF EXISTS (SELECT 1 FROM @contactos l
                WHERE NOT EXISTS (SELECT 1 FROM dbo.ContactoComercial ct WHERE ct.idContactoComercial = l.id
                                  AND (ct.activo = 1 OR ct.idCampaniaComercial = @idCampaniaComercial)))
@@ -873,9 +818,7 @@ GO
 
 IF OBJECT_ID('dbo.sp_CampaniaComercial_Guardar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_CampaniaComercial_Guardar;
 GO
--- Alta (@idCampaniaComercial NULL) o modificación de los datos de la
--- campaña y su público objetivo (lista de segmentos separados por coma).
--- THROW 51303 si la campaña no existe o está dada de baja.
+
 CREATE PROCEDURE dbo.sp_CampaniaComercial_Guardar
     @idCampaniaComercial          INT = NULL,
     @nombre                       NVARCHAR(150),
@@ -955,9 +898,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Procedimientos: contactos comerciales (CU-004-002)
--- ===========================================================================
 IF OBJECT_ID('dbo.sp_ContactoComercial_Listar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ContactoComercial_Listar;
 GO
 CREATE PROCEDURE dbo.sp_ContactoComercial_Listar
@@ -1044,8 +984,7 @@ GO
 
 IF OBJECT_ID('dbo.sp_ContactoComercial_BuscarDuplicado', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ContactoComercial_BuscarDuplicado;
 GO
--- A13: mismo correo, mismo teléfono, o mismo nombre y apellido en la misma
--- entidad.
+
 CREATE PROCEDURE dbo.sp_ContactoComercial_BuscarDuplicado
     @idContactoExcluido   INT = NULL,
     @correoElectronico    NVARCHAR(254) = NULL,
@@ -1076,12 +1015,7 @@ GO
 
 IF OBJECT_ID('dbo.sp_ContactoComercial_Guardar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ContactoComercial_Guardar;
 GO
--- Alta (@idContactoComercial NULL) o modificación. Si cambia el estado,
--- queda un registro de seguimiento con el estado anterior y el nuevo (A8).
--- Al pasar a Incorporado se guarda la fecha y, si se indica la cuenta, el
--- usuario toma el origen del contacto cuando no tenía uno (A9).
--- THROW 51310 contacto inexistente, 51311 vínculo no disponible,
--- 51312 cuenta de usuario inexistente.
+
 CREATE PROCEDURE dbo.sp_ContactoComercial_Guardar
     @idContactoComercial   INT = NULL,
     @nombreContacto        NVARCHAR(150),
@@ -1118,7 +1052,6 @@ BEGIN
             THROW 51310, 'El contacto no existe.', 1;
     END
 
-    -- Lo que ya estaba vinculado se puede conservar; lo nuevo tiene que estar disponible.
     IF NOT EXISTS (SELECT 1 FROM dbo.OrigenUsuario WHERE idOrigenUsuario = @idOrigenUsuario
                    AND (activo = 1 OR idOrigenUsuario = ISNULL(@origenAnterior, 0)))
         THROW 51311, 'El origen no está disponible.', 1;
@@ -1216,7 +1149,7 @@ GO
 
 IF OBJECT_ID('dbo.sp_SeguimientoContacto_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_SeguimientoContacto_Insertar;
 GO
--- A7: registra la interacción y, si se indica, el nuevo estado comercial.
+
 CREATE PROCEDURE dbo.sp_SeguimientoContacto_Insertar
     @idContactoComercial  INT,
     @fechaSeguimiento     DATE,
@@ -1296,7 +1229,6 @@ BEGIN
 END
 GO
 
--- A9: cuenta de StageUp con la que se asocia un contacto incorporado.
 IF OBJECT_ID('dbo.sp_UsuarioExterno_BuscarParaVincular', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_UsuarioExterno_BuscarParaVincular;
 GO
 CREATE PROCEDURE dbo.sp_UsuarioExterno_BuscarParaVincular
@@ -1311,10 +1243,6 @@ BEGIN
 END
 GO
 
--- ===========================================================================
--- Permisos y menú "Comercialización" (campañas y contactos; el script 81
--- suma alianzas, métricas y contenido promocional).
--- ===========================================================================
 IF OBJECT_ID('tempdb..#RegistrarPermisoComercial') IS NOT NULL DROP PROCEDURE #RegistrarPermisoComercial;
 GO
 CREATE PROCEDURE #RegistrarPermisoComercial

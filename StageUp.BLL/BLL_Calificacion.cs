@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using StageUp.BE.Entidades;
@@ -11,17 +11,6 @@ namespace StageUp.BLL
     public class BLL_Calificacion
     {
         private const int LongitudMaximaComentario = 1000;
-
-
-
-
-
-
-
-
-
-
-
 
         public const int MinimoResenasRanking = 3;
         private readonly MPP_Calificacion _mppCalificacion = new MPP_Calificacion();
@@ -45,9 +34,9 @@ namespace StageUp.BLL
                 return _mppCalificacion.ListarPorEspacio(
                     new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Calificacion>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -58,9 +47,9 @@ namespace StageUp.BLL
                 return _mppCalificacion.ListarRecibidasPorUsuario(
                     new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Calificacion>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -71,9 +60,9 @@ namespace StageUp.BLL
                 return _mppCalificacion.ListarRealizadasPorUsuario(
                     new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Calificacion>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -141,9 +130,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
-
         public static List<EspacioArtistico> ObtenerRankingMejorValorados(IEnumerable<EspacioArtistico> espacios, int cantidad)
         {
             if (espacios == null)
@@ -189,9 +175,9 @@ namespace StageUp.BLL
             {
                 return _mppCalificacion.ListarResumenesUsuarios();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new Dictionary<int, ResumenReputacion>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 

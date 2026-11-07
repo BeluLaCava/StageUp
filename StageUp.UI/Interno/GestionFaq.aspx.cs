@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -10,9 +10,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI.Interno
 {
-
-
-
 
     public partial class GestionFaq : Page
     {
@@ -40,8 +37,6 @@ namespace StageUp.UI.Interno
                 CargarConsultas();
             }
         }
-
-
 
         protected void btnFiltrar_Click(object sender, EventArgs e)
         {
@@ -74,8 +69,6 @@ namespace StageUp.UI.Interno
             DateTime fecha = faq.FechaUltimaModificacion ?? faq.FechaAlta;
             return fecha == DateTime.MinValue ? "—" : fecha.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
         }
-
-
 
         protected void btnAgregar_Click(object sender, EventArgs e)
         {
@@ -131,7 +124,6 @@ namespace StageUp.UI.Interno
             Guardar();
         }
 
-
         protected void btnCancelarGuardar_Click(object sender, EventArgs e)
         {
             pnlConfirmarGuardar.Visible = false;
@@ -179,15 +171,11 @@ namespace StageUp.UI.Interno
                     return;
                 }
 
-
                 VolverAlListado();
                 CargarConsultas();
                 MostrarMensaje(resultado.Mensaje, false);
             }
         }
-
-
-
 
         protected void btnPublicar_Click(object sender, EventArgs e)
         {
@@ -203,7 +191,6 @@ namespace StageUp.UI.Interno
             MostrarDetalle(IdEnDetalle);
             MostrarMensaje(resultado.Mensaje, !resultado.Exitoso);
         }
-
 
         protected void btnCancelarPublicar_Click(object sender, EventArgs e)
         {
@@ -238,8 +225,6 @@ namespace StageUp.UI.Interno
             VolverAlListado();
         }
 
-
-
         protected void rptConsultas_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
             string argumento = Convert.ToString(e.CommandArgument);
@@ -262,8 +247,6 @@ namespace StageUp.UI.Interno
             }
         }
 
-
-
         private void AbrirFormulario(Faq faq, string consultaOrigen)
         {
             List<CategoriaAyuda> categorias = _bll.ListarCategorias().Where(c => c.Activa).ToList();
@@ -273,7 +256,6 @@ namespace StageUp.UI.Interno
             {
                 ddlCategoria.Items.Add(new ListItem(categoria.Nombre, categoria.IdCategoriaAyuda.ToString(CultureInfo.InvariantCulture)));
             }
-
 
             pnlSinCategorias.Visible = categorias.Count == 0;
             ddlEstado.Items.Clear();
@@ -429,7 +411,6 @@ namespace StageUp.UI.Interno
             pnlMensaje.CssClass = esError ? "form-message form-message-error" : "form-message form-message-success";
             pnlMensaje.Visible = !string.IsNullOrEmpty(mensaje);
         }
-
 
         private bool TieneAcceso()
         {

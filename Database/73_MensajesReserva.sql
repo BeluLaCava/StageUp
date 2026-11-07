@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -27,9 +27,6 @@ BEGIN
 END
 GO
 
--- Alta. Segunda barrera (la primera es BLL_MensajeReserva): quien escribe
--- tiene que ser el solicitante o el gestor del espacio, y la reserva no
--- puede estar rechazada ni cancelada (la conversación queda como registro).
 IF OBJECT_ID('dbo.sp_MensajeReserva_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_MensajeReserva_Insertar;
 GO
 CREATE PROCEDURE dbo.sp_MensajeReserva_Insertar
@@ -60,7 +57,6 @@ BEGIN
 END
 GO
 
--- Conversación de una reserva (vacía si el usuario no participa).
 IF OBJECT_ID('dbo.sp_MensajeReserva_ListarPorReserva', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_MensajeReserva_ListarPorReserva;
 GO
 CREATE PROCEDURE dbo.sp_MensajeReserva_ListarPorReserva
@@ -82,7 +78,6 @@ BEGIN
 END
 GO
 
--- Marca como leídos los mensajes que recibió el usuario en esa reserva.
 IF OBJECT_ID('dbo.sp_MensajeReserva_MarcarLeidos', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_MensajeReserva_MarcarLeidos;
 GO
 CREATE PROCEDURE dbo.sp_MensajeReserva_MarcarLeidos
@@ -106,8 +101,6 @@ BEGIN
 END
 GO
 
--- Mensajes sin leer del usuario, por reserva y según su papel en ella
--- (Solicitante o Gestor), para los listados y el menú lateral.
 IF OBJECT_ID('dbo.sp_MensajeReserva_NoLeidosPorUsuario', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_MensajeReserva_NoLeidosPorUsuario;
 GO
 CREATE PROCEDURE dbo.sp_MensajeReserva_NoLeidosPorUsuario

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
@@ -24,9 +24,6 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaUltimaModificacion { get; set; }
         public bool Activo { get; set; }
     }
-
-
-
 
     public class EvaluacionBajaCuenta
     {

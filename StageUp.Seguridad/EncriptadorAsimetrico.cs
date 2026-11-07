@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Configuration;
 using System.Security.Cryptography;
 
@@ -23,8 +23,6 @@ namespace StageUp.Seguridad
                 && !string.IsNullOrEmpty(ConfigurationManager.AppSettings["ClaveAsimetricaPrivada"]);
         }
 
-
-
         public static byte[] Encriptar(byte[] datos, string clavePublicaBase64)
         {
             using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
@@ -42,8 +40,6 @@ namespace StageUp.Seguridad
                 return rsa.Decrypt(datosCifrados, true);
             }
         }
-
-
 
         public static string CalcularHuella(string clavePublicaBase64)
         {

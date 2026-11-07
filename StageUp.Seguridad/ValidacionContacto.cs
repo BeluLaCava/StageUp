@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
@@ -9,7 +9,7 @@ namespace StageUp.Seguridad
     {
         public const int MaximoNombre = 200;
         public const int MaximoCorreo = 300;
-        // Compatible con los validadores de Web Forms y con JavaScript.
+
         public const string PatronTelefono = @"^(?=(?:[^0-9]*[0-9]){6})\+?[0-9() \-]{6,30}$";
         private static readonly Regex Telefono = new Regex(PatronTelefono, RegexOptions.Compiled, TimeSpan.FromSeconds(1));
         private static readonly Regex EtiquetaDominio = new Regex(@"\A[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\z", RegexOptions.Compiled);

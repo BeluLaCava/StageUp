@@ -1,4 +1,4 @@
-// Run only against an isolated StageUp_Beta2_QA_* database; never against StageUp.
+﻿
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -57,7 +57,7 @@ class TestingBetaNegocio
         Check(!new BLL_Actividad().Guardar(act,gestor).Exitoso,"actividad rechaza una solicitud pendiente");
 
         var p=Solicitar(720);Check(p.Exitoso,"solicitud válida conserva el flujo");
-        // Simulate a conflicting schedule change from a legacy caller; acceptance must revalidate.
+
         int block=new MPP_FranjaEspacio().InsertarManual(espacio,new FranjaEspacio { Fecha=fecha.ToString("yyyy-MM-dd"), MinutoDesde=720, MinutoHasta=780, Bloqueado=true, Origen="Manual", MotivoBloqueo="QA conflicto" });
         Check(!new BLL_Reserva().Aceptar(p.Valor,gestor,"QA").Exitoso,"aceptación vuelve a verificar bloqueos actuales");
         new MPP_FranjaEspacio().EliminarManual(espacio,block);
@@ -103,7 +103,7 @@ class TestingBetaNegocio
         for(int i=0;i<4;i++) Check(intento(false).Mensaje=="incorrecto","intento fallido previo al límite "+(i+1));
         Check(intento(false).Mensaje.Contains("15 minutos"),"quinto intento activa bloqueo de 15 minutos");
         int prev=llamadas;Check(!intento(true).Exitoso && llamadas==prev,"durante el bloqueo no se evalúan credenciales correctas");
-        // Every account in this database is a disposable copy. Expire this test row only.
+
         string key;using(var sha=System.Security.Cryptography.SHA256.Create())key=BitConverter.ToString(sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(email))).Replace("-","");
         Sql("UPDATE dbo.IntentoAcceso SET bloqueadoHasta=DATEADD(SECOND,-1,SYSUTCDATETIME()) WHERE cuenta='"+key+"'");
         Check(intento(true).Exitoso,"al vencer el bloqueo vuelve a permitirse el acceso");

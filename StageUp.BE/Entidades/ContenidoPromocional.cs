@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
@@ -31,7 +31,6 @@ namespace StageUp.BE.Entidades
         public DateTime FechaUltimaModificacion { get; set; }
         public DateTime? FechaBaja { get; set; }
         public bool Activo { get; set; }
-
 
         public bool QuitarArchivo { get; set; }
 
@@ -77,7 +76,6 @@ namespace StageUp.BE.Entidades
         public int Desactualizados { get; set; }
         public int Bajas { get; set; }
     }
-
 
     public class ArchivoPromocional
     {

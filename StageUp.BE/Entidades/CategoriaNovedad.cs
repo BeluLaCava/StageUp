@@ -1,8 +1,7 @@
-using System;
+﻿using System;
 
 namespace StageUp.BE.Entidades
 {
-
 
     public class CategoriaNovedad
     {
@@ -12,7 +11,6 @@ namespace StageUp.BE.Entidades
         public bool Activa { get; set; } = true;
         public DateTime FechaAlta { get; set; }
         public DateTime? FechaUltimaModificacion { get; set; }
-
 
         public int CantidadNovedades { get; set; }
         public int CantidadSuscriptores { get; set; }

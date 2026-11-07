@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -30,8 +30,6 @@ namespace StageUp.MPP
             }
             return parametros;
         }
-
-
 
         public List<CambioParametroPlataforma> GuardarCambios(IDictionary<string, string> valores, DateTime? fechaVigencia, int idUsuarioInterno)
         {
@@ -78,8 +76,6 @@ namespace StageUp.MPP
             }
             return cambios;
         }
-
-
 
         public Dictionary<string, string> ObtenerValoresAl(DateTime fecha)
         {

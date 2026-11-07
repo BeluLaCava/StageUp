@@ -1,9 +1,9 @@
-param(
+﻿param(
     [Parameter(Mandatory=$true)][ValidatePattern('^StageUp_Beta2_QA_[A-Za-z0-9_]+$')][string]$Database,
     [string]$ServerInstance = 'localhost'
 )
 $ErrorActionPreference='Stop'
-# Requires a disposable copy of StageUp with migration 90 applied. No external mail.
+
 $repo=Split-Path $PSScriptRoot -Parent
 $bin=Join-Path $repo 'StageUp.UI\bin'
 $salida=Join-Path ([IO.Path]::GetTempPath()) ('StageUp_Beta2_Tests_'+[guid]::NewGuid().ToString('N'))

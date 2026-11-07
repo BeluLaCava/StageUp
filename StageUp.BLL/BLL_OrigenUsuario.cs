@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -8,11 +8,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
 
     public class BLL_OrigenUsuario
     {
@@ -46,7 +41,6 @@ namespace StageUp.BLL
             }
         }
 
-
         public OrigenUsuario ObtenerPorCodigo(string codigo)
         {
             string normalizado = (codigo ?? string.Empty).Trim().ToLowerInvariant();
@@ -65,7 +59,6 @@ namespace StageUp.BLL
                 return null;
             }
         }
-
 
         public List<OrigenUsuario> ListarParaRegistro()
         {
@@ -185,8 +178,6 @@ namespace StageUp.BLL
                 ? "El origen volvió a estar disponible."
                 : "El origen se dio de baja: deja de ofrecerse en el registro y en los formularios, y los usuarios que llegaron por él se siguen contando.");
         }
-
-
 
         public void AsignarAlRegistrarse(int idUsuarioExterno, string codigoEnlace, int? idOrigenElegido)
         {

@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -20,7 +20,6 @@ BEGIN
         ADD avisoFinalizacionEnviado BIT NOT NULL
             CONSTRAINT DF_Reserva_avisoFinalizacionEnviado DEFAULT (0);
 
-    -- Dinámico porque la columna recién se agregó en este mismo lote.
     EXEC (N'UPDATE dbo.Reserva SET avisoFinalizacionEnviado = 1 WHERE estadoReserva = N''Finalizada'';');
 END
 GO
@@ -58,8 +57,6 @@ BEGIN
 END
 GO
 
--- El recordatorio de 24 hs ahora también sale por mail: se agregan al listado
--- los datos de importe que usa la plantilla (mismas columnas que antes + 3).
 IF OBJECT_ID('dbo.sp_Reserva_ListarPendientesDeRecordatorio', 'P') IS NOT NULL
     DROP PROCEDURE dbo.sp_Reserva_ListarPendientesDeRecordatorio;
 GO

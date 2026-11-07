@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -6,7 +6,6 @@ GO
 
 USE StageUp;
 GO
-
 
 IF OBJECT_ID('dbo.sp_EspacioArtistico_BuscarPublicados', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EspacioArtistico_BuscarPublicados;
 GO
@@ -97,13 +96,7 @@ BEGIN
                     )
                 )
                 AND (
-                    -- Ítem 27: además de las reservas ya existentes, hay que
-                    -- descontar las franjas bloqueadas por una actividad del
-                    -- propio gestor (FranjaEspacio.bloqueado = 1). Se resuelve
-                    -- la fecha puntual vs. el día de semana recurrente de
-                    -- forma independiente de la disponibilidad publicada,
-                    -- porque un bloqueo puede tener su propia excepción de
-                    -- fecha distinta de la de la disponibilidad.
+
                     @minutoDesde IS NULL OR @minutoHasta IS NULL
                     OR NOT EXISTS (
                         SELECT 1 FROM dbo.FranjaEspacio fb

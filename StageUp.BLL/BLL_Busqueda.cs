@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using StageUp.BE.Entidades;
@@ -7,21 +7,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     public class BLL_Busqueda
     {
@@ -45,12 +30,10 @@ namespace StageUp.BLL
             { FiltroBusquedaGlobal.OrdenAlfabetico, "Alfabético" }
         };
 
-
         public static Dictionary<string, string> CategoriasNovedad
         {
             get { return BLL_CategoriaNovedad.ObtenerEtiquetas(); }
         }
-
 
         private static readonly Dictionary<string, Dictionary<string, string>> EstadosPorTipo = new Dictionary<string, Dictionary<string, string>>
         {
@@ -94,7 +77,6 @@ namespace StageUp.BLL
         private readonly MPP_Busqueda _mpp = new MPP_Busqueda();
         private readonly BLL_PermisoInterno _bllPermiso = new BLL_PermisoInterno();
 
-
         public static Dictionary<string, string> ObtenerTiposPublicos()
         {
             return TiposPublicos.ToDictionary(t => t.Codigo, t => t.Etiqueta);
@@ -107,8 +89,6 @@ namespace StageUp.BLL
                 .Where(t => permisos.Contains(t.PermisoRequerido))
                 .ToDictionary(t => t.Codigo, t => t.Etiqueta);
         }
-
-
 
         public Dictionary<string, string> ObtenerEstadosInternosPermitidos(int idRolInterno)
         {
@@ -189,8 +169,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
         private static List<string> FiltrarTipos(IEnumerable<string> pedidos, List<string> permitidos)
         {
             List<string> listaPedida = pedidos == null ? new List<string>() : pedidos.Distinct().ToList();
@@ -199,12 +177,8 @@ namespace StageUp.BLL
                 return new List<string>(permitidos);
             }
 
-
             return listaPedida.Where(permitidos.Contains).ToList();
         }
-
-
-
 
         private static ResultadoOperacion ValidarFiltro(FiltroBusquedaGlobal pedido, List<string> permitidos, bool esInterna,
             List<TipoBusqueda> catalogoTipos, out FiltroBusquedaGlobal filtro)
@@ -339,7 +313,6 @@ namespace StageUp.BLL
 
             limpio.Tipos = FiltrarTipos(pedido.Tipos, permitidos);
 
-
             if (limpio.Estado != null)
             {
                 string[] partes = limpio.Estado.Split('|');
@@ -358,14 +331,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error("Elegí al menos un tipo de contenido que puedas buscar.");
             }
-
-
-
-
-
-
-
-
 
             List<KeyValuePair<string, List<string>>> especificos = new List<KeyValuePair<string, List<string>>>();
             if (limpio.CapacidadMinima.HasValue || limpio.PrecioMinimo.HasValue || limpio.PrecioMaximo.HasValue ||
@@ -485,7 +450,6 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("La búsqueda no puede superar los " + LongitudMaximaTexto + " caracteres.");
             }
 
-
             textoNormalizado = EscaparLike(textoNormalizado);
             return ResultadoOperacion.Ok();
         }
@@ -538,7 +502,6 @@ namespace StageUp.BLL
             {
                 case "UsuarioExterno": return "~/Interno/AprobacionGestores.aspx";
                 case "UsuarioInterno": return "~/Interno/GestionUsuariosInternos.aspx";
-
 
                 case "Espacio": return UrlDetalleEspacioInterno + resultado.IdReferencia;
                 case "Ticket": return "~/Interno/GestionSoporte.aspx?ver=" + resultado.IdReferencia;

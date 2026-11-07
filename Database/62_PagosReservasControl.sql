@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -13,14 +13,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-002-001: el pago guarda también lo que informa el medio de pago
--- (identificador de la operación, medio, estado informado y fecha), de dónde
--- vino (StageUp o aviso del medio externo) y una observación para el control
--- administrativo. Nuevos estados: Pendiente (el medio lo informó pendiente),
--- Anulado (cancelado), Observado (información incompleta, A1) y NoAsociado
--- (no se encontró la reserva, A2). Estos dos últimos pueden no tener usuario.
--- ---------------------------------------------------------------------------
 IF COL_LENGTH(N'dbo.Pago', N'origen') IS NULL
     ALTER TABLE dbo.Pago ADD origen NVARCHAR(20) NOT NULL CONSTRAINT DF_Pago_origen DEFAULT (N'StageUp');
 GO
@@ -78,8 +70,6 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Pago_Identificador' A
     CREATE INDEX IX_Pago_Identificador ON dbo.Pago (identificadorExterno) WHERE identificadorExterno IS NOT NULL;
 GO
 
--- Los pagos aprobados anteriores toman como identificador el código de
--- autorización (o uno propio de StageUp si se pagó solo con saldo).
 UPDATE dbo.Pago
 SET identificadorExterno = ISNULL(codigoAutorizacion, N'STU-' + RIGHT(N'00000000' + CAST(idPago AS NVARCHAR(10)), 8)),
     medioInformado = CASE WHEN importeTarjeta > 0 AND importeSaldo > 0 THEN N'Tarjeta y saldo a favor'
@@ -89,11 +79,6 @@ SET identificadorExterno = ISNULL(codigoAutorizacion, N'STU-' + RIGHT(N'00000000
 WHERE identificadorExterno IS NULL AND estado IN (N'Aprobado', N'Rechazado');
 GO
 
--- ---------------------------------------------------------------------------
--- Factura simulada del pago aprobado (FC): se emite con cada pago de reserva
--- aprobado. No genera movimientos de cuenta corriente (el cargo y el pago ya
--- los registra el pago) y no se puede anular.
--- ---------------------------------------------------------------------------
 IF COL_LENGTH(N'dbo.Comprobante', N'idPago') IS NULL
     ALTER TABLE dbo.Comprobante ADD idPago INT NULL
         CONSTRAINT FK_Comprobante_Pago FOREIGN KEY REFERENCES dbo.Pago (idPago);
@@ -113,7 +98,6 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_Comprobante_FacturaPa
     EXEC (N'CREATE UNIQUE INDEX UX_Comprobante_FacturaPago ON dbo.Comprobante (idPago) WHERE tipo = N''FC'' AND idPago IS NOT NULL');
 GO
 
--- Facturas de los pagos de reserva aprobados antes de este script.
 INSERT INTO dbo.Comprobante (tipo, idUsuarioExterno, rolCuenta, idReserva, importe, moneda, origen, motivo, fechaEmision, idPago)
 SELECT N'FC', p.idUsuarioExterno, N'Cliente', p.idReserva, p.importeTotal, p.moneda, N'PagoReserva',
        N'Factura simulada del pago de la reserva N° ' + CAST(p.idReserva AS NVARCHAR(10)) + N' (' + e.nombreEspacio + N').',
@@ -125,13 +109,6 @@ WHERE p.estado = N'Aprobado' AND p.concepto = N'Reserva' AND p.idUsuarioExterno 
   AND NOT EXISTS (SELECT 1 FROM dbo.Comprobante c WHERE c.idPago = p.idPago AND c.tipo = N'FC');
 GO
 
--- ---------------------------------------------------------------------------
--- Registro del pago aprobado de una reserva (redefinido): además de los
--- movimientos, guarda lo que informa el medio de pago y emite la factura
--- simulada (FC). Si viene @idPagoPendiente (un aviso anterior del medio
--- externo en estado Pendiente), se confirma ese mismo pago en lugar de crear
--- otro.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Pago_RegistrarReserva', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Pago_RegistrarReserva;
 GO
 CREATE PROCEDURE dbo.sp_Pago_RegistrarReserva
@@ -249,8 +226,6 @@ BEGIN
             WHERE idPago = @idPago AND identificadorExterno IS NULL;
         END
 
-        -- Cliente: el cargo de la reserva y lo que pagó con tarjeta (lo
-        -- cubierto con saldo a favor lo descuenta el propio cargo).
         INSERT INTO dbo.MovimientoCuentaCorriente (idUsuarioExterno, rolCuenta, tipoMovimiento, importe, moneda, descripcion, idReserva, idPago)
         VALUES (@idUsuarioExterno, N'Cliente', N'CargoReserva', -@total, @moneda,
                 N'Cargo por la ' + @textoReserva +
@@ -267,7 +242,6 @@ BEGIN
                     @idReserva, @idPago);
         END
 
-        -- Gestor: el importe de la reserva menos la comisión de StageUp.
         INSERT INTO dbo.MovimientoCuentaCorriente (idUsuarioExterno, rolCuenta, tipoMovimiento, importe, moneda, descripcion, idReserva, idPago)
         VALUES (@idGestor, N'Gestor', N'IngresoReserva', @total, @moneda, N'Ingreso por la ' + @textoReserva, @idReserva, @idPago);
 
@@ -279,7 +253,6 @@ BEGIN
                     @idReserva, @idPago);
         END
 
-        -- Factura simulada del pago.
         INSERT INTO dbo.Comprobante (tipo, idUsuarioExterno, rolCuenta, idReserva, importe, moneda, origen, motivo, idPago)
         VALUES (N'FC', @idUsuarioExterno, N'Cliente', @idReserva, @total, @moneda, N'PagoReserva',
                 N'Factura simulada del pago de la ' + @textoReserva + N'.', @idPago);
@@ -299,12 +272,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-002-001 pasos 1 a 9 y A1 a A5: aviso del medio de pago externo que no
--- confirma un pago (pendiente, rechazado/fallido, cancelado) o que no se pudo
--- asociar (información incompleta u operación inexistente). Si ya hay un pago
--- pendiente con el mismo identificador, se actualiza ese mismo.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Pago_RegistrarAviso', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Pago_RegistrarAviso;
 GO
 CREATE PROCEDURE dbo.sp_Pago_RegistrarAviso
@@ -368,8 +335,6 @@ BEGIN
 END
 GO
 
--- Pagos ya registrados con un identificador del medio de pago (para no
--- registrar dos veces el mismo aviso y para confirmar uno pendiente).
 IF OBJECT_ID('dbo.sp_Pago_BuscarPorIdentificador', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Pago_BuscarPorIdentificador;
 GO
 CREATE PROCEDURE dbo.sp_Pago_BuscarPorIdentificador
@@ -384,12 +349,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-002-001 A6: listado de "Pagos de reservas". Además de los pagos
--- registrados, muestra como pendientes las reservas aceptadas que esperan el
--- pago y como canceladas las que vencieron sin pagarse. @grupo: Todos,
--- Pendiente, Confirmado, Fallido, Cancelado, EnRevision.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Pago_ListarAdministracion', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Pago_ListarAdministracion;
 GO
 CREATE PROCEDURE dbo.sp_Pago_ListarAdministracion
@@ -451,7 +410,6 @@ BEGIN
 END
 GO
 
--- Cantidad de pagos sin filtros (para distinguir A8 de A9).
 IF OBJECT_ID('dbo.sp_Pago_ContarAdministracion', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Pago_ContarAdministracion;
 GO
 CREATE PROCEDURE dbo.sp_Pago_ContarAdministracion
@@ -465,11 +423,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-002-001 A6 pasos 9 y 10: detalle del pago (o de la reserva que espera el
--- pago, si todavía no hay un pago registrado) con la reserva, el espacio, el
--- solicitante, el gestor, la comisión y la factura simulada.
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Pago_ObtenerDetalle', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Pago_ObtenerDetalle;
 GO
 CREATE PROCEDURE dbo.sp_Pago_ObtenerDetalle
@@ -528,8 +481,6 @@ BEGIN
 END
 GO
 
--- Pago aprobado (con su factura) de una reserva, para el detalle que ven el
--- solicitante y el gestor.
 IF OBJECT_ID('dbo.sp_Pago_ObtenerAprobadoPorReserva', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Pago_ObtenerAprobadoPorReserva;
 GO
 CREATE PROCEDURE dbo.sp_Pago_ObtenerAprobadoPorReserva
@@ -543,9 +494,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- Permiso y opción de menú "Pagos de reservas" (CU-002-001 A6 y A7).
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('tempdb..#RegistrarPermisoAdministracion') IS NOT NULL DROP PROCEDURE #RegistrarPermisoAdministracion;
 GO
 CREATE PROCEDURE #RegistrarPermisoAdministracion
@@ -706,7 +654,6 @@ BEGIN
             END
         END
 
-        -- Opción del menú dinámico (script 45), al final del menú.
         IF OBJECT_ID(N'dbo.OpcionMenu', N'U') IS NOT NULL
            AND @idComponente IS NOT NULL
            AND NOT EXISTS (SELECT 1 FROM dbo.OpcionMenu WHERE idComponentePermiso = @idComponente)

@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -7,24 +7,6 @@ GO
 USE StageUp;
 GO
 
--- =============================================================================
--- 09_FichaEspacio.sql
--- ADVERTENCIA: SCRIPT INICIAL DESTRUCTIVO (contiene DROP TABLE).
---
--- Sirve para armar la base desde cero. NO debe ejecutarse a mano sobre una base
--- con datos: borraría estas tablas y todo su contenido: FichaEspacio, FichaEspacioEquipamiento, FranjaEspacio.
--- El flujo normal de instalación y actualización es Database/EjecutarTodosLosScripts.ps1,
--- que usa dbo._ScriptsEjecutados y nunca vuelve a correr un script ya aplicado.
--- Ver Database/LEEME_Scripts.md.
---
--- Protección: si alguna de esas tablas ya tiene filas, el script se detiene acá
--- con un error y no ejecuta nada más (SET NOEXEC ON). En una base nueva las tablas
--- no existen o están vacías, así que sigue normalmente.
--- Nota (cascada FichaEspacio -> FranjaEspacio): el ON DELETE CASCADE sigue
--- existiendo como regla de integridad, pero desde el script 41 la aplicación ya no
--- borra la ficha al guardarla (sp_FichaEspacio_Guardar hace UPDATE), así que
--- guardar desde "Mis espacios" nunca elimina bloqueos generados por actividades.
--- =============================================================================
 IF EXISTS
 (
     SELECT 1
@@ -106,7 +88,6 @@ CREATE TABLE dbo.FranjaEspacio
 );
 GO
 
-
 IF OBJECT_ID('dbo.sp_FichaEspacio_EliminarPorEspacio', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_FichaEspacio_EliminarPorEspacio;
 GO
 CREATE PROCEDURE dbo.sp_FichaEspacio_EliminarPorEspacio
@@ -152,7 +133,6 @@ BEGIN
     END CATCH
 END
 GO
-
 
 IF OBJECT_ID('dbo.sp_FichaEspacioEquipamiento_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_FichaEspacioEquipamiento_Insertar;
 GO
@@ -213,7 +193,6 @@ BEGIN
       AND e.publicado = 1;
 END
 GO
-
 
 IF OBJECT_ID('dbo.sp_FranjaEspacio_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_FranjaEspacio_Insertar;
 GO
@@ -279,7 +258,6 @@ BEGIN
 END
 GO
 
-
 IF OBJECT_ID('dbo.sp_EspacioArtistico_ObtenerPorIdV2', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_EspacioArtistico_ObtenerPorIdV2;
 GO
 CREATE PROCEDURE dbo.sp_EspacioArtistico_ObtenerPorIdV2
@@ -334,6 +312,5 @@ BEGIN
 END
 GO
 
--- Deja la sesión como estaba si la protección de arriba frenó el script.
 SET NOEXEC OFF;
 GO

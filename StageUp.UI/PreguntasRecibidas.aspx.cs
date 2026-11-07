@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,8 +11,6 @@ using StageUp.Seguridad;
 
 namespace StageUp.UI
 {
-
-
 
     public partial class PreguntasRecibidas : Page
     {
@@ -53,7 +51,6 @@ namespace StageUp.UI
             ddlEstado.Items.Add(new ListItem("Ocultas", PreguntaEspacio.EstadoOculta));
             ddlEstado.Items.Add(new ListItem("Todas", string.Empty));
 
-
             ddlEspacio.Items.Add(new ListItem("Todos", string.Empty));
             ResultadoOperacion<List<PreguntaEspacio>> todas = _bll.ListarParaGestor(IdGestor, null, null);
             if (todas.Exitoso)
@@ -62,7 +59,6 @@ namespace StageUp.UI
                 {
                     ddlEspacio.Items.Add(new ListItem(espacio.NombreEspacio, espacio.IdEspacioArtistico.ToString(CultureInfo.InvariantCulture)));
                 }
-
 
                 string idEspacio = Request.QueryString["espacio"];
                 if (!string.IsNullOrEmpty(idEspacio) && ddlEspacio.Items.FindByValue(idEspacio) != null)
@@ -122,7 +118,6 @@ namespace StageUp.UI
             }
 
             Cargar();
-
 
             if (escrito != null)
             {

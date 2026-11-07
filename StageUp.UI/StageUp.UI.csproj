@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.props" Condition="Exists('$(MSBuildToolsPath)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -36,6 +36,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="DetalleComprobante.aspx" />
+    <Content Include="Content\Css\comprobante.css" />
+    <Compile Include="DetalleComprobante.aspx.cs"><DependentUpon>DetalleComprobante.aspx</DependentUpon><SubType>ASPXCodeBehind</SubType></Compile>
+    <Compile Include="DetalleComprobante.aspx.designer.cs"><DependentUpon>DetalleComprobante.aspx</DependentUpon></Compile>
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
@@ -652,8 +658,7 @@
     <Content Include="Content\Images\Espacios\estudio-fotografico-ia.png" />
     <Content Include="Site.Master" />
     <Content Include="Web.config" />
-    <!-- AppSettings.private.config tiene secretos reales: esta en .gitignore y no se versiona.
-         La condicion evita que Visual Studio lo marque como faltante en un clon limpio. -->
+
     <Content Include="AppSettings.private.config" Condition="Exists('AppSettings.private.config')" />
     <None Include="AppSettings.private.config.example" />
   </ItemGroup>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Web;
 using System.Web.Configuration;
@@ -40,15 +40,12 @@ namespace StageUp.UI
         protected void Page_Load(object sender, EventArgs e)
         {
 
-
             if (!IsPostBack && Request.QueryString["motivo"] == "cuenta_interna_inactiva")
             {
                 MostrarMensaje(pnlMensajeLogin, litMensajeLogin,
                     "Tu cuenta interna fue dada de baja o desactivada, por eso se cerró la sesión. Si creés que es un error, consultalo con un administrador de StageUp.",
                     esError: true);
             }
-
-
 
             if (!IsPostBack && Request.QueryString["motivo"] == ControlSesionBaseDatos.MotivoCierre)
             {
@@ -64,13 +61,6 @@ namespace StageUp.UI
             {
                 return;
             }
-
-
-
-
-
-
-
 
             ResultadoInicioSesion resultado = _bllAutenticacion.IniciarSesion(
                 txtLoginEmail.Text,

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,13 +9,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
 
     public class BLL_CategoriaNovedad
     {
@@ -30,7 +23,6 @@ namespace StageUp.BLL
 
         private readonly MPP_CategoriaNovedad _mpp = new MPP_CategoriaNovedad();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
-
 
         public static List<CategoriaNovedad> ListarTodas()
         {
@@ -58,7 +50,6 @@ namespace StageUp.BLL
         {
             return ListarTodas().Where(c => c.Activa).ToList();
         }
-
 
         public static Dictionary<string, string> ObtenerEtiquetas()
         {
@@ -93,7 +84,6 @@ namespace StageUp.BLL
                 ListarTodas().Any(c => string.Equals(c.Codigo, codigo, StringComparison.OrdinalIgnoreCase));
         }
 
-
         public static string NormalizarCodigo(string codigo)
         {
             if (string.IsNullOrWhiteSpace(codigo))
@@ -105,16 +95,15 @@ namespace StageUp.BLL
             return categoria == null ? null : categoria.Codigo;
         }
 
-
         public List<CategoriaNovedad> ListarParaAdministrar()
         {
             try
             {
                 return _mpp.Listar(false);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<CategoriaNovedad>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -211,8 +200,6 @@ namespace StageUp.BLL
                 _cache = null;
             }
         }
-
-
 
         public static string GenerarCodigo(string nombre, IEnumerable<string> existentes)
         {

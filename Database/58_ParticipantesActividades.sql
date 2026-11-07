@@ -1,4 +1,4 @@
-IF DB_ID(N'StageUp') IS NULL
+﻿IF DB_ID(N'StageUp') IS NULL
 BEGIN
     CREATE DATABASE StageUp;
 END
@@ -13,11 +13,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- CU-001-010: datos de contacto del participante y fechas de modificación y
--- baja. El DNI y el correo no se pueden repetir entre los participantes
--- ACTIVOS del gestor (un participante dado de baja no bloquea su DNI).
--- ---------------------------------------------------------------------------
 IF COL_LENGTH(N'dbo.Participante', N'correo') IS NULL
     ALTER TABLE dbo.Participante ADD correo NVARCHAR(254) NULL;
 GO
@@ -43,10 +38,6 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_Participante_CorreoAc
         ON dbo.Participante (idUsuarioGestor, correo) WHERE activo = 1 AND correo IS NOT NULL;
 GO
 
--- ---------------------------------------------------------------------------
--- La asociación con una actividad pasa a ser lógica: desvincular no borra la
--- fila, la marca como inactiva con su fecha (historial de asociaciones).
--- ---------------------------------------------------------------------------
 IF COL_LENGTH(N'dbo.ActividadParticipante', N'activa') IS NULL
     ALTER TABLE dbo.ActividadParticipante ADD activa BIT NOT NULL
         CONSTRAINT DF_ActividadParticipante_activa DEFAULT (1);
@@ -55,9 +46,6 @@ IF COL_LENGTH(N'dbo.ActividadParticipante', N'fechaDesvinculacion') IS NULL
     ALTER TABLE dbo.ActividadParticipante ADD fechaDesvinculacion DATETIME NULL;
 GO
 
--- ---------------------------------------------------------------------------
--- Participante
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_Participante_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Participante_Insertar;
 GO
 CREATE PROCEDURE dbo.sp_Participante_Insertar
@@ -164,13 +152,11 @@ BEGIN
 END
 GO
 
--- Listado de la solapa Participantes con filtro de estado y búsqueda por
--- nombre, apellido, DNI o correo (el filtro se aplica en la consulta).
 IF OBJECT_ID('dbo.sp_Participante_Buscar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Participante_Buscar;
 GO
 CREATE PROCEDURE dbo.sp_Participante_Buscar
     @idUsuarioGestor INT,
-    @estado          NVARCHAR(20)  = N'Activos',   -- Activos | Inactivos | Todos
+    @estado          NVARCHAR(20)  = N'Activos',
     @texto           NVARCHAR(100) = NULL
 AS
 BEGIN
@@ -192,7 +178,6 @@ BEGIN
 END
 GO
 
--- Otro participante ACTIVO del gestor con el mismo DNI o el mismo correo.
 IF OBJECT_ID('dbo.sp_Participante_BuscarDuplicado', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_Participante_BuscarDuplicado;
 GO
 CREATE PROCEDURE dbo.sp_Participante_BuscarDuplicado
@@ -215,9 +200,6 @@ BEGIN
 END
 GO
 
--- ---------------------------------------------------------------------------
--- ActividadParticipante (asociación lógica)
--- ---------------------------------------------------------------------------
 IF OBJECT_ID('dbo.sp_ActividadParticipante_Insertar', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ActividadParticipante_Insertar;
 GO
 CREATE PROCEDURE dbo.sp_ActividadParticipante_Insertar
@@ -229,7 +211,7 @@ BEGIN
     BEGIN TRY
         IF EXISTS (SELECT 1 FROM dbo.ActividadParticipante WHERE idActividad = @idActividad AND idParticipante = @idParticipante)
         BEGIN
-            -- Se vuelve a asociar a alguien que había sido desvinculado.
+
             UPDATE dbo.ActividadParticipante
             SET activa = 1,
                 fechaAsociacion = CASE WHEN activa = 1 THEN fechaAsociacion ELSE GETDATE() END,
@@ -305,8 +287,6 @@ BEGIN
 END
 GO
 
--- Actividades del participante: las vigentes y el historial (desvinculadas o
--- de actividades dadas de baja).
 IF OBJECT_ID('dbo.sp_ActividadParticipante_ListarPorParticipante', 'P') IS NOT NULL DROP PROCEDURE dbo.sp_ActividadParticipante_ListarPorParticipante;
 GO
 CREATE PROCEDURE dbo.sp_ActividadParticipante_ListarPorParticipante

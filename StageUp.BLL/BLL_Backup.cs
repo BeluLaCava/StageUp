@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using StageUp.BE.Entidades;
@@ -7,20 +7,6 @@ using StageUp.MPP;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     public class BLL_Backup
     {
@@ -37,9 +23,9 @@ namespace StageUp.BLL
             {
                 return _mpp.ListarHistorial();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<BackupBaseDatos>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -118,8 +104,6 @@ namespace StageUp.BLL
                     (seguridad != null ? seguridad.NombreArchivo : "un backup de seguridad") + ". " + ex.Message);
             }
 
-
-
             BLL_SesionBaseDatos.RegistrarRestauracion();
 
             try
@@ -131,7 +115,6 @@ namespace StageUp.BLL
             }
             catch (Exception)
             {
-
 
             }
 

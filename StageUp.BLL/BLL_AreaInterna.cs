@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using StageUp.BE.Entidades;
 using StageUp.DAL;
 using StageUp.MPP;
@@ -15,9 +15,9 @@ namespace StageUp.BLL
             {
                 return _mppArea.ListarActivas();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<AreaInterna>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 

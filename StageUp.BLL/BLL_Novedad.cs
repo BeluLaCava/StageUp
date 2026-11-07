@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -11,16 +11,6 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
-
-
-
 
     public class BLL_Novedad
     {
@@ -48,13 +38,6 @@ namespace StageUp.BLL
             return !string.IsNullOrEmpty(urlImagen) && FormatoImagenSubida.IsMatch(urlImagen);
         }
 
-
-
-
-
-
-
-
         public static readonly string[] DestinatariosNewsletter =
         {
             "Activos", "Gestores", "Solicitantes", "Suscriptores", "Todos"
@@ -73,9 +56,9 @@ namespace StageUp.BLL
             {
                 return _mpp.ListarPublicadas();
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Novedad>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -85,9 +68,9 @@ namespace StageUp.BLL
             {
                 return _mpp.Listar(estado);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<Novedad>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -182,8 +165,6 @@ namespace StageUp.BLL
                     return validacion;
                 }
 
-
-
                 if (urlImagenNormalizada != null && urlImagenNormalizada != actual.UrlImagen && !EsImagenSubida(urlImagenNormalizada))
                 {
                     return ResultadoOperacion.Error("La imagen no es válida. Subila de nuevo desde el formulario.");
@@ -192,7 +173,6 @@ namespace StageUp.BLL
                 DateTime? fechaPublicacionFinal = publicado
                     ? (fechaPublicacion ?? actual.FechaPublicacion ?? DateTime.Now)
                     : fechaPublicacion;
-
 
                 ResultadoOperacion vigencia = ValidarVigencia(fechaPublicacionFinal, fechaVencimiento,
                     publicado && fechaVencimiento != actual.FechaVencimiento);
@@ -294,7 +274,6 @@ namespace StageUp.BLL
             });
         }
 
-
         public ResultadoOperacion DarDeBaja(int idNovedad, int idUsuarioInternoResponsable)
         {
             return EjecutarProtegido(() =>
@@ -341,12 +320,6 @@ namespace StageUp.BLL
             });
         }
 
-
-
-
-
-
-
         public ResultadoOperacion<int> EnviarNewsletter(
             int idNovedad, string destinatarioCodigo, string urlNovedades, int idUsuarioInternoResponsable,
             string urlBaseAplicacion = null, string rutaBaseAplicacion = null)
@@ -389,9 +362,6 @@ namespace StageUp.BLL
             return Enviar(idEnvio, novedad, criterio, urlNovedades, idUsuarioInternoResponsable, urlBaseAplicacion, rutaBaseAplicacion, false);
         }
 
-
-
-
         public ResultadoOperacion<int> ReintentarNewsletter(
             int idNovedad, string urlNovedades, int idUsuarioInternoResponsable,
             string urlBaseAplicacion = null, string rutaBaseAplicacion = null)
@@ -431,9 +401,6 @@ namespace StageUp.BLL
 
             return Enviar(idEnvio.Value, novedad, envio.Criterio, urlNovedades, idUsuarioInternoResponsable, urlBaseAplicacion, rutaBaseAplicacion, true);
         }
-
-
-
 
         public ResultadoOperacion<int> ReenviarInciertos(
             int idEnvioNewsletter, string urlNovedades, int idUsuarioInternoResponsable,
@@ -479,9 +446,9 @@ namespace StageUp.BLL
             {
                 return _mppEnvio.Listar(idNovedad, maximo);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<EnvioNewsletter>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -491,9 +458,9 @@ namespace StageUp.BLL
             {
                 return _mppEnvio.ListarDestinatarios(idEnvioNewsletter);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<EnvioNewsletterDestinatario>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -537,8 +504,6 @@ namespace StageUp.BLL
                 foreach (DestinatarioNewsletter destinatario in _mppEnvio.ListarPorEnviar(idEnvio))
                 {
 
-
-
                     if (!_mppEnvio.MarcarEnviando(idEnvio, destinatario))
                     {
                         continue;
@@ -569,9 +534,6 @@ namespace StageUp.BLL
             }
             catch (ErrorAccesoDatosException)
             {
-
-
-
 
                 return ResultadoOperacion<int>.Error(
                     "El envío se interrumpió por un error de la base de datos después de " + enviadosAhora + " correo(s)." +
@@ -656,9 +618,6 @@ namespace StageUp.BLL
             return "Activos";
         }
 
-
-
-
         public ResultadoOperacion EnviarPrueba(
             string correoDestino, string nombreDestino, string titulo, string resumen, string urlNovedades,
             string urlImagen = null, string urlBaseAplicacion = null, string rutaBaseAplicacion = null)
@@ -684,7 +643,6 @@ namespace StageUp.BLL
                 ? ResultadoOperacion.Ok("Se envió el correo de prueba a " + correoDestino + ".")
                 : ResultadoOperacion.Error("No se pudo enviar el correo de prueba. Revisá la configuración de correo saliente.");
         }
-
 
         private static ResultadoOperacion ValidarVigencia(DateTime? fechaPublicacion, DateTime? fechaVencimiento, bool exigirFuturo)
         {
@@ -840,8 +798,6 @@ namespace StageUp.BLL
             {
                 return ResultadoOperacion.Error("Ingresá el contenido de la novedad.");
             }
-
-
 
             string codigo = BLL_CategoriaNovedad.NormalizarCodigo(categoriaNormalizada);
             bool esLaActual = codigo != null && string.Equals(codigo, categoriaActual, StringComparison.OrdinalIgnoreCase);

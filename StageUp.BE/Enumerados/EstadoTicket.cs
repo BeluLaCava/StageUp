@@ -1,6 +1,5 @@
-namespace StageUp.BE.Enumerados
+﻿namespace StageUp.BE.Enumerados
 {
-
 
     public enum EstadoTicket
     {

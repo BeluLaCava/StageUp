@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,14 +11,6 @@ using StageUp.BLL;
 
 namespace StageUp.UI
 {
-
-
-
-
-
-
-
-
 
     public partial class Newsletter : Page
     {
@@ -185,7 +177,6 @@ namespace StageUp.UI
         {
             return new Uri(Request.Url, ResolveUrl("~/")).ToString();
         }
-
 
         private void MostrarSolo(Panel visible)
         {

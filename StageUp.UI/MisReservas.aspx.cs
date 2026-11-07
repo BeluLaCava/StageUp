@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Web.UI;
@@ -32,6 +32,14 @@ namespace StageUp.UI
             {
                 CargarFiltrosHistorial();
                 CargarMisReservas();
+                if (Request.QueryString["calificar"] != null)
+                {
+                    int idReserva;
+                    if (int.TryParse(Request.QueryString["calificar"], out idReserva) && idReserva > 0)
+                        AbrirCalificacion(idReserva);
+                    else
+                        MostrarMensaje("La reserva indicada no es válida.", true);
+                }
             }
         }
 
@@ -53,16 +61,32 @@ namespace StageUp.UI
             ddlFiltroHistorial.Items.Add(new ListItem("Canceladas", BLL_Reserva.FiltroCanceladas));
         }
 
+        private void AbrirCalificacion(int idReserva)
+        {
+            int idUsuario = GestorDeSesion.ObtenerIdUsuarioActual().Value;
+            ResultadoOperacion<Reserva> resultado = _bllReserva.ObtenerDetalle(idReserva, idUsuario);
+            Reserva reserva = resultado.Exitoso ? resultado.Valor : null;
+            if (reserva == null || reserva.IdUsuarioExternoSolicitante != idUsuario ||
+                reserva.EstadoReserva != "Finalizada" || reserva.CalificacionEspacioRealizada)
+            {
+                MostrarMensaje("Esta reserva no está disponible para calificar desde tu cuenta.", true);
+                return;
+            }
+
+            IdReservaCalificando = idReserva;
+            ddlPuntajeEspacio.SelectedIndex = 0;
+            txtComentarioCalificacionEspacio.Text = string.Empty;
+            pnlCalificarEspacio.Visible = true;
+            ddlPuntajeEspacio.Focus();
+        }
+
         protected void rptMisReservas_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
             int idReserva = Convert.ToInt32(e.CommandArgument);
 
             if (e.CommandName == "CalificarEspacio")
             {
-                IdReservaCalificando = idReserva;
-                ddlPuntajeEspacio.SelectedIndex = 0;
-                txtComentarioCalificacionEspacio.Text = string.Empty;
-                pnlCalificarEspacio.Visible = true;
+                AbrirCalificacion(idReserva);
                 return;
             }
 
@@ -99,7 +123,6 @@ namespace StageUp.UI
                 lnkCancelar.Attributes["onclick"] =
                     "if (!StageUpConfirm.confirmPostback(this, event, '" + EscaparConfirmacion(_bllReserva.ObtenerAvisoCancelacion(reserva)) + "')) return false;";
             }
-
 
             HyperLink lnkPagar = (HyperLink)e.Item.FindControl("lnkPagar");
             bool esperaPago = BLL_Pago.EsperaPago(reserva);
@@ -168,6 +191,14 @@ namespace StageUp.UI
             {
                 CerrarCalificacion();
                 CargarMisReservas();
+                if (Request.QueryString["calificar"] != null)
+                {
+                    int idReserva;
+                    if (int.TryParse(Request.QueryString["calificar"], out idReserva) && idReserva > 0)
+                        AbrirCalificacion(idReserva);
+                    else
+                        MostrarMensaje("La reserva indicada no es válida.", true);
+                }
             }
         }
 
@@ -236,7 +267,6 @@ namespace StageUp.UI
             rptMisReservas.DataSource = reservas;
             rptMisReservas.DataBind();
         }
-
 
         private Dictionary<int, int> _mensajesNoLeidos = new Dictionary<int, int>();
 

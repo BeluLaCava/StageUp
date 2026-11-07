@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
@@ -26,8 +26,6 @@ namespace StageUp.BE.Entidades
         public decimal PromedioCalificacion { get; set; }
         public int CantidadCalificaciones { get; set; }
 
-
-
         public decimal PuntajeRanking { get; set; }
 
         public string NombreCompletoGestor
@@ -53,7 +51,6 @@ namespace StageUp.BE.Entidades
         public string TipoPiso { get; set; }
         public string DetalleEquipamiento { get; set; }
 
-
         public decimal? SuperficieM2 { get; set; }
         public decimal? AlturaM { get; set; }
         public string CondicionesUso { get; set; }
@@ -67,8 +64,6 @@ namespace StageUp.BE.Entidades
     public class FranjaEspacio
     {
 
-
-
         public int? IdFranjaEspacio { get; set; }
 
         public int? DiaSemana { get; set; }
@@ -77,13 +72,9 @@ namespace StageUp.BE.Entidades
         public int MinutoHasta { get; set; }
         public bool Bloqueado { get; set; }
 
-
-
         public string Origen { get; set; }
 
-
         public string MotivoBloqueo { get; set; }
-
 
         public int? IdActividad { get; set; }
         public string NombreActividad { get; set; }
@@ -111,8 +102,6 @@ namespace StageUp.BE.Entidades
 
         public List<string> Equipamiento { get; set; } = new List<string>();
     }
-
-
 
     public class SugerenciaPrecio
     {

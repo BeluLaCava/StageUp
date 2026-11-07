@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,16 +11,6 @@ using StageUp.Servicios;
 
 namespace StageUp.BLL
 {
-
-
-
-
-
-
-
-
-
-
 
     public class BLL_ParametroPlataforma
     {
@@ -59,7 +49,6 @@ namespace StageUp.BLL
         public const string CorreosAdministrativosRemitente = "CorreosAdministrativosRemitente";
         public const string CorreosAdministrativosResponderA = "CorreosAdministrativosResponderA";
         public const string CorreosAdministrativosCopia = "CorreosAdministrativosCopia";
-
 
         public const string GrupoComision = "Comision";
         public const string GrupoCancelacion = "Cancelacion";
@@ -157,10 +146,6 @@ namespace StageUp.BLL
         private readonly MPP_ParametroPlataforma _mpp = new MPP_ParametroPlataforma();
         private readonly BLL_Bitacora _bitacora = new BLL_Bitacora();
 
-
-
-
-
         private const int MinutosCache = 5;
         private static readonly object _lockCache = new object();
         private static List<ParametroPlataforma> _cache;
@@ -214,8 +199,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
         public static List<GrupoParametros> ObtenerGrupos()
         {
             return Grupos.ToList();
@@ -264,7 +247,6 @@ namespace StageUp.BLL
             return Definiciones.TryGetValue(clave ?? string.Empty, out definicion) && definicion.Obligatorio;
         }
 
-
         public static string FormatearValor(string clave, string valor)
         {
             DefinicionParametro definicion;
@@ -293,9 +275,6 @@ namespace StageUp.BLL
             return definicion.Unidad.Length == 0 ? valor : valor + " " + definicion.Unidad;
         }
 
-
-
-
         public List<ParametroPlataforma> Listar()
         {
             try
@@ -312,9 +291,9 @@ namespace StageUp.BLL
                 }
                 return lista;
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<ParametroPlataforma>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -324,9 +303,9 @@ namespace StageUp.BLL
             {
                 return _mpp.ListarCambios(Definiciones.ContainsKey(clave ?? string.Empty) ? clave : null);
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
-                return new List<CambioParametroPlataforma>();
+                throw new ErrorCargaListadoException(ex);
             }
         }
 
@@ -374,13 +353,10 @@ namespace StageUp.BLL
             return definicion.PorDefectoTexto ?? string.Empty;
         }
 
-
         public static string TextoEstado(string clave)
         {
             return new BLL_ParametroPlataforma().ObtenerTexto(clave);
         }
-
-
 
         public DatosFacturacion ObtenerDatosFacturacion(DateTime? fechaFactura)
         {
@@ -425,7 +401,6 @@ namespace StageUp.BLL
             return datos;
         }
 
-
         public ConfiguracionCorreoAdministrativo ObtenerConfiguracionCorreoAdministrativo()
         {
             return new ConfiguracionCorreoAdministrativo
@@ -437,17 +412,10 @@ namespace StageUp.BLL
             };
         }
 
-
-
         public ResultadoOperacion Actualizar(string clave, string valorIngresado, int idUsuarioInternoResponsable)
         {
             return GuardarCambios(new Dictionary<string, string> { { clave ?? string.Empty, valorIngresado } }, null, idUsuarioInternoResponsable);
         }
-
-
-
-
-
 
         public ResultadoOperacion GuardarCambios(IDictionary<string, string> valoresIngresados, DateTime? vigenciaDesde, int idUsuarioInternoResponsable)
         {
@@ -534,7 +502,6 @@ namespace StageUp.BLL
 
             InvalidarCache();
 
-
             foreach (CambioParametroPlataforma cambio in registrados)
             {
                 _bitacora.RegistrarInterno(
@@ -585,7 +552,6 @@ namespace StageUp.BLL
             {
                 return definicion.Nombre + ": tiene caracteres no permitidos.";
             }
-
 
             if (texto.Length == 0 && definicion.Obligatorio && definicion.Tipo != TipoParametro.SiNo)
             {
@@ -667,8 +633,6 @@ namespace StageUp.BLL
             }
         }
 
-
-
         private static string ValidarConsistenciaCancelacion(Func<string, decimal> valor)
         {
             decimal diasSinCargo = valor(DiasCancelacionSinCargo);
@@ -691,8 +655,6 @@ namespace StageUp.BLL
 
             return null;
         }
-
-
 
         private static IEnumerable<string> ValidarEstadosDuplicados(Func<string, string> valor)
         {

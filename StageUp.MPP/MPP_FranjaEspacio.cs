@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Globalization;
 using StageUp.BE.Entidades;
@@ -6,8 +6,6 @@ using StageUp.DAL;
 
 namespace StageUp.MPP
 {
-
-
 
     public class MPP_FranjaEspacio
     {
@@ -17,7 +15,6 @@ namespace StageUp.MPP
             parametros.Add("@bloqueado", oFranja.Bloqueado);
             return Convert.ToInt32(Conexion.Instance.LeerEscalar("sp_FranjaEspacio_InsertarManual", parametros), CultureInfo.InvariantCulture);
         }
-
 
         public bool ModificarManual(int idEspacioArtistico, FranjaEspacio oFranja)
         {

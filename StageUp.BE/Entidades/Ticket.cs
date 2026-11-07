@@ -1,10 +1,8 @@
-using System;
+﻿using System;
 using System.Globalization;
 
 namespace StageUp.BE.Entidades
 {
-
-
 
     public class Ticket
     {
@@ -12,15 +10,12 @@ namespace StageUp.BE.Entidades
         public int IdUsuarioExterno { get; set; }
         public int? IdReservaAsociada { get; set; }
 
-
         public string FuncionalidadVinculada { get; set; }
         public string Motivo { get; set; }
         public string Descripcion { get; set; }
         public string InformacionAdicional { get; set; }
 
-
         public string Origen { get; set; }
-
 
         public string Estado { get; set; }
         public int? IdUsuarioInternoAsignado { get; set; }
@@ -29,24 +24,17 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaResolucion { get; set; }
         public DateTime? FechaCierre { get; set; }
 
-
-
         public DateTime? FechaUltimaLecturaUsuario { get; set; }
         public DateTime? FechaUltimaLecturaSoporte { get; set; }
-
 
         public string NombreUsuarioExterno { get; set; }
         public string CorreoUsuarioExterno { get; set; }
         public string NombreUsuarioInternoAsignado { get; set; }
         public int CantidadRespuestas { get; set; }
 
-
         public int NovedadesUsuario { get; set; }
 
-
-
         public int NovedadesSoporte { get; set; }
-
 
         public string NombreEspacioReserva { get; set; }
         public DateTime? FechaReserva { get; set; }
@@ -58,7 +46,6 @@ namespace StageUp.BE.Entidades
         {
             get { return IdReservaAsociada.HasValue; }
         }
-
 
         public string Codigo
         {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace StageUp.BE.Entidades
@@ -28,7 +28,6 @@ namespace StageUp.BE.Entidades
         public DateTime? FechaCancelacion { get; set; }
         public bool RecordatorioEnviado { get; set; }
 
-
         public string EstadoPago { get; set; }
         public DateTime? FechaLimitePago { get; set; }
         public DateTime? FechaPago { get; set; }
@@ -46,8 +45,6 @@ namespace StageUp.BE.Entidades
         public bool CalificacionSolicitanteRealizada { get; set; }
         public List<Calificacion> CalificacionesSolicitante { get; set; } = new List<Calificacion>();
 
-
-
         public string TipoEspacio { get; set; }
         public string ProvinciaEspacio { get; set; }
         public string CiudadEspacio { get; set; }
@@ -56,8 +53,6 @@ namespace StageUp.BE.Entidades
         public string TipoPiso { get; set; }
         public string DetalleEquipamiento { get; set; }
     }
-
-
 
     public class PoliticaCancelacion
     {

@@ -78,45 +78,48 @@ namespace StageUp.BLL
 
             try
             {
-                ClaveCifrado clave = _claves.ObtenerActiva("Creada automáticamente al guardar la primera tarjeta en una billetera.");
-                string iv;
-                string claveCifrada;
-                string datosCifrados;
-                EncriptadorHibrido.Encriptar(numero + "\n" + ValidadorTarjeta.NormalizarTitular(datos.Titular), clave.ClavePublica,
-                    out iv, out claveCifrada, out datosCifrados);
-
-                tarjeta.Iv = iv;
-                tarjeta.ClaveCifrada = claveCifrada;
-                tarjeta.DatosCifrados = datosCifrados;
-                tarjeta.IdClaveCifrado = clave.IdClaveCifrado;
-                tarjeta.Huella = EncriptadorSimetrico.CalcularHuella(numero, "TarjetaGuardada");
-
-                int id;
-                bool quedoPreferida;
-                string resultado = _mpp.Insertar(tarjeta, MaximoTarjetas, out id, out quedoPreferida);
-                switch (resultado)
+                return Conexion.Instance.EjecutarAtomico("StageUp:Billetera:" + idUsuarioExterno, () =>
                 {
-                    case "REPETIDA":
-                        return ResultadoOperacion<TarjetaGuardada>.Error("Esa tarjeta ya está en tu billetera.");
-                    case "ALIAS_REPETIDO":
-                        return ResultadoOperacion<TarjetaGuardada>.Error("Ya tenés una tarjeta con el alias \"" + aliasFinal + "\". Elegí otro.");
-                    case "LIMITE":
-                        return ResultadoOperacion<TarjetaGuardada>.Error(
-                            "Podés guardar hasta " + MaximoTarjetas + " tarjetas. Eliminá alguna para agregar otra.");
-                }
+                    ClaveCifrado clave = _claves.ObtenerActiva("Creada automáticamente al guardar la primera tarjeta en una billetera.");
+                    string iv;
+                    string claveCifrada;
+                    string datosCifrados;
+                    EncriptadorHibrido.Encriptar(numero + "\n" + ValidadorTarjeta.NormalizarTitular(datos.Titular), clave.ClavePublica,
+                        out iv, out claveCifrada, out datosCifrados);
 
-                tarjeta.IdTarjetaGuardada = id;
-                tarjeta.Preferida = quedoPreferida;
-                _bitacora.Registrar(idUsuarioExterno, "ALTA", "TarjetaGuardada", id,
-                    "Guardó en su billetera la tarjeta " + tarjeta.Marca + " terminada en " + tarjeta.UltimosDigitos +
-                    " (alias \"" + aliasFinal + "\"" + (quedoPreferida ? ", preferida" : string.Empty) + "), cifrada con la clave versión " + clave.Version + ".");
+                    tarjeta.Iv = iv;
+                    tarjeta.ClaveCifrada = claveCifrada;
+                    tarjeta.DatosCifrados = datosCifrados;
+                    tarjeta.IdClaveCifrado = clave.IdClaveCifrado;
+                    tarjeta.Huella = EncriptadorSimetrico.CalcularHuella(numero, "TarjetaGuardada");
 
-                tarjeta.Iv = null;
-                tarjeta.ClaveCifrada = null;
-                tarjeta.DatosCifrados = null;
-                tarjeta.Huella = null;
-                return ResultadoOperacion<TarjetaGuardada>.Ok(tarjeta,
-                    "Guardamos la tarjeta " + tarjeta.Marca + " terminada en " + tarjeta.UltimosDigitos + " en tu billetera.");
+                    int id;
+                    bool quedoPreferida;
+                    string resultado = _mpp.Insertar(tarjeta, MaximoTarjetas, out id, out quedoPreferida);
+                    switch (resultado)
+                    {
+                        case "REPETIDA":
+                            return ResultadoOperacion<TarjetaGuardada>.Error("Esa tarjeta ya está en tu billetera.");
+                        case "ALIAS_REPETIDO":
+                            return ResultadoOperacion<TarjetaGuardada>.Error("Ya tenés una tarjeta con el alias \"" + aliasFinal + "\". Elegí otro.");
+                        case "LIMITE":
+                            return ResultadoOperacion<TarjetaGuardada>.Error(
+                                "Podés guardar hasta " + MaximoTarjetas + " tarjetas. Eliminá alguna para agregar otra.");
+                    }
+
+                    tarjeta.IdTarjetaGuardada = id;
+                    tarjeta.Preferida = quedoPreferida;
+                    _bitacora.Registrar(idUsuarioExterno, "ALTA", "TarjetaGuardada", id,
+                        "Guardó en su billetera la tarjeta " + tarjeta.Marca + " terminada en " + tarjeta.UltimosDigitos +
+                        " (alias \"" + aliasFinal + "\"" + (quedoPreferida ? ", preferida" : string.Empty) + "), cifrada con la clave versión " + clave.Version + ".");
+
+                    tarjeta.Iv = null;
+                    tarjeta.ClaveCifrada = null;
+                    tarjeta.DatosCifrados = null;
+                    tarjeta.Huella = null;
+                    return ResultadoOperacion<TarjetaGuardada>.Ok(tarjeta,
+                        "Guardamos la tarjeta " + tarjeta.Marca + " terminada en " + tarjeta.UltimosDigitos + " en tu billetera.");
+                }, resultadoOperacion => resultadoOperacion.Exitoso);
             }
             catch (Exception ex) when (ex is ErrorAccesoDatosException || ex is InvalidOperationException || ex is CryptographicException)
             {
@@ -135,25 +138,28 @@ namespace StageUp.BLL
 
             try
             {
-                string resultado = _mpp.CambiarAlias(new TarjetaGuardada
+                return Conexion.Instance.EjecutarAtomico("StageUp:Billetera:" + idUsuarioExterno, () =>
                 {
-                    IdTarjetaGuardada = idTarjetaGuardada,
-                    IdUsuarioExterno = idUsuarioExterno,
-                    Alias = aliasFinal
-                });
-                if (resultado == "ALIAS_REPETIDO")
-                {
-                    return ResultadoOperacion.Error("Ya tenés una tarjeta con el alias \"" + aliasFinal + "\". Elegí otro.");
-                }
+                    string resultado = _mpp.CambiarAlias(new TarjetaGuardada
+                    {
+                        IdTarjetaGuardada = idTarjetaGuardada,
+                        IdUsuarioExterno = idUsuarioExterno,
+                        Alias = aliasFinal
+                    });
+                    if (resultado == "ALIAS_REPETIDO")
+                    {
+                        return ResultadoOperacion.Error("Ya tenés una tarjeta con el alias \"" + aliasFinal + "\". Elegí otro.");
+                    }
 
-                if (resultado != "OK")
-                {
-                    return ResultadoOperacion.Error("La tarjeta ya no está en tu billetera.");
-                }
+                    if (resultado != "OK")
+                    {
+                        return ResultadoOperacion.Error("La tarjeta ya no está en tu billetera.");
+                    }
 
-                _bitacora.Registrar(idUsuarioExterno, "MODIFICACION", "TarjetaGuardada", idTarjetaGuardada,
-                    "Cambió el alias de una tarjeta de su billetera a \"" + aliasFinal + "\".");
-                return ResultadoOperacion.Ok("Se cambió el alias.");
+                    _bitacora.Registrar(idUsuarioExterno, "MODIFICACION", "TarjetaGuardada", idTarjetaGuardada,
+                        "Cambió el alias de una tarjeta de su billetera a \"" + aliasFinal + "\".");
+                    return ResultadoOperacion.Ok("Se cambió el alias.");
+                }, resultadoOperacion => resultadoOperacion.Exitoso);
             }
             catch (ErrorAccesoDatosException)
             {
@@ -165,14 +171,17 @@ namespace StageUp.BLL
         {
             try
             {
-                if (_mpp.MarcarPreferida(new TarjetaGuardada { IdTarjetaGuardada = idTarjetaGuardada, IdUsuarioExterno = idUsuarioExterno }) != "OK")
+                return Conexion.Instance.EjecutarAtomico("StageUp:Billetera:" + idUsuarioExterno, () =>
                 {
-                    return ResultadoOperacion.Error("La tarjeta ya no está en tu billetera.");
-                }
+                    if (_mpp.MarcarPreferida(new TarjetaGuardada { IdTarjetaGuardada = idTarjetaGuardada, IdUsuarioExterno = idUsuarioExterno }) != "OK")
+                    {
+                        return ResultadoOperacion.Error("La tarjeta ya no está en tu billetera.");
+                    }
 
-                _bitacora.Registrar(idUsuarioExterno, "MODIFICACION", "TarjetaGuardada", idTarjetaGuardada,
-                    "Marcó una tarjeta de su billetera como preferida.");
-                return ResultadoOperacion.Ok("Listo: es tu tarjeta preferida. La vas a ver primero al pagar.");
+                    _bitacora.Registrar(idUsuarioExterno, "MODIFICACION", "TarjetaGuardada", idTarjetaGuardada,
+                        "Marcó una tarjeta de su billetera como preferida.");
+                    return ResultadoOperacion.Ok("Listo: es tu tarjeta preferida. La vas a ver primero al pagar.");
+                }, resultadoOperacion => resultadoOperacion.Exitoso);
             }
             catch (ErrorAccesoDatosException)
             {
@@ -184,14 +193,17 @@ namespace StageUp.BLL
         {
             try
             {
-                if (_mpp.Eliminar(new TarjetaGuardada { IdTarjetaGuardada = idTarjetaGuardada, IdUsuarioExterno = idUsuarioExterno }) != "OK")
+                return Conexion.Instance.EjecutarAtomico("StageUp:Billetera:" + idUsuarioExterno, () =>
                 {
-                    return ResultadoOperacion.Error("La tarjeta ya no está en tu billetera.");
-                }
+                    if (_mpp.Eliminar(new TarjetaGuardada { IdTarjetaGuardada = idTarjetaGuardada, IdUsuarioExterno = idUsuarioExterno }) != "OK")
+                    {
+                        return ResultadoOperacion.Error("La tarjeta ya no está en tu billetera.");
+                    }
 
-                _bitacora.Registrar(idUsuarioExterno, "BAJA", "TarjetaGuardada", idTarjetaGuardada,
-                    "Eliminó una tarjeta de su billetera (se borraron sus datos cifrados).");
-                return ResultadoOperacion.Ok("Eliminamos la tarjeta de tu billetera.");
+                    _bitacora.Registrar(idUsuarioExterno, "BAJA", "TarjetaGuardada", idTarjetaGuardada,
+                        "Eliminó una tarjeta de su billetera (se borraron sus datos cifrados).");
+                    return ResultadoOperacion.Ok("Eliminamos la tarjeta de tu billetera.");
+                }, resultadoOperacion => resultadoOperacion.Exitoso);
             }
             catch (ErrorAccesoDatosException)
             {

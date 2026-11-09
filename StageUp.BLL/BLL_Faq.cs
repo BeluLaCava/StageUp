@@ -111,6 +111,11 @@ namespace StageUp.BLL
 
         public ResultadoOperacion DescartarConsultaSinRespuesta(string textoNormalizado, int idUsuarioInternoResponsable)
         {
+            return EjecutarCambioAtomico(() => DescartarConsultaSinRespuestaInterno(textoNormalizado, idUsuarioInternoResponsable));
+        }
+
+        private ResultadoOperacion DescartarConsultaSinRespuestaInterno(string textoNormalizado, int idUsuarioInternoResponsable)
+        {
             if (string.IsNullOrWhiteSpace(textoNormalizado))
             {
                 return ResultadoOperacion.Error("No se indicó la consulta.");
@@ -188,6 +193,11 @@ namespace StageUp.BLL
 
         public ResultadoOperacion<int> Registrar(Faq datos, int idUsuarioInternoResponsable, string textoConsultaOrigen = null)
         {
+            return EjecutarCambioAtomico(() => RegistrarInterno(datos, idUsuarioInternoResponsable, textoConsultaOrigen));
+        }
+
+        private ResultadoOperacion<int> RegistrarInterno(Faq datos, int idUsuarioInternoResponsable, string textoConsultaOrigen = null)
+        {
             Faq normalizado;
             ResultadoOperacion validacion = Validar(datos, null, out normalizado);
             if (!validacion.Exitoso)
@@ -212,13 +222,7 @@ namespace StageUp.BLL
 
             if (!string.IsNullOrWhiteSpace(textoConsultaOrigen))
             {
-                try
-                {
-                    _mpp.MarcarConsultaAtendida(textoConsultaOrigen);
-                }
-                catch (ErrorAccesoDatosException)
-                {
-                }
+                _mpp.MarcarConsultaAtendida(textoConsultaOrigen);
             }
 
             return ResultadoOperacion<int>.Ok(idFaq, (normalizado.Estado == EstadoActivo
@@ -229,6 +233,11 @@ namespace StageUp.BLL
         }
 
         public ResultadoOperacion Modificar(Faq datos, int idUsuarioInternoResponsable)
+        {
+            return EjecutarCambioAtomico(() => ModificarInterno(datos, idUsuarioInternoResponsable));
+        }
+
+        private ResultadoOperacion ModificarInterno(Faq datos, int idUsuarioInternoResponsable)
         {
             Faq actual = ObtenerPorId(datos == null ? 0 : datos.IdFaq);
             if (actual == null)
@@ -276,6 +285,11 @@ namespace StageUp.BLL
 
         public ResultadoOperacion Publicar(int idFaq, int idUsuarioInternoResponsable)
         {
+            return EjecutarCambioAtomico(() => PublicarInterno(idFaq, idUsuarioInternoResponsable));
+        }
+
+        private ResultadoOperacion PublicarInterno(int idFaq, int idUsuarioInternoResponsable)
+        {
             Faq faq = ObtenerPorId(idFaq);
             if (faq == null)
             {
@@ -303,6 +317,11 @@ namespace StageUp.BLL
         }
 
         public ResultadoOperacion Desactivar(int idFaq, int idUsuarioInternoResponsable)
+        {
+            return EjecutarCambioAtomico(() => DesactivarInterno(idFaq, idUsuarioInternoResponsable));
+        }
+
+        private ResultadoOperacion DesactivarInterno(int idFaq, int idUsuarioInternoResponsable)
         {
             Faq faq = ObtenerPorId(idFaq);
             if (faq == null)
@@ -336,6 +355,30 @@ namespace StageUp.BLL
 
             _bitacora.RegistrarInterno(idUsuarioInternoResponsable, estado == EstadoActivo ? "MODIFICACION" : "BAJA", TipoEntidadBitacora, faq.IdFaq, descripcionBitacora);
             return ResultadoOperacion.Ok(mensaje);
+        }
+
+        private static ResultadoOperacion EjecutarCambioAtomico(Func<ResultadoOperacion> operacion)
+        {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico("StageUp:ContenidoAyuda", operacion, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error(MensajeErrorGuardado, "A14");
+            }
+        }
+
+        private static ResultadoOperacion<T> EjecutarCambioAtomico<T>(Func<ResultadoOperacion<T>> operacion)
+        {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico("StageUp:ContenidoAyuda", operacion, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<T>.Error(MensajeErrorGuardado, "A14");
+            }
         }
 
         private ResultadoOperacion Validar(Faq datos, int? idExcluir, out Faq normalizado)

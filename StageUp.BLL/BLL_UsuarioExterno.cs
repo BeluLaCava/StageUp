@@ -36,88 +36,94 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(apellido) ||
-                    string.IsNullOrWhiteSpace(correoElectronico) || string.IsNullOrWhiteSpace(password) ||
-                    string.IsNullOrWhiteSpace(confirmacionPassword))
+                bool envioOk = false;
+                ResultadoOperacion<int> registro = Conexion.Instance.EjecutarAtomico("StageUp:Registro", () =>
                 {
-                    return ResultadoOperacion<int>.Error(
-                        "Completá todos los campos obligatorios para crear la cuenta.", "A1");
-                }
+                    if (string.IsNullOrWhiteSpace(nombre) || string.IsNullOrWhiteSpace(apellido) ||
+                        string.IsNullOrWhiteSpace(correoElectronico) || string.IsNullOrWhiteSpace(password) ||
+                        string.IsNullOrWhiteSpace(confirmacionPassword))
+                    {
+                        return ResultadoOperacion<int>.Error(
+                            "Completá todos los campos obligatorios para crear la cuenta.", "A1");
+                    }
 
-                if (nombre.Trim().Length > ValidacionContacto.MaximoNombre || apellido.Trim().Length > ValidacionContacto.MaximoNombre)
-                {
-                    return ResultadoOperacion<int>.Error("El nombre y el apellido no pueden superar los 200 caracteres.", "A1");
-                }
+                    if (nombre.Trim().Length > ValidacionContacto.MaximoNombre || apellido.Trim().Length > ValidacionContacto.MaximoNombre)
+                    {
+                        return ResultadoOperacion<int>.Error("El nombre y el apellido no pueden superar los 200 caracteres.", "A1");
+                    }
 
-                if (!ValidacionContacto.EsCorreoValido(correoElectronico.Trim()))
-                {
-                    return ResultadoOperacion<int>.Error(
-                        "El correo electrónico ingresado no tiene un formato válido.", "A2");
-                }
+                    if (!ValidacionContacto.EsCorreoValido(correoElectronico.Trim()))
+                    {
+                        return ResultadoOperacion<int>.Error(
+                            "El correo electrónico ingresado no tiene un formato válido.", "A2");
+                    }
 
-                if (!aceptaTerminos || !aceptaPoliticaPrivacidad)
-                {
-                    return ResultadoOperacion<int>.Error(
-                        "Debés aceptar los Términos y condiciones y la Política de privacidad para continuar.", "A5");
-                }
+                    if (!aceptaTerminos || !aceptaPoliticaPrivacidad)
+                    {
+                        return ResultadoOperacion<int>.Error(
+                            "Debés aceptar los Términos y condiciones y la Política de privacidad para continuar.", "A5");
+                    }
 
-                if (password != confirmacionPassword)
-                {
-                    return ResultadoOperacion<int>.Error(
-                        "La contraseña y su confirmación no coinciden.", "A4");
-                }
+                    if (password != confirmacionPassword)
+                    {
+                        return ResultadoOperacion<int>.Error(
+                            "La contraseña y su confirmación no coinciden.", "A4");
+                    }
 
-                if (!CumpleCriteriosDeSeguridad(password))
-                {
-                    return ResultadoOperacion<int>.Error(
-                        string.Format(
-                            "La contraseña debe tener al menos {0} caracteres e incluir letras y números.",
-                            ConfiguracionSeguridad.LongitudMinimaPassword));
-                }
+                    if (!CumpleCriteriosDeSeguridad(password))
+                    {
+                        return ResultadoOperacion<int>.Error(
+                            string.Format(
+                                "La contraseña debe tener al menos {0} caracteres e incluir letras y números.",
+                                ConfiguracionSeguridad.LongitudMinimaPassword));
+                    }
 
-                telefono = string.IsNullOrWhiteSpace(telefono) ? null : telefono.Trim();
-                if (telefono != null && !ValidacionContacto.EsTelefonoValido(telefono))
-                {
-                    return ResultadoOperacion<int>.Error(
-                        "El teléfono ingresado no es válido. Usá solo números, espacios y los símbolos + - ( ).", "A6");
-                }
+                    telefono = string.IsNullOrWhiteSpace(telefono) ? null : telefono.Trim();
+                    if (telefono != null && !ValidacionContacto.EsTelefonoValido(telefono))
+                    {
+                        return ResultadoOperacion<int>.Error(
+                            "El teléfono ingresado no es válido. Usá solo números, espacios y los símbolos + - ( ).", "A6");
+                    }
 
-                correoElectronico = correoElectronico.Trim().ToLowerInvariant();
-                if (_mppUsuario.ObtenerPorCorreo(
-                    new UsuarioExterno { CorreoElectronico = correoElectronico }) != null)
-                {
-                    return ResultadoOperacion<int>.Error(
-                        "Ya existe una cuenta registrada con ese correo electrónico.", "A3");
-                }
+                    correoElectronico = correoElectronico.Trim().ToLowerInvariant();
+                    if (_mppUsuario.ObtenerPorCorreo(
+                        new UsuarioExterno { CorreoElectronico = correoElectronico }) != null)
+                    {
+                        return ResultadoOperacion<int>.Error(
+                            "Ya existe una cuenta registrada con ese correo electrónico.", "A3");
+                    }
 
-                UsuarioExterno nuevoUsuario = new UsuarioExterno
-                {
-                    Nombre = nombre.Trim(),
-                    Apellido = apellido.Trim(),
-                    CorreoElectronico = correoElectronico,
-                    Telefono = telefono,
-                    EstadoCuenta = EstadoCuentaExterno.PendienteActivacion.ToString(),
-                    PerfilUsuario = PerfilUsuarioExterno.ExternoSolicitante.ToString(),
-                    AceptaTerminos = true,
-                    AceptaPoliticaPrivacidad = true,
-                    FechaAceptacionTerminos = DateTime.Now
-                };
+                    UsuarioExterno nuevoUsuario = new UsuarioExterno
+                    {
+                        Nombre = nombre.Trim(),
+                        Apellido = apellido.Trim(),
+                        CorreoElectronico = correoElectronico,
+                        Telefono = telefono,
+                        EstadoCuenta = EstadoCuentaExterno.PendienteActivacion.ToString(),
+                        PerfilUsuario = PerfilUsuarioExterno.ExternoSolicitante.ToString(),
+                        AceptaTerminos = true,
+                        AceptaPoliticaPrivacidad = true,
+                        FechaAceptacionTerminos = DateTime.Now
+                    };
 
-                ProtectorDeCredenciales.ProtegerPassword(nuevoUsuario, password);
+                    ProtectorDeCredenciales.ProtegerPassword(nuevoUsuario, password);
 
-                int idUsuarioExterno = _mppUsuario.Insertar(nuevoUsuario);
+                    int idUsuarioExterno = _mppUsuario.Insertar(nuevoUsuario);
 
-                _bitacora.Registrar(
-                    idUsuarioExterno, "ALTA", "UsuarioExterno", idUsuarioExterno,
-                    "Registro de cuenta de usuario externo (pendiente de activación).");
+                    _bitacora.Registrar(
+                        idUsuarioExterno, "ALTA", "UsuarioExterno", idUsuarioExterno,
+                        "Registro de cuenta de usuario externo (pendiente de activación).");
 
-                bool envioOk = GenerarYEnviarCodigoActivacion(idUsuarioExterno, nuevoUsuario.CorreoElectronico, nuevoUsuario.Nombre);
+                    GenerarYEnviarCodigoActivacion(idUsuarioExterno, nuevoUsuario.CorreoElectronico, nuevoUsuario.Nombre, enviado => envioOk = enviado);
+                    return ResultadoOperacion<int>.Ok(idUsuarioExterno);
+                }, resultado => resultado.Exitoso);
+                if (!registro.Exitoso) return registro;
 
                 string mensaje = envioOk
                     ? "Te enviamos un código de activación a tu correo electrónico."
                     : "La cuenta se creó, pero no pudimos enviar el código de activación en este momento. Podés solicitar que lo reenviemos.";
 
-                return ResultadoOperacion<int>.Ok(idUsuarioExterno, mensaje);
+                return ResultadoOperacion<int>.Ok(registro.Valor, mensaje);
             });
         }
 
@@ -125,19 +131,25 @@ namespace StageUp.BLL
         {
             return EjecutarProtegido(() =>
             {
-                UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
-                    new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
-                if (usuario == null)
+                bool envioOk = false;
+                ResultadoOperacion generado = Conexion.Instance.EjecutarAtomico("StageUp:Cuenta:" + idUsuarioExterno, () =>
                 {
-                    return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
-                }
+                    UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
+                        new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
+                    if (usuario == null)
+                    {
+                        return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
+                    }
 
-                if (usuario.EstadoCuenta == EstadoCuentaExterno.Activa.ToString())
-                {
-                    return ResultadoOperacion.Error("Esta cuenta ya se encuentra activa.");
-                }
+                    if (!usuario.Activo || usuario.EstadoCuenta != EstadoCuentaExterno.PendienteActivacion.ToString())
+                    {
+                        return ResultadoOperacion.Error("Solo se puede reenviar el código de una cuenta pendiente de activación.");
+                    }
 
-                bool envioOk = GenerarYEnviarCodigoActivacion(usuario.IdUsuarioExterno, usuario.CorreoElectronico, usuario.Nombre);
+                    GenerarYEnviarCodigoActivacion(usuario.IdUsuarioExterno, usuario.CorreoElectronico, usuario.Nombre, enviado => envioOk = enviado);
+                    return ResultadoOperacion.Ok();
+                }, resultado => resultado.Exitoso);
+                if (!generado.Exitoso) return generado;
 
                 return envioOk
                     ? ResultadoOperacion.Ok("Te enviamos un nuevo código de activación a tu correo electrónico.")
@@ -147,7 +159,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion ValidarActivacion(int idUsuarioExterno, string codigoIngresado)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico("StageUp:Cuenta:" + idUsuarioExterno, () =>
             {
                 if (string.IsNullOrWhiteSpace(codigoIngresado))
                 {
@@ -159,6 +171,11 @@ namespace StageUp.BLL
                 if (usuario == null)
                 {
                     return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
+                }
+
+                if (!usuario.Activo || usuario.EstadoCuenta != EstadoCuentaExterno.PendienteActivacion.ToString())
+                {
+                    return ResultadoOperacion.Error("Esta cuenta no está pendiente de activación.");
                 }
 
                 CodigoActivacion codigo = _bllCodigoActivacion.ObtenerVigentePorUsuario(idUsuarioExterno);
@@ -182,11 +199,11 @@ namespace StageUp.BLL
                     usuario.IdUsuarioExterno, "ACTIVACION", "UsuarioExterno", usuario.IdUsuarioExterno,
                     "Activación de cuenta de usuario externo.");
 
-                _servicioCorreo.EnviarBienvenida(usuario.CorreoElectronico, usuario.Nombre);
+                Conexion.Instance.DespuesDeConfirmar(() => _servicioCorreo.EnviarBienvenida(usuario.CorreoElectronico, usuario.Nombre));
 
                 return ResultadoOperacion.Ok(
                     "Tu cuenta fue activada correctamente. Ya podés iniciar sesión.");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         public ResultadoOperacion<UsuarioExterno> IniciarSesion(
@@ -235,10 +252,10 @@ namespace StageUp.BLL
                 return ResultadoOperacion<UsuarioExterno>.Error("El correo electrónico o la contraseña son incorrectos.");
             }
 
-            if (usuario.EstadoCuenta == EstadoCuentaExterno.PendienteActivacion.ToString())
+            if (usuario.Activo && usuario.EstadoCuenta == EstadoCuentaExterno.PendienteActivacion.ToString())
             {
-                return ResultadoOperacion<UsuarioExterno>.Error(
-                    "Tu cuenta todavía no fue activada. Revisá tu correo electrónico para activarla.");
+                return ResultadoOperacion<UsuarioExterno>.ErrorConValor(usuario,
+                    "Tu cuenta todavía no fue activada. Ingresá el código recibido o solicitá uno nuevo.", "ACTIVACION_PENDIENTE");
             }
 
             if (usuario.EstadoCuenta == EstadoCuentaExterno.Inactiva.ToString())
@@ -247,7 +264,7 @@ namespace StageUp.BLL
                     "Esta cuenta fue dada de baja y ya no tiene acceso a StageUp. Si necesitás recuperarla, escribinos desde Contáctenos.");
             }
 
-            if (usuario.EstadoCuenta != EstadoCuentaExterno.Activa.ToString())
+            if (!usuario.Activo || usuario.EstadoCuenta != EstadoCuentaExterno.Activa.ToString())
             {
                 return ResultadoOperacion<UsuarioExterno>.Error("Esta cuenta no se encuentra habilitada.");
             }
@@ -367,7 +384,7 @@ namespace StageUp.BLL
                     "Actualización de contraseña por recuperación de cuenta.");
 
                 Conexion.Instance.DespuesDeConfirmar(() =>
-                    _servicioCorreo.EnviarNotificacionCambioPassword(usuario.CorreoElectronico, usuario.Nombre));
+                    Conexion.Instance.DespuesDeConfirmar(() => _servicioCorreo.EnviarNotificacionCambioPassword(usuario.CorreoElectronico, usuario.Nombre)));
 
                 return ResultadoOperacion.Ok("Tu contraseña fue actualizada correctamente. Ya podés iniciar sesión con tus nuevas credenciales.");
             }, resultado => resultado.Exitoso));
@@ -375,7 +392,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion CambiarPassword(int idUsuarioExterno, string passwordActual, string nuevaPassword, string confirmacionNuevaPassword)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico("StageUp:Cuenta:" + idUsuarioExterno, () =>
             {
                 UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
                     new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
@@ -384,7 +401,7 @@ namespace StageUp.BLL
                     return ResultadoOperacion.Error("No se encontró la cuenta indicada.");
                 }
 
-                if (usuario.EstadoCuenta != EstadoCuentaExterno.Activa.ToString())
+                if (!usuario.Activo || usuario.EstadoCuenta != EstadoCuentaExterno.Activa.ToString())
                 {
                     return ResultadoOperacion.Error(MensajeCuentaNoActiva);
                 }
@@ -414,10 +431,10 @@ namespace StageUp.BLL
                     usuario.IdUsuarioExterno, "MODIFICACION", "UsuarioExterno", usuario.IdUsuarioExterno,
                     "Cambio de contraseña desde el perfil del usuario.");
 
-                _servicioCorreo.EnviarNotificacionCambioPassword(usuario.CorreoElectronico, usuario.Nombre);
+                Conexion.Instance.DespuesDeConfirmar(() => _servicioCorreo.EnviarNotificacionCambioPassword(usuario.CorreoElectronico, usuario.Nombre));
 
                 return ResultadoOperacion.Ok("Tu contraseña fue actualizada correctamente.");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         public ResultadoOperacion<EvaluacionBajaCuenta> EvaluarBajaCuenta(int idUsuarioExterno)
@@ -444,7 +461,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion<EvaluacionBajaCuenta> DarDeBajaCuenta(int idUsuarioExterno)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico("StageUp:Cuenta:" + idUsuarioExterno, () =>
             {
                 UsuarioExterno usuario = _mppUsuario.ObtenerPorId(
                     new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno });
@@ -476,12 +493,12 @@ namespace StageUp.BLL
 
                 _bitacora.Registrar(idUsuarioExterno, "BAJA", "UsuarioExterno", idUsuarioExterno, descripcion);
 
-                _servicioCorreo.EnviarConfirmacionBajaCuenta(usuario.CorreoElectronico, usuario.Nombre);
+                Conexion.Instance.DespuesDeConfirmar(() => _servicioCorreo.EnviarConfirmacionBajaCuenta(usuario.CorreoElectronico, usuario.Nombre));
 
                 return ResultadoOperacion<EvaluacionBajaCuenta>.Ok(
                     evaluacion,
                     "Tu cuenta fue dada de baja correctamente. Ya no vas a poder ingresar a StageUp con ella; tu historial se conserva.");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         private static string Plural(int cantidad, string singular, string plural)
@@ -682,7 +699,7 @@ namespace StageUp.BLL
             int idUsuarioExterno, string nombre, string apellido, string correoElectronico,
             string telefono, string fotoPerfilRuta, string descripcionPerfil)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico("StageUp:Cuenta:" + idUsuarioExterno, () =>
             {
                 if (idUsuarioExterno <= 0 || string.IsNullOrWhiteSpace(nombre) ||
                     string.IsNullOrWhiteSpace(apellido) || string.IsNullOrWhiteSpace(correoElectronico))
@@ -764,10 +781,10 @@ namespace StageUp.BLL
                     "Actualización de datos personales desde Mi perfil.");
 
                 return ResultadoOperacion.Ok("Tus datos personales fueron actualizados correctamente.");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
-        private bool GenerarYEnviarCodigoActivacion(int idUsuarioExterno, string correoElectronico, string nombre)
+        private void GenerarYEnviarCodigoActivacion(int idUsuarioExterno, string correoElectronico, string nombre, Action<bool> notificarEnvio)
         {
             string codigo = GeneradorDeCodigos.GenerarCodigoNumerico();
             DateTime vencimiento = DateTime.Now.AddMinutes(ConfiguracionSeguridad.MinutosVigenciaCodigoActivacion);
@@ -779,7 +796,7 @@ namespace StageUp.BLL
                 FechaVencimiento = vencimiento
             });
 
-            return _servicioCorreo.EnviarCodigoActivacion(correoElectronico, nombre, codigo);
+            Conexion.Instance.DespuesDeConfirmar(() => notificarEnvio(_servicioCorreo.EnviarCodigoActivacion(correoElectronico, nombre, codigo)));
         }
 
         private static bool CumpleCriteriosDeSeguridad(string password)

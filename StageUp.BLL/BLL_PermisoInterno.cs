@@ -168,6 +168,19 @@ namespace StageUp.BLL
 
         public ResultadoOperacion<int> CrearGrupo(int? idGrupoPadre, string nombre, int idUsuarioInternoResponsable)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico(BLL_ControlAdministradores.RecursoCambios,
+                    () => CrearGrupoInterno(idGrupoPadre, nombre, idUsuarioInternoResponsable), resultado => resultado.Exitoso);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion<int>.Error(ex.Message);
+            }
+        }
+
+        private ResultadoOperacion<int> CrearGrupoInterno(int? idGrupoPadre, string nombre, int idUsuarioInternoResponsable)
+        {
             if (string.IsNullOrWhiteSpace(nombre))
             {
                 return ResultadoOperacion<int>.Error("Ingresá un nombre para el grupo.");
@@ -194,7 +207,7 @@ namespace StageUp.BLL
             {
                 GrupoPermisos nuevoGrupo = new GrupoPermisos(0, nombre);
                 int idNuevoGrupo = _mppComponente.InsertarGrupo(nuevoGrupo, padre);
-                InvalidarCacheCompleta();
+                Conexion.Instance.DespuesDeConfirmar(InvalidarCacheCompleta);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "ALTA", "ComponentePermiso", idNuevoGrupo,
@@ -209,6 +222,19 @@ namespace StageUp.BLL
         }
 
         public ResultadoOperacion MoverComponente(int idComponente, int? idNuevoGrupoPadre, int idUsuarioInternoResponsable)
+        {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico(BLL_ControlAdministradores.RecursoCambios,
+                    () => MoverComponenteInterno(idComponente, idNuevoGrupoPadre, idUsuarioInternoResponsable), resultado => resultado.Exitoso);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion.Error(ex.Message);
+            }
+        }
+
+        private ResultadoOperacion MoverComponenteInterno(int idComponente, int? idNuevoGrupoPadre, int idUsuarioInternoResponsable)
         {
             GrupoPermisos raiz = ListarArbolCompleto();
             PermisoComponente componente = BuscarComponente(raiz, idComponente);
@@ -235,8 +261,14 @@ namespace StageUp.BLL
 
             try
             {
+                BLL_ControlAdministradores control = new BLL_ControlAdministradores();
+                bool habiaAdministrador = control.QuedaAlgunAdministrador(new BLL_ControlAdministradores.Cambio());
                 _mppComponente.MoverComponente(componente, nuevoPadre);
-                InvalidarCacheCompleta();
+                if (habiaAdministrador && !control.QuedaAlgunAdministrador(new BLL_ControlAdministradores.Cambio()))
+                {
+                    return ResultadoOperacion.Error("No se puede mover este elemento: " + BLL_ControlAdministradores.MensajeSinAdministradores);
+                }
+                Conexion.Instance.DespuesDeConfirmar(InvalidarCacheCompleta);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "MODIFICACION", "ComponentePermiso", idComponente,
@@ -253,6 +285,19 @@ namespace StageUp.BLL
 
         public ResultadoOperacion EliminarGrupo(int idGrupo, int idUsuarioInternoResponsable)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico(BLL_ControlAdministradores.RecursoCambios,
+                    () => EliminarGrupoInterno(idGrupo, idUsuarioInternoResponsable), resultado => resultado.Exitoso);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ResultadoOperacion.Error(ex.Message);
+            }
+        }
+
+        private ResultadoOperacion EliminarGrupoInterno(int idGrupo, int idUsuarioInternoResponsable)
+        {
             GrupoPermisos raiz = ListarArbolCompleto();
             GrupoPermisos grupo = BuscarComponente(raiz, idGrupo) as GrupoPermisos;
             if (grupo == null || grupo.IdComponentePermiso == 0)
@@ -268,7 +313,7 @@ namespace StageUp.BLL
             try
             {
                 _mppComponente.EliminarGrupo(grupo);
-                InvalidarCacheCompleta();
+                Conexion.Instance.DespuesDeConfirmar(InvalidarCacheCompleta);
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "BAJA", "ComponentePermiso", idGrupo,

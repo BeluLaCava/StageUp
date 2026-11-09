@@ -19,16 +19,26 @@ namespace StageUp.UI.Infraestructura
 
         public static string Guardar(HttpPostedFile archivo, string carpetaVirtual, HttpServerUtility servidor, out string error)
         {
+            return Guardar(archivo, carpetaVirtual, servidor, out error, MaximoBytes);
+        }
+
+        public static string Guardar(HttpPostedFile archivo, string carpetaVirtual, HttpServerUtility servidor, out string error, int maximoBytes)
+        {
             if (archivo == null)
             {
                 error = "Elegí una imagen.";
                 return null;
             }
 
-            return Guardar(archivo.InputStream, archivo.FileName, archivo.ContentLength, archivo.ContentType, carpetaVirtual, servidor.MapPath, out error);
+            return Guardar(archivo.InputStream, archivo.FileName, archivo.ContentLength, archivo.ContentType, carpetaVirtual, servidor.MapPath, out error, maximoBytes);
         }
 
         public static string Guardar(Stream contenido, string nombreArchivo, int bytes, string tipoMime, string carpetaVirtual, Func<string, string> mapPath, out string error)
+        {
+            return Guardar(contenido, nombreArchivo, bytes, tipoMime, carpetaVirtual, mapPath, out error, MaximoBytes);
+        }
+
+        public static string Guardar(Stream contenido, string nombreArchivo, int bytes, string tipoMime, string carpetaVirtual, Func<string, string> mapPath, out string error, int maximoBytes)
         {
             error = null;
             if (contenido == null || bytes <= 0)
@@ -37,20 +47,30 @@ namespace StageUp.UI.Infraestructura
                 return null;
             }
 
-            if (bytes > MaximoBytes)
+            if (bytes > maximoBytes)
             {
-                error = "La imagen no puede superar los 3 MB.";
+                error = "La imagen no puede superar los " + (maximoBytes / (1024 * 1024)) + " MB.";
                 return null;
             }
 
             byte[] datos;
             using (MemoryStream copia = new MemoryStream())
             {
-                contenido.CopyTo(copia);
+                byte[] bloque = new byte[8192];
+                int leidos;
+                while ((leidos = contenido.Read(bloque, 0, bloque.Length)) > 0)
+                {
+                    if (copia.Length + leidos > maximoBytes)
+                    {
+                        error = "La imagen no puede superar los " + (maximoBytes / (1024 * 1024)) + " MB.";
+                        return null;
+                    }
+                    copia.Write(bloque, 0, leidos);
+                }
                 datos = copia.ToArray();
             }
 
-            ResultadoOperacion<ImagenValidada> validacion = ValidadorImagen.Validar(datos, nombreArchivo, tipoMime);
+            ResultadoOperacion<ImagenValidada> validacion = ValidadorImagen.Validar(datos, nombreArchivo, tipoMime, maximoBytes);
             if (!validacion.Exitoso)
             {
                 error = validacion.Mensaje;

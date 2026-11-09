@@ -31,7 +31,7 @@ namespace StageUp.UI.Infraestructura
             respuesta.StatusCode = estado;
             respuesta.TrySkipIisCustomErrors = true;
             respuesta.Cache.SetNoStore();
-            respuesta.Headers["X-Content-Type-Options"] = "nosniff";
+            respuesta.AddHeader("X-Content-Type-Options", "nosniff");
             if (contexto.Request.AppRelativeCurrentExecutionFilePath.EndsWith(".ashx", StringComparison.OrdinalIgnoreCase))
             {
                 respuesta.ContentType = "application/json";
@@ -40,7 +40,7 @@ namespace StageUp.UI.Infraestructura
             }
             respuesta.ContentType = "text/html; charset=utf-8";
             string inicio = HttpUtility.HtmlAttributeEncode(VirtualPathUtility.ToAbsolute("~/Default.aspx"));
-            string reintento = HttpUtility.HtmlAttributeEncode(VirtualPathUtility.ToAbsolute(contexto.Request.AppRelativeCurrentExecutionFilePath));
+            string reintento = HttpUtility.HtmlAttributeEncode(VirtualPathUtility.ToAbsolute(contexto.Request.AppRelativeCurrentExecutionFilePath) + contexto.Request.Url.Query);
             string volver = falloListado ? "<a href=\"" + reintento + "\">Volver a cargar la página</a> " : string.Empty;
             respuesta.Write("<!doctype html><html lang=\"es\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>StageUp</title>" +
                 "<style>body{margin:0;background:#faf6f2;color:#482a27;font:17px/1.6 system-ui,sans-serif}main{max-width:620px;margin:12vh auto;padding:32px;background:#fffaf8;border:1px solid #e5d5cd;border-radius:24px}h1{color:#750d25;font-family:Georgia,serif;line-height:1.2}a{display:inline-block;margin-top:12px;padding:10px 20px;border-radius:12px;background:#750d25;color:white;text-decoration:none}a:focus-visible{outline:3px solid #bd8d63;outline-offset:4px}@media(max-width:700px){main{margin:24px;padding:24px}}</style></head><body><main>" +

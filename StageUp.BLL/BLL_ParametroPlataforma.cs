@@ -318,16 +318,20 @@ namespace StageUp.BLL
                 decimal valor;
                 if (parametro != null &&
                     decimal.TryParse(parametro.Valor, NumberStyles.Number, CultureInfo.InvariantCulture, out valor) &&
-                    valor >= definicion.Minimo && valor <= definicion.Maximo)
+                    valor >= definicion.Minimo && valor <= definicion.Maximo &&
+                    (!definicion.SoloEnteros || valor == Math.Truncate(valor)))
                 {
                     return valor;
                 }
             }
-            catch (ErrorAccesoDatosException)
+            catch (ErrorAccesoDatosException ex)
             {
+                throw new ErrorAccesoDatosException("sp_ParametroPlataforma_Listar",
+                    "No pudimos consultar la configuración vigente. Intentá nuevamente antes de confirmar la operación.", ex);
             }
 
-            return definicion.PorDefecto;
+            throw new ErrorAccesoDatosException("sp_ParametroPlataforma_Listar",
+                "La configuración de " + definicion.Nombre + " no está disponible o no es válida. Contactá a soporte antes de continuar.", null);
         }
 
         public int ObtenerEntero(string clave)
@@ -419,6 +423,19 @@ namespace StageUp.BLL
 
         public ResultadoOperacion GuardarCambios(IDictionary<string, string> valoresIngresados, DateTime? vigenciaDesde, int idUsuarioInternoResponsable)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico("StageUp:Parametros", () =>
+                    GuardarCambiosInterno(valoresIngresados, vigenciaDesde, idUsuarioInternoResponsable), resultado => resultado.Exitoso);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error("No fue posible guardar la configuración en este momento. No se aplicó ningún cambio; probá de nuevo.", "A15");
+            }
+        }
+
+        private ResultadoOperacion GuardarCambiosInterno(IDictionary<string, string> valoresIngresados, DateTime? vigenciaDesde, int idUsuarioInternoResponsable)
+        {
             if (valoresIngresados == null || valoresIngresados.Count == 0)
             {
                 return ResultadoOperacion.Ok(null);
@@ -500,7 +517,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("No fue posible guardar la configuración: falta algún parámetro en la base. Revisá que estén aplicados los scripts.", "A15");
             }
 
-            InvalidarCache();
+            Conexion.Instance.DespuesDeConfirmar(InvalidarCache);
 
             foreach (CambioParametroPlataforma cambio in registrados)
             {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -71,9 +71,7 @@ namespace StageUp.BLL
                 return false;
             }
 
-            return EsDeFechaConcreta(franja)
-                ? string.Equals(franja.Fecha, fecha.ToString(FormatoFecha, CultureInfo.InvariantCulture), StringComparison.Ordinal)
-                : franja.DiaSemana == DiaSemanaDe(fecha);
+            return RigeEnFecha(franja, fecha);
         }
 
         public static bool HorarioCubierto(List<FranjaEspacio> franjas, DateTime fecha, int minutoDesde, int minutoHasta)
@@ -629,6 +627,11 @@ namespace StageUp.BLL
                     : franja.Fecha;
             }
 
+            if (franja.SemanaDelMes.HasValue && franja.SemanaDelMes >= 1 && franja.SemanaDelMes <= 5)
+            {
+                string[] ordinales = { "Primer", "Segundo", "Tercer", "Cuarto", "Último" };
+                return ordinales[franja.SemanaDelMes.Value - 1] + " " + NombreDia(franja.DiaSemana ?? 0).ToLowerInvariant() + " de cada mes";
+            }
             return "Todos los " + (franja.DiaSemana == 6 || franja.DiaSemana == 7
                 ? NombreDia(franja.DiaSemana ?? 0).ToLowerInvariant() + "s"
                 : NombreDia(franja.DiaSemana ?? 0).ToLowerInvariant());
@@ -811,32 +814,34 @@ namespace StageUp.BLL
                 .ToList();
         }
 
-        private static bool RigeEnFecha(FranjaEspacio franja, DateTime fecha)
+        internal static bool RigeEnFecha(FranjaEspacio franja, DateTime fecha)
         {
-            return EsDeFechaConcreta(franja)
-                ? franja.Fecha == fecha.ToString(FormatoFecha, CultureInfo.InvariantCulture)
-                : franja.DiaSemana == DiaSemanaDe(fecha);
+            if (EsDeFechaConcreta(franja))
+                return franja.Fecha == fecha.ToString(FormatoFecha, CultureInfo.InvariantCulture);
+            if (franja.DiaSemana != DiaSemanaDe(fecha)) return false;
+            if (!franja.SemanaDelMes.HasValue) return true;
+            return franja.SemanaDelMes.Value == 5
+                ? fecha.Day + 7 > DateTime.DaysInMonth(fecha.Year, fecha.Month)
+                : (fecha.Day - 1) / 7 + 1 == franja.SemanaDelMes.Value;
         }
 
         internal static bool CompartenDias(FranjaEspacio a, FranjaEspacio b)
         {
             bool aFecha = EsDeFechaConcreta(a);
             bool bFecha = EsDeFechaConcreta(b);
-            if (aFecha && bFecha)
-            {
-                return a.Fecha == b.Fecha;
-            }
-
+            if (aFecha && bFecha) return a.Fecha == b.Fecha;
             if (!aFecha && !bFecha)
             {
-                return a.DiaSemana == b.DiaSemana;
+                return a.DiaSemana == b.DiaSemana &&
+                    (!a.SemanaDelMes.HasValue || !b.SemanaDelMes.HasValue ||
+                     a.SemanaDelMes == b.SemanaDelMes ||
+                     (a.SemanaDelMes >= 4 && b.SemanaDelMes >= 4));
             }
-
             FranjaEspacio deFecha = aFecha ? a : b;
-            FranjaEspacio semanal = aFecha ? b : a;
+            FranjaEspacio recurrente = aFecha ? b : a;
             DateTime fecha;
             return DateTime.TryParseExact(deFecha.Fecha, FormatoFecha, CultureInfo.InvariantCulture, DateTimeStyles.None, out fecha) &&
-                DiaSemanaDe(fecha) == semanal.DiaSemana;
+                RigeEnFecha(recurrente, fecha);
         }
 
         private static bool BloqueoCubreTodosLosDias(FranjaEspacio bloqueo, FranjaEspacio franja)

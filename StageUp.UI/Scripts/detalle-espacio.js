@@ -284,7 +284,13 @@
         const disponibles = franjasParaFecha(disponibilidadRows, dateValue, weekday);
 
         const bloqueadosDelDia = bloqueadoRows.filter(function (row) {
-            return row.Fecha === dateValue || (!row.Fecha && row.DiaSemana === weekday);
+            if (row.Fecha) return row.Fecha === dateValue;
+            if (row.DiaSemana !== weekday) return false;
+            if (!row.SemanaDelMes) return true;
+            const ultimoDia = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+            return row.SemanaDelMes === 5
+                ? date.getDate() + 7 > ultimoDia
+                : Math.floor((date.getDate() - 1) / 7) + 1 === row.SemanaDelMes;
         });
         const ocupadosDelDia = occupiedRows.filter(function (occupied) {
             return occupied.Fecha === dateValue;

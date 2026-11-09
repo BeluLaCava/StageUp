@@ -1191,7 +1191,8 @@ CREATE PROCEDURE dbo.sp_Reporte_IngresosPorZona
     @desde       DATE,
     @hasta       DATE,
     @moneda      NVARCHAR(3) = N'ARS',
-    @tipoEspacio NVARCHAR(200) = NULL
+    @tipoEspacio NVARCHAR(200) = NULL,
+    @provincia   NVARCHAR(100) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1208,6 +1209,7 @@ BEGIN
       AND r.estadoPago IN (N'Pagado', N'NoRequerido')
       AND ISNULL(r.moneda, N'ARS') = @moneda
       AND r.fechaSolicitada BETWEEN @desde AND @hasta
+      AND (@provincia IS NULL OR f.provincia = @provincia)
       AND (@tipoEspacio IS NULL OR e.tipoEspacio = @tipoEspacio)
     GROUP BY f.provincia, f.ciudad
     ORDER BY importeReservas DESC;

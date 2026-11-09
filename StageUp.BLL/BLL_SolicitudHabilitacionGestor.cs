@@ -182,28 +182,31 @@ namespace StageUp.BLL
 
             try
             {
-                string resultado = _mpp.Registrar(solicitud);
-                switch (resultado)
+                return Conexion.Instance.EjecutarAtomico(null, () =>
                 {
-                    case "OK":
-                        break;
-                    case "YA_PENDIENTE":
-                        return ResultadoOperacion<int>.Error("Ya tenés una solicitud pendiente de revisión. No podés enviar otra hasta que se resuelva.");
-                    case "YA_ES_GESTOR":
-                        return ResultadoOperacion<int>.Error("Tu cuenta ya está habilitada como gestor de espacios.");
-                    case "CUENTA_NO_ACTIVA":
-                        return ResultadoOperacion<int>.Error("Tu cuenta no está activa, por eso no podés enviar la solicitud.");
-                    default:
-                        return ResultadoOperacion<int>.Error("No se encontró la cuenta indicada.");
-                }
+                    string resultado = _mpp.Registrar(solicitud);
+                    switch (resultado)
+                    {
+                        case "OK":
+                            break;
+                        case "YA_PENDIENTE":
+                            return ResultadoOperacion<int>.Error("Ya tenés una solicitud pendiente de revisión. No podés enviar otra hasta que se resuelva.");
+                        case "YA_ES_GESTOR":
+                            return ResultadoOperacion<int>.Error("Tu cuenta ya está habilitada como gestor de espacios.");
+                        case "CUENTA_NO_ACTIVA":
+                            return ResultadoOperacion<int>.Error("Tu cuenta no está activa, por eso no podés enviar la solicitud.");
+                        default:
+                            return ResultadoOperacion<int>.Error("No se encontró la cuenta indicada.");
+                    }
 
-                _bitacora.Registrar(
-                    idUsuarioExterno, "ALTA", TipoEntidadBitacora, solicitud.IdSolicitud,
-                    "Solicitud de habilitación como gestor para \"" + solicitud.NombreEspacio + "\" (" + solicitud.TipoEspacio +
-                    ", " + solicitud.Ciudad + "). Queda pendiente de revisión.");
+                    _bitacora.Registrar(
+                        idUsuarioExterno, "ALTA", TipoEntidadBitacora, solicitud.IdSolicitud,
+                        "Solicitud de habilitación como gestor para \"" + solicitud.NombreEspacio + "\" (" + solicitud.TipoEspacio +
+                        ", " + solicitud.Ciudad + "). Queda pendiente de revisión.");
 
-                return ResultadoOperacion<int>.Ok(solicitud.IdSolicitud,
-                    "Enviamos tu solicitud. Queda pendiente de revisión: te avisamos cuando un administrador la resuelva. Mientras tanto podés seguir usando StageUp como siempre.");
+                    return ResultadoOperacion<int>.Ok(solicitud.IdSolicitud,
+                        "Enviamos tu solicitud. Queda pendiente de revisión: te avisamos cuando un administrador la resuelva. Mientras tanto podés seguir usando StageUp como siempre.");
+                }, operacion => operacion.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -221,22 +224,25 @@ namespace StageUp.BLL
 
             try
             {
-                string resultado = _mpp.Resolver(solicitud, true);
-                if (resultado != "OK")
+                return Conexion.Instance.EjecutarAtomico(null, () =>
                 {
-                    return ResultadoOperacion.Error(MensajeNoResuelta(resultado));
-                }
+                    string resultado = _mpp.Resolver(solicitud, true);
+                    if (resultado != "OK")
+                    {
+                        return ResultadoOperacion.Error(MensajeNoResuelta(resultado));
+                    }
 
-                _bitacora.RegistrarInterno(
-                    idUsuarioInternoRevisor, "APROBACION", TipoEntidadBitacora, idSolicitud,
-                    "Aprobación de la solicitud de habilitación como gestor del usuario externo N° " + solicitud.IdUsuarioExterno + ".");
+                    _bitacora.RegistrarInterno(
+                        idUsuarioInternoRevisor, "APROBACION", TipoEntidadBitacora, idSolicitud,
+                        "Aprobación de la solicitud de habilitación como gestor del usuario externo N° " + solicitud.IdUsuarioExterno + ".");
 
-                _notificacion.Notificar(
-                    solicitud.IdUsuarioExterno, TipoNotificacion.HabilitacionGestorAprobada,
-                    "Tu cuenta fue habilitada como gestor de espacios. ¡Ya podés publicar tus espacios artísticos!",
-                    "~/MisEspacios.aspx");
+                    _notificacion.Notificar(
+                        solicitud.IdUsuarioExterno, TipoNotificacion.HabilitacionGestorAprobada,
+                        "Tu cuenta fue habilitada como gestor de espacios. ¡Ya podés publicar tus espacios artísticos!",
+                        "~/MisEspacios.aspx");
 
-                return ResultadoOperacion.Ok("La solicitud fue aprobada y la cuenta quedó habilitada como gestora de espacios.");
+                    return ResultadoOperacion.Ok("La solicitud fue aprobada y la cuenta quedó habilitada como gestora de espacios.");
+                }, operacion => operacion.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -266,23 +272,26 @@ namespace StageUp.BLL
 
             try
             {
-                string resultado = _mpp.Resolver(solicitud, false);
-                if (resultado != "OK")
+                return Conexion.Instance.EjecutarAtomico(null, () =>
                 {
-                    return ResultadoOperacion.Error(MensajeNoResuelta(resultado));
-                }
+                    string resultado = _mpp.Resolver(solicitud, false);
+                    if (resultado != "OK")
+                    {
+                        return ResultadoOperacion.Error(MensajeNoResuelta(resultado));
+                    }
 
-                _bitacora.RegistrarInterno(
-                    idUsuarioInternoRevisor, "RECHAZO", TipoEntidadBitacora, idSolicitud,
-                    "Rechazo de la solicitud de habilitación como gestor del usuario externo N° " + solicitud.IdUsuarioExterno +
-                    ". Motivo: " + motivoLimpio);
+                    _bitacora.RegistrarInterno(
+                        idUsuarioInternoRevisor, "RECHAZO", TipoEntidadBitacora, idSolicitud,
+                        "Rechazo de la solicitud de habilitación como gestor del usuario externo N° " + solicitud.IdUsuarioExterno +
+                        ". Motivo: " + motivoLimpio);
 
-                _notificacion.Notificar(
-                    solicitud.IdUsuarioExterno, TipoNotificacion.HabilitacionGestorRechazada,
-                    "Tu solicitud para ser gestor de espacios fue rechazada. Podés ver el motivo y volver a enviarla.",
-                    "~/OfrecerEspacio.aspx");
+                    _notificacion.Notificar(
+                        solicitud.IdUsuarioExterno, TipoNotificacion.HabilitacionGestorRechazada,
+                        "Tu solicitud para ser gestor de espacios fue rechazada. Podés ver el motivo y volver a enviarla.",
+                        "~/OfrecerEspacio.aspx");
 
-                return ResultadoOperacion.Ok("La solicitud fue rechazada. El usuario va a ver el motivo.");
+                    return ResultadoOperacion.Ok("La solicitud fue rechazada. El usuario va a ver el motivo.");
+                }, operacion => operacion.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -292,6 +301,10 @@ namespace StageUp.BLL
 
         private static string MensajeNoResuelta(string resultado)
         {
+            if (resultado == "CUENTA_NO_ACTIVA")
+            {
+                return "No se puede resolver esta solicitud porque la cuenta del solicitante ya no está activa. No se hicieron cambios.";
+            }
             return resultado == "YA_RESUELTA"
                 ? "Esta solicitud ya fue resuelta anteriormente. No se hicieron cambios."
                 : "No se encontró la solicitud indicada.";

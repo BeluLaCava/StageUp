@@ -163,7 +163,7 @@ namespace StageUp.BLL
             int idRolInterno, string estadoCuenta, string password, string confirmacionPassword,
             int idUsuarioInternoResponsable)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(BLL_ControlAdministradores.RecursoCambios, () =>
             {
                 ResultadoOperacion validacion = ValidarDatos(
                     nombre, apellido, correoElectronico, idAreaInterna, idRolInterno,
@@ -201,7 +201,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Ok(idUsuarioInterno,
                     "El usuario interno " + usuario.Nombre + " " + usuario.Apellido +
                     " fue registrado correctamente con los permisos del rol " + (rol != null ? rol.NombreRol : string.Empty) + ".");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         public ResultadoOperacion Modificar(
@@ -209,7 +209,7 @@ namespace StageUp.BLL
             int idAreaInterna, int idRolInterno, string estadoCuenta, string password,
             string confirmacionPassword, int idUsuarioInternoResponsable)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(BLL_ControlAdministradores.RecursoCambios, () =>
             {
                 UsuarioInterno actual = _mppUsuarioInterno.ObtenerPorId(
                     new UsuarioInterno { IdUsuarioInterno = idUsuarioInterno });
@@ -278,12 +278,12 @@ namespace StageUp.BLL
                 }
 
                 return ResultadoOperacion.Ok(mensaje);
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         public ResultadoOperacion DarDeBaja(int idUsuarioInterno, int idUsuarioInternoResponsable)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(BLL_ControlAdministradores.RecursoCambios, () =>
             {
                 if (idUsuarioInterno == idUsuarioInternoResponsable)
                 {
@@ -323,7 +323,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Ok(
                     "El usuario interno " + usuario.Nombre + " " + usuario.Apellido +
                     " fue dado de baja correctamente. Ya no puede ingresar al entorno administrativo y se conserva su historial.");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         private string DescribirCambios(UsuarioInterno anterior, UsuarioInterno nuevo, bool cambiaPassword)

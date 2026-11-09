@@ -1,4 +1,4 @@
-<%@ Page Title="Registrarse | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="Registrarse.aspx.cs" Inherits="StageUp.UI.Registrarse" %>
+﻿<%@ Page Title="Registrarse | StageUp" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="Registrarse.aspx.cs" Inherits="StageUp.UI.Registrarse" %>
 
 <asp:Content ID="RegisterContent" ContentPlaceHolderID="MainContent" runat="server">
     <section class="auth-page auth-page-register">
@@ -109,7 +109,7 @@
             <asp:Panel ID="pnlActivacion" runat="server" Visible="false" CssClass="auth-card" role="form" aria-labelledby="activation-title">
                 <div class="auth-card-header">
                     <h2 id="activation-title">Activá tu cuenta</h2>
-                    <p>Te enviamos un código de activación a tu correo electrónico. Ingresalo para activar tu cuenta.</p>
+                    <p>Ingresá el código recibido por correo para activar tu cuenta. Si venció o no llegó, podés solicitar uno nuevo.</p>
                 </div>
 
                 <asp:Panel ID="pnlMensajeActivacion" runat="server" Visible="false" CssClass="form-message">

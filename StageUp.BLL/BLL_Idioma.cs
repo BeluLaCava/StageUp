@@ -9,6 +9,8 @@ namespace StageUp.BLL
 {
     public class BLL_Idioma
     {
+        internal const string RecursoCambios = "StageUp:Idiomas";
+
         private const int LongitudMaximaNombre = 100;
         private const int LongitudMaximaCodigo = 20;
 
@@ -223,7 +225,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return operacion();
+                return Conexion.Instance.EjecutarAtomico(RecursoCambios, operacion, r => r.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -235,7 +237,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return operacion();
+                return Conexion.Instance.EjecutarAtomico(RecursoCambios, operacion, r => r.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {

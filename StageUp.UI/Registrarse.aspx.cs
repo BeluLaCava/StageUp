@@ -23,6 +23,22 @@ namespace StageUp.UI
         {
             if (!IsPostBack)
             {
+                if (Request.QueryString["activar"] == "1")
+                {
+                    int? pendiente = Session["ActivacionPendienteVerificada"] as int?;
+                    Session.Remove("ActivacionPendienteVerificada");
+                    if (!pendiente.HasValue)
+                    {
+                        Response.Redirect("~/IniciarSesion.aspx");
+                        return;
+                    }
+                    IdUsuarioExternoPendiente = pendiente;
+                    pnlDatosRegistro.Visible = false;
+                    pnlActivacion.Visible = true;
+                    MostrarMensaje(pnlMensajeActivacion, litMensajeActivacion,
+                        "Ingresá el código que recibiste por correo. Si venció o no llegó, podés solicitar uno nuevo.", false);
+                    return;
+                }
                 CargarOrigenes();
             }
         }
@@ -96,6 +112,7 @@ namespace StageUp.UI
                 return;
             }
 
+            IdUsuarioExternoPendiente = null;
             pnlActivacion.Visible = false;
             pnlExitoRegistro.Visible = true;
         }

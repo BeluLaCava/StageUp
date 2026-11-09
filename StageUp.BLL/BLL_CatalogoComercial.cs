@@ -141,6 +141,11 @@ namespace StageUp.BLL
             }
         }
 
+        internal static void RegistrarObligatorio(int idUsuarioInterno, string operacion, string entidad, int? id, string descripcion)
+        {
+            new BLL_Bitacora().RegistrarInterno(idUsuarioInterno, operacion, entidad, id, Recortar(descripcion));
+        }
+
         public static string GenerarCodigo(string texto)
         {
             if (string.IsNullOrWhiteSpace(texto))

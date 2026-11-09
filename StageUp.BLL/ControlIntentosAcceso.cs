@@ -21,8 +21,9 @@ namespace StageUp.BLL
                     MPP_IntentoAcceso mpp = new MPP_IntentoAcceso();
                     if (mpp.Consultar(cuenta) > 0) return error(MensajeBloqueo);
                     T resultado = autenticar();
-                    int segundos = mpp.Registrar(cuenta, resultado.Exitoso);
-                    if (!resultado.Exitoso)
+                    bool credencialesValidas = resultado.Exitoso || resultado.CodigoAlternativo == "ACTIVACION_PENDIENTE";
+                    int segundos = mpp.Registrar(cuenta, credencialesValidas);
+                    if (!credencialesValidas)
                     {
 
                         new BLL_Bitacora().Registrar(null, segundos > 0 ? "BLOQUEO" : "ERROR", "Sistema", null,

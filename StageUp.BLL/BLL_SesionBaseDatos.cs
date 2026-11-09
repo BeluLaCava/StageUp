@@ -98,7 +98,7 @@ namespace StageUp.BLL
                 return ResultadoRevalidacionSesion.NoVerificada;
             }
 
-            if (usuario == null ||
+            if (usuario == null || !usuario.Activo ||
                 usuario.EstadoCuenta != EstadoCuentaExterno.Activa.ToString() ||
                 (!fechaAltaEnSesion.HasValue || usuario.FechaAlta != fechaAltaEnSesion.Value))
             {

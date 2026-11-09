@@ -9,6 +9,8 @@ namespace StageUp.BLL
 
     internal class BLL_ControlAdministradores
     {
+        internal const string RecursoCambios = "StageUp:AdministracionPermisos";
+
         internal const string PermisoUsuarios = "GESTIONAR_USUARIOS_INTERNOS";
         internal const string PermisoRoles = "GESTIONAR_ROLES";
 

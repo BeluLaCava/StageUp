@@ -705,7 +705,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion Rechazar(int idReserva, int idUsuarioGestorSolicitante, string comentarioResolucion)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
             {
                 if (!string.IsNullOrEmpty(comentarioResolucion) && comentarioResolucion.Trim().Length > LongitudMaximaComentario)
                 {
@@ -745,7 +745,7 @@ namespace StageUp.BLL
                     _servicioCorreo.EnviarReservaRechazada(u.CorreoElectronico, u.Nombre, reserva));
 
                 return ResultadoOperacion.Ok("Rechazaste la solicitud. Le avisamos al solicitante.");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         private static string MensajeSolicitudYaProcesada(Reserva actual)

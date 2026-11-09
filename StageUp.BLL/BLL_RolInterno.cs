@@ -103,7 +103,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion<int> Guardar(RolInterno datos, List<int> idsComponentes, int idUsuarioInternoResponsable)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(BLL_ControlAdministradores.RecursoCambios, () =>
             {
                 if (datos == null)
                 {
@@ -206,7 +206,7 @@ namespace StageUp.BLL
                 }
 
                 int idRolInterno = _mppRol.GuardarConPermisos(rol, ids);
-                BLL_PermisoInterno.InvalidarCacheRol(idRolInterno);
+                Conexion.Instance.DespuesDeConfirmar(() => BLL_PermisoInterno.InvalidarCacheRol(idRolInterno));
 
                 RegistrarEnBitacora(esNuevo, idRolInterno, rol, anterior, ids, idsAnteriores, arbol, idUsuarioInternoResponsable);
 
@@ -225,12 +225,12 @@ namespace StageUp.BLL
                 }
 
                 return ResultadoOperacion<int>.Ok(idRolInterno, mensaje);
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         public ResultadoOperacion DarDeBaja(int idRolInterno, int idUsuarioInternoResponsable)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(BLL_ControlAdministradores.RecursoCambios, () =>
             {
                 RolInterno rol = _mppRol.ObtenerPorId(new RolInterno { IdRolInterno = idRolInterno });
                 if (rol == null)
@@ -253,14 +253,14 @@ namespace StageUp.BLL
                 }
 
                 _mppRol.Baja(rol);
-                BLL_PermisoInterno.InvalidarCacheRol(idRolInterno);
+                Conexion.Instance.DespuesDeConfirmar(() => BLL_PermisoInterno.InvalidarCacheRol(idRolInterno));
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable, "BAJA", TipoEntidadBitacora, idRolInterno,
                     "Baja lógica del rol interno \"" + rol.NombreRol + "\".");
 
                 return ResultadoOperacion.Ok("El rol \"" + rol.NombreRol + "\" se dio de baja. Se conserva su historial.");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         private void RegistrarEnBitacora(

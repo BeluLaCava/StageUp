@@ -67,6 +67,13 @@ namespace StageUp.UI
                 txtLoginPassword.Text,
                 Request.Form["g-recaptcha-response"]);
 
+            if (resultado.IdActivacionPendiente.HasValue)
+            {
+                Session["ActivacionPendienteVerificada"] = resultado.IdActivacionPendiente.Value;
+                Response.Redirect("~/Registrarse.aspx?activar=1");
+                return;
+            }
+
             if (!resultado.Exitoso)
             {
                 MostrarMensaje(pnlMensajeLogin, litMensajeLogin, resultado.Mensaje, esError: true);

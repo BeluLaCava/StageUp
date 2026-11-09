@@ -75,6 +75,11 @@ namespace StageUp.BLL
 
         public ResultadoOperacion<int> Guardar(OrigenUsuario origen, int idUsuarioInternoResponsable)
         {
+            return EjecutarCambio(() => GuardarInterno(origen, idUsuarioInternoResponsable));
+        }
+
+        private ResultadoOperacion<int> GuardarInterno(OrigenUsuario origen, int idUsuarioInternoResponsable)
+        {
             if (origen == null)
             {
                 return ResultadoOperacion<int>.Error("Completá los datos del origen.");
@@ -148,13 +153,18 @@ namespace StageUp.BLL
                 return ResultadoOperacion<int>.Error("No fue posible guardar el origen en este momento. Probá nuevamente.");
             }
 
-            BLL_CatalogoComercial.Registrar(idUsuarioInternoResponsable, esAlta ? "ALTA" : "MODIFICACION", EntidadBitacora, id,
+            BLL_CatalogoComercial.RegistrarObligatorio(idUsuarioInternoResponsable, esAlta ? "ALTA" : "MODIFICACION", EntidadBitacora, id,
                 (esAlta ? "Alta" : "Modificación") + " del origen de usuario \"" + origen.NombreOrigen + "\" (código " + origen.Codigo + ").");
 
             return ResultadoOperacion<int>.Ok(id, esAlta ? "El origen se registró correctamente." : "El origen se actualizó correctamente.");
         }
 
         public ResultadoOperacion CambiarActivo(int idOrigenUsuario, bool activo, int idUsuarioInternoResponsable)
+        {
+            return EjecutarCambio(() => CambiarActivoInterno(idOrigenUsuario, activo, idUsuarioInternoResponsable));
+        }
+
+        private ResultadoOperacion CambiarActivoInterno(int idOrigenUsuario, bool activo, int idUsuarioInternoResponsable)
         {
             OrigenUsuario origen = Obtener(idOrigenUsuario);
             if (origen == null)
@@ -171,7 +181,7 @@ namespace StageUp.BLL
                 return ResultadoOperacion.Error("No fue posible actualizar el origen en este momento.");
             }
 
-            BLL_CatalogoComercial.Registrar(idUsuarioInternoResponsable, activo ? "ACTIVACION" : "BAJA", EntidadBitacora, idOrigenUsuario,
+            BLL_CatalogoComercial.RegistrarObligatorio(idUsuarioInternoResponsable, activo ? "ACTIVACION" : "BAJA", EntidadBitacora, idOrigenUsuario,
                 (activo ? "Reactivación" : "Baja lógica") + " del origen de usuario \"" + origen.NombreOrigen + "\".");
 
             return ResultadoOperacion.Ok(activo
@@ -201,5 +211,29 @@ namespace StageUp.BLL
 
             }
         }
+        private static ResultadoOperacion EjecutarCambio(Func<ResultadoOperacion> operacion)
+        {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico("StageUp:OrigenesUsuario", operacion, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error("No fue posible guardar el origen en este momento. Intentá nuevamente.");
+            }
+        }
+
+        private static ResultadoOperacion<T> EjecutarCambio<T>(Func<ResultadoOperacion<T>> operacion)
+        {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico("StageUp:OrigenesUsuario", operacion, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<T>.Error("No fue posible guardar el origen en este momento. Intentá nuevamente.");
+            }
+        }
+
     }
 }

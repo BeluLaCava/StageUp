@@ -6,6 +6,7 @@ using System.Web.UI;
 using StageUp.BE.Entidades;
 using StageUp.BLL;
 using StageUp.Seguridad;
+using StageUp.UI.Infraestructura;
 
 namespace StageUp.UI
 {
@@ -529,17 +530,15 @@ namespace StageUp.UI
                 throw new InvalidOperationException("La foto debe estar en formato JPG o PNG.");
             }
 
-            if (fuFotoPerfil.PostedFile.ContentLength <= 0 || fuFotoPerfil.PostedFile.ContentLength > MaximoBytesFoto)
+            string error;
+            string ruta = ImagenSubida.Guardar(fuFotoPerfil.PostedFile, "~/Content/Uploads/Perfiles", Server, out error, MaximoBytesFoto);
+            if (ruta == null)
             {
-                throw new InvalidOperationException("La foto debe pesar menos de 5 MB.");
+                throw new InvalidOperationException(error);
             }
 
-            string carpeta = Server.MapPath("~/Content/Uploads/Perfiles");
-            Directory.CreateDirectory(carpeta);
-            string nombreArchivo = Guid.NewGuid().ToString("N") + extension;
-            rutaFisica = Path.Combine(carpeta, nombreArchivo);
-            fuFotoPerfil.SaveAs(rutaFisica);
-            return "~/Content/Uploads/Perfiles/" + nombreArchivo;
+            rutaFisica = Server.MapPath(ruta);
+            return ruta;
         }
 
         private static void EliminarArchivoNuevo(string rutaFisica)

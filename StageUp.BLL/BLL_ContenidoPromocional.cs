@@ -185,6 +185,23 @@ namespace StageUp.BLL
         public ResultadoOperacion<int> Guardar(ContenidoPromocional contenido, int idUsuarioInterno, out string rutaArchivoAnterior)
         {
             rutaArchivoAnterior = null;
+            string anterior = null;
+            try
+            {
+                ResultadoOperacion<int> resultado = Conexion.Instance.EjecutarAtomico("StageUp:ContenidoPromocional",
+                    () => GuardarInterno(contenido, idUsuarioInterno, out anterior), r => r.Exitoso);
+                if (resultado.Exitoso) rutaArchivoAnterior = anterior;
+                return resultado;
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<int>.Error("No fue posible guardar el contenido en este momento. Intentá nuevamente.", "A20");
+            }
+        }
+
+        private ResultadoOperacion<int> GuardarInterno(ContenidoPromocional contenido, int idUsuarioInterno, out string rutaArchivoAnterior)
+        {
+            rutaArchivoAnterior = null;
             if (contenido == null)
             {
                 return ResultadoOperacion<int>.Error("Completá los datos del contenido.");
@@ -291,7 +308,7 @@ namespace StageUp.BLL
             string recurso = contenido.TieneArchivo ? "archivo " + contenido.NombreArchivoOriginal
                 : tendraArchivo ? "archivo sin cambios"
                 : "enlace";
-            BLL_CatalogoComercial.Registrar(idUsuarioInterno, esAlta ? "ALTA" : "MODIFICACION", EntidadBitacora, id,
+            BLL_CatalogoComercial.RegistrarObligatorio(idUsuarioInterno, esAlta ? "ALTA" : "MODIFICACION", EntidadBitacora, id,
                 (esAlta ? "Alta" : "Modificación") + " del contenido promocional \"" + contenido.Titulo + "\" (" +
                 _catalogos.Nombre(ItemCatalogoComercial.TipoContenido, contenido.TipoContenido) + ", " + TextoEstado(contenido.EstadoContenido) +
                 ", " + recurso + ")." +
@@ -306,6 +323,19 @@ namespace StageUp.BLL
         }
 
         public ResultadoOperacion CambiarEstado(int idContenido, string estadoNuevo, int idUsuarioInterno, bool puedeReactivar)
+        {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico("StageUp:ContenidoPromocional",
+                    () => CambiarEstadoInterno(idContenido, estadoNuevo, idUsuarioInterno, puedeReactivar), r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error("No fue posible actualizar el estado en este momento. Intentá nuevamente.", "A20");
+            }
+        }
+
+        private ResultadoOperacion CambiarEstadoInterno(int idContenido, string estadoNuevo, int idUsuarioInterno, bool puedeReactivar)
         {
             ContenidoPromocional contenido = Obtener(idContenido);
             if (contenido == null)
@@ -342,7 +372,7 @@ namespace StageUp.BLL
             }
 
             bool baja = estadoNuevo == ContenidoPromocional.EstadoDadoDeBaja;
-            BLL_CatalogoComercial.Registrar(idUsuarioInterno, baja ? "BAJA" : reactivacion ? "ACTIVACION" : "MODIFICACION", EntidadBitacora, idContenido,
+            BLL_CatalogoComercial.RegistrarObligatorio(idUsuarioInterno, baja ? "BAJA" : reactivacion ? "ACTIVACION" : "MODIFICACION", EntidadBitacora, idContenido,
                 (baja ? "Baja lógica" : reactivacion ? "Reactivación" : "Cambio de estado") + " del contenido promocional \"" + contenido.Titulo + "\": " +
                 TextoEstado(contenido.EstadoContenido) + " → " + TextoEstado(estadoNuevo) + ".");
 

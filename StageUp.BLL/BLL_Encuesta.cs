@@ -75,7 +75,7 @@ namespace StageUp.BLL
             string titulo, string descripcion, DateTime fechaInicio, DateTime fechaVencimiento,
             string publicoObjetivo, int idUsuarioInternoResponsable)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarCambioAtomico(0, () =>
             {
                 string tituloNormalizado;
                 string descripcionNormalizada;
@@ -108,7 +108,7 @@ namespace StageUp.BLL
             int idEncuesta, string titulo, string descripcion, DateTime fechaInicio, DateTime fechaVencimiento,
             string publicoObjetivo, int idUsuarioInternoResponsable)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarCambioAtomico(idEncuesta, () =>
             {
                 Encuesta actual = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
                 if (actual == null)
@@ -152,7 +152,7 @@ namespace StageUp.BLL
         public ResultadoOperacion<int> AgregarPregunta(
             int idEncuesta, string texto, List<string> opciones, int idUsuarioInternoResponsable)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarCambioAtomico(idEncuesta, () =>
             {
                 Encuesta encuesta = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
                 if (encuesta == null)
@@ -222,7 +222,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion EliminarPregunta(int idPreguntaEncuesta, int idEncuesta, int idUsuarioInternoResponsable)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarCambioAtomico(idEncuesta, () =>
             {
                 Encuesta encuesta = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
                 if (encuesta == null)
@@ -254,7 +254,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion Publicar(int idEncuesta, int idUsuarioInternoResponsable)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarCambioAtomico(idEncuesta, () =>
             {
                 Encuesta encuesta = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
                 if (encuesta == null)
@@ -298,7 +298,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion Cerrar(int idEncuesta, int idUsuarioInternoResponsable)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarCambioAtomico(idEncuesta, () =>
             {
                 Encuesta encuesta = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
                 if (encuesta == null)
@@ -324,7 +324,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion EliminarBorrador(int idEncuesta, int idUsuarioInternoResponsable)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarCambioAtomico(idEncuesta, () =>
             {
                 Encuesta encuesta = _mpp.ObtenerPorId(EncuestaConId(idEncuesta));
                 if (encuesta == null)
@@ -744,6 +744,18 @@ namespace StageUp.BLL
                 IdUsuarioExterno = encuestado.IdUsuarioExterno,
                 IdentificadorAnonimo = encuestado.IdentificadorAnonimo
             };
+        }
+
+        private static ResultadoOperacion EjecutarCambioAtomico(int idEncuesta, Func<ResultadoOperacion> operacion)
+        {
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(
+                "StageUp:Encuesta:" + idEncuesta.ToString(System.Globalization.CultureInfo.InvariantCulture), operacion, r => r.Exitoso));
+        }
+
+        private static ResultadoOperacion<T> EjecutarCambioAtomico<T>(int idEncuesta, Func<ResultadoOperacion<T>> operacion)
+        {
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(
+                "StageUp:Encuesta:" + idEncuesta.ToString(System.Globalization.CultureInfo.InvariantCulture), operacion, r => r.Exitoso));
         }
 
         private static ResultadoOperacion EjecutarProtegido(Func<ResultadoOperacion> operacion)

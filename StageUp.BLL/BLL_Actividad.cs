@@ -102,7 +102,7 @@ namespace StageUp.BLL
                 }
 
                 EspacioArtistico espacioAgenda = _mppEspacio.ObtenerPorId(new EspacioArtistico { IdEspacioArtistico = actividad.IdEspacioArtistico });
-                List<FranjaEspacio> franjasActividad = GenerarFranjas(actividad, DateTime.Now.Date);
+                List<FranjaEspacio> franjasActividad = PatronesDeActividad(actividad);
                 if ((espacioAgenda.Ficha.Disponibilidad ?? new List<FranjaEspacio>()).Exists(b =>
                     BLL_DisponibilidadEspacio.EsBloqueoManual(b) && !BLL_DisponibilidadEspacio.YaPaso(b) &&
                     franjasActividad.Exists(f => f.MinutoDesde < b.MinutoHasta && b.MinutoDesde < f.MinutoHasta && BLL_DisponibilidadEspacio.CompartenDias(f, b))))
@@ -287,7 +287,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion AsociarParticipante(int idActividad, int idParticipante, int idUsuarioGestor)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarCambioAtomico(() =>
             {
                 Actividad actividad = _mppActividad.ObtenerPorId(new Actividad { IdActividad = idActividad });
                 ResultadoOperacion validacionActividad = ValidarPertenencia(actividad, idUsuarioGestor);
@@ -338,7 +338,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion DesasociarParticipante(int idActividad, int idParticipante, int idUsuarioGestor)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarCambioAtomico(() =>
             {
                 Actividad actividad = _mppActividad.ObtenerPorId(new Actividad { IdActividad = idActividad });
                 ResultadoOperacion validacion = ValidarPertenencia(actividad, idUsuarioGestor);
@@ -602,14 +602,13 @@ namespace StageUp.BLL
 
         private Actividad BuscarActividadSuperpuesta(Actividad actividad)
         {
-            DateTime hoy = DateTime.Now.Date;
-            List<FranjaEspacio> propias = GenerarFranjas(actividad, hoy);
+            List<FranjaEspacio> propias = PatronesDeActividad(actividad);
             List<Actividad> otras = _mppActividad.ListarPorEspacio(
                 new EspacioArtistico { IdEspacioArtistico = actividad.IdEspacioArtistico });
 
             foreach (Actividad otra in otras.Where(o => o.IdActividad != actividad.IdActividad && o.Activa))
             {
-                foreach (FranjaEspacio franjaOtra in GenerarFranjas(otra, hoy).Where(f => !BLL_DisponibilidadEspacio.YaPaso(f)))
+                foreach (FranjaEspacio franjaOtra in PatronesDeActividad(otra).Where(f => !BLL_DisponibilidadEspacio.YaPaso(f)))
                 {
                     if (propias.Exists(f =>
                         f.MinutoDesde < franjaOtra.MinutoHasta && franjaOtra.MinutoDesde < f.MinutoHasta &&
@@ -632,15 +631,13 @@ namespace StageUp.BLL
                 return null;
             }
 
-            List<FranjaEspacio> franjas = GenerarFranjas(actividad, DateTime.Now.Date);
+            List<FranjaEspacio> franjas = PatronesDeActividad(actividad);
             return reservasActivas
                 .Where(r => r.MinutoDesde.HasValue && r.MinutoHasta.HasValue)
                 .OrderBy(r => r.FechaSolicitada)
                 .FirstOrDefault(r => franjas.Exists(f =>
                     f.MinutoDesde < r.MinutoHasta.Value && r.MinutoDesde.Value < f.MinutoHasta &&
-                    (string.IsNullOrEmpty(f.Fecha)
-                        ? f.DiaSemana == BLL_DisponibilidadEspacio.DiaSemanaDe(r.FechaSolicitada)
-                        : f.Fecha == r.FechaSolicitada.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))));
+                    BLL_DisponibilidadEspacio.RigeEnFecha(f, r.FechaSolicitada)));
         }
 
         private static string DescribirReserva(Reserva reserva)
@@ -667,6 +664,26 @@ namespace StageUp.BLL
             {
                 _mppActividad.InsertarFranjaDesdeActividad(actividad, franja);
             }
+        }
+
+        private static List<FranjaEspacio> PatronesDeActividad(Actividad actividad)
+        {
+            if (actividad.ModoRecurrencia != ModoRecurrenciaActividad.Mensual.ToString())
+                return GenerarFranjas(actividad, DateTime.Now.Date);
+            return new List<FranjaEspacio>
+            {
+                new FranjaEspacio
+                {
+                    DiaSemana = actividad.DiaSemanaMensual,
+                    SemanaDelMes = actividad.SemanaDelMes,
+                    MinutoDesde = actividad.MinutoDesde,
+                    MinutoHasta = actividad.MinutoHasta,
+                    Bloqueado = true,
+                    Origen = "Actividad",
+                    IdActividad = actividad.IdActividad,
+                    NombreActividad = actividad.Nombre
+                }
+            };
         }
 
         internal static List<FranjaEspacio> GenerarFranjas(Actividad actividad, DateTime desde)
@@ -789,6 +806,11 @@ namespace StageUp.BLL
             }
 
             return fechas;
+        }
+
+        private static ResultadoOperacion EjecutarCambioAtomico(Func<ResultadoOperacion> operacion)
+        {
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, operacion, r => r.Exitoso));
         }
 
         private static ResultadoOperacion<T> EjecutarProtegido<T>(Func<ResultadoOperacion<T>> operacion)

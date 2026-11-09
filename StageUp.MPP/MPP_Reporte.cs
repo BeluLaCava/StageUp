@@ -80,6 +80,7 @@ namespace StageUp.MPP
                     { "@desde", oFiltro.Desde.Date },
                     { "@hasta", oFiltro.Hasta.Date },
                     { "@moneda", oFiltro.Moneda },
+                    { "@provincia", oFiltro.Provincia },
                     { "@tipoEspacio", oFiltro.TipoEspacio }
                 });
 

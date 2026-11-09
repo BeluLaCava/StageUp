@@ -133,6 +133,19 @@ namespace StageUp.BLL
 
         public ResultadoOperacion<int> Guardar(ContactoComercial contacto, int idUsuarioInternoResponsable)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico("StageUp:ContactosComerciales",
+                    () => GuardarInterno(contacto, idUsuarioInternoResponsable), r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<int>.Error("No fue posible guardar el contacto en este momento. Intentá nuevamente.", "A19");
+            }
+        }
+
+        private ResultadoOperacion<int> GuardarInterno(ContactoComercial contacto, int idUsuarioInternoResponsable)
+        {
             if (contacto == null)
             {
                 return ResultadoOperacion<int>.Error("Completá los datos del contacto.");
@@ -246,6 +259,19 @@ namespace StageUp.BLL
 
         public ResultadoOperacion RegistrarSeguimiento(SeguimientoContacto seguimiento, string fechaTexto, string fechaProximaTexto, int idUsuarioInternoResponsable)
         {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico("StageUp:ContactosComerciales",
+                    () => RegistrarSeguimientoInterno(seguimiento, fechaTexto, fechaProximaTexto, idUsuarioInternoResponsable), r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error("No fue posible guardar el seguimiento en este momento. Intentá nuevamente.", "A19");
+            }
+        }
+
+        private ResultadoOperacion RegistrarSeguimientoInterno(SeguimientoContacto seguimiento, string fechaTexto, string fechaProximaTexto, int idUsuarioInternoResponsable)
+        {
             if (seguimiento == null)
             {
                 return ResultadoOperacion.Error("Completá los datos del seguimiento.");
@@ -332,7 +358,7 @@ namespace StageUp.BLL
                     : "No fue posible guardar el seguimiento en este momento. Intentá nuevamente.", "A19");
             }
 
-            BLL_CatalogoComercial.Registrar(idUsuarioInternoResponsable, "SEGUIMIENTO", EntidadBitacora, contacto.IdContactoComercial,
+            BLL_CatalogoComercial.RegistrarObligatorio(idUsuarioInternoResponsable, "SEGUIMIENTO", EntidadBitacora, contacto.IdContactoComercial,
                 "Seguimiento del contacto comercial \"" + contacto.NombreCompleto + "\" (" +
                 _catalogos.Nombre(ItemCatalogoComercial.TipoInteraccion, seguimiento.TipoSeguimiento) + " del " +
                 seguimiento.FechaSeguimiento.ToString("dd/MM/yyyy") + ")." +
@@ -349,7 +375,7 @@ namespace StageUp.BLL
         {
             if (anterior == null)
             {
-                BLL_CatalogoComercial.Registrar(idUsuarioInterno, "ALTA", EntidadBitacora, id,
+                BLL_CatalogoComercial.RegistrarObligatorio(idUsuarioInterno, "ALTA", EntidadBitacora, id,
                     "Alta del contacto comercial \"" + contacto.NombreCompleto + "\" (" +
                     _catalogos.Nombre(ItemCatalogoComercial.TipoEntidad, contacto.TipoEntidad) + ", estado " + TextoEstado(contacto.EstadoContacto) + ")." +
                     DescribirVinculos(contacto));
@@ -383,7 +409,7 @@ namespace StageUp.BLL
             }
 
             bool soloVinculos = anterior.EstadoContacto == contacto.EstadoContacto && cambios.Count > 0;
-            BLL_CatalogoComercial.Registrar(idUsuarioInterno, soloVinculos ? "ASOCIACION" : "MODIFICACION", EntidadBitacora, id,
+            BLL_CatalogoComercial.RegistrarObligatorio(idUsuarioInterno, soloVinculos ? "ASOCIACION" : "MODIFICACION", EntidadBitacora, id,
                 "Modificación del contacto comercial \"" + contacto.NombreCompleto + "\"" +
                 (cambios.Count > 0 ? ": " + string.Join("; ", cambios) + "." : "."));
         }

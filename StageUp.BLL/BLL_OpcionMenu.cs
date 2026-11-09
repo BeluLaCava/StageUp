@@ -68,7 +68,7 @@ namespace StageUp.BLL
                 }
 
                 int idOpcion = _mpp.Insertar(opcion);
-                BLL_PermisoInterno.InvalidarCacheMenu();
+                Conexion.Instance.DespuesDeConfirmar(BLL_PermisoInterno.InvalidarCacheMenu);
 
                 _bitacora.RegistrarInterno(idUsuarioInternoResponsable, "ALTA", TipoEntidadBitacora, idOpcion,
                     "Alta de la opción de menú \"" + opcion.Texto + "\" (" + opcion.Url + ").");
@@ -99,7 +99,7 @@ namespace StageUp.BLL
                 }
 
                 _mpp.Modificar(opcion);
-                BLL_PermisoInterno.InvalidarCacheMenu();
+                Conexion.Instance.DespuesDeConfirmar(BLL_PermisoInterno.InvalidarCacheMenu);
 
                 _bitacora.RegistrarInterno(idUsuarioInternoResponsable, "MODIFICACION", TipoEntidadBitacora, opcion.IdOpcionMenu,
                     "Modificación de la opción de menú \"" + opcion.Texto + "\".");
@@ -125,7 +125,7 @@ namespace StageUp.BLL
 
                 opcion.Activo = activa;
                 _mpp.CambiarEstado(opcion);
-                BLL_PermisoInterno.InvalidarCacheMenu();
+                Conexion.Instance.DespuesDeConfirmar(BLL_PermisoInterno.InvalidarCacheMenu);
 
                 _bitacora.RegistrarInterno(idUsuarioInternoResponsable, activa ? "ACTIVACION" : "BAJA", TipoEntidadBitacora, idOpcionMenu,
                     (activa ? "Reactivación" : "Baja lógica") + " de la opción de menú \"" + opcion.Texto + "\".");
@@ -170,7 +170,7 @@ namespace StageUp.BLL
                 vecina.Orden = ordenOpcion;
                 _mpp.ActualizarOrden(opcion);
                 _mpp.ActualizarOrden(vecina);
-                BLL_PermisoInterno.InvalidarCacheMenu();
+                Conexion.Instance.DespuesDeConfirmar(BLL_PermisoInterno.InvalidarCacheMenu);
 
                 _bitacora.RegistrarInterno(idUsuarioInternoResponsable, "MODIFICACION", TipoEntidadBitacora, idOpcionMenu,
                     "Cambio de orden de la opción de menú \"" + opcion.Texto + "\".");
@@ -241,7 +241,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return operacion();
+                return Conexion.Instance.EjecutarAtomico(BLL_ControlAdministradores.RecursoCambios, operacion, r => r.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -253,7 +253,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return operacion();
+                return Conexion.Instance.EjecutarAtomico(BLL_ControlAdministradores.RecursoCambios, operacion, r => r.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {

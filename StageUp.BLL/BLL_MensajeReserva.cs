@@ -102,35 +102,38 @@ namespace StageUp.BLL
 
             try
             {
-
-                UsuarioExterno usuario = new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno };
-                MensajeReserva ultimo = _mpp.ListarPorReserva(reserva, usuario).LastOrDefault();
-                if (ultimo != null && ultimo.IdUsuarioExternoEmisor == idUsuarioExterno && ultimo.Texto == mensaje &&
-                    DateTime.Now - ultimo.FechaEnvio < VentanaDuplicado)
+                return Conexion.Instance.EjecutarAtomico("StageUp:MensajesReserva:" + idReserva, () =>
                 {
-                    return ResultadoOperacion<int>.Error("Ya enviaste este mismo mensaje.");
-                }
 
-                int idMensaje = _mpp.Insertar(new MensajeReserva
-                {
-                    IdReserva = idReserva,
-                    IdUsuarioExternoEmisor = idUsuarioExterno,
-                    Texto = mensaje
-                });
+                    UsuarioExterno usuario = new UsuarioExterno { IdUsuarioExterno = idUsuarioExterno };
+                    MensajeReserva ultimo = _mpp.ListarPorReserva(reserva, usuario).LastOrDefault();
+                    if (ultimo != null && ultimo.IdUsuarioExternoEmisor == idUsuarioExterno && ultimo.Texto == mensaje &&
+                        DateTime.Now - ultimo.FechaEnvio < VentanaDuplicado)
+                    {
+                        return ResultadoOperacion<int>.Error("Ya enviaste este mismo mensaje.");
+                    }
 
-                bool esSolicitante = reserva.IdUsuarioExternoSolicitante == idUsuarioExterno;
-                int idDestinatario = esSolicitante ? reserva.IdUsuarioGestor : reserva.IdUsuarioExternoSolicitante;
-                string emisor = esSolicitante ? reserva.NombreSolicitante : reserva.NombreGestor;
+                    int idMensaje = _mpp.Insertar(new MensajeReserva
+                    {
+                        IdReserva = idReserva,
+                        IdUsuarioExternoEmisor = idUsuarioExterno,
+                        Texto = mensaje
+                    });
 
-                Bitacora(idUsuarioExterno, idMensaje,
-                    "Mensaje privado en la reserva N° " + idReserva + " (" + (esSolicitante ? "del solicitante al gestor" : "del gestor al solicitante") + ").");
+                    bool esSolicitante = reserva.IdUsuarioExternoSolicitante == idUsuarioExterno;
+                    int idDestinatario = esSolicitante ? reserva.IdUsuarioGestor : reserva.IdUsuarioExternoSolicitante;
+                    string emisor = esSolicitante ? reserva.NombreSolicitante : reserva.NombreGestor;
 
-                _bllNotificacion.Notificar(idDestinatario, TipoNotificacion.MensajeReserva,
-                    (string.IsNullOrWhiteSpace(emisor) ? "Tenés un mensaje nuevo" : emisor.Trim() + " te escribió") +
-                    " sobre la reserva N° " + idReserva + " en \"" + reserva.NombreEspacio + "\": \"" + Recortar(mensaje, 100) + "\"",
-                    "~/DetalleReserva.aspx?id=" + idReserva + "&ver=mensajes");
+                    Bitacora(idUsuarioExterno, idMensaje,
+                        "Mensaje privado en la reserva N° " + idReserva + " (" + (esSolicitante ? "del solicitante al gestor" : "del gestor al solicitante") + ").");
 
-                return ResultadoOperacion<int>.Ok(idMensaje, "Mensaje enviado.");
+                    Conexion.Instance.DespuesDeConfirmar(() => _bllNotificacion.Notificar(idDestinatario, TipoNotificacion.MensajeReserva,
+                        (string.IsNullOrWhiteSpace(emisor) ? "Tenés un mensaje nuevo" : emisor.Trim() + " te escribió") +
+                        " sobre la reserva N° " + idReserva + " en \"" + reserva.NombreEspacio + "\": \"" + Recortar(mensaje, 100) + "\"",
+                        "~/DetalleReserva.aspx?id=" + idReserva + "&ver=mensajes"));
+
+                    return ResultadoOperacion<int>.Ok(idMensaje, "Mensaje enviado.");
+                }, r => r.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -170,13 +173,7 @@ namespace StageUp.BLL
 
         private void Bitacora(int idUsuarioExterno, int idMensaje, string descripcion)
         {
-            try
-            {
-                _bitacora.Registrar(idUsuarioExterno, "ALTA", TipoEntidadBitacora, idMensaje, descripcion);
-            }
-            catch (ErrorAccesoDatosException)
-            {
-            }
+            _bitacora.Registrar(idUsuarioExterno, "ALTA", TipoEntidadBitacora, idMensaje, descripcion);
         }
 
         private static string Limpiar(string texto)

@@ -47,6 +47,11 @@ namespace StageUp.BLL
 
         public ClaveCifrado ObtenerActiva(string motivoSiSeCrea)
         {
+            return Conexion.Instance.EjecutarAtomico("StageUp:ClavesCifrado", () => ObtenerActivaInterno(motivoSiSeCrea), clave => clave != null);
+        }
+
+        private ClaveCifrado ObtenerActivaInterno(string motivoSiSeCrea)
+        {
             ClaveCifrado activa = _mpp.ObtenerActiva();
             if (activa != null)
             {
@@ -105,6 +110,18 @@ namespace StageUp.BLL
         }
 
         public ResultadoOperacion<string> Rotar(int idUsuarioInterno, string motivo, bool confirmado)
+        {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico("StageUp:ClavesCifrado", () => RotarInterno(idUsuarioInterno, motivo, confirmado), resultado => resultado.Exitoso);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<string>.Error("No pudimos completar la operación de claves. Los cambios no se guardaron; intentá nuevamente.");
+            }
+        }
+
+        private ResultadoOperacion<string> RotarInterno(int idUsuarioInterno, string motivo, bool confirmado)
         {
             string motivoLimpio = (motivo ?? string.Empty).Trim();
             if (motivoLimpio.Length < LongitudMinimaMotivo || motivoLimpio.Length > LongitudMaximaMotivo)
@@ -168,16 +185,21 @@ namespace StageUp.BLL
 
         public ResultadoOperacion<string> ReintentarPendientes(int idUsuarioInterno)
         {
-            int reenvueltas;
-            int fallidas;
             try
             {
-                ReenvolverTarjetas(out reenvueltas, out fallidas);
+                return Conexion.Instance.EjecutarAtomico("StageUp:ClavesCifrado", () => ReintentarPendientesInterno(idUsuarioInterno), resultado => true);
             }
             catch (ErrorAccesoDatosException)
             {
-                return ResultadoOperacion<string>.Error("No se pudo completar la operación. Probá de nuevo.");
+                return ResultadoOperacion<string>.Error("No pudimos completar la operación de claves. Los cambios no se guardaron; intentá nuevamente.");
             }
+        }
+
+        private ResultadoOperacion<string> ReintentarPendientesInterno(int idUsuarioInterno)
+        {
+            int reenvueltas;
+            int fallidas;
+            ReenvolverTarjetas(out reenvueltas, out fallidas);
 
             _bitacora.RegistrarInterno(idUsuarioInterno, "ROTACION_CLAVES", "ClaveCifrado", null,
                 "Reintento de protección de tarjetas con la clave activa: " + reenvueltas + " protegidas" +
@@ -219,7 +241,7 @@ namespace StageUp.BLL
                     }
                 }
                 catch (Exception ex) when (ex is CryptographicException || ex is ArgumentException || ex is InvalidOperationException ||
-                                           ex is FormatException || ex is ErrorAccesoDatosException)
+                                           ex is FormatException)
                 {
                     fallidas++;
                 }

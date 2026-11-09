@@ -39,6 +39,11 @@ namespace StageUp.BLL
                 return ResultadoInicioSesion.OkInterno(resultadoInterno.Mensaje);
             }
 
+            if (resultadoExterno.CodigoAlternativo == "ACTIVACION_PENDIENTE" && resultadoExterno.Valor != null)
+            {
+                return ResultadoInicioSesion.ActivacionPendiente(resultadoExterno.Valor.IdUsuarioExterno, resultadoExterno.Mensaje);
+            }
+
             return ResultadoInicioSesion.Error(ElegirMensajeDeError(resultadoExterno.Mensaje, resultadoInterno.Mensaje));
             }, mensaje => ResultadoInicioSesion.Error(mensaje));
         }

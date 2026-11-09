@@ -331,21 +331,40 @@ namespace StageUp.BLL
                     return ResultadoOperacion<Pago>.Error(autorizacion.Mensaje);
                 }
 
-                ResultadoMovimientoDinero resultado = _mpp.PagarDeuda(pago);
+                decimal saldoAlRegistrar = 0m;
+                ResultadoMovimientoDinero resultado = Conexion.Instance.EjecutarAtomico("StageUp_CuentaCorriente_" + idUsuarioExterno, () =>
+                {
+                    ResultadoMovimientoDinero movimiento = _mpp.PagarDeuda(pago);
+                    if (movimiento.EsOk && movimiento.IdGenerado.HasValue)
+                    {
+                        pago.IdPago = movimiento.IdGenerado.Value;
+                        pago.Estado = "Aprobado";
+                        _bitacora.Registrar(
+                            idUsuarioExterno, "PAGO", "Pago", pago.IdPago,
+                            "Pago de saldo deudor por " + BLL_CuentaCorriente.FormatearImporte(pago.ImporteTotal, moneda) + DescribirMedios(pago) + ".");
+
+                        foreach (SaldoCuentaCorriente actual in _bllCuenta.ObtenerSaldos(idUsuarioExterno, BLL_CuentaCorriente.RolCliente))
+                        {
+                            if (actual.Moneda == moneda) saldoAlRegistrar = actual.Saldo;
+                        }
+                    }
+                    return movimiento;
+                }, movimiento => movimiento.EsOk && movimiento.IdGenerado.HasValue);
+
                 if (!resultado.EsOk || !resultado.IdGenerado.HasValue)
                 {
                     RegistrarAutorizacionAnulada(pago, MensajeDeResultado(resultado.Resultado));
                     return ResultadoOperacion<Pago>.Error(MensajeDeResultado(resultado.Resultado) + " No se realizó ningún cobro en tu tarjeta.");
                 }
 
-                pago.IdPago = resultado.IdGenerado.Value;
-                pago.Estado = "Aprobado";
-
-                _bitacora.Registrar(
-                    idUsuarioExterno, "PAGO", "Pago", pago.IdPago,
-                    "Pago de saldo deudor por " + BLL_CuentaCorriente.FormatearImporte(pago.ImporteTotal, moneda) + DescribirMedios(pago) + ".");
-
-                return ResultadoOperacion<Pago>.Ok(pago, "Recibimos el pago. Tu cuenta quedó sin deuda en " + moneda + ".");
+                string estadoCuenta = saldoAlRegistrar < 0
+                    ? "Al registrar este pago, queda una deuda de " + BLL_CuentaCorriente.FormatearImporte(-saldoAlRegistrar, moneda) + " en " + moneda + ". Consultá los movimientos de tu cuenta corriente."
+                    : "Al registrar este pago, tu cuenta quedó sin deuda en " + moneda + ".";
+                return ResultadoOperacion<Pago>.Ok(pago, "Recibimos el pago. " + estadoCuenta);
+            }
+            catch (ErrorCargaListadoException)
+            {
+                return ResultadoOperacion<Pago>.Error("No pudimos consultar el saldo de tu cuenta. Intentá nuevamente.");
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -660,15 +679,18 @@ namespace StageUp.BLL
 
         private ResultadoOperacion<int> GuardarAviso(Pago registro, int idUsuarioInternoResponsable, string mensaje, string codigo)
         {
-            int idPago = _mpp.RegistrarAviso(registro, idUsuarioInternoResponsable);
-            _bitacora.RegistrarInterno(
-                idUsuarioInternoResponsable, "PAGO", "Pago", idPago,
-                Recortar("Aviso del medio de pago (" + (registro.IdentificadorExterno ?? "sin identificador") + "): " +
-                    DescribirEstado(registro.Estado) +
-                    (registro.IdReserva.HasValue ? " para la reserva N° " + registro.IdReserva.Value : string.Empty) +
-                    (registro.Observacion != null ? ". " + registro.Observacion : string.Empty) +
-                    (registro.MotivoRechazo != null && registro.Estado == "Rechazado" ? ". Motivo: " + registro.MotivoRechazo : string.Empty), 1900));
-            return ResultadoOperacion<int>.OkAlternativo(idPago, mensaje, codigo);
+            return Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
+            {
+                int idPago = _mpp.RegistrarAviso(registro, idUsuarioInternoResponsable);
+                _bitacora.RegistrarInterno(
+                    idUsuarioInternoResponsable, "PAGO", "Pago", idPago,
+                    Recortar("Aviso del medio de pago (" + (registro.IdentificadorExterno ?? "sin identificador") + "): " +
+                        DescribirEstado(registro.Estado) +
+                        (registro.IdReserva.HasValue ? " para la reserva N° " + registro.IdReserva.Value : string.Empty) +
+                        (registro.Observacion != null ? ". " + registro.Observacion : string.Empty) +
+                        (registro.MotivoRechazo != null && registro.Estado == "Rechazado" ? ". Motivo: " + registro.MotivoRechazo : string.Empty), 1900));
+                return ResultadoOperacion<int>.OkAlternativo(idPago, mensaje, codigo);
+            }, resultado => resultado.Exitoso);
         }
 
         private static string UnirLista(List<string> partes)

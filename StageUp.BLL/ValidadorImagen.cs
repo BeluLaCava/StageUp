@@ -37,14 +37,19 @@ namespace StageUp.BLL
 
         public static ResultadoOperacion<ImagenValidada> Validar(byte[] contenido, string nombreArchivo, string tipoMime)
         {
+            return Validar(contenido, nombreArchivo, tipoMime, MaximoBytes);
+        }
+
+        public static ResultadoOperacion<ImagenValidada> Validar(byte[] contenido, string nombreArchivo, string tipoMime, int maximoBytes)
+        {
             if (contenido == null || contenido.Length == 0)
             {
                 return ResultadoOperacion<ImagenValidada>.Error("Elegí una imagen.");
             }
 
-            if (contenido.Length > MaximoBytes)
+            if (contenido.Length > maximoBytes)
             {
-                return ResultadoOperacion<ImagenValidada>.Error("La imagen no puede superar los 3 MB.");
+                return ResultadoOperacion<ImagenValidada>.Error("La imagen no puede superar los " + (maximoBytes / (1024 * 1024)) + " MB.");
             }
 
             string extension = (Path.GetExtension(nombreArchivo ?? string.Empty) ?? string.Empty).ToLowerInvariant();

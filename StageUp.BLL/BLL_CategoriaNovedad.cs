@@ -109,6 +109,11 @@ namespace StageUp.BLL
 
         public ResultadoOperacion Registrar(string nombre, int orden, int idUsuarioInternoResponsable)
         {
+            return EjecutarCambio(() => RegistrarInterno(nombre, orden, idUsuarioInternoResponsable));
+        }
+
+        private ResultadoOperacion RegistrarInterno(string nombre, int orden, int idUsuarioInternoResponsable)
+        {
             string nombreNormalizado;
             ResultadoOperacion validacion = Validar(nombre, orden, out nombreNormalizado);
             if (!validacion.Exitoso)
@@ -131,7 +136,7 @@ namespace StageUp.BLL
             try
             {
                 _mpp.Insertar(new CategoriaNovedad { Codigo = codigo, Nombre = nombreNormalizado, Orden = orden });
-                InvalidarCache();
+                Conexion.Instance.DespuesDeConfirmar(InvalidarCache);
                 Bitacora(idUsuarioInternoResponsable, "ALTA", "Alta de la categoría de novedades \"" + nombreNormalizado + "\" (código " + codigo + ").");
                 return ResultadoOperacion.Ok("Se agregó la categoría \"" + nombreNormalizado + "\".");
             }
@@ -142,6 +147,11 @@ namespace StageUp.BLL
         }
 
         public ResultadoOperacion Modificar(string codigo, string nombre, int orden, int idUsuarioInternoResponsable)
+        {
+            return EjecutarCambio(() => ModificarInterno(codigo, nombre, orden, idUsuarioInternoResponsable));
+        }
+
+        private ResultadoOperacion ModificarInterno(string codigo, string nombre, int orden, int idUsuarioInternoResponsable)
         {
             string codigoExistente = BuscarCodigo(codigo);
             if (codigoExistente == null)
@@ -159,7 +169,7 @@ namespace StageUp.BLL
             try
             {
                 _mpp.Modificar(new CategoriaNovedad { Codigo = codigoExistente, Nombre = nombreNormalizado, Orden = orden });
-                InvalidarCache();
+                Conexion.Instance.DespuesDeConfirmar(InvalidarCache);
                 Bitacora(idUsuarioInternoResponsable, "MODIFICACION", "Modificación de la categoría de novedades " + codigoExistente + ": \"" + nombreNormalizado + "\", orden " + orden + ".");
                 return ResultadoOperacion.Ok("Se guardaron los cambios de la categoría.");
             }
@@ -171,6 +181,11 @@ namespace StageUp.BLL
 
         public ResultadoOperacion CambiarEstado(string codigo, bool activa, int idUsuarioInternoResponsable)
         {
+            return EjecutarCambio(() => CambiarEstadoInterno(codigo, activa, idUsuarioInternoResponsable));
+        }
+
+        private ResultadoOperacion CambiarEstadoInterno(string codigo, bool activa, int idUsuarioInternoResponsable)
+        {
             string codigoExistente = BuscarCodigo(codigo);
             if (codigoExistente == null)
             {
@@ -180,7 +195,7 @@ namespace StageUp.BLL
             try
             {
                 _mpp.CambiarEstado(new CategoriaNovedad { Codigo = codigoExistente, Activa = activa });
-                InvalidarCache();
+                Conexion.Instance.DespuesDeConfirmar(InvalidarCache);
                 Bitacora(idUsuarioInternoResponsable, activa ? "ACTIVACION" : "BAJA",
                     (activa ? "Activación" : "Desactivación") + " de la categoría de novedades " + codigoExistente + ".");
                 return ResultadoOperacion.Ok(activa
@@ -270,6 +285,18 @@ namespace StageUp.BLL
             return ResultadoOperacion.Ok();
         }
 
+        private static ResultadoOperacion EjecutarCambio(Func<ResultadoOperacion> operacion)
+        {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico("StageUp:CategoriasNovedad", operacion, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion.Error("No se pudo guardar la categoría. Intentá nuevamente.");
+            }
+        }
+
         private static string MensajeError(ErrorAccesoDatosException ex, string porDefecto)
         {
             switch (ex.NumeroErrorSql)
@@ -284,13 +311,7 @@ namespace StageUp.BLL
 
         private void Bitacora(int idUsuarioInterno, string operacion, string descripcion)
         {
-            try
-            {
-                _bitacora.RegistrarInterno(idUsuarioInterno, operacion, TipoEntidadBitacora, null, descripcion);
-            }
-            catch (ErrorAccesoDatosException)
-            {
-            }
+            _bitacora.RegistrarInterno(idUsuarioInterno, operacion, TipoEntidadBitacora, null, descripcion);
         }
     }
 }

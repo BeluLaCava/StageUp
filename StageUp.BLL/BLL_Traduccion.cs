@@ -62,7 +62,7 @@ namespace StageUp.BLL
                     TextoTraducido = textoNormalizado
                 });
 
-                BLL_Multidioma.InvalidarCache(idIdioma);
+                Conexion.Instance.DespuesDeConfirmar(() => BLL_Multidioma.InvalidarCache(idIdioma));
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable,
@@ -94,7 +94,7 @@ namespace StageUp.BLL
                     IdEtiquetaTraduccion = idEtiquetaTraduccion
                 });
 
-                BLL_Multidioma.InvalidarCache(idIdioma);
+                Conexion.Instance.DespuesDeConfirmar(() => BLL_Multidioma.InvalidarCache(idIdioma));
 
                 _bitacora.RegistrarInterno(
                     idUsuarioInternoResponsable,
@@ -111,7 +111,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return operacion();
+                return Conexion.Instance.EjecutarAtomico(BLL_Idioma.RecursoCambios, operacion, r => r.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {

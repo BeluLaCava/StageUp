@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -570,6 +570,7 @@ namespace StageUp.UI.Explorar
                 disponibilidad.Where(f => f != null).Select(f => new
                 {
                     f.DiaSemana,
+                    f.SemanaDelMes,
                     f.Fecha,
                     f.MinutoDesde,
                     f.MinutoHasta,
@@ -676,6 +677,12 @@ namespace StageUp.UI.Explorar
                     continue;
                 }
 
+                if (franja.SemanaDelMes.HasValue)
+                {
+                    resultado.Add(BLL_DisponibilidadEspacio.DescribirCuando(franja) + " · Ocupado de " +
+                        FormatearHora(franja.MinutoDesde) + " a " + FormatearHora(franja.MinutoHasta));
+                    continue;
+                }
                 string dia = franja.DiaSemana.HasValue &&
                     franja.DiaSemana.Value >= 1 &&
                     franja.DiaSemana.Value <= 7

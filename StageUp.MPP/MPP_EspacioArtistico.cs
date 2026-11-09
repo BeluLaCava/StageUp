@@ -433,6 +433,7 @@ namespace StageUp.MPP
                             : "Manual",
 
                         IdFranjaEspacio = LeerEnteroOpcional(fila, "idFranjaEspacio"),
+                        SemanaDelMes = LeerEnteroOpcional(fila, "semanaDelMes"),
                         MotivoBloqueo = LeerTexto(fila, "motivoBloqueo"),
                         IdActividad = LeerEnteroOpcional(fila, "idActividad"),
                         NombreActividad = LeerTexto(fila, "nombreActividad")

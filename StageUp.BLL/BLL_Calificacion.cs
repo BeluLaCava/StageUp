@@ -186,74 +186,77 @@ namespace StageUp.BLL
         {
             try
             {
-                if (puntaje < 1 || puntaje > 5)
+                return Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
                 {
-                    return ResultadoOperacion<int>.Error("Elegí una calificación entre 1 y 5 estrellas.");
-                }
+                    if (puntaje < 1 || puntaje > 5)
+                    {
+                        return ResultadoOperacion<int>.Error("Elegí una calificación entre 1 y 5 estrellas.");
+                    }
 
-                string comentarioLimpio = string.IsNullOrWhiteSpace(comentario) ? null : comentario.Trim();
-                if (string.IsNullOrEmpty(comentarioLimpio))
-                {
-                    return ResultadoOperacion<int>.Error("Contanos brevemente cómo fue la experiencia.");
-                }
+                    string comentarioLimpio = string.IsNullOrWhiteSpace(comentario) ? null : comentario.Trim();
+                    if (string.IsNullOrEmpty(comentarioLimpio))
+                    {
+                        return ResultadoOperacion<int>.Error("Contanos brevemente cómo fue la experiencia.");
+                    }
 
-                if (comentarioLimpio.Length > LongitudMaximaComentario)
-                {
-                    return ResultadoOperacion<int>.Error(
-                        "El comentario no puede superar los " + LongitudMaximaComentario + " caracteres.");
-                }
+                    if (comentarioLimpio.Length > LongitudMaximaComentario)
+                    {
+                        return ResultadoOperacion<int>.Error(
+                            "El comentario no puede superar los " + LongitudMaximaComentario + " caracteres.");
+                    }
 
-                _mppReserva.FinalizarVencidas();
-                Reserva reserva = _mppReserva.ObtenerPorId(new Reserva { IdReserva = idReserva });
-                if (reserva == null)
-                {
-                    return ResultadoOperacion<int>.Error("No se encontró la reserva indicada.");
-                }
+                    _mppReserva.FinalizarVencidas();
+                    Reserva reserva = _mppReserva.ObtenerPorId(new Reserva { IdReserva = idReserva });
+                    if (reserva == null)
+                    {
+                        return ResultadoOperacion<int>.Error("No se encontró la reserva indicada.");
+                    }
 
-                if (reserva.EstadoReserva != EstadoReserva.Finalizada.ToString())
-                {
-                    return ResultadoOperacion<int>.Error("La calificación se habilita cuando termina una reserva aceptada.");
-                }
+                    if (reserva.EstadoReserva != EstadoReserva.Finalizada.ToString())
+                    {
+                        return ResultadoOperacion<int>.Error("La calificación se habilita cuando termina una reserva aceptada.");
+                    }
 
-                bool autorValido = tipo == TipoCalificacion.Espacio
-                    ? reserva.IdUsuarioExternoSolicitante == idUsuarioAutor
-                    : reserva.IdUsuarioGestor == idUsuarioAutor;
-                if (!autorValido)
-                {
-                    return ResultadoOperacion<int>.Error("No tenés permiso para calificar esta reserva.");
-                }
+                    bool autorValido = tipo == TipoCalificacion.Espacio
+                        ? reserva.IdUsuarioExternoSolicitante == idUsuarioAutor
+                        : reserva.IdUsuarioGestor == idUsuarioAutor;
+                    if (!autorValido)
+                    {
+                        return ResultadoOperacion<int>.Error("No tenés permiso para calificar esta reserva.");
+                    }
 
-                string tipoTexto = tipo.ToString();
-                Calificacion calificacion = new Calificacion
-                {
-                    IdReserva = idReserva,
-                    IdUsuarioAutor = idUsuarioAutor,
-                    TipoCalificacion = tipoTexto,
-                    Puntaje = puntaje,
-                    Comentario = comentarioLimpio
-                };
+                    string tipoTexto = tipo.ToString();
+                    Calificacion calificacion = new Calificacion
+                    {
+                        IdReserva = idReserva,
+                        IdUsuarioAutor = idUsuarioAutor,
+                        TipoCalificacion = tipoTexto,
+                        Puntaje = puntaje,
+                        Comentario = comentarioLimpio
+                    };
 
-                if (_mppCalificacion.Existe(calificacion))
-                {
-                    return ResultadoOperacion<int>.Error("Esta calificación ya fue enviada anteriormente.");
-                }
+                    if (_mppCalificacion.Existe(calificacion))
+                    {
+                        return ResultadoOperacion<int>.Error("Esta calificación ya fue enviada anteriormente.");
+                    }
 
-                int idCalificacion = _mppCalificacion.Insertar(calificacion);
+                    int idCalificacion = _mppCalificacion.Insertar(calificacion);
 
-                _bitacora.Registrar(
-                    idUsuarioAutor,
-                    "ALTA",
-                    "Calificacion",
-                    idCalificacion,
-                    tipo == TipoCalificacion.Espacio
-                        ? "El solicitante calificó el espacio \"" + reserva.NombreEspacio + "\" después de la reserva."
-                        : "El gestor calificó al solicitante después de la reserva del espacio \"" + reserva.NombreEspacio + "\".");
+                    _bitacora.Registrar(
+                        idUsuarioAutor,
+                        "ALTA",
+                        "Calificacion",
+                        idCalificacion,
+                        tipo == TipoCalificacion.Espacio
+                            ? "El solicitante calificó el espacio \"" + reserva.NombreEspacio + "\" después de la reserva."
+                            : "El gestor calificó al solicitante después de la reserva del espacio \"" + reserva.NombreEspacio + "\".");
 
-                return ResultadoOperacion<int>.Ok(
-                    idCalificacion,
-                    tipo == TipoCalificacion.Espacio
-                        ? "Gracias. Tu reseña del espacio ya fue publicada."
-                        : "Gracias. La calificación del solicitante quedó registrada.");
+                    return ResultadoOperacion<int>.Ok(
+                        idCalificacion,
+                        tipo == TipoCalificacion.Espacio
+                            ? "Gracias. Tu reseña del espacio ya fue publicada."
+                            : "Gracias. La calificación del solicitante quedó registrada.");
+                }, resultado => resultado.Exitoso);
             }
             catch (ErrorAccesoDatosException)
             {

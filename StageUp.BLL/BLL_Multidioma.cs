@@ -9,6 +9,7 @@ namespace StageUp.BLL
     public class BLL_Multidioma : IObservableIdioma
     {
         private static readonly object CacheLock = new object();
+        private static long VersionCache;
         private static readonly Dictionary<int, IList<Traduccion>> CacheTraducciones =
             new Dictionary<int, IList<Traduccion>>();
 
@@ -54,33 +55,40 @@ namespace StageUp.BLL
             lock (CacheLock)
             {
                 CacheTraducciones.Remove(idIdioma);
+                VersionCache++;
             }
         }
 
         private IList<Traduccion> ObtenerDiccionario(int idIdioma)
         {
-            lock (CacheLock)
+            while (true)
             {
-                IList<Traduccion> traduccionesCacheadas;
-                if (CacheTraducciones.TryGetValue(idIdioma, out traduccionesCacheadas))
+                long version;
+                lock (CacheLock)
                 {
-                    return traduccionesCacheadas;
-                }
-            }
-
-            IList<Traduccion> traducciones = _mppTraduccion.ListarDiccionario(
-                new Idioma { IdIdioma = idIdioma });
-
-            lock (CacheLock)
-            {
-                IList<Traduccion> traduccionesCacheadas;
-                if (CacheTraducciones.TryGetValue(idIdioma, out traduccionesCacheadas))
-                {
-                    return traduccionesCacheadas;
+                    IList<Traduccion> traduccionesCacheadas;
+                    if (CacheTraducciones.TryGetValue(idIdioma, out traduccionesCacheadas))
+                    {
+                        return traduccionesCacheadas;
+                    }
+                    version = VersionCache;
                 }
 
-                CacheTraducciones[idIdioma] = traducciones;
-                return traducciones;
+                IList<Traduccion> traducciones = _mppTraduccion.ListarDiccionario(
+                    new Idioma { IdIdioma = idIdioma });
+
+                lock (CacheLock)
+                {
+                    if (version != VersionCache) continue;
+                    IList<Traduccion> traduccionesCacheadas;
+                    if (CacheTraducciones.TryGetValue(idIdioma, out traduccionesCacheadas))
+                    {
+                        return traduccionesCacheadas;
+                    }
+
+                    CacheTraducciones[idIdioma] = traducciones;
+                    return traducciones;
+                }
             }
         }
     }

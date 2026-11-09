@@ -67,6 +67,7 @@ namespace StageUp.BE.Entidades
         public int? IdFranjaEspacio { get; set; }
 
         public int? DiaSemana { get; set; }
+        public int? SemanaDelMes { get; set; }
         public string Fecha { get; set; }
         public int MinutoDesde { get; set; }
         public int MinutoHasta { get; set; }

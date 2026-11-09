@@ -77,7 +77,13 @@ namespace StageUp.BLL
                 return ResultadoOperacion<ReporteCompleto>.Error("La fecha desde no puede ser posterior a la fecha hasta.");
             }
 
-            if (filtro.Desde.AddYears(MaximoAniosDeRango) < filtro.Hasta)
+            if (filtro.Desde.Year < 1753 || filtro.Hasta.Year > 9998)
+            {
+                return ResultadoOperacion<ReporteCompleto>.Error("Ingresá fechas entre el 01/01/1753 y el 31/12/9998.");
+            }
+
+            if (filtro.Desde.Year <= DateTime.MaxValue.Year - MaximoAniosDeRango &&
+                filtro.Desde.AddYears(MaximoAniosDeRango) < filtro.Hasta)
             {
                 return ResultadoOperacion<ReporteCompleto>.Error(
                     "El período no puede superar los " + MaximoAniosDeRango + " años.");

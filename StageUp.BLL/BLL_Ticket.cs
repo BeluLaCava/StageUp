@@ -124,6 +124,11 @@ namespace StageUp.BLL
 
         public ResultadoOperacion<int> RegistrarSolicitud(SolicitudSoporteNueva datos)
         {
+            return EjecutarCambio(0, () => RegistrarSolicitudInterno(datos));
+        }
+
+        private ResultadoOperacion<int> RegistrarSolicitudInterno(SolicitudSoporteNueva datos)
+        {
             string motivo = Limpiar(datos.Motivo);
             string funcionalidad = Limpiar(datos.FuncionalidadVinculada);
             string descripcion = Limpiar(datos.Descripcion);
@@ -197,9 +202,9 @@ namespace StageUp.BLL
                     "Registro de la solicitud de soporte " + codigo + " \"" + motivo + "\" (funcionalidad: " + TextoFuncionalidad(funcionalidad) +
                     ", origen: " + TextoOrigen(origen) + (reserva != null ? ", reserva #" + reserva.IdReserva : string.Empty) + ").");
 
-                _bllNotificacion.Notificar(datos.IdUsuarioExterno, TipoNotificacion.SolicitudSoporteRegistrada,
+                Conexion.Instance.DespuesDeConfirmar(() => _bllNotificacion.Notificar(datos.IdUsuarioExterno, TipoNotificacion.SolicitudSoporteRegistrada,
                     "Registramos tu solicitud " + codigo + " (\"" + motivo + "\"). Estado: " + TextoEstado(EstadoPendiente) + ".",
-                    UrlSeguimiento(idTicket));
+                    UrlSeguimiento(idTicket)));
 
                 return ResultadoOperacion<int>.Ok(idTicket,
                     "Tu solicitud de soporte " + codigo + " se registró correctamente. Estado: " + TextoEstado(EstadoPendiente) + ". Te avisamos cuando haya novedades.");
@@ -294,6 +299,11 @@ namespace StageUp.BLL
         }
 
         public ResultadoOperacion AgregarMensajeUsuario(int idTicket, int idUsuarioExterno, string mensaje)
+        {
+            return EjecutarCambio(idTicket, () => AgregarMensajeUsuarioInterno(idTicket, idUsuarioExterno, mensaje));
+        }
+
+        private ResultadoOperacion AgregarMensajeUsuarioInterno(int idTicket, int idUsuarioExterno, string mensaje)
         {
             string texto;
             ResultadoOperacion validacion = ValidarMensaje(mensaje, 2, out texto);
@@ -447,6 +457,11 @@ namespace StageUp.BLL
 
         public ResultadoOperacion RegistrarRespuesta(int idTicket, int idUsuarioInterno, string respuesta, bool marcarResuelta, string estadoVisto)
         {
+            return EjecutarCambio(idTicket, () => RegistrarRespuestaInterno(idTicket, idUsuarioInterno, respuesta, marcarResuelta, estadoVisto));
+        }
+
+        private ResultadoOperacion RegistrarRespuestaInterno(int idTicket, int idUsuarioInterno, string respuesta, bool marcarResuelta, string estadoVisto)
+        {
             string texto;
             ResultadoOperacion validacion = ValidarMensaje(respuesta, LongitudMinimaRespuesta, out texto);
             if (!validacion.Exitoso)
@@ -484,12 +499,12 @@ namespace StageUp.BLL
                     "Respuesta de soporte en la solicitud " + ticket.Codigo + " \"" + ticket.Motivo + "\"" +
                     (cambioEstado ? "; estado: " + TextoEstado(ticket.Estado) + " -> " + TextoEstado(estadoNuevo) + "." : "."));
 
-                _bllNotificacion.Notificar(ticket.IdUsuarioExterno, TipoNotificacion.RespuestaTicket,
+                Conexion.Instance.DespuesDeConfirmar(() => _bllNotificacion.Notificar(ticket.IdUsuarioExterno, TipoNotificacion.RespuestaTicket,
                     "Soporte respondió tu solicitud " + ticket.Codigo + " (\"" + ticket.Motivo + "\")" +
                     (estadoNuevo == EstadoResuelta && cambioEstado ? " y la marcó como resuelta." :
                      cambioEstado ? ". Estado: " + TextoEstado(estadoNuevo) + "." : "."),
-                    UrlSeguimiento(idTicket));
-                EnviarCorreoSinFallar(ticket);
+                    UrlSeguimiento(idTicket)));
+                Conexion.Instance.DespuesDeConfirmar(() => EnviarCorreoSinFallar(ticket));
 
                 return ResultadoOperacion.Ok(estadoNuevo == EstadoResuelta && cambioEstado
                     ? "La respuesta se guardó y la solicitud quedó resuelta. El usuario ya puede verla."
@@ -543,6 +558,11 @@ namespace StageUp.BLL
 
         public ResultadoOperacion CambiarEstado(int idTicket, string estadoNuevo, int idUsuarioInterno, bool puedeReabrir, string estadoVisto)
         {
+            return EjecutarCambio(idTicket, () => CambiarEstadoInterno(idTicket, estadoNuevo, idUsuarioInterno, puedeReabrir, estadoVisto));
+        }
+
+        private ResultadoOperacion CambiarEstadoInterno(int idTicket, string estadoNuevo, int idUsuarioInterno, bool puedeReabrir, string estadoVisto)
+        {
             try
             {
                 Ticket ticket = _mpp.ObtenerPorId(new Ticket { IdTicket = idTicket });
@@ -577,9 +597,9 @@ namespace StageUp.BLL
                     "Cambio de estado de la solicitud " + ticket.Codigo + " \"" + ticket.Motivo + "\": " +
                     TextoEstado(ticket.Estado) + " -> " + TextoEstado(estadoNuevo) + ".");
 
-                _bllNotificacion.Notificar(ticket.IdUsuarioExterno, TipoNotificacion.SolicitudSoporteActualizada,
+                Conexion.Instance.DespuesDeConfirmar(() => _bllNotificacion.Notificar(ticket.IdUsuarioExterno, TipoNotificacion.SolicitudSoporteActualizada,
                     "Tu solicitud " + ticket.Codigo + " (\"" + ticket.Motivo + "\") pasó a \"" + TextoEstado(estadoNuevo) + "\".",
-                    UrlSeguimiento(idTicket));
+                    UrlSeguimiento(idTicket)));
 
                 if (estadoNuevo == EstadoCerrada)
                 {
@@ -596,6 +616,11 @@ namespace StageUp.BLL
         }
 
         public ResultadoOperacion Asignar(int idTicket, int? idUsuarioInternoAsignado, int idUsuarioInternoResponsable)
+        {
+            return EjecutarCambio(idTicket, () => AsignarInterno(idTicket, idUsuarioInternoAsignado, idUsuarioInternoResponsable));
+        }
+
+        private ResultadoOperacion AsignarInterno(int idTicket, int? idUsuarioInternoAsignado, int idUsuarioInternoResponsable)
         {
             try
             {
@@ -646,6 +671,11 @@ namespace StageUp.BLL
 
         public ResultadoOperacion Tomar(int idTicket, int idUsuarioInterno)
         {
+            return EjecutarCambio(idTicket, () => TomarInterno(idTicket, idUsuarioInterno));
+        }
+
+        private ResultadoOperacion TomarInterno(int idTicket, int idUsuarioInterno)
+        {
             try
             {
                 Ticket ticket = _mpp.ObtenerPorId(new Ticket { IdTicket = idTicket });
@@ -672,9 +702,9 @@ namespace StageUp.BLL
 
                 if (estadoFinal != ticket.Estado)
                 {
-                    _bllNotificacion.Notificar(ticket.IdUsuarioExterno, TipoNotificacion.SolicitudSoporteActualizada,
+                    Conexion.Instance.DespuesDeConfirmar(() => _bllNotificacion.Notificar(ticket.IdUsuarioExterno, TipoNotificacion.SolicitudSoporteActualizada,
                         "Tu solicitud " + ticket.Codigo + " (\"" + ticket.Motivo + "\") pasó a \"" + TextoEstado(estadoFinal) + "\": el equipo de soporte ya la está atendiendo.",
-                        UrlSeguimiento(idTicket));
+                        UrlSeguimiento(idTicket)));
                 }
 
                 return ResultadoOperacion.Ok("Tomaste la solicitud " + ticket.Codigo +
@@ -876,23 +906,35 @@ namespace StageUp.BLL
 
         private void RegistrarBitacoraExterna(int idUsuarioExterno, string operacion, int idTicket, string descripcion)
         {
-            try
-            {
-                _bitacora.Registrar(idUsuarioExterno, operacion, TipoEntidadBitacora, idTicket, descripcion);
-            }
-            catch (ErrorAccesoDatosException)
-            {
-            }
+            _bitacora.Registrar(idUsuarioExterno, operacion, TipoEntidadBitacora, idTicket, descripcion);
         }
 
         private void RegistrarBitacoraInterna(int idUsuarioInterno, string operacion, int idTicket, string descripcion)
         {
+            _bitacora.RegistrarInterno(idUsuarioInterno, operacion, TipoEntidadBitacora, idTicket, descripcion);
+        }
+
+        private static ResultadoOperacion EjecutarCambio(int idTicket, Func<ResultadoOperacion> operacion)
+        {
             try
             {
-                _bitacora.RegistrarInterno(idUsuarioInterno, operacion, TipoEntidadBitacora, idTicket, descripcion);
+                return Conexion.Instance.EjecutarAtomico("StageUp:Ticket:" + idTicket, operacion, resultado => resultado.Exitoso);
+            }
+            catch (ErrorAccesoDatosException ex)
+            {
+                return ErrorDeActualizacion(ex);
+            }
+        }
+
+        private static ResultadoOperacion<T> EjecutarCambio<T>(int idTicket, Func<ResultadoOperacion<T>> operacion)
+        {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico("StageUp:Ticket:" + idTicket, operacion, resultado => resultado.Exitoso);
             }
             catch (ErrorAccesoDatosException)
             {
+                return ResultadoOperacion<T>.Error(MensajeErrorRegistro, "A4");
             }
         }
 

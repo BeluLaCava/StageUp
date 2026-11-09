@@ -52,6 +52,11 @@ namespace StageUp.BLL
 
         public ResultadoOperacion<int> Preguntar(int idEspacioArtistico, int? idUsuarioExterno, string texto)
         {
+            return EjecutarCambio(() => PreguntarInterno(idEspacioArtistico, idUsuarioExterno, texto));
+        }
+
+        private ResultadoOperacion<int> PreguntarInterno(int idEspacioArtistico, int? idUsuarioExterno, string texto)
+        {
             if (!idUsuarioExterno.HasValue)
             {
                 return ResultadoOperacion<int>.Error("Iniciá sesión para hacer una pregunta sobre el espacio.");
@@ -99,9 +104,9 @@ namespace StageUp.BLL
                 Bitacora(idUsuarioExterno.Value, "ALTA", idPregunta,
                     "Pregunta pública sobre el espacio \"" + espacio.NombreEspacio + "\": \"" + Recortar(pregunta, 120) + "\".");
 
-                _bllNotificacion.Notificar(espacio.IdUsuarioGestor, TipoNotificacion.PreguntaEspacioRecibida,
+                Conexion.Instance.DespuesDeConfirmar(() => _bllNotificacion.Notificar(espacio.IdUsuarioGestor, TipoNotificacion.PreguntaEspacioRecibida,
                     "Te preguntaron sobre \"" + espacio.NombreEspacio + "\": \"" + Recortar(pregunta, 120) + "\"",
-                    "~/PreguntasRecibidas.aspx?espacio=" + idEspacioArtistico);
+                    "~/PreguntasRecibidas.aspx?espacio=" + idEspacioArtistico));
 
                 return ResultadoOperacion<int>.Ok(idPregunta, "Tu pregunta se publicó. Te avisamos cuando el gestor responda.");
             }
@@ -112,6 +117,11 @@ namespace StageUp.BLL
         }
 
         public ResultadoOperacion Retirar(int idPreguntaEspacio, int idUsuarioExterno)
+        {
+            return EjecutarCambio(() => RetirarInterno(idPreguntaEspacio, idUsuarioExterno));
+        }
+
+        private ResultadoOperacion RetirarInterno(int idPreguntaEspacio, int idUsuarioExterno)
         {
             try
             {
@@ -145,6 +155,11 @@ namespace StageUp.BLL
 
         public ResultadoOperacion Responder(int idPreguntaEspacio, int idUsuarioGestor, string texto)
         {
+            return EjecutarCambio(() => ResponderInterno(idPreguntaEspacio, idUsuarioGestor, texto));
+        }
+
+        private ResultadoOperacion ResponderInterno(int idPreguntaEspacio, int idUsuarioGestor, string texto)
+        {
             string respuesta = Limpiar(texto);
             ResultadoOperacion validacion = ValidarTexto(respuesta, LongitudMinimaRespuesta, LongitudMaximaRespuesta, "la respuesta");
             if (!validacion.Exitoso)
@@ -176,9 +191,9 @@ namespace StageUp.BLL
                 Bitacora(idUsuarioGestor, "RESPUESTA", idPreguntaEspacio,
                     "Respuesta del gestor a una pregunta sobre el espacio \"" + pregunta.NombreEspacio + "\".");
 
-                _bllNotificacion.Notificar(pregunta.IdUsuarioExterno, TipoNotificacion.PreguntaEspacioRespondida,
+                Conexion.Instance.DespuesDeConfirmar(() => _bllNotificacion.Notificar(pregunta.IdUsuarioExterno, TipoNotificacion.PreguntaEspacioRespondida,
                     "El gestor de \"" + pregunta.NombreEspacio + "\" respondió tu pregunta: \"" + Recortar(respuesta, 120) + "\"",
-                    "~/Explorar/DetalleEspacio.aspx?id=" + pregunta.IdEspacioArtistico + "&pregunta=" + idPreguntaEspacio);
+                    "~/Explorar/DetalleEspacio.aspx?id=" + pregunta.IdEspacioArtistico + "&pregunta=" + idPreguntaEspacio));
 
                 return ResultadoOperacion.Ok("Tu respuesta se publicó y le avisamos a quien preguntó.");
             }
@@ -189,6 +204,11 @@ namespace StageUp.BLL
         }
 
         public ResultadoOperacion Ocultar(int idPreguntaEspacio, int idUsuarioGestor, string motivo)
+        {
+            return EjecutarCambio(() => OcultarInterno(idPreguntaEspacio, idUsuarioGestor, motivo));
+        }
+
+        private ResultadoOperacion OcultarInterno(int idPreguntaEspacio, int idUsuarioGestor, string motivo)
         {
             string motivoLimpio = Limpiar(motivo);
             if (motivoLimpio == null || motivoLimpio.Length < LongitudMinimaMotivo)
@@ -225,9 +245,9 @@ namespace StageUp.BLL
                 Bitacora(idUsuarioGestor, "BAJA", idPreguntaEspacio,
                     "Pregunta ocultada por el gestor en el espacio \"" + pregunta.NombreEspacio + "\". Motivo: " + motivoLimpio);
 
-                _bllNotificacion.Notificar(pregunta.IdUsuarioExterno, TipoNotificacion.PreguntaEspacioOcultada,
+                Conexion.Instance.DespuesDeConfirmar(() => _bllNotificacion.Notificar(pregunta.IdUsuarioExterno, TipoNotificacion.PreguntaEspacioOcultada,
                     "El gestor de \"" + pregunta.NombreEspacio + "\" ocultó tu pregunta. Motivo: " + Recortar(motivoLimpio, 150),
-                    "~/Explorar/DetalleEspacio.aspx?id=" + pregunta.IdEspacioArtistico);
+                    "~/Explorar/DetalleEspacio.aspx?id=" + pregunta.IdEspacioArtistico));
 
                 return ResultadoOperacion.Ok("La pregunta quedó oculta: ya no se ve en el espacio.");
             }
@@ -292,12 +312,30 @@ namespace StageUp.BLL
 
         private void Bitacora(int idUsuarioExterno, string operacion, int idPregunta, string descripcion)
         {
+            _bitacora.Registrar(idUsuarioExterno, operacion, TipoEntidadBitacora, idPregunta, descripcion);
+        }
+
+        private static ResultadoOperacion EjecutarCambio(Func<ResultadoOperacion> operacion)
+        {
             try
             {
-                _bitacora.Registrar(idUsuarioExterno, operacion, TipoEntidadBitacora, idPregunta, descripcion);
+                return Conexion.Instance.EjecutarAtomico("StageUp:PreguntasEspacio", operacion, r => r.Exitoso);
             }
             catch (ErrorAccesoDatosException)
             {
+                return ResultadoOperacion.Error(MensajeError);
+            }
+        }
+
+        private static ResultadoOperacion<T> EjecutarCambio<T>(Func<ResultadoOperacion<T>> operacion)
+        {
+            try
+            {
+                return Conexion.Instance.EjecutarAtomico("StageUp:PreguntasEspacio", operacion, r => r.Exitoso);
+            }
+            catch (ErrorAccesoDatosException)
+            {
+                return ResultadoOperacion<T>.Error(MensajeError);
             }
         }
 

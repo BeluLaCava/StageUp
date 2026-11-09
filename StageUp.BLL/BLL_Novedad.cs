@@ -814,7 +814,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return operacion();
+                return Conexion.Instance.EjecutarAtomico("StageUp:Novedades", operacion, r => r.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {
@@ -826,7 +826,7 @@ namespace StageUp.BLL
         {
             try
             {
-                return operacion();
+                return Conexion.Instance.EjecutarAtomico("StageUp:Novedades", operacion, r => r.Exitoso);
             }
             catch (ErrorAccesoDatosException ex)
             {

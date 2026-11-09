@@ -40,6 +40,11 @@
             Valor = valor;
         }
 
+        internal static ResultadoOperacion<T> ErrorConValor(T valor, string mensaje, string codigoAlternativo)
+        {
+            return new ResultadoOperacion<T>(false, mensaje, codigoAlternativo, valor);
+        }
+
         public static ResultadoOperacion<T> Ok(T valor, string mensaje = null)
         {
             return new ResultadoOperacion<T>(true, mensaje, null, valor);

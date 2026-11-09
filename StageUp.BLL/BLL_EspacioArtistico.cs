@@ -399,7 +399,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion<int> Registrar(int idUsuarioGestor, string nombreEspacio, string descripcion, string tipoEspacio)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
             {
                 ResultadoOperacion validacion = ValidarDatosBasicos(nombreEspacio, descripcion, tipoEspacio);
                 if (!validacion.Exitoso)
@@ -422,12 +422,12 @@ namespace StageUp.BLL
                     "Alta de espacio artístico \"" + espacio.NombreEspacio + "\" (borrador).");
 
                 return ResultadoOperacion<int>.Ok(idEspacioArtistico, "El espacio se guardó como borrador. Podés publicarlo cuando quieras.");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         public ResultadoOperacion Modificar(int idEspacioArtistico, int idUsuarioGestorSolicitante, string nombreEspacio, string descripcion, string tipoEspacio)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
             {
                 ResultadoOperacion validacion = ValidarDatosBasicos(nombreEspacio, descripcion, tipoEspacio);
                 if (!validacion.Exitoso)
@@ -458,7 +458,7 @@ namespace StageUp.BLL
                     "Modificación de espacio artístico \"" + espacio.NombreEspacio + "\".");
 
                 return ResultadoOperacion.Ok("Los cambios se guardaron correctamente.");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         public static List<FranjaEspacio> ObtenerFranjasEditables(FichaEspacio ficha)
@@ -677,7 +677,7 @@ namespace StageUp.BLL
 
         public ResultadoOperacion Publicar(int idEspacioArtistico, int idUsuarioGestorSolicitante)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
             {
                 EspacioArtistico espacio = _mppEspacio.ObtenerPorId(
                     new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
@@ -694,12 +694,12 @@ namespace StageUp.BLL
                     "Publicación del espacio artístico \"" + espacio.NombreEspacio + "\".");
 
                 return ResultadoOperacion.Ok("El espacio ya está publicado y va a poder verse en el catálogo público.");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         public ResultadoOperacion Pausar(int idEspacioArtistico, int idUsuarioGestorSolicitante)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
             {
                 EspacioArtistico espacio = _mppEspacio.ObtenerPorId(
                     new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
@@ -716,12 +716,12 @@ namespace StageUp.BLL
                     "Pausa del espacio artístico \"" + espacio.NombreEspacio + "\" (dejó de estar publicado).");
 
                 return ResultadoOperacion.Ok("El espacio quedó pausado y ya no se muestra en el catálogo público.");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         public ResultadoOperacion DarDeBaja(int idEspacioArtistico, int idUsuarioGestorSolicitante)
         {
-            return EjecutarProtegido(() =>
+            return EjecutarProtegido(() => Conexion.Instance.EjecutarAtomico(Conexion.RecursoAgenda, () =>
             {
                 EspacioArtistico espacio = _mppEspacio.ObtenerPorId(
                     new EspacioArtistico { IdEspacioArtistico = idEspacioArtistico });
@@ -738,7 +738,7 @@ namespace StageUp.BLL
                     "Baja lógica del espacio artístico \"" + espacio.NombreEspacio + "\".");
 
                 return ResultadoOperacion.Ok("El espacio se dio de baja. Se mantiene en el historial pero ya no está disponible.");
-            });
+            }, resultado => resultado.Exitoso));
         }
 
         private static ResultadoOperacion ValidarDatosBasicos(string nombreEspacio, string descripcion, string tipoEspacio)
